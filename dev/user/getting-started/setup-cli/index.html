@@ -1007,9 +1007,13 @@
 <p>The main tool for administrating Quick is its <a href="https://github.com/bakdata/quick-cli">CLI</a>.
 Before you can start to work with Quick, you will have to set it up.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>The first step is to install the Quick CLI. You can do this via pip:</p>
-<div class="highlight"><pre><span></span><code>pip install quick-cli<span class="o">==</span><span class="s2">&quot;0.4.1-dev&quot;</span>
-</code></pre></div>
+<p>The first step is to install the Quick CLI. 
+You can do this via pip.
+Quick CLI works with Python versions 3.7-3.9:
+<div class="highlight"><pre><span></span><code>pip install --index-url https://test.pypi.org/simple/ <span class="se">\</span>
+     --extra-index-url https://pypi.org/simple/ <span class="se">\</span>
+     quick-cli
+</code></pre></div></p>
 <p>The command <code>quick -v</code> lets you verify that the installation was successful.</p>
 <h2 id="context-configuration">Context configuration<a class="headerlink" href="#context-configuration" title="Permanent link">&para;</a></h2>
 <p>Next, you can configure the Quick cluster's host and API key.

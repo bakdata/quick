@@ -442,50 +442,37 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cloud" class="md-nav__link">
-    Cloud
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#local" class="md-nav__link">
-    Local
-  </a>
-  
-    <nav class="md-nav" aria-label="Local">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#prerequisites" class="md-nav__link">
     Prerequisites
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#kubernetes" class="md-nav__link">
-    Kubernetes
+      
+        <li class="md-nav__item">
+  <a href="#setup-kubernetes-with-k3d" class="md-nav__link">
+    Setup Kubernetes with k3d
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
+  <a href="#traefik-optional" class="md-nav__link">
+    Traefik (optional)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#kafka" class="md-nav__link">
     Kafka
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#quick" class="md-nav__link">
     Quick
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1006,50 +993,37 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cloud" class="md-nav__link">
-    Cloud
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#local" class="md-nav__link">
-    Local
-  </a>
-  
-    <nav class="md-nav" aria-label="Local">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#prerequisites" class="md-nav__link">
     Prerequisites
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#kubernetes" class="md-nav__link">
-    Kubernetes
+      
+        <li class="md-nav__item">
+  <a href="#setup-kubernetes-with-k3d" class="md-nav__link">
+    Setup Kubernetes with k3d
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
+  <a href="#traefik-optional" class="md-nav__link">
+    Traefik (optional)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#kafka" class="md-nav__link">
     Kafka
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#quick" class="md-nav__link">
     Quick
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1072,23 +1046,22 @@
 
 
 <h1 id="setup-quick">Setup Quick<a class="headerlink" href="#setup-quick" title="Permanent link">&para;</a></h1>
-<h2 id="cloud">Cloud<a class="headerlink" href="#cloud" title="Permanent link">&para;</a></h2>
-<hr />
-<h2 id="local">Local<a class="headerlink" href="#local" title="Permanent link">&para;</a></h2>
-<p>In this part, you will set up a locally running Quick cluster. This includes:</p>
+<p>In this part, you will set up a Quick cluster. This includes:</p>
 <ul>
-<li>creating a local Kubernetes cluster</li>
+<li>optionally creating a local Kubernetes cluster</li>
 <li>running Apache Kafka and Confluent's Schema Registry</li>
 <li>deploying Quick</li>
 </ul>
-<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="https://k3d.io/v5.3.0">k3d (Version 5.3.0+)</a> and <a href="https://www.docker.com/get-started/">Docker (Version &gt;= v20.10.5)</a></li>
-<li><a href="https://kubernetes.io/docs/tasks/tools/">kubectl (Compatible with server version 1.22.0)</a></li>
+<li><a href="https://k3d.io/v5.3.0">k3d (Version 5.3.0+)</a> and <a href="https://www.docker.com/get-started/">Docker (Version &gt;= v20.10.5)</a> or an existing Kubernetes cluster (&gt;= 1.21.0)</li>
+<li><a href="https://kubernetes.io/docs/tasks/tools/">kubectl (Compatible with server version 1.21.0)</a></li>
 <li><a href="https://helm.sh">Helm (Version 3.8.0+)</a></li>
 </ul>
-<h3 id="kubernetes">Kubernetes<a class="headerlink" href="#kubernetes" title="Permanent link">&para;</a></h3>
-<p>We recommend the lightweight Kubernetes distribution <a href="https://k3s.io/">k3s</a> for the local cluster.
+<h2 id="setup-kubernetes-with-k3d">Setup Kubernetes with k3d<a class="headerlink" href="#setup-kubernetes-with-k3d" title="Permanent link">&para;</a></h2>
+<p>If you don't have access to an existing Kubernetes cluster,
+this section will guide you through creating a local cluster.
+We recommend the lightweight Kubernetes distribution <a href="https://k3s.io/">k3s</a> for this.
 <a href="https://k3d.io/">k3d</a> is a wrapper around k3s in Docker, that lets you get started fast.
 You can install it with the k3d's installation script:
 <div class="highlight"><pre><span></span><code>wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/v5.3.0/install.sh <span class="p">|</span> bash
@@ -1098,7 +1071,8 @@ you can have a look at their <a href="https://k3d.io/v5.3.0/#installation">insta
 <div class="admonition attention">
 <p class="admonition-title">Attention</p>
 <p>k3s includes <a href="https://traefik.io">Traefik</a> as a loadbalancer.
-In case you want to use a different Kubernetes distribution, you might have to install Traefik separately.</p>
+In case you want to use a different Kubernetes distribution, you might have to install Traefik separately.
+For more information, please refer to the <a href="./#traefik-optional">Traefik deployment</a> section.</p>
 </div>
 <p>With k3d installed, you can create a new cluster called <code>quick</code>:
 <div class="highlight"><pre><span></span><code>k3d cluster create quick
@@ -1113,8 +1087,8 @@ k3d offers <a href="https://k3d.io/v5.3.0/usage/kubeconfig/#handling-kubeconfigs
 When all returned elements have a <code>STATUS</code> of <code>Running</code> or <code>Completed</code>, you can query the load balancer address:
 <div class="highlight"><pre><span></span><code>kubectl get services --namespace kube-system traefik --output <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.status.loadBalancer.ingress[0].ip}&#39;</span>
 </code></pre></div>
-In the following, the guide will use the variable <code>QUICK_HOST</code> to refer to the loadbalancer address.
-You can set it depending on your shell, for example, bash/zsh:</p>
+In the following, the guide will use the variable <code>QUICK_URL</code> to refer to the loadbalancer address.
+You can set it depending on your shell:</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">bash/zsh</label><label for="__tabbed_1_2">fish</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -1129,13 +1103,41 @@ You can set it depending on your shell, for example, bash/zsh:</p>
 </div>
 </div>
 </div>
-<h3 id="kafka">Kafka<a class="headerlink" href="#kafka" title="Permanent link">&para;</a></h3>
+<h2 id="traefik-optional">Traefik (optional)<a class="headerlink" href="#traefik-optional" title="Permanent link">&para;</a></h2>
+<p>k3s uses <a href="https://doc.traefik.io/traefik/">Traefik</a> by default as its loadbalancer.
+If you are using k3s as your Kubernetes distribution,
+you can go directly to the <a href="./#kafka">Kafka deployment</a> section.
+However, if you are using another Kubernetes distribution,
+you can use this guide to deploy Traefik to your Kubernetes cluster.</p>
+<p>This section provides a step-by-step guide on how to deploy Traefik to your Kubernetes cluster.
+Traefik is the Ingress controller Quick needs for load balancing incoming requests.
+We recommend the <a href="https://github.com/traefik/traefik-helm-chart">official Helm chart</a> to deploy Traefik.</p>
+<ol>
+<li>
+<p>Add Traefik Helm repository
+   <div class="highlight"><pre><span></span><code>helm repo add traefik https://helm.traefik.io/traefik <span class="o">&amp;&amp;</span> helm repo update
+</code></pre></div></p>
+</li>
+<li>
+<p>Deploy Traefik with Helm
+   <div class="highlight"><pre><span></span><code>helm upgrade --install traefik traefik/traefik <span class="se">\</span>
+    --namespace infrastructure
+</code></pre></div></p>
+</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This guide uses the <a href="https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml">default values</a> of Traefik's Helm charts for the deployment.
+For instance, Traefik won't use TLS with this configuration.
+For more information on how you can enable TLS, please refer to the <a href="https://doc.traefik.io/traefik/https/tls/">Traefik documentation</a>.</p>
+</div>
+<h2 id="kafka">Kafka<a class="headerlink" href="#kafka" title="Permanent link">&para;</a></h2>
 <p>To deploy Kafka, this guide uses Confluent's Helm Chart. </p>
 <ol>
 <li>
 <p>Add Confluent's Helm Chart repository</p>
 <div class="highlight"><pre><span></span><code>helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/ <span class="o">&amp;&amp;</span>  
-     helm repo update
+helm repo update
 </code></pre></div>
 </li>
 <li>
@@ -1154,7 +1156,7 @@ You can set it depending on your shell, for example, bash/zsh:</p>
 </li>
 </ol>
 <details>
-<summary>Kafka Helm Chart Values</summary>
+<summary>Kafka Helm Chart Values (<code>kafka.yaml</code>)</summary>
 <p>An example value configuration for Confluent's Helm chart.
 This configuration deploys a single Broker, a Schema Registry and Zookeeper with minimal resources.
 <div class="highlight"><span class="filename">kafka.yaml</span><pre><span></span><code><span class="nt">cp-zookeeper</span><span class="p">:</span><span class="w"></span>
@@ -1232,58 +1234,73 @@ You should now have Zookeeper, Kafka and the Schema Registry running in a namesp
 <p>In the Kubernetes cluster,
 you can connect to Kafka with <code>k8kafka-cp-kafka.infrastructure:9092</code> and the Schema Registry with <code>http://k8kafka-cp-schema-registry.infrastructure:8081</code>.
 You are now set to deploy Quick itself.</p>
-<h3 id="quick">Quick<a class="headerlink" href="#quick" title="Permanent link">&para;</a></h3>
+<h2 id="quick">Quick<a class="headerlink" href="#quick" title="Permanent link">&para;</a></h2>
 <p>Quick comes with its own Helm chart for installing it in Kubernetes clusters.</p>
 <ul>
 <li>Add the Quick Helm chart repository and update the index:
 <div class="highlight"><pre><span></span><code>helm repo add quick https://bakdata.github.io/quick <span class="o">&amp;&amp;</span> helm repo update
 </code></pre></div></li>
-<li>Install Quick with Helm.
+<li>
+<p>Crate a random secret key called <code>QUICK_API_KEY</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">bash/zsh</label><label for="__tabbed_2_2">fish</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nb">export</span> <span class="nv">QUICK_API_KEY</span><span class="o">=</span><span class="s2">&quot;random-key&quot;</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nb">set</span> QUICK_API_KEY <span class="s2">&quot;random-key&quot;</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Install Quick with Helm.
   Below is an example <code>quick.yaml</code> as a configuration for Quick in local clusters.
-  The variable <code>QUICK_API_KEY</code> sets a secret key for accessing Quick later.
-  You can generate a random key and save it for later use.
-<div class="highlight"><pre><span></span><code>helm upgrade --install quick quick/quick <span class="se">\</span>
+  <div class="highlight"><pre><span></span><code>helm upgrade --install quick quick/quick <span class="se">\</span>
     --namespace quick <span class="se">\</span>
     --version <span class="m">0</span>.4.1-dev <span class="se">\</span>
     --create-namespace <span class="se">\</span>
     --set <span class="nv">apiKey</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span> <span class="se">\</span>
     -f <span class="s2">&quot;./quick.yaml&quot;</span>
-</code></pre></div></li>
+</code></pre></div></p>
+</li>
 </ul>
 <details>
-<summary>Quick Helm Chart Values</summary>
+<summary>Quick Helm Chart Values (<code>quick.yaml</code>)</summary>
 <p>An example configuration for local Kubernetes clusters.
 It lets Quick work with a single Kafka broker and HTTP instead of HTTPS.
 For more information about the configuration of Quick's Helm Chart, please see <a href="/user/reference/helm-chart">the reference</a>.
 <div class="highlight"><span class="filename">quick.yaml</span><pre><span></span><code><span class="nt">image</span><span class="p">:</span><span class="w"></span>
-<span class="nt">pullPolicy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Always&quot;</span><span class="w"></span>
-<span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.4.1-dev&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">pullPolicy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Always&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.4.1-dev&quot;</span><span class="w"></span>
 
 <span class="nt">ingress</span><span class="p">:</span><span class="w"></span>
-<span class="nt">ssl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"></span>
-<span class="nt">entrypoint</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;web&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">ssl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"></span>
+<span class="w">  </span><span class="nt">entrypoint</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;web&quot;</span><span class="w"></span>
 
 <span class="nt">avro</span><span class="p">:</span><span class="w"></span>
-<span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quick&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quick&quot;</span><span class="w"></span>
 
 <span class="nt">manager</span><span class="p">:</span><span class="w"></span>
-<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quick-manager&quot;</span><span class="w"></span>
-<span class="nt">replicaCount</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"></span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quick-manager&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">replicaCount</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"></span>
 
 <span class="nt">ingest</span><span class="p">:</span><span class="w"></span>
-<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quick-ingest&quot;</span><span class="w"></span>
-<span class="nt">replicaCount</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"></span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quick-ingest&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">replicaCount</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"></span>
 
 <span class="nt">quickConfig</span><span class="p">:</span><span class="w"></span>
-<span class="nt">QUICK_DEFAULT_REPLICAS</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
-<span class="nt">QUICK_KAFKA_BOOTSTRAP_SERVER</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">k8kafka-cp-kafka.infrastructure:9092</span><span class="w"></span>
-<span class="nt">QUICK_KAFKA_INTERNAL_PARTITIONS</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3&quot;</span><span class="w"></span>
-<span class="nt">QUICK_KAFKA_INTERNAL_REPLICATION_FACTOR</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
-<span class="nt">QUICK_KAFKA_SCHEMA_REGISTRY_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://k8kafka-cp-schema-registry.infrastructure:8081</span><span class="w"></span>
-<span class="nt">QUICK_TOPIC_REGISTRY_PARTITIONS</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3&quot;</span><span class="w"></span>
-<span class="nt">QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
-<span class="nt">QUICK_TOPIC_REGISTRY_SERVICE_NAME</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">internal-topic-registry</span><span class="w"></span>
-<span class="nt">QUICK_TOPIC_REGISTRY_TOPIC_NAME</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">__topic-registry</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_DEFAULT_REPLICAS</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_KAFKA_BOOTSTRAP_SERVER</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">k8kafka-cp-kafka.infrastructure:9092</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_KAFKA_INTERNAL_PARTITIONS</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_KAFKA_INTERNAL_REPLICATION_FACTOR</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_KAFKA_SCHEMA_REGISTRY_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://k8kafka-cp-schema-registry.infrastructure:8081</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_TOPIC_REGISTRY_PARTITIONS</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_TOPIC_REGISTRY_SERVICE_NAME</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">internal-topic-registry</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_TOPIC_REGISTRY_TOPIC_NAME</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">__topic-registry</span><span class="w"></span>
 </code></pre></div></p>
 </details>
 <p>You can check the status of Quick by running <code>kubectl get pods -n quick</code>.
