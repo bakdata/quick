@@ -1,0 +1,13 @@
+{
+    findPurchases {
+        purchaseId
+        productId
+        product {
+            productId
+            name
+            price {
+                total
+            }
+        }
+    }
+}

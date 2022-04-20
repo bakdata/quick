@@ -1,0 +1,17 @@
+type Query {
+    findPurchase(purchaseId: ID): Purchase @topic(name: "purchase-topic", keyArgument: "purchaseId")
+}
+
+type Purchase  {
+    purchaseId: ID!,
+    productId: ID!,
+    userId: ID!,
+    amount: Int,
+    price: Price,
+    infos: [String]
+}
+
+type Price {
+    total: Float,
+    currency: String
+}

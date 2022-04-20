@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quick-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "quick.labels" . | nindent 4 }}
+data:
+  QUICK_DOCKER_REGISTRY: {{ .Values.image.repository }}
+  QUICK_SERVICE_INGEST: {{ .Values.ingest.name }}
+  QUICK_AVRO_NAMESPACE: {{ .Values.avro.namespace}}
+  {{- if .Values.ingress.host }}
+  QUICK_INGRESS_HOST: {{ .Values.ingress.host }}
+  {{- end }}
+  QUICK_INGRESS_SSL: {{ .Values.ingress.ssl | quote}}
+  QUICK_INGRESS_ENTRYPOINT: {{ .Values.ingress.entrypoint }}
+  KUBERNETES_CLIENT_NAMESPACE: {{ .Release.Namespace }}
+  {{- with .Values.quickConfig }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}

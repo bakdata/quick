@@ -1,0 +1,87 @@
+site_name: Quick
+repo_url: https://github.com/bakdata/quick
+site_url: https://d9p.io
+edit_uri: edit/master/docs/
+remote_branch: gh-pages
+copyright: Copyright &copy; 2022 bakdata
+
+theme:
+  name: "material"
+  custom_dir: overrides
+  language: "en"
+  palette:
+    primary: "black"
+  font:
+    text: "Roboto"
+    code: "Roboto Mono"
+  favicon: assets/images/favicon.webp
+  icon:
+    logo: logo
+  features:
+    - navigation.sections
+    - navigation.tabs
+    - navigation.indexes
+    - content.code.annotate
+
+plugins:
+  - macros
+  - search
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - def_list
+  - attr_list
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.keys
+  - pymdownx.details
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+
+extra:
+  quick_version: 0.6.0-dev
+  version:
+    provider: mike
+
+nav:
+  # set explicitly for ordering
+  - Home: index.md
+  - User guide:
+      - user/index.md
+      - Getting started:
+          - user/getting-started/index.md
+          - user/getting-started/setup-quick.md
+          - user/getting-started/setup-cli.md
+          - Working with Quick:
+            - user/getting-started/working-with-quick/index.md
+            - user/getting-started/working-with-quick/gateway.md
+            - user/getting-started/working-with-quick/topics.md
+            - user/getting-started/working-with-quick/ingest-data.md
+            - user/getting-started/working-with-quick/query-data.md
+            - user/getting-started/working-with-quick/subscriptions.md
+          - user/getting-started/teardown-resources.md
+      - Examples:
+          - user/examples/index.md
+          - user/examples/TinyURL.md
+      - Reference:
+          - user/reference/graphql-extensions.md
+          - user/reference/cli-commands.md
+          - user/reference/helm-chart.md
+          - user/reference/configuration.md
+          - user/reference/dependency-versions.md
+
+  - Developer guide:
+      - developer/architecture.md
+      - developer/contributing.md
+      - developer/development.md
+      - developer/operations.md
+      - developer/cli.md
+      - developer/notice.md
+  - Changelog: changelog.md
+  - Roadmap: roadmap.md

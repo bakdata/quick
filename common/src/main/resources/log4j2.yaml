@@ -1,0 +1,21 @@
+Configuration:
+  status: info
+  monitorInterval: 30 # refresh config every 30s
+
+  Appenders:
+    Console:
+      name: Console
+      target: SYSTEM_OUT
+      follow: true
+      PatternLayOut:
+        disableAnsi: false
+        Pattern: "%d{HH:mm:ss.SSS} - %highlight{%5p} %style{%logger{36}}{cyan} - %m%n%throwable"
+
+  Loggers:
+    Root:
+      level: info
+      AppenderRef:
+        ref: Console
+    logger:
+      - name: com.bakdata.quick
+        level: info

@@ -1,0 +1,17 @@
+input ProductInput {
+    id: ID
+    name: String
+}
+
+type Product {
+    id: ID
+    name: String
+}
+
+type Query {
+    getProduct(id: ID): Product @topic(name: "product-topic")
+}
+
+type Mutation {
+    setProduct(id: ID, product: ProductInput): Product @topic(name: "product-topic")
+}

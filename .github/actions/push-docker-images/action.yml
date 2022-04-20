@@ -1,0 +1,39 @@
+name: "Push Quick Docker Images"
+description: "Build and push Quick's docker images to Docker Hub with jib"
+inputs:
+  tag:
+    description: "Image tag"
+    required: true
+  username:
+    description: "Docker Hub Username"
+    required: true
+  token:
+    description: "Docker Hub Access Token"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Set up JDK build 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ inputs.username }}
+        password: ${{ inputs.token }}
+
+    - name: Cache Gradle
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Create and push PR image
+      shell: bash
+      run: ./gradlew -Pversion=${{ inputs.tag }} jib --no-daemon

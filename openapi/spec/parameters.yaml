@@ -1,0 +1,97 @@
+components:
+  parameters:
+
+    gatewayNameParam:
+      name: name
+      in: path
+      description: The name of the gateway
+      required: true
+      schema:
+        type: string
+
+    gatewaySchemaTypeParam:
+      name: type
+      in: path
+      description: The type used in the schema of the gateway
+      required: true
+      schema:
+        type: string
+
+    topicNameParam:
+      name: name
+      in: path
+      description: The name of the topic
+      required: true
+      schema:
+        type: string
+
+    keyType:
+      name: keyType
+      in: query
+      description: Type of the key
+      required: false
+      schema:
+        $ref: 'schemas.yaml#/components/schemas/QuickTopicType'
+        default: long
+
+    valueType:
+      name: valueType
+      in: query
+      description: Type of the value
+      required: false
+      schema:
+        $ref: 'schemas.yaml#/components/schemas/QuickTopicType'
+        default: avro
+
+    applicationNameParam:
+      name: name
+      in: path
+      description: The name of the application
+      required: true
+      schema:
+        type: string
+
+    imageNameParam:
+      name: imageName
+      in: query
+      description: The image name of the application
+      required: true
+      schema:
+        type: string
+
+    registryParam:
+      name: registry
+      in: query
+      description: The container URL registry
+      required: true
+      schema:
+        type: string
+
+    replicaParam:
+      name: replicas
+      in: query
+      description: The number of replicas
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 1
+
+    tagParam:
+      name: tag
+      in: query
+      description: The tag of the docker image
+      required: false
+      schema:
+        type: string
+        default: latest
+
+    portParam:
+      name: port
+      in: query
+      description: The container port for the application
+      required: false
+      schema:
+        type: integer
+        format: int32

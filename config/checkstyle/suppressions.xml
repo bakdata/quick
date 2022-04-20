@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionXpathFilter Experimental Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2_xpath_experimental.dtd">
+<suppressions>
+
+    <!-- Suppress checks for generated sources-->
+    <suppress files="[\\/]generated-main-avro-java[\\/]" checks="." />
+
+    <!-- Suppress checks for generated sources-->
+	<suppress files="[\\/]generated-test-avro-java[\\/]" checks="." />
+
+	<!-- Suppress checks for included files from micronaut -->
+	<suppress files="GraphQL(RequestBody|WsRequest|WsAuthFilter|WsController|WsMessageHandler|WsOperations|WsSender|WsState)" checks="."/>
+</suppressions>

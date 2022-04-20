@@ -1,0 +1,12 @@
+{
+  "namespace": "com.bakdata.quick.common.api.model",
+  "type": "enum",
+  "name": "AvroQuickTopicType",
+  "symbols": [
+    "STRING",
+    "LONG",
+    "INTEGER",
+    "DOUBLE",
+    "SCHEMA"
+  ]
+}

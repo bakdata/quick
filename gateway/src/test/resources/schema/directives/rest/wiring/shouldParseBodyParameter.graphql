@@ -1,0 +1,12 @@
+type Query {
+    recommendation(inputs: Input): Recommendation @rest(url: "http://localhost:8081",
+        bodyParameter: "inputs",  httpMethod: POST)
+}
+
+input Input {
+    inputs: [Int]
+}
+
+type Recommendation {
+    ids: [ID]
+}

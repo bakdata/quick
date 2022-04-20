@@ -1,0 +1,42 @@
+type Query {
+  allPurchases: [Purchase] @topic(name: "subscription-purchase-topic-test")
+  allProducts: [Product] @topic(name: "subscription-product-topic-test")
+}
+
+type Subscription {
+  lastPurchases: Purchase @topic(name: "subscription-purchase-topic-test")
+}
+
+type Purchase {
+  purchaseId: String!,
+  productId: Int!,
+  product: Product @topic(name: "subscription-product-topic-test", keyField: "productId")
+  userId: String!,
+  user: User @topic(name: "subscription-user-topic-test", keyField: "userId"),
+  amount: Int,
+  price: Price,
+}
+
+type Product {
+  productId: Int!,
+  name: String,
+  description: String,
+  price: Price,
+  metadata: Metadata
+}
+
+type User {
+  userId: String!,
+  name: String!,
+  address: String!
+}
+
+type Price {
+  total: Float,
+  currency: String
+}
+
+type Metadata {
+  created_at: Int,
+  source: String
+}

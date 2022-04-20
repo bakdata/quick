@@ -1,0 +1,12 @@
+{
+    "key": 456,
+    "value": {
+        "name": "T-Shirt",
+        "description": "black",
+        "price": 19.99,
+        "metadata": {
+            "created_at": "2020-04-19T18:46:01+0000",
+            "source": "www.foo.com"
+        }
+    }
+}

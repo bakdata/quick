@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: [(${name})]-config
+  labels:
+    app.kubernetes.io/name: [(${name})]-config
+    app.kubernetes.io/managed-by: quick
+    app.kubernetes.io/component: gateway
+data:
+  schema.graphql: |
+    [(${schema})]

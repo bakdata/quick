@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "prefix": "**Updated dependencies:**",
+    "labels": ["dependency", "type/update"]
+  },
+  "deployment": {
+    "prefix": "**Deployment/Helm chart:**",
+    "labels": ["deployment", "area/deployment"]
+  },
+  "documentation": {
+    "prefix": "**Documentation updates:**",
+    "labels": ["documentation", "area/documentation"]
+  }
+}

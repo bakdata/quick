@@ -1,0 +1,10 @@
+type Person {
+    _id: String!
+    firstname: [GrainValue]
+    lastname: [GrainValue]
+}
+
+type GrainValue {
+    _in_utc: String!
+    _v: String!
+}

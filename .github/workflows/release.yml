@@ -1,0 +1,197 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Scope of the release: major, minor, patch"
+        required: false
+        default: "patch"
+
+jobs:
+  prepare-release:
+    name: Prepare release
+    runs-on: ubuntu-20.04
+    outputs:
+      tag: ${{ steps.create-tag.outputs.tag }}
+      changelog: ${{ steps.generate-release-changelog.outputs.changelog }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          # required for getting all tags
+          fetch-depth: 0
+          # required for bypassing status checks when pushing
+          token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+
+      - name: Setup just
+        uses: extractions/setup-just@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.github-token }}
+        with:
+          just-version: 1.1.0
+
+      - name: Generate release tag
+        id: create-tag
+        run: |
+          oldTag=$(just print-version)
+          tag=$(just bump-version ${{ github.event.inputs.scope }})
+          echo "::set-output name=oldTag::$oldTag"
+          echo "::set-output name=tag::$tag"
+
+      - name: Read changelog config
+        id: read-config
+        run: echo ::set-output name=content::$(cat ./.github/changelog-config.json)
+
+      - name: Generate Changelog
+        id: generate-release-changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.2
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          sinceTag: "${{ steps.create-tag.outputs.oldTag }}"
+          output: "changes.md"
+          stripGeneratorNotice: "true"
+          issues: "true"
+          unreleased: "true"
+          pullRequests: "false"
+          compareLink: "true"
+          issuesWoLabels: "false"
+          futureRelease: "${{ steps.create-tag.outputs.tag }}"
+          issuesLabel: "**Miscellaneous:**"
+          bug-labels: "bug,type/bug"
+          enhancement-labels: "enhancement,type/enhancement"
+          httpCache: "true"
+          verbose: "true"
+          addSections: |
+            ${{ steps.read-config.outputs.content }}
+
+      - name: Update changelogs
+        # Prepend changes to the CHANGELOG.md
+        run: |
+          # Remove header from changes
+          sed -i '1d' changes.md
+          # Prepend changes.md after first header
+          sed -i '/# Changelog/ r changes.md' CHANGELOG.md
+          sed -i '/# Changelog/ r changes.md' docs/docs/changelog.md
+
+      - name: Update helm chart version
+        run: just set-chart-version ${{ steps.create-tag.outputs.tag }}
+
+      - name: Update quick version in documentation
+        run: just docs-set-quick-version ${{ steps.create-tag.outputs.tag }}
+
+      - name: Create release commit
+        run: |
+          # Set email and username for github-actions bot
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          # Add changes
+          git add CHANGELOG.md
+          git add docs/
+          git add deployment/
+          git commit -m "Release v${{ steps.create-tag.outputs.tag }}"
+          git push
+
+
+  create-github-release:
+    name: Create GitHub Release and Git Tag
+    runs-on: ubuntu-20.04
+    needs: [ prepare-release ]
+    steps:
+      - uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "${{ needs.prepare-release.outputs.tag }}"
+          name: Release v${{ needs.prepare-release.outputs.tag }}
+          body: ${{ needs.prepare-release.outputs.changelog }}
+          draft: false
+          prerelease: false
+
+
+  push-docker-images:
+    runs-on: ubuntu-20.04
+    needs: [ prepare-release ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: Push images
+        uses: ./.github/actions/push-docker-images
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          token: ${{ secrets.DOCKERHUB_TOKEN }}
+          tag: ${{ needs.prepare-release.outputs.tag }}
+
+
+  update-docs:
+    runs-on: ubuntu-20.04
+    needs: [ prepare-release ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Fetch all tags; Required for doc versioning
+          ref: master
+
+      - name: Update gh-pages
+        uses: ./.github/actions/update-docs
+        with:
+          tag: ${{ needs.prepare-release.outputs.tag }}
+          token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+
+
+  publish-helm:
+    name: Release Helm chart
+    needs: [ prepare-release ]
+    uses: ./.github/workflows/update-helm-chart.yml
+    secrets:
+      github-token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+
+
+  # Prepare new release cycle by updating hardcoded versions to "-dev"
+  update-versions:
+    runs-on: ubuntu-20.04
+    needs: [ create-github-release, push-docker-images, update-docs, publish-helm ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          # required for bypassing status checks when pushing
+          token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup just
+        uses: extractions/setup-just@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.github-token }}
+        with:
+          just-version: 1.1.0
+
+      - name: Set new dev version
+        id: create-tag
+        run: |
+          tag=$(just print-dev-version )
+          echo "::set-output name=tag::$tag"
+
+      - name: Update helm chart version
+        run: just set-chart-version ${{ steps.create-tag.outputs.tag }}
+
+      - name: Update quick version in documentation
+        run: just docs-set-quick-version ${{ steps.create-tag.outputs.tag }}
+
+      - name: Create release commit
+        run: |
+          # Set email and username for github-actions bot
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          # In case there was an update to master in the meantime 
+          git pull
+          # Add changes
+          git add .
+          git commit -m "Prepare development for ${{ steps.create-tag.outputs.tag }}"
+          git push

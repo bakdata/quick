@@ -1,0 +1,32 @@
+type Query {
+    findContract(id: ID): Contract @topic(name: "contract-topic", keyArgument: "id")
+}
+
+type Contract  {
+    _id: String!
+    policyHolderId: [PersonGrainValue]
+    insuredPersonId: [PersonGrainValue]
+    term: [GrainValue]
+    value: [GrainValue]
+}
+
+type PersonGrainValue {
+    _in_utc: String!
+    _v: String!
+    policyHolder: Person @topic(name: "person-topic", keyField: "_v")
+}
+
+type GrainValue {
+    _in_utc: String!
+    _v: String!
+    _c: Float
+    _in: Int
+    _ttl: String
+    _origin: String
+}
+
+type Person {
+    _id: String!
+    firstname: [GrainValue]
+    lastname: [GrainValue]
+}

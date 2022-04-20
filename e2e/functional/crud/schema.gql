@@ -1,0 +1,3 @@
+type Query {
+  findProduct(productId: Long): String @topic(name: "crud-product-topic-test", keyArgument: "productId")
+}

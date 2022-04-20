@@ -1,0 +1,15 @@
+micronaut:
+  security:
+    enabled: false
+
+  metrics:
+    enabled: false
+
+endpoints:
+  # Enable all default endpoint but on custom port so they are not publicly accessible
+  all:
+    enabled: false
+
+
+quick.apikey:
+  test_key

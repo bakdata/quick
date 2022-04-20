@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "Test",
+  "namespace": "com.bakdata.quick.avro",
+  "fields": [
+    {
+      "name": "test",
+      "type": [
+        "null",
+        "int"
+      ]
+    }
+  ]
+}

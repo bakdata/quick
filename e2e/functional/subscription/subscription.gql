@@ -1,0 +1,17 @@
+subscription {
+  lastPurchases {
+    product {
+      name
+      description
+    }
+    amount
+    user {
+      name
+      address
+    }
+    price {
+      total
+      currency
+    }
+  }
+}

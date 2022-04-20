@@ -1,0 +1,12 @@
+type Query {
+  recommendation(userId: ID!, recommendationType: Type!): Recommendation @rest(url: "http://localhost:8081")
+}
+
+enum Type {
+  ALBUM
+  ARTIST
+  TRACK
+}
+type Recommendation {
+  ids: [ID]
+}

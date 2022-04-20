@@ -1,0 +1,37 @@
+Configuration:
+  status: info
+
+  Appenders:
+    Console:
+      name: Console
+      target: SYSTEM_OUT
+      follow: true
+      PatternLayOut:
+        disableAnsi: false
+        Pattern: "%d{HH:mm:ss.SSS} - %highlight{%5p} %style{%logger{36}}{cyan} - %m%n%throwable"
+
+  Loggers:
+    Root:
+      level: info
+      additivity: true
+      AppenderRef:
+        ref: Console
+
+    logger:
+      - name: com.bakdata.quick
+        level: debug
+      # set to error as they contain mostly info that is not needed
+      - name: org.apache.kafka
+        level: error
+      - name: kafka
+        level: error
+      - name: org.apache.curator.test
+        level: error
+      - name: org.apache.zookeeper
+        level: warn
+      - name: net.mguenther.kafka.junit
+        level: warn
+      - name: org.eclipse.jetty.util.log
+        level: warn
+      - name: io.micronaut.context.env
+        level: warn

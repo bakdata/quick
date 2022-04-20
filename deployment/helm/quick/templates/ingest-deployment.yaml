@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.ingest.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "quick.ingest.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.ingest.replicaCount }}
+  selector:
+    matchLabels:
+    {{- include "quick.ingest.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.ingest.podAnnotations }}
+      annotations:
+        prometheus.io/port: "8081"
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/prometheus"
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+      {{- include "quick.ingest.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Values.ingest.name }}
+          image: "{{ .Values.image.repository }}/quick-ingest:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: log4j-config
+              mountPath: app/resources/log4j2.yaml
+              subPath: log4j2.yaml
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 8081
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: quick-config
+            - secretRef:
+                name: api-key-secret
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Djdk.tls.client.protocols=TLSv1.2"
+      volumes:
+        - name: log4j-config
+          configMap:
+            name: quick-log4j
+            items:
+              - key: log4j2.yaml
+                path: log4j2.yaml

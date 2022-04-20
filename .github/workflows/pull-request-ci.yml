@@ -1,0 +1,76 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, synchronize]
+
+jobs:
+  changes:
+    runs-on: ubuntu-20.04
+    outputs:
+      source: ${{ steps.filter.outputs.source }}
+      helm: ${{ steps.filter.outputs.helm }}
+      terraform: ${{ steps.filter.outputs.terraform }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: ".github/path_filter.yaml"
+
+
+  test-and-build-source:
+    name: Test and build project source
+    runs-on: ubuntu-20.04
+    needs: changes
+    if: ${{ needs.changes.outputs.source == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Test Source
+        uses: ./.github/actions/test-source
+        with:
+          disable-integration-test: ${{ github.event.pull_request.draft }}
+
+      - name: Extract tag name for PR
+        id: tag_name
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          # Substitute '/' with '-'
+          ref="${BRANCH////-}"
+          # Remove refs/heads from name
+          ref="${ref/refs-heads-/}"
+          echo "PR image tag: $ref"
+          echo "::set-output name=tag::$ref"
+
+      - name: Push images
+        uses: ./.github/actions/push-docker-images
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          token: ${{ secrets.DOCKERHUB_TOKEN }}
+          tag: ${{ steps.tag_name.outputs.tag }}
+
+
+  check-helm:
+    name: Lint helm chart
+    runs-on: ubuntu-20.04
+    needs: changes
+    if: ${{ needs.changes.outputs.helm == 'true' }}
+    env:
+      HELM_VERSION: v3.6.3
+      CHART_DIR: ./deployment/helm/quick
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Check if helm chart is well-formed
+        run: helm lint "$CHART_DIR"

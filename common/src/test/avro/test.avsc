@@ -1,0 +1,81 @@
+{
+  "type": "record",
+  "name": "Product",
+  "namespace": "com.bakdata.avro",
+  "fields": [
+    {
+      "name": "productId",
+      "type": [
+        "null",
+        "int"
+      ]
+    },
+    {
+      "name": "name",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "description",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "price",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Price",
+          "fields": [
+            {
+              "name": "value",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            {
+              "name": "currency",
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "metadata",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Metadata",
+          "fields": [
+            {
+              "name": "created_at",
+              "type": [
+                "null",
+                "int"
+              ]
+            },
+            {
+              "name": "source",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

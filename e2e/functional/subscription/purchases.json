@@ -1,0 +1,41 @@
+[
+  {
+    "key": "gssqiw",
+    "value": {
+      "purchaseId": "gssqiw",
+      "productId": "8cexbu",
+      "userId": "tc3ks5",
+      "amount": 14,
+      "price": {
+        "total": 649.18,
+        "currency": "CHE"
+      }
+    }
+  },
+  {
+    "key": "4v5ynx",
+    "value": {
+      "purchaseId": "4v5ynx",
+      "productId": "bpi4r4",
+      "userId": "6w4fxc",
+      "amount": 11,
+      "price": {
+        "total": 754.3,
+        "currency": "DOLLAR"
+      }
+    }
+  },
+  {
+    "key": "g46qiw",
+    "value": {
+      "purchaseId": "g46qiw",
+      "productId": "bpi4r4",
+      "userId": "vro1gi",
+      "amount": 2,
+      "price": {
+        "total": 111.48,
+        "currency": "EURO"
+      }
+    }
+  }
+]

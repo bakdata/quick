@@ -1,0 +1,17 @@
+type Product {
+  description: String
+  metadata: Metadata
+  name: String
+  price: Price
+  productId: ID!
+}
+
+type Price {
+  currency: String
+  total: Float
+}
+
+type Metadata {
+  created_at: Int
+  source: String
+}

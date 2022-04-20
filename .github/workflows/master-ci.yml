@@ -1,0 +1,105 @@
+name: master CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  changes:
+    runs-on: ubuntu-20.04
+    outputs:
+      source: ${{ steps.filter.outputs.source }}
+      docs: ${{ steps.filter.outputs.docs }}
+      helm: ${{ steps.filter.outputs.helm }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: ".github/path_filter.yaml"
+
+
+  generate-snapshot-tag:
+    name: Generate snapshot tag
+    runs-on: ubuntu-20.04
+    outputs:
+      snapshot-tag: ${{ steps.generate-snapshot-tag.outputs.snapshot-tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup just
+        uses: extractions/setup-just@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.github-token }}
+        with:
+          just-version: 1.1.0
+
+      - name: Generate snapshot tag
+        id: generate-snapshot-tag
+        run: |
+          tag=$(just print-dev-version )
+          echo "::set-output name=snapshot-tag::$tag"
+
+
+  build-and-test-source:
+    name: Build and test project source
+    runs-on: ubuntu-20.04
+    needs: [ changes, generate-snapshot-tag ]
+    if: ${{ needs.changes.outputs.source == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Test Source
+        uses: ./.github/actions/test-source
+        with:
+          disable-integration-test: false
+
+
+  build-and-push-images:
+    name: Build and push images
+    runs-on: ubuntu-20.04
+    needs: [ changes, generate-snapshot-tag, build-and-test-source ]
+    if: ${{ needs.changes.outputs.source == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Push images
+        uses: ./.github/actions/push-docker-images
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          token: ${{ secrets.DOCKERHUB_TOKEN }}
+          tag: ${{ needs.generate-snapshot-tag.outputs.snapshot-tag }}
+
+
+  publish-dev-docs:
+    name: Update gh-pages
+    runs-on: ubuntu-20.04
+    needs: [ changes ]
+    if: ${{ needs.changes.outputs.docs == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Update gh-pages
+        uses: ./.github/actions/update-docs
+        with:
+          token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+
+
+  publish-dev-helm:
+    name: Publish dev helm chart
+    needs: [ changes, generate-snapshot-tag ]
+    if: ${{ needs.changes.outputs.helm == 'true' }}
+    uses: ./.github/workflows/update-helm-chart.yml
+    secrets:
+      github-token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}

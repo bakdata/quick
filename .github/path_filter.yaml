@@ -1,0 +1,18 @@
+source:
+  - "build-logic/**"
+  - "common/**"
+  - "gateway/**"
+  - "ingest/**"
+  - "manager/**"
+  - "mirror/**"
+  - "build.gradle.kts"
+  - "gradle/**"
+  - "gradle.properties"
+  - "gradlew"
+  - "gradlew.bat"
+  - "settings.gradle.kts"
+  - "lombok.config"
+helm:
+  - "deployment/helm/**"
+docs:
+  - "docs/**"

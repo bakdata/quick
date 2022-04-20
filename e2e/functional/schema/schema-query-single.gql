@@ -1,0 +1,21 @@
+type Query {
+  findProduct(productId: Long): Product @topic(name: "schema-product-topic-test", keyArgument: "productId")
+}
+
+type Product {
+  productId: Int!,
+  name: String,
+  description: String,
+  price: Price,
+  metadata: Metadata
+}
+
+type Price {
+  total: Float,
+  currency: String
+}
+
+type Metadata {
+  created_at: Int,
+  source: String
+}

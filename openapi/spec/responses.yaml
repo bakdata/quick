@@ -1,0 +1,15 @@
+components:
+  responses:
+
+    Success:
+      description: OK
+
+    NoContent:
+      description: No Content
+
+    DefaultError:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: 'schemas.yaml#/components/schemas/ErrorMessage'

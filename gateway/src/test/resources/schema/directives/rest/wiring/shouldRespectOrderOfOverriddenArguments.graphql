@@ -1,0 +1,8 @@
+type Query {
+  recommendation(userId: ID!, recommendationType: String!, limit: Int, walks: Int): Recommendation @rest(url: "http://localhost:8081"
+    pathParameter: ["limit", "userId"], queryParameter: ["recommendationType", "walks"])
+}
+
+type Recommendation {
+  ids: [ID]
+}

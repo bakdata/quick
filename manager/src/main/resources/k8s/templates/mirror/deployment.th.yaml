@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: [(${name})]
+    app.kubernetes.io/managed-by: quick
+    app.kubernetes.io/component: mirror
+  annotations:
+    d9p.io/fixed-tag: [(${hasFixedTag})]
+  name: [(${name})]
+spec:
+  replicas: [(${replicas})]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: [(${name})]
+      app.kubernetes.io/component: mirror
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: [(${name})]
+        app.kubernetes.io/managed-by: quick
+        app.kubernetes.io/component: mirror
+    spec:
+      containers:
+        - image: [(${image})]
+          imagePullPolicy: [(${pullPolicy})]
+          name: [(${name})]
+          args: [# th:each="arg : ${args}"]
+            -  [(${ arg })] [/]
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MinRAMPercentage=45.0 -XX:MaxRAMPercentage=70.0 -Djdk.tls.client.protocols=TLSv1.2"
+          envFrom:
+            - configMapRef:
+                name: quick-config
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              memory: [(${resourceConfig.memory.limit})]
+              cpu: [(${resourceConfig.cpu.limit})]
+            requests:
+              memory: [(${resourceConfig.memory.request})]
+              cpu: [(${resourceConfig.cpu.request})]
+          volumeMounts:
+            - name: log4j-config
+              mountPath: app/resources/log4j2.yaml
+              subPath: log4j2.yaml
+      volumes:
+        - name: log4j-config
+          configMap:
+            name: quick-log4j
+            items:
+              - key: log4j2.yaml
+                path: log4j2.yaml

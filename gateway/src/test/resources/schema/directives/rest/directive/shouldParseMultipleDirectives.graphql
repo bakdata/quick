@@ -1,0 +1,12 @@
+type Query {
+  recommendation(userId: ID!, limit: Int): Recommendation @rest(url: "http://localhost:8081")
+  metrics(userId: ID!, test: Int): Metric @rest(url: "http://localhost:8082")
+}
+
+type Metric {
+  count: Int
+}
+
+type Recommendation {
+  ids: [ID]
+}

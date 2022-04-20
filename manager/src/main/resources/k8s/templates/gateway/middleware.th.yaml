@@ -1,0 +1,12 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: [(${deploymentName})]
+  labels:
+    app.kubernetes.io/name: [(${deploymentName})]
+    app.kubernetes.io/managed-by: quick
+    app.kubernetes.io/component: gateway
+spec:
+  stripPrefix:
+    prefixes:
+      - /gateway/[(${pathName})]

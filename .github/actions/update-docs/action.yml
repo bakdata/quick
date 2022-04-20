@@ -1,0 +1,37 @@
+name: "Update documentation in gh-pages"
+description: |
+  Compile markdown documents to html and deploy to docs branch. If a semver tag is given, this action strips the patch.
+  It then pushes the <major>.<minor> as the latest alias to the documentation branch with mike.
+  In case no tag is given, it pushes to 'dev'.
+inputs:
+  token:
+    description: "GitHub Token (must be a PAT for repository dispatch)"
+    required: true
+  tag:
+    description: "Version tag"
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Update documentation branch with mike
+      shell: bash
+      env:
+        TOKEN: ${{ inputs.token }}
+        NEW_TAG: ${{ inputs.tag }}
+      run: |
+        pip install -r ./docs/requirements.txt
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git config --local user.password ${TOKEN}
+
+        git pull # make sure docs branch is up-to-date
+        if [ -z "$NEW_TAG" ]; then
+          mike deploy dev --push --rebase --config-file ./docs/mkdocs.yml
+        else
+          new_tag=${NEW_TAG%.*}
+          mike deploy "$new_tag" latest --update-aliases --push --rebase --config-file ./docs/mkdocs.yml
+          mike set-default latest --push  --rebase --config-file ./docs/mkdocs.yml
+        fi
