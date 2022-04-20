@@ -1,0 +1,21 @@
+micronaut:
+  security:
+    enabled: false
+
+  metrics:
+    enabled: false
+
+endpoints:
+  # Enable all default endpoint but on custom port so they are not publicly accessible
+  all:
+    enabled: false
+
+quick:
+  definition:
+    path: "definition/definition.yaml"
+  apikey:
+    test_key
+  kafka:
+    bootstrap-server: dummy:123
+  mirror:
+    prefix: "" # prefix must be empty, as the host is simply 'localhost' and not for example 'quick-mirror-localhost'

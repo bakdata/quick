@@ -1,0 +1,12 @@
+type Query {
+  getURL(id: ID): String
+}
+
+type Subscription {
+  subscribeProfile: Profile
+}
+
+type Profile {
+  buyerProfile: String @topic(name: "buyer-profile")
+  customerProfile: String @topic(name: "customer-profile")
+}

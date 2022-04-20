@@ -1,0 +1,36 @@
+image:
+  repository: bakdata
+  tag: ""
+  pullPolicy: "Always"
+
+avro:
+  namespace: ""
+
+ingress:
+  ssl: true
+  entrypoint: "websecure"
+  host: ""
+
+manager:
+  name: "quick-manager"
+  replicaCount: 1
+  podAnnotations: {}
+
+ingest:
+  name: "quick-ingest"
+  replicaCount: 1
+  podAnnotations: {}
+
+log4jConfig: {}
+
+apiKey: ""
+
+quickConfig:
+  QUICK_KAFKA_BOOTSTRAP_SERVER: quick-kafka.default.svc.cluster.local:9092
+  QUICK_KAFKA_SCHEMA_REGISTRY_URL: http://quick-sr-schema-registry.default.svc.cluster.local:8081
+  QUICK_KAFKA_INTERNAL_PARTITIONS: "3"
+  QUICK_KAFKA_INTERNAL_REPLICATION_FACTOR: "1"
+  QUICK_TOPIC_REGISTRY_SERVICE_NAME: internal-topic-registry
+  QUICK_TOPIC_REGISTRY_TOPIC_NAME: __topic-registry
+  QUICK_TOPIC_REGISTRY_PARTITIONS: "3"
+  QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR: "1"

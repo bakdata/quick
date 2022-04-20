@@ -1,0 +1,295 @@
+openapi: 3.0.0
+
+info:
+  version: 1.0.0
+  title: Quick Manager
+
+servers:
+  - url: http://quick-manager/
+    description: Production server
+
+paths:
+  /gateway:
+    post:
+      summary: Creates a new gateway
+      operationId: createGateway
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'schemas.yaml#/components/schemas/GatewayCreationData'
+      responses:
+        200:
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+
+  /gateways:
+    get:
+      summary: List all deployed gateways
+      operationId: listAllGateways
+      responses:
+        200:
+          description: List all informations about the deployed gateways
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'schemas.yaml#/components/schemas/GatewayDescription'
+
+  /gateway/{name}:
+    parameters:
+      - $ref: 'parameters.yaml#/components/parameters/gatewayNameParam'
+    get:
+      summary: Retrieves information about a gateway
+      operationId: getGateway
+      responses:
+        200:
+          description: All information about the gateway
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/GatewayDescription'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+    delete:
+      summary: Deletes a gateway
+      operationId: deleteGateway
+      responses:
+        200:
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /gateway/{name}/schema:
+    post:
+      summary: Creates a new GraphQL schema
+      operationId: createSchema
+      parameters:
+        - $ref: 'parameters.yaml#/components/parameters/gatewayNameParam'
+      requestBody:
+        description: GraphQL schema
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'schemas.yaml#/components/schemas/SchemaData'
+      responses:
+        200:
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /gateway/{name}/schema/{type}/graphql:
+    get:
+      summary: Returns the Gatewy schema in GraphQL format
+      operationId: getGraphqlWriteSchema
+      parameters:
+        - $ref: 'parameters.yaml#/components/parameters/gatewayNameParam'
+        - $ref: 'parameters.yaml#/components/parameters/gatewaySchemaTypeParam'
+      responses:
+        200:
+          description: Gateway schema in GraphQL Format
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/SchemaData'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /gateway/{name}/schema/{type}/avro:
+    get:
+      summary: Returns the Gatewy schema in Avro format
+      operationId: getAvroWriteSchema
+      parameters:
+        - $ref: 'parameters.yaml#/components/parameters/gatewayNameParam'
+        - $ref: 'parameters.yaml#/components/parameters/gatewaySchemaTypeParam'
+      responses:
+        200:
+          description: Gateway schema in Avro Format
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/SchemaData'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /topics:
+    get:
+      summary: List all registered topic
+      operationId: listAllTopics
+      responses:
+        200:
+          description: List of all information about the registered topics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'schemas.yaml#/components/schemas/TopicData'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /topic/{name}:
+    parameters:
+      - $ref: 'parameters.yaml#/components/parameters/topicNameParam'
+    get:
+      summary: Gets information about a topic
+      operationId: getTopicInformation
+      responses:
+        200:
+          description: All information about the topic
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/TopicData'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+    post:
+      summary: Creates a new topic
+      operationId: createNewTopic
+      parameters:
+        - $ref: 'parameters.yaml#/components/parameters/keyType'
+        - $ref: 'parameters.yaml#/components/parameters/valueType'
+      requestBody:
+        description: Additional topic data
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: 'schemas.yaml#/components/schemas/TopicCreationData'
+      responses:
+        200:
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+    delete:
+      summary: Deletes topic
+      operationId: deleteTopic
+      responses:
+        200:
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /topic/mirror:
+    post:
+      summary: Creates a mirror for a topic
+      operationId: createMirror
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'schemas.yaml#/components/schemas/MirrorCreationData'
+      responses:
+        200:
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /topic/{name}/mirror:
+    parameters:
+      - $ref: 'parameters.yaml#/components/parameters/topicNameParam'
+    delete:
+      summary: Deletes mirror of topic
+      operationId: deleteMirror
+      responses:
+        200:
+          $ref: 'responses.yaml#/components/responses/Success'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /application:
+    post:
+      summary: Deploys a new application
+      operationId: deployApplication
+      requestBody:
+        description: ApplicationCreationData object containing the app's information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'schemas.yaml#/components/schemas/ApplicationCreationData'
+      responses:
+        200:
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /applications:
+    get:
+      summary: Retrieves all deployed quick applications
+      operationId: getApplications
+      responses:
+        200:
+          # TODO add response schema for all applications
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+  /application/{name}:
+    parameters:
+      - $ref: 'parameters.yaml#/components/parameters/applicationNameParam'
+    get:
+      summary: Retrieves information about the given application
+      operationId: getApplicationInformation
+      responses:
+        200:
+          # TODO add response schema for a single application
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+    delete:
+      summary: Deletes an application
+      operationId: deleteApplication
+      responses:
+        200:
+          $ref: 'responses.yaml#/components/responses/Success'
+        401:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+        default:
+          $ref: 'responses.yaml#/components/responses/DefaultError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth: # Name for the security scheme
+      type: apiKey
+      in: header       # Place the key is set
+      name: X-API-Key  # Name of the header
+
+# Apply the API key globally to all operations
+security:
+  - ApiKeyAuth: [ ]   # Use the same name as under securitySchemes

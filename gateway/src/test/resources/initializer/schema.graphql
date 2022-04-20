@@ -1,0 +1,7 @@
+type Query {
+  getURL(hash: String): UrlInfo
+}
+
+type UrlInfo {
+  url: String @topic(name: "url-topic", keyArgument: "hash")
+}

@@ -1,0 +1,45 @@
+micronaut:
+  application:
+    name: gateway
+  server:
+    cors:
+      enabled: true
+  security:
+    enabled: true
+    # Secure built-in endpoints graphql
+    # Note: doing it here, we don't have to create our own subclasses
+    intercept-url-map:
+      - pattern: /graphql
+        access:
+          - isAuthenticated()
+      # graphql-ws MUST be unsecured! JavaScript APIs do not allow passing custom headers during the handshake HTTP
+      # request. The api-key gets checked during the first message of the GraphQL protocol.
+      - pattern: /graphql-ws
+        access:
+          - isAnonymous()
+
+  metrics:
+    enabled: true
+
+quick:
+  schema:
+    path: "/app/schema.graphql"
+
+endpoints:
+  # Enable all default endpoint but on custom port so they are not publicly accessible
+  all:
+    port: 8081
+    sensitive: false
+    enabled: true
+
+# https://micronaut-projects.github.io/micronaut-kubernetes/2.2.0/guide/index.html
+kubernetes:
+  client:
+    discovery:
+      enabled: false
+
+graphql:
+  graphql-ws:
+    enabled: true
+    keep-alive-enabled: true
+    keep-alive-interval: 15s

@@ -1,0 +1,15 @@
+{
+    findProduct(productId: 123) {
+        productId
+        name
+        description
+        price {
+            currency
+            total
+        }
+        metadata {
+            created_at
+            source
+        }
+    }
+}

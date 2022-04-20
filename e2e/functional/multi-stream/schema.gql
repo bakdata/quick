@@ -1,0 +1,30 @@
+type Query {
+  findPurchase(purchaseId: String): Purchase @topic(name: "multi-stream-purchase-topic-test", keyArgument: "purchaseId")
+}
+
+type Purchase {
+  purchaseId: String!,
+  productId: Int!,
+  userId: Int!,
+  product: Product @topic(name: "multi-stream-product-topic-test", keyField: "productId")
+  amount: Int,
+  price: Price,
+}
+
+type Product {
+  productId: Int!,
+  name: String,
+  description: String,
+  price: Price,
+  metadata: Metadata
+}
+
+type Price {
+  total: Float,
+  currency: String
+}
+
+type Metadata {
+  created_at: Int,
+  source: String
+}

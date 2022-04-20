@@ -1,0 +1,173 @@
+components:
+  schemas:
+    GatewayDescription:
+      type: object
+      required:
+        - name
+        - replicas
+        - tag
+      properties:
+        name:
+          type: string
+        replicas:
+          type: string
+          default: 1
+        tag:
+          type: string
+
+    GatewayCreationData:
+      type: object
+      properties:
+        name:
+          type: string
+        replicas:
+          type: integer
+          format: int32
+        tag:
+          type: string
+        schema:
+          type: string
+      required:
+        - name
+
+    GatewaySchema:
+      type: object
+      properties:
+        gateway:
+          type: string
+        type:
+          type: string
+
+    TopicData:
+      type: object
+      required:
+        - name
+        - writeType
+        - keyType
+        - valueType
+      properties:
+        name:
+          type: string
+        writeType:
+          type: string
+        keyType:
+          type: string
+        valueType:
+          type: string
+        schema:
+          type: string
+
+    TopicSchemaTypes:
+      type: object
+      properties:
+        key_type:
+          $ref: '#/components/schemas/QuickTopicType'
+        value_type:
+          $ref: '#/components/schemas/QuickTopicType'
+      required:
+        - key_type
+        - value_type
+
+    KeyValueEnum:
+      type: string
+      enum: [ key, value ]
+
+    TopicCreationData:
+      type: object
+      properties:
+        writeType:
+          $ref: '#/components/schemas/TopicWriteType'
+        valueSchema:
+          $ref: '#/components/schemas/GatewaySchema'
+        keySchema:
+          $ref: '#/components/schemas/GatewaySchema'
+        retentionTime:
+          type: string # ISO-8601
+
+    SchemaData:
+      type: object
+      properties:
+        schema:
+          type: string
+
+    TopicWriteType:
+      type: string
+      enum: [ MUTABLE, IMMUTABLE ]
+      default: MUTABLE
+
+    MirrorCreationData:
+      type: object
+      properties:
+        name:
+          type: string
+        topicName:
+          type: string
+        replicas:
+          type: integer
+          format: int32
+        tag:
+          type: string
+        retentionTime:
+          type: string # ISO-8601
+      required:
+        - name
+        - topicName
+
+    ApplicationCreationData:
+      type: object
+      properties:
+        name:
+          type: string
+        registry:
+          type: string
+        imageName:
+          type: string
+        tag:
+          type: string
+        replicas:
+          type: integer
+          format: int32
+        port:
+          type: integer
+          format: int32
+        arguments:
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: string
+      required:
+        - name
+        - registry
+        - imageName
+        - tag
+
+    Config:
+      type: object
+      required:
+        - bootstrap_server
+        - schema_registry_url
+      properties:
+        bootstrap_server:
+          type: string
+        schema_registry_url:
+          type: string
+
+    ErrorMessage:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        code:
+          type: integer
+        detail:
+          type: string
+        uri_path:
+          type: string
+
+    QuickTopicType:
+      type: string
+      enum: [ integer, long, string, schema, double ]

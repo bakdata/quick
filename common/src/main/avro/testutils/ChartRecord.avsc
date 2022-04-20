@@ -1,0 +1,15 @@
+{
+  "namespace": "com.bakdata.quick.avro",
+  "name": "ChartRecord",
+  "type": "record",
+  "fields": [
+    {
+      "name": "fieldId",
+      "type": "long"
+    },
+    {
+      "name": "countPlays",
+      "type": "long"
+    }
+  ]
+}

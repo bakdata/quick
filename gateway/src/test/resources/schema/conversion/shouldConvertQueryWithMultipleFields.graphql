@@ -1,0 +1,26 @@
+type Query {
+    getProduct(productId: ID): ProductInfo
+}
+
+type ProductInfo {
+    product: Product @topic(name: "product-topic", keyArgument: "productId")
+    url: String @topic(name: "url-topic", keyArgument: "productId")
+}
+
+type Product   {
+    productId: ID!,
+    name: String,
+    description: String,
+    price: Price,
+    metadata: Metadata
+}
+
+type Price {
+    total: Float,
+    currency: String
+}
+
+type Metadata {
+    created_at: Int,
+    source: String
+}

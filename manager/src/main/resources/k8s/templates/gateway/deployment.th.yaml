@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: [(${name})]
+    app.kubernetes.io/managed-by: quick
+    app.kubernetes.io/component: gateway
+  annotations:
+    d9p.io/fixed-tag: [(${hasFixedTag})]
+  name: [(${name})]
+spec:
+  replicas: [(${replicas})]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: [(${name})]
+      app.kubernetes.io/component: gateway
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8081"
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/prometheus"
+      labels:
+        app.kubernetes.io/name: [(${name})]
+        app.kubernetes.io/managed-by: quick
+        app.kubernetes.io/component: gateway
+    spec:
+      containers:
+        - image: [(${image})]
+          imagePullPolicy: [(${pullPolicy})]
+          name: [(${name})]
+          envFrom:
+            - configMapRef:
+                name: quick-config
+            - secretRef:
+                name: api-key-secret
+          # Required for Java 11 because the default TLSv1.3 can be bugged
+          # https://github.com/golang/go/issues/35722#issuecomment-571173416
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MinRAMPercentage=45.0 -XX:MaxRAMPercentage=70.0 -Djdk.tls.client.protocols=TLSv1.2"
+          resources:
+            limits:
+              memory: [(${resourceConfig.memory.limit})]
+              cpu: [(${resourceConfig.cpu.limit})]
+            requests:
+              memory: [(${resourceConfig.memory.request})]
+              cpu: [(${resourceConfig.cpu.request})]
+          volumeMounts:
+            - name: log4j-config
+              mountPath: app/resources/log4j2.yaml
+              subPath: log4j2.yaml
+            - name: [(${name})]-config-volume
+              mountPath: /app/schema.graphql
+              subPath: schema.graphql
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - containerPort: 8081
+              name: metrics
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 8081
+            initialDelaySeconds: 2
+            periodSeconds: 1
+      volumes:
+        - name: log4j-config
+          configMap:
+            name: quick-log4j
+            items:
+              - key: log4j2.yaml
+                path: log4j2.yaml
+        - name: [(${name})]-config-volume
+          configMap:
+            name: [(${name})]-config

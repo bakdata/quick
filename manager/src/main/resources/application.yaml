@@ -1,0 +1,43 @@
+micronaut:
+  security:
+    token:
+      propagation:
+        header:
+          enabled: true
+          headerName: "X-API-Key"
+          prefix: ""
+        enabled: true
+        service-id-regex: http://${quick.service.ingest}
+
+  application:
+    name: manager
+
+  metrics:
+    enabled: true
+
+
+endpoints:
+  # Enable all default endpoint but on custom port so they are not publicly accessible
+  all:
+    port: 8081
+    sensitive: false
+    enabled: true
+
+# https://micronaut-projects.github.io/micronaut-kubernetes/2.2.0/guide/index.html
+kubernetes:
+  client:
+    discovery:
+      enabled: false
+
+quick:
+  manager:
+    update-managed-images: true
+    create-topic-registry: true
+  applications:
+    resources:
+      memory:
+        limit: 1G
+        request: 256Mi
+      cpu:
+        limit: 1
+        request: 0.1

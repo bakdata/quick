@@ -1,0 +1,7 @@
+{
+    findPurchase(purchaseId: "test") {
+        purchaseId,
+        productId,
+        amount,
+    }
+}

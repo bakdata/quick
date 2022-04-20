@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quick-log4j
+data:
+  log4j2.yaml: |-
+  {{ if .Values.log4jConfig }}
+  {{ .Values.log4jConfig | indent 4 }}
+  {{ else }}
+    Configuration:
+      status: info
+
+      Appenders:
+        Console:
+          name: Console
+          target: SYSTEM_OUT
+          follow: true
+          PatternLayOut:
+            disableAnsi: false
+            Pattern: "%d{HH:mm:ss.SSS} - %highlight{%5p} %style{%logger{36}}{cyan} - %m%n%throwable"
+
+      Loggers:
+        Root:
+          level: info
+          AppenderRef:
+            ref: Console
+  {{ end }}

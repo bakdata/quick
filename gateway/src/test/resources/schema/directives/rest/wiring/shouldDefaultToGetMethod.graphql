@@ -1,0 +1,7 @@
+type Query {
+    recommendation(userId: ID!, recommendationType: String!): Recommendation @rest(url: "http://localhost:8081")
+}
+
+type Recommendation {
+    ids: [ID]
+}

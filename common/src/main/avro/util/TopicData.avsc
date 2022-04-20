@@ -1,0 +1,38 @@
+{
+  "namespace": "com.bakdata.quick.common.api.model",
+  "type": "record",
+  "name": "AvroTopicData",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "name": "writeType",
+      "type": {
+        "type": "enum",
+        "name": "AvroWriteType",
+        "symbols": [
+          "MUTABLE",
+          "IMMUTABLE"
+        ]
+      }
+    },
+    {
+      "name": "keyType",
+      "type": "com.bakdata.quick.common.api.model.AvroQuickTopicType"
+    },
+    {
+      "name": "valueType",
+      "type": "com.bakdata.quick.common.api.model.AvroQuickTopicType"
+    },
+    {
+      "name": "schema",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    }
+  ]
+}

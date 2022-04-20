@@ -1,0 +1,30 @@
+{
+  "namespace": "com.bakdata.quick.avro",
+  "type": "record",
+  "name": "ListeningEvent",
+  "fields": [
+    {
+      "name": "userId",
+      "type": "long"
+    },
+    {
+      "name": "artistId",
+      "type": "long"
+    },
+    {
+      "name": "albumId",
+      "type": "long"
+    },
+    {
+      "name": "trackId",
+      "type": "long"
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    }
+  ]
+}

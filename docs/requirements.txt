@@ -1,0 +1,5 @@
+mkdocs==1.2.4
+mkdocs-material==8.2.5
+mike==1.1.2
+pygments-graphql==1.0.0
+mkdocs-macros-plugin==0.7.0

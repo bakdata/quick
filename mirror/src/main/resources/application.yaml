@@ -1,0 +1,23 @@
+micronaut:
+  application:
+    name: mirror
+
+  security:
+    enabled: false
+
+  # Too expensive to enable for each mirror for now
+  metrics:
+    enabled: false
+
+# https://micronaut-projects.github.io/micronaut-kubernetes/2.2.0/guide/index.html
+kubernetes:
+  client:
+    discovery:
+      enabled: false
+
+endpoints:
+  # Enable all default endpoint but on custom port so they are not publicly accessible
+  all:
+    port: 8081
+    sensitive: false
+    enabled: true

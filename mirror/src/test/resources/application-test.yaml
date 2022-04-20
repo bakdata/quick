@@ -1,0 +1,16 @@
+micronaut:
+  security:
+    enabled: false
+
+  metrics:
+    enabled: false
+
+endpoints:
+  all:
+    enabled: false
+
+quick:
+  apikey:
+    test_key
+  kafka:
+    bootstrap-server: dummy:123

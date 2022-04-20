@@ -1,0 +1,15 @@
+{
+  "purchaseId": "abc",
+  "productId": 123,
+  "userId": 1,
+  "amount": 1,
+  "price": {
+    "total": 19.99,
+    "currency": "DOLLAR"
+  },
+  "product": {
+    "productId": 123,
+    "name": "T-Shirt",
+    "description": "black"
+  }
+}

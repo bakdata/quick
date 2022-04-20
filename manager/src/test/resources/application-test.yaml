@@ -1,0 +1,19 @@
+micronaut:
+  security:
+    enabled: false
+  metrics:
+    enabled: false
+
+endpoints:
+  # Enable all default endpoint but on custom port so they are not publicly accessible
+  all:
+    enabled: false
+
+quick:
+  kafka:
+    bootstrap-server: dummy:9092
+    schema-registry-url: http://test:8081
+  apikey: test_key
+  service:
+    ingest: test-ingest
+    gateway: test-gateway

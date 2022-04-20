@@ -1,0 +1,7 @@
+type Query {
+    getURL(id: ID): String
+}
+
+type Subscription {
+    getURL(id: ID): String @topic(name: "url-topic")
+}

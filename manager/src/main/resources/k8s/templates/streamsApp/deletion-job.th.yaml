@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/name: [(${name})]
+    app.kubernetes.io/component: streamsApp
+  name: [(${name})]
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: [(${name})]
+        app.kubernetes.io/component: streamsApp
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name:  [(${name})]
+          image: [(${image})]
+          imagePullPolicy: [(${pullPolicy})]
+          args: [# th:each="arg : ${args}"]
+            - [(${arg})] [/]
+            - --clean-up=true
+            - --delete-output=false
+          envFrom:
+            - configMapRef:
+                name: quick-config
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MinRAMPercentage=45.0 -XX:MaxRAMPercentage=70.0 -Djdk.tls.client.protocols=TLSv1.2"
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          volumeMounts:
+            - name: log4j-config
+              mountPath: app/resources/log4j2.yaml
+              subPath: log4j2.yaml
+      volumes:
+        - name: log4j-config
+          configMap:
+            name: quick-log4j
+            items:
+              - key: log4j2.yaml
+                path: log4j2.yaml

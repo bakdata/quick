@@ -1,0 +1,15 @@
+type Purchase {
+    amount: Int
+    infos: [String]
+    price: Price!
+    priceHistory: [Price!]
+    productId: ID!
+    purchaseId: ID!
+    userId: ID!
+}
+
+type Price {
+    currency: String
+    total: Float
+}
+

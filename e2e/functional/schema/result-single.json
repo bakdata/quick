@@ -1,0 +1,13 @@
+{
+  "productId": 123,
+  "name": "T-Shirt",
+  "description": "black",
+  "price": {
+    "currency": "DOLLAR",
+    "total": 19.99
+  },
+  "metadata": {
+    "created_at": 1591710185,
+    "source": "www.foo.com"
+  }
+}

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: [(${name})]
+    app.kubernetes.io/managed-by: quick
+    app.kubernetes.io/component: mirror
+  name: [(${name})]
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: [(${name})]
+    app.kubernetes.io/component: mirror
+  type: ClusterIP

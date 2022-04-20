@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app.kubernetes.io/name: [(${deploymentName})]
+    app.kubernetes.io/managed-by: quick
+    app.kubernetes.io/component: gateway
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: [(${namespace})]-[(${deploymentName})]@kubernetescrd
+    traefik.ingress.kubernetes.io/router.entrypoints: [(${ingressEntrypoint})]
+    traefik.ingress.kubernetes.io/router.tls: "[(${ingressSsl})]"
+  name: [(${deploymentName})]
+spec:
+  rules:
+    - [# th:if= "${host}"]host: [(${host})][/]
+      http:
+        paths:
+          - path: /gateway/[(${pathName})]
+            pathType: Prefix
+            backend:
+              service:
+                name: [(${deploymentName})]
+                port:
+                  number: 80
