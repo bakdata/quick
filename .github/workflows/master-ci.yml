@@ -93,7 +93,7 @@ jobs:
       - name: Update gh-pages
         uses: ./.github/actions/update-docs
         with:
-          token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
 
 
   publish-dev-helm:
@@ -102,4 +102,4 @@ jobs:
     if: ${{ needs.changes.outputs.helm == 'true' }}
     uses: ./.github/workflows/update-helm-chart.yml
     secrets:
-      github-token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+      github-token: ${{ secrets.GH_TOKEN }}
