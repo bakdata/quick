@@ -217,7 +217,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../contributing/" class="md-tabs__link md-tabs__link--active">
+      <a href="../architecture/" class="md-tabs__link md-tabs__link--active">
         Developer guide
       </a>
     </li>
@@ -232,6 +232,18 @@
   <li class="md-tabs__item">
     <a href="../../changelog/" class="md-tabs__link">
       Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../roadmap/" class="md-tabs__link">
+      Roadmap
     </a>
   </li>
 
@@ -790,6 +802,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3">
@@ -803,6 +817,20 @@
           Developer guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -826,20 +854,6 @@
     <li class="md-nav__item">
       <a href="../development/" class="md-nav__link">
         Development
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
-        Architecture
       </a>
     </li>
   
@@ -916,7 +930,7 @@
         
           <li class="md-nav__item">
   <a href="#code-quality" class="md-nav__link">
-    Code Quality
+    Code quality
   </a>
   
 </li>
@@ -949,6 +963,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -965,6 +993,21 @@
     <li class="md-nav__item">
       <a href="../../changelog/" class="md-nav__link">
         Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        Roadmap
       </a>
     </li>
   
@@ -1013,7 +1056,7 @@
         
           <li class="md-nav__item">
   <a href="#code-quality" class="md-nav__link">
-    Code Quality
+    Code quality
   </a>
   
 </li>
@@ -1057,15 +1100,15 @@
 
 <h1 id="cli">CLI<a class="headerlink" href="#cli" title="Permanent link">&para;</a></h1>
 <p>Our <a href="https://github.com/bakdata/quick-cli">CLI</a> is written in Python.
-It contains two modules.
-<code>quick_client</code> is the REST API client for the manager.
-It is automatically generated as explained in <a href="../development/#openapi">Development - OpenAPI</a>
-<code>quick</code> is a CLI wrapper for the REST API client.</p>
+It has two modules: <code>quick_client</code> and <code>quick</code>.
+The <code>quick_client</code> module is the REST API client for the manager.
+It's automatically generated as explained in <a href="../development/#openapi">Development - OpenAPI</a>
+The <code>quick</code> module is a CLI wrapper for the REST API client.</p>
 <h2 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h2>
 <h3 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h3>
 <p>We use <a href="https://github.com/python-poetry/poetry">poetry</a> as build system.
-You can simply run <code>poetry install</code> in the project directory. 
-By default, this creates a new virtual environment with all runtime and dev dependencies installed.</p>
+You can run <code>poetry install</code> in the project directory.
+This command creates a new virtual environment with all runtime and dev dependencies installed by default.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You can run <code>poetry config virtualenvs.path &lt;PATH&gt;</code> to set the path where virtualenvs are created.</p>
@@ -1075,37 +1118,38 @@ By default, this creates a new virtual environment with all runtime and dev depe
 pip install ./dist/quick_cli-0.1.3-py3-none-any.whl --force-reinstall
 </code></pre></div>
 <p>If you want to add a new dependency, make sure to commit the updated <code>poetry.lock</code> file.</p>
-<h3 id="code-quality">Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">&para;</a></h3>
-<p>We use flake8, isort and black for formatting and linting of the project.
-You can use the provided pre-commit-config, to make sure your PRs pass.
-For that install the hooks with <code>pre-commit install</code> (making them run before each commit).
+<h3 id="code-quality">Code quality<a class="headerlink" href="#code-quality" title="Permanent link">&para;</a></h3>
+<p>We use flake8, isort, and black for formatting and linting the project.
+You can use the provided pre-commit-config to make sure your PRs pass.
+Install the hooks with <code>pre-commit install</code> (making them run before each commit).
 You can also run them manually with <code>pre-commit run --all-files</code>.
 Currently, mypy is excluded from pre-commit.
 However, feel free to run <code>mypy .</code> and fix possible errors.</p>
 <h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
-<p>We provide a argparse-to-markdown script for generating the CLI's documentation.
+<p>The CLI comes with an argparse-to-markdown script for generating the CLI's documentation.
 The created file is <code>commands.md</code>.
-After updating commands, please update it with the following command: 
+After updating commands, update it with the following command:
 <div class="highlight"><pre><span></span><code>python quick/generate_docs.py &gt; commands.md
 </code></pre></div></p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
-<p>Our CLI uses Python's <a href="https://docs.python.org/3/library/argparse.html">ArgParse</a>.
-We follow a OOP approach for defining new subcommands.
-There are two base-classes:</p>
+<p>The CLI uses Python's <a href="https://docs.python.org/3/library/argparse.html">ArgParse</a>.
+It follows an OOP approach for defining new subcommands.
+There are two base classes:</p>
 <dl>
 <dt><code>Group</code></dt>
-<dd>A Group is a subcommand that contains again one more child subcommands.
-The subcommands are defined in its <code>sub_parser</code> field. <div class="admonition attention">
+<dd>A Group is a subcommand that has one more child subcommands.
+The subcommands are defined in its <code>sub_parser</code> field.<div class="admonition attention">
 <p class="admonition-title">Attention</p>
-A new top level group (i.e., used as <code>quick &lt;new-group&gt;</code>) must be added the <code>COMMANDS</code> list in 
+A new top-level group (i.e., used as <code>quick &lt;new-group&gt;</code>) must be added the <code>COMMANDS</code> list in 
 <code>commands/__init__.py</code>.</div>
 </dd>
 <dt><code>Command</code></dt>
-<dd>A Command is a subcommand that executes an action. You can override the <code>add_args</code> method, that allows to add new
-required and optional arguments. The <code>execute</code> method contains the logic for the command action.</dd>
+<dd>A Command is a subcommand that executes an action.
+You can override the <code>add_args</code> method to add new required and optional arguments.
+The <code>execute</code> method contains the logic for the command action.</dd>
 </dl>
-<p>This approach using base classes allows us to define common behavior, like recurring arguments (e.g., <code>--debug</code>) and
-setup configurations.</p>
+<p>This approach using base classes lets us define common behavior,
+like recurring arguments (for example, <code>--debug</code>) and setup configurations.</p>
 
               
             </article>
@@ -1135,13 +1179,13 @@ setup configurations.</p>
       
       
         
-        <a href="../../changelog/" class="md-footer__link md-footer__link--next" aria-label="Next: Changelog" rel="next">
+        <a href="../notice/" class="md-footer__link md-footer__link--next" aria-label="Next: Dependencies notice" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Changelog
+              Dependencies notice
             </div>
           </div>
           <div class="md-footer__button md-icon">

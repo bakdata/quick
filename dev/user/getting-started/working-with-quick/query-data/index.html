@@ -217,7 +217,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../developer/contributing/" class="md-tabs__link">
+      <a href="../../../../developer/architecture/" class="md-tabs__link">
         Developer guide
       </a>
     </li>
@@ -232,6 +232,18 @@
   <li class="md-tabs__item">
     <a href="../../../../changelog/" class="md-tabs__link">
       Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../../roadmap/" class="md-tabs__link">
+      Roadmap
     </a>
   </li>
 
@@ -849,6 +861,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3">
@@ -862,6 +876,20 @@
           Developer guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -897,20 +925,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../developer/architecture/" class="md-nav__link">
-        Architecture
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../../../developer/operations/" class="md-nav__link">
         Operations
       </a>
@@ -933,6 +947,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -949,6 +977,21 @@
     <li class="md-nav__item">
       <a href="../../../../changelog/" class="md-nav__link">
         Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../roadmap/" class="md-nav__link">
+        Roadmap
       </a>
     </li>
   
@@ -1024,8 +1067,8 @@
 Quick uses GraphQL directives to represent this information.
 You can imagine them like annotations and attributes in programming languages:
 They add meta information to a schema element form which Quick derives extra functionalities.
-The <a href="/user/reference/graphql-extensions#topic"><code>@topic</code> directive</a> is the most important when working with Quick.
-It connects elements in your schema to Kafka topics.</p>
+The <a href="../reference/graphql-extensions#topic"><code>@topic</code> directive</a> is the most important when working with Quick.
+It connects elements in your schema to Apache Kafka topics.</p>
 <h2 id="query-by-key">Query by key<a class="headerlink" href="#query-by-key" title="Permanent link">&para;</a></h2>
 <p>In the first step, you connect the Query field <code>findPurchase</code> from the gateway schema to the <code>purchase</code> topic.
 You can simply change the <a href="../gateway/#the-graphql-schema">existing schema</a>:
@@ -1042,9 +1085,10 @@ The <code>keyArgument</code> defines that it should return the purchase with the
 </code></pre></div></p>
 <hr />
 <p>You can now query the topic.
-In a GraphQL query, you have to select all fields you want to have recursively.
+In a GraphQL query, you must select all fields you want to retrieve recursively.
 This query starts with the <code>findPurchase</code> field and passes an argument for the <code>purchaseId</code>.
-It then selects the field of <code>Purchase</code> that the gateway should return, including the fields of the nested type <code>Price</code>.
+It then selects the fields of <code>Purchase</code> that the gateway should return,
+including the nested type <code>Price</code>'s fields.
 In this example, the query drops the fields <code>purchaseId</code> and <code>userId</code>.
 <div class="highlight"><span class="filename">find-purchase-query.gql</span><pre><span></span><code><span class="p">{</span>
     <span class="n">findPurchase</span><span class="p">(</span><span class="n">purchaseId</span><span class="p">:</span> <span class="s">&quot;abc&quot;</span><span class="p">)</span> <span class="p">{</span>
@@ -1076,7 +1120,7 @@ This command should return a JSON object of the data:
 </code></pre></div></p>
 <h2 id="query-lists">Query lists<a class="headerlink" href="#query-lists" title="Permanent link">&para;</a></h2>
 <p>Quick also lets you query a list of elements.
-You can add the following field to the query:
+You can add the following <code>allPurchases</code> field to the query:
 <div class="highlight"><span class="filename">schema.gql</span><pre><span></span><code><span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
     <span class="n">findPurchase</span><span class="p">(</span><span class="n">purchaseId</span><span class="p">:</span> <span class="no">String</span><span class="p">)</span><span class="err">:</span> <span class="n">Purchase</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;purchase&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;purchaseId&quot;</span><span class="p">)</span>
     <span class="nl">allPurchases</span><span class="p">:</span> <span class="err">[</span><span class="n">Purchase</span><span class="err">!]</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;purchase&quot;</span><span class="p">)</span>
@@ -1085,9 +1129,9 @@ You can add the following field to the query:
 <span class="c"># The rest of the schema remains unchanged </span>
 </code></pre></div></p>
 <p><code>allPurchases</code> differs from <code>findPurchase</code> in two ways.
-First, it doesn't have an argument and therefore also no <code>keyArgument</code> specified in the <code>@topic</code> directive.
+First, it doesn't have an argument and no <code>keyArgument</code> specified in the <code>@topic</code> directive.
 Second, it returns <code>[Purchase!]</code> instead of <code>Purchase</code>.
-The brackets indicate that it's a list of purchases that aren't null because of the exclamation point after <code>Purchase</code>.</p>
+The brackets indicate a list of purchases that aren't null because of the exclamation mark.</p>
 <p>After applying the schema again, you can also query all purchases:
 <div class="highlight"><span class="filename">all-purchases-query.gql</span><pre><span></span><code><span class="p">{</span>
     <span class="n">allPurchases</span> <span class="p">{</span>
@@ -1095,9 +1139,13 @@ The brackets indicate that it's a list of purchases that aren't null because of 
         <span class="n">userId</span>
     <span class="p">}</span>
 <span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>gql-cli <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/gateway/example/graphql&quot;</span> <span class="se">\</span>
+  -H <span class="s2">&quot;X-API-Key:</span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span> <span class="se">\</span>
+  &lt; all-purchases-query.gql
 </code></pre></div></p>
 <h2 id="query-connected-topics">Query connected topics<a class="headerlink" href="#query-connected-topics" title="Permanent link">&para;</a></h2>
-<p>As you may have already noticed,
+<p>As you may have noticed,
 there is a relationship between <code>Purchase</code> and <code>Product</code> in that <code>Purchase</code> has a field <code>productId</code>.
 What if you want to have the information for the product when querying a purchase?
 Quick supports this also through the <code>@topic</code> directive.</p>
@@ -1112,31 +1160,25 @@ Quick supports this also through the <code>@topic</code> directive.</p>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
-<span class="normal">12</span>
-<span class="normal">13</span>
-<span class="normal">14</span>
-<span class="normal">15</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
-    <span class="n">findPurchase</span><span class="p">(</span><span class="n">purchaseId</span><span class="p">:</span> <span class="no">String</span><span class="p">)</span><span class="err">:</span> <span class="n">Purchase</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;purchase&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;purchaseId&quot;</span><span class="p">)</span>
-    <span class="nl">allPurchases</span><span class="p">:</span> <span class="err">[</span><span class="n">Purchase</span><span class="err">!]</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;purchase&quot;</span><span class="p">)</span>
-<span class="p">}</span>
+<span class="normal">12</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code><span class="c"># The query remains unchanged </span>
 
 <span class="k">type</span> <span class="err">Purchase</span> <span class="p">{</span>
     <span class="nl">purchaseId</span><span class="p">:</span> <span class="n">String</span><span class="err">!</span>
     <span class="nl">productId</span><span class="p">:</span> <span class="n">Int</span><span class="err">!</span>
     <span class="nl">userId</span><span class="p">:</span> <span class="n">Int</span><span class="err">!</span>
-    <span class="nl">product</span><span class="p">:</span> <span class="n">Product</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;product&quot;</span><span class="p">,</span> <span class="n">keyField</span><span class="p">:</span> <span class="s">&quot;productId&quot;</span><span class="p">)</span>
     <span class="nl">amount</span><span class="p">:</span> <span class="n">Int</span>
     <span class="nl">price</span><span class="p">:</span> <span class="n">Price</span>
+    <span class="nl">product</span><span class="p">:</span> <span class="n">Product</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;product&quot;</span><span class="p">,</span> <span class="n">keyField</span><span class="p">:</span> <span class="s">&quot;productId&quot;</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c"># The rest of the schema remains unchanged </span>
 </code></pre></div>
 </td></tr></table>
-<p>Line 10 is new: The <code>Purchase</code> has now a new field <code>product</code> of Type <code>Product</code>.
-The directive uses the <code>keyField</code> argument to define their relationship: 
-The <code>productId</code> holds the value that Quick should query in the product topic.</p>
+<p>The last line is new: The <code>Purchase</code> now has a new field <code>product</code> of Type <code>Product</code>.
+The directive uses the <code>keyField</code> argument to define their relationship:
+The <code>productId</code> holds the value that Quick should resolve through the product topic.</p>
 <hr />
-<p>With it, you can query a purchase and directly access the connected product information:
+<p>With this, you can query a purchase and directly access the related product information:
 <div class="highlight"><span class="filename">purchase-with-product-query.gql</span><pre><span></span><code><span class="p">{</span>
     <span class="n">findPurchase</span><span class="p">(</span><span class="n">purchaseId</span><span class="p">:</span> <span class="s">&quot;abc&quot;</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">amount</span>
@@ -1151,6 +1193,10 @@ The <code>productId</code> holds the value that Quick should query in the produc
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>gql-cli <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/gateway/example/graphql&quot;</span> <span class="se">\</span>
+  -H <span class="s2">&quot;X-API-Key:</span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span> <span class="se">\</span>
+  &lt; purchase-with-product-query.gql
 </code></pre></div></p>
 <p>This query returns the following data:
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>

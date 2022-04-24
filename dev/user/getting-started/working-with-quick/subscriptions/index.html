@@ -217,7 +217,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../developer/contributing/" class="md-tabs__link">
+      <a href="../../../../developer/architecture/" class="md-tabs__link">
         Developer guide
       </a>
     </li>
@@ -232,6 +232,18 @@
   <li class="md-tabs__item">
     <a href="../../../../changelog/" class="md-tabs__link">
       Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../../roadmap/" class="md-tabs__link">
+      Roadmap
     </a>
   </li>
 
@@ -849,6 +861,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3">
@@ -862,6 +876,20 @@
           Developer guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -897,20 +925,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../developer/architecture/" class="md-nav__link">
-        Architecture
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../../../developer/operations/" class="md-nav__link">
         Operations
       </a>
@@ -933,6 +947,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -949,6 +977,21 @@
     <li class="md-nav__item">
       <a href="../../../../changelog/" class="md-nav__link">
         Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../roadmap/" class="md-nav__link">
+        Roadmap
       </a>
     </li>
   
@@ -1021,10 +1064,10 @@
 
 <h1 id="subscriptions">Subscriptions<a class="headerlink" href="#subscriptions" title="Permanent link">&para;</a></h1>
 <p>In <a href="../query-data/">Query data</a> you have learned to use the <code>@topic</code> directive to query data.
-This section shows you how to get real-time updates of your data.</p>
+This section explains how to get real-time updates of your data.</p>
 <h2 id="extending-the-schema">Extending the schema<a class="headerlink" href="#extending-the-schema" title="Permanent link">&para;</a></h2>
-<p>Like the <code>Query</code> type, the <code>Subscription</code> type works as entry point for GraphQL.
-To create a new subscription, you follow the same approach as with adding a new query: 
+<p>Like the <code>Query</code> type, the <code>Subscription</code> type works as an entry point for GraphQL.
+To create a new subscription, you follow the same approach as with adding a new query:
 You add a field to the corresponding type.
 In the <a href="../gateway/#the-graphql-schema">example schema</a>, this can look like this:
 <div class="highlight"><span class="filename">schema.gql</span><pre><span></span><code><span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
@@ -1057,26 +1100,29 @@ In the <a href="../gateway/#the-graphql-schema">example schema</a>, this can loo
     <span class="nl">currency</span><span class="p">:</span> <span class="n">String</span>
 <span class="p">}</span>
 </code></pre></div></p>
+<p>Don't forget to re-apply the schema to update Quick:
+<div class="highlight"><pre><span></span><code>quick gateway apply example -f schema.gql
+</code></pre></div></p>
 <p>Compared to the <a href="../query-data/#query-connected-topics">latest version of the schema</a>,
-this schema now has a new type <code>Subscription</code>.
-The field <code>purchases</code> creates a new subscription
-that emits an event whenever Quick receives a new element in the purchase topic.</p>
-<p>Note however, that compared to the query fields, the field neither takes a key argument nor returns a list of purchases.
-This is because the stream contains purchases with all keys, but only one at a time.
-It also possible to include a key argument in subscription.
-Quick then filters the streams, and you only receive updates for the given key.</p>
+this schema now has a new type, <code>Subscription</code>.
+The field <code>purchases</code> creates a new subscription.
+Whenever Quick receives a new element in the <code>purchase</code> topic, it emits an event.</p>
+<p>Note, however, that compared to the query fields, the field neither takes a key argument nor returns a list of purchases.
+This is because the stream contains purchases with any key, but only one at a time.
+It's also possible to include a key argument in a subscription.
+Quick then filters the stream, and you only receive updates for the given key.</p>
 <h2 id="altair-setup">Altair Setup<a class="headerlink" href="#altair-setup" title="Permanent link">&para;</a></h2>
 <p>The <code>gql-cli</code> doesn't support authentication for subscriptions.
-We therefore recommend using <a href="https://altair.sirmuel.design/">Altair</a>.
+We, therefore, recommend using <a href="https://altair.sirmuel.design/">Altair</a>.
 After you have installed it, you need to set it up.
-Note that Altair doesn't have access to the variables, therefore you have to replace them with the appropriate values.</p>
+Note that Altair doesn't have access to the variables; therefore, you must replace them with the appropriate values.</p>
 <ol>
 <li>In the field <code>Enter URL</code>, enter <code>$QUICK_URL/gateway/example/graphql</code></li>
 <li>In the left menu, click on "Set Headers" and add a new header with key <code>X-API-Key</code> and the value of <code>$QUICK_API_KEY</code></li>
 <li>In the left menu, click on "Subscription URL"<ol>
 <li>Set the URL to <code>ws://$QUICK_HOST/gateway/example/graphql-ws</code>.
    Note that the URL uses <code>ws</code> as protocol and has <code>-ws</code> suffix.</li>
-<li>Set the connection parameters to
+<li>Set the connection parameters (where <code>$QUICK_API_KEY</code> is your key)
   <div class="highlight"><pre><span></span><code><span class="w">  </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="nt">&quot;X-API-Key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;$QUICK_API_KEY&quot;</span><span class="w"></span>
 <span class="w">  </span><span class="p">}</span><span class="w"></span>
@@ -1099,13 +1145,13 @@ Note that Altair doesn't have access to the variables, therefore you have to rep
     <span class="p">}</span>
   <span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div>
-To let the subscription run, you can press the <code>Run subscription</code> button.</p>
+</code></pre></div></p>
+<p>You can press the <code>Run subscription</code> button to start the subscription.</p>
 <hr />
-<p>You can now ingest new data into the purchase topic and will receive them in your subscription.
-You can test this by using the <a href="../ingest-data/#rest-api">purchases.json from the ingest data section</a>.
+<p>You can now ingest new data into the <code>purchase</code> topic and will receive them in your subscription.
+You can test this by using the <a href="../ingest-data/">purchases.json from the ingest data section</a>.
 For example, ingest the following purchase:
-<div class="highlight"><span class="filename">subscription-product.json</span><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<div class="highlight"><span class="filename">subscription-purchase.json</span><pre><span></span><code><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;aj&quot;</span><span class="p">,</span><span class="w"></span>
 <span class="w">    </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">      </span><span class="nt">&quot;purchaseId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;aj&quot;</span><span class="p">,</span><span class="w"></span>
@@ -1118,8 +1164,13 @@ For example, ingest the following purchase:
 <span class="w">      </span><span class="p">}</span><span class="w"></span>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
+</code></pre></div></p>
+<div class="highlight"><pre><span></span><code> curl --request POST --url <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/ingest/purchase&quot;</span> <span class="se">\</span>
+  --header <span class="s2">&quot;content-type:application/json&quot;</span> <span class="se">\</span>
+  --header <span class="s2">&quot;X-API-Key:</span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span><span class="se">\</span>
+  --data <span class="s2">&quot;@./subscription-purchase.json&quot;</span>
 </code></pre></div>
-The subscription should emit the following event:
+<p>The subscription should emit the following event:
 <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="nt">&quot;purchases&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
@@ -1136,7 +1187,7 @@ The subscription should emit the following event:
 <span class="w">  </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"> </span>
 </code></pre></div>
-As you can see, Quick automatically extends the data by the product information.</p>
+Again, you can see that Quick automatically extends the data with the product information.</p>
 
               
             </article>

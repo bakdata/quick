@@ -217,7 +217,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../developer/contributing/" class="md-tabs__link">
+      <a href="../../../developer/architecture/" class="md-tabs__link">
         Developer guide
       </a>
     </li>
@@ -232,6 +232,18 @@
   <li class="md-tabs__item">
     <a href="../../../changelog/" class="md-tabs__link">
       Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../roadmap/" class="md-tabs__link">
+      Roadmap
     </a>
   </li>
 
@@ -662,6 +674,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-this-will-demonstrate" class="md-nav__link">
+    What this will demonstrate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#prerequisites" class="md-nav__link">
     Prerequisites
   </a>
@@ -682,6 +701,13 @@
   
     <nav class="md-nav" aria-label="Ingest and fetch TinyURLs">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-user-inputs" class="md-nav__link">
+    Query user inputs
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#query-results" class="md-nav__link">
@@ -867,6 +893,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3">
@@ -880,6 +908,20 @@
           Developer guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -915,20 +957,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../developer/architecture/" class="md-nav__link">
-        Architecture
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../../developer/operations/" class="md-nav__link">
         Operations
       </a>
@@ -951,6 +979,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -967,6 +1009,21 @@
     <li class="md-nav__item">
       <a href="../../../changelog/" class="md-nav__link">
         Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/" class="md-nav__link">
+        Roadmap
       </a>
     </li>
   
@@ -999,6 +1056,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-this-will-demonstrate" class="md-nav__link">
+    What this will demonstrate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#prerequisites" class="md-nav__link">
     Prerequisites
   </a>
@@ -1019,6 +1083,13 @@
   
     <nav class="md-nav" aria-label="Ingest and fetch TinyURLs">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-user-inputs" class="md-nav__link">
+    Query user inputs
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#query-results" class="md-nav__link">
@@ -1059,8 +1130,15 @@
 
 <h1 id="tinyurl">TinyURL<a class="headerlink" href="#tinyurl" title="Permanent link">&para;</a></h1>
 <p>TinyURL is an application that shortens any given URL to a tiny one.
-For example, shortening URLs is helpful for people posting on Twitter.
+For instance, shortening URLs is helpful for people posting on Twitter.
 This example shows a step-by-step guide on how to run your TinyURL application with Quick.</p>
+<h2 id="what-this-will-demonstrate">What this will demonstrate<a class="headerlink" href="#what-this-will-demonstrate" title="Permanent link">&para;</a></h2>
+<ul>
+<li>the use of topics without duplicates</li>
+<li>the deployment of a simple topology running an analytics app from Docker Hub</li>
+<li>the creation and setup of a gateway</li>
+<li>the retrieval of user input (tiny URLs) and analytics results (token lookup count)</li>
+</ul>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
 <li>A running Quick instance.
@@ -1069,71 +1147,114 @@ This example shows a step-by-step guide on how to run your TinyURL application w
   See the <a href="../../getting-started/setup-cli/">Setup Quick CLI</a> section.</li>
 </ul>
 <h2 id="setup-and-installation">Setup and installation<a class="headerlink" href="#setup-and-installation" title="Permanent link">&para;</a></h2>
-<ol>
-<li>
-<p>Use the quick-cli to create a new topic called <code>tiny-url</code>.
-   This topic stores the tokens as its key along with the URLs as its value.</p>
-<p><div class="highlight"><pre><span></span><code>quick topic create tiny-url --key string --value string --immutable
+<p>Create a new gateway called <code>tiny-url-gateway</code>:
+<div class="highlight"><pre><span></span><code>quick gateway create tiny-url-gateway
+</code></pre></div></p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>When you create a gateway, it might take some time until the gateway is running.</p>
+</div>
+<p>Apply the GraphQL schema on the <code>tiny-url-gateway</code> by using the following command:
+<div class="highlight"><pre><span></span><code>quick gateway apply tiny-url-gateway -f schema.gql
+</code></pre></div></p>
+<details>
+<summary>The TinyUrl's gateway schema (<code>schema.gql</code>)</summary>
+<div class="highlight"><span class="filename">schema.gql</span><pre><span></span><code>  <span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
+      <span class="n">fetchCountOfToken</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="no">String</span><span class="p">)</span><span class="err">:</span> <span class="n">TinyUrlCount</span>
+      <span class="nl">fetchAll</span><span class="p">:</span> <span class="err">[</span><span class="n">TinyUrl</span><span class="err">]</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;tiny-url&quot;</span><span class="p">)</span>
+  <span class="p">}</span>
+
+  <span class="k">type</span> <span class="err">TinyUrl</span> <span class="p">{</span>
+      <span class="nl">token</span><span class="p">:</span> <span class="n">String</span><span class="err">!</span>
+      <span class="nl">url</span><span class="p">:</span> <span class="n">String</span><span class="err">!</span>
+  <span class="p">}</span>
+
+  <span class="k">type</span> <span class="err">TinyUrlCount</span> <span class="p">{</span>
+      <span class="nl">tinyUrl</span><span class="p">:</span> <span class="n">TinyUrl</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;tiny-url&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;token&quot;</span><span class="p">)</span>
+      <span class="nl">count</span><span class="p">:</span> <span class="n">Long</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;count-fetch&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;token&quot;</span><span class="p">)</span>
+  <span class="p">}</span>
 </code></pre></div>
-   Note the <code>--immutable</code> flag. This flag determines that the topic is immutable, so there will be no duplicate keys.</p>
-</li>
-<li>
-<p>For this example, we created a simple Kafka-Streams application to create a count over the fetched URLs by the users.
-   You can find the source code of the counter application <a href="https://github.com/bakdata/quick-examples/tree/main/tiny-url/counter">here</a>. 
-   The diagram below shows the topology of the Kafka-Streams application.
-   The topology uses a source topic called <code>track-fetcher</code> and a sink topic called <code>count-fetch</code>:
-   <img alt="TinyURL Topology" src="/assets/images/tinyurl-topology.png" /></p>
-</li>
-<li>
-<p>You can create both topics with the following commands:</p>
-</li>
-</ol>
+</details>
+<p>Create a new topic called <code>tiny-url</code>.
+This topic stores the tokens as its key along with the URLs as its value.
+<div class="highlight"><pre><span></span><code>quick topic create tiny-url --key string --value schema --schema tiny-url-gateway.TinyUrl --immutable
+</code></pre></div></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code>--immutable</code> flag. This flag determines that the topic is immutable, so there will be no duplicate keys.</p>
+</div>
+<p>We use a simple Kafka streams application that aggregates the keys in the <code>track-fetch</code> topic.
+In other words, the application counts how many times the users fetch the TinyURLs.</p>
+<p>You can find the source code of the counter application <a href="https://github.com/bakdata/quick-examples/tree/main/tiny-url/counter">in our GitHub repository</a>.
+The diagram below shows the topology of the Kafka streams application.</p>
+<p>The topology uses a source topic called <code>track-fetch</code> and a sink topic called <code>count-fetch</code>:
+<img alt="TinyURL Topology" src="../../../assets/images/tinyurl-topology.png" /></p>
+<p>Create the two topics <code>track-fetch</code> and <code>count-fetch</code> with the following commands:
 <div class="highlight"><pre><span></span><code>quick topic create track-fetch --key string --value string <span class="o">&amp;&amp;</span>
 quick topic create count-fetch --key string --value long
-</code></pre></div>
-<ol>
-<li>Now that you created the topics, it's time to deploy the counter application:
-   <div class="highlight"><pre><span></span><code>quick app deploy tiny-url-counter <span class="se">\</span>
+</code></pre></div></p>
+<p>In the last step, you can use Quick to deploy your application:
+<div class="highlight"><pre><span></span><code>quick app deploy tiny-url-counter <span class="se">\</span>
     --registry bakdata <span class="se">\</span>
     --image quick-demo-tinyurl <span class="se">\</span>
     --tag <span class="m">1</span>.0.0 <span class="se">\</span>
     --args input-topics<span class="o">=</span>track-fetch output-topic<span class="o">=</span>count-fetch <span class="nv">productive</span><span class="o">=</span><span class="nb">false</span>
-</code></pre></div></li>
-<li>Then create a new gateway using this command:</li>
-</ol>
-<p><div class="highlight"><pre><span></span><code>quick gateway create tiny-url-gateway
-</code></pre></div>
-   <strong>Note:</strong> When you create a gateway, it might take some time until the gateway is running.</p>
-<ol>
-<li>Apply the <a href="https://github.com/bakdata/quick-examples/blob/main/tiny-url/schema.gql">GraphQL schema</a> on
-   the <code>tiny-url-gateway</code> by using the following command:</li>
-</ol>
-<div class="highlight"><pre><span></span><code>quick gateway apply tiny-url-gateway -f schema.gql
-</code></pre></div>
+</code></pre></div></p>
 <h2 id="ingest-and-fetch-tinyurls">Ingest and fetch TinyURLs<a class="headerlink" href="#ingest-and-fetch-tinyurls" title="Permanent link">&para;</a></h2>
-<p>After successfully setting up the application, topics, and gateway, it's time to create a TinyURL.
-To do so, you just ingest a key-value (token as the key and URL as value) in the <code>tiny-url</code> topic:
+<p>After successfully setting up the application, topics, and gateway, it's time to create a TinyURL, a URL associated with its token.
+To do so, you just ingest a key/value (token as the key and URL as the value) in the <code>tiny-url</code> topic:
 <div class="highlight"><pre><span></span><code>curl --request POST --url <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/ingest/tiny-url/&quot;</span> <span class="se">\</span>
   --header <span class="s1">&#39;content-type: application/json&#39;</span> <span class="se">\</span>
   --header <span class="s2">&quot;X-API-Key: </span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span> <span class="se">\</span>
-  --data <span class="s1">&#39;{&quot;key&quot;: &quot;d9p&quot;, &quot;value&quot;: &quot;https://www.d9p.io&quot;}&#39;</span>
+  --data <span class="s1">&#39;@./tiny-urls.json&#39;</span>
 </code></pre></div></p>
-<p>Now you can simulate a scenario where the user fetches a URL with its token by running the command below:
+<details>
+<summary>The TinyUrl's example data (<code>tiny-urls.json</code>)</summary>
+<div class="highlight"><span class="filename">tiny-urls.json</span><pre><span></span><code><span class="w">   </span><span class="p">[</span><span class="w"></span>
+<span class="w">       </span><span class="p">{</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d9p&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">               </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d9p&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">               </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://www.d9p.io&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="p">}</span><span class="w"></span>
+<span class="w">       </span><span class="p">},</span><span class="w"></span>
+<span class="w">       </span><span class="p">{</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bak&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">               </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bak&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">               </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://bakdata.com/&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="p">}</span><span class="w"></span>
+<span class="w">       </span><span class="p">}</span><span class="w"></span>
+<span class="w">   </span><span class="p">]</span><span class="w"></span>
+</code></pre></div>
+</details>
+<p>Now you can simulate the tracking of a user's URL fetch by the URL token. Run the command below:
 <div class="highlight"><pre><span></span><code>curl --request POST --url <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/ingest/track-fetch/&quot;</span> <span class="se">\</span>
   --header <span class="s1">&#39;content-type: application/json&#39;</span> <span class="se">\</span>
   --header <span class="s2">&quot;X-API-Key: </span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span> <span class="se">\</span>
   --data <span class="s1">&#39;{&quot;key&quot;: &quot;d9p&quot;, &quot;value&quot;: &quot;&quot;}&#39;</span>
 </code></pre></div></p>
-<p>Then the counter counts how many times the same key was ingested in the input topic 
-and outputs the number as a value in the output topic.</p>
-<h3 id="query-results">Query results<a class="headerlink" href="#query-results" title="Permanent link">&para;</a></h3>
-<p>Imagine a scenario where the users fetched the token <code>d9p</code> URL twice.
-Query the data and see the results:</p>
+<p>Then, the <code>quick-demo-tinyurl</code> app counts how many times the same key was ingested into the topic <code>track-fetch</code>
+and outputs the number as a value in the output topic <code>count-fetch</code>.</p>
+<h3 id="query-user-inputs">Query user inputs<a class="headerlink" href="#query-user-inputs" title="Permanent link">&para;</a></h3>
+<p>You can query the all the ingested TinyUrls using the query below:
 <div class="highlight"><pre><span></span><code><span class="k">query</span> <span class="p">{</span>
-  <span class="n">fetchCountOfToken</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="s">&quot;d9p&quot;</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">url</span>
-    <span class="n">count</span>
-  <span class="p">}</span>
+    <span class="n">fetchAll</span> <span class="p">{</span>
+        <span class="n">token</span>
+        <span class="n">url</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<h3 id="query-results">Query results<a class="headerlink" href="#query-results" title="Permanent link">&para;</a></h3>
+<p>Imagine users fetched the token <code>d9p</code> URL twice.
+<a href="../../getting-started/working-with-quick/query-data/">Query</a> the data and see the results:</p>
+<div class="highlight"><pre><span></span><code><span class="k">query</span> <span class="p">{</span>
+    <span class="n">fetchCountOfToken</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="s">&quot;d9p&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">tinyUrl</span> <span class="p">{</span>
+            <span class="n">url</span>
+        <span class="p">}</span>
+        <span class="n">count</span>
+    <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>The output should be:</p>
@@ -1148,19 +1269,17 @@ Query the data and see the results:</p>
 </code></pre></div>
 <h2 id="teardown-resources">Teardown resources<a class="headerlink" href="#teardown-resources" title="Permanent link">&para;</a></h2>
 <p>To delete all the resources, follow these steps:</p>
-<ol>
-<li>Delete counter application:
-   <div class="highlight"><pre><span></span><code>quick app delete tiny-url-counter
-</code></pre></div></li>
-<li>Delete topics:
-   <div class="highlight"><pre><span></span><code>quick topic delete tiny-url <span class="o">&amp;&amp;</span> 
+<p>Delete counter application:
+<div class="highlight"><pre><span></span><code>quick app delete tiny-url-counter
+</code></pre></div>
+Delete topics:
+<div class="highlight"><pre><span></span><code>quick topic delete tiny-url <span class="o">&amp;&amp;</span> 
 quick topic delete track-fetch <span class="o">&amp;&amp;</span> 
 quick topic delete count-fetch
-</code></pre></div></li>
-<li>Delete gateway:
-   <div class="highlight"><pre><span></span><code>quick gateway delete tiny-url-gateway
-</code></pre></div></li>
-</ol>
+</code></pre></div>
+Delete gateway:
+<div class="highlight"><pre><span></span><code>quick gateway delete tiny-url-gateway
+</code></pre></div></p>
 
               
             </article>

@@ -217,7 +217,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../developer/contributing/" class="md-tabs__link">
+      <a href="../../../developer/architecture/" class="md-tabs__link">
         Developer guide
       </a>
     </li>
@@ -232,6 +232,18 @@
   <li class="md-tabs__item">
     <a href="../../../changelog/" class="md-tabs__link">
       Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../roadmap/" class="md-tabs__link">
+      Roadmap
     </a>
   </li>
 
@@ -794,6 +806,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3">
@@ -807,6 +821,20 @@
           Developer guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -842,20 +870,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../developer/architecture/" class="md-nav__link">
-        Architecture
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../../developer/operations/" class="md-nav__link">
         Operations
       </a>
@@ -878,6 +892,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -894,6 +922,21 @@
     <li class="md-nav__item">
       <a href="../../../changelog/" class="md-nav__link">
         Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/" class="md-nav__link">
+        Roadmap
       </a>
     </li>
   
@@ -955,8 +998,8 @@
 This guide looks into different aspects when working with Quick by following an example use case of an e-commerce application:</p>
 <ul>
 <li>The <a href="gateway/">Gateway</a> is one of Quick's core modules.
-  You start by creating a new gateway, applying a schema to it and connecting to the gateway.</li>
-<li><a href="topics/">Topics</a> store events in Quick and connect processing block.
+  You start by creating a new gateway, applying a schema, and connecting to the gateway.</li>
+<li><a href="topics/">Topics</a> store events in Quick and let you share data between applications.
   The guide gives an overview of how you can create and delete topics.</li>
 <li>The <a href="ingest-data/">ingest service</a> lets you get data into the platform through a REST API.</li>
 <li>In <a href="query-data/">Querying data</a>, you connect your gateway and topics.
@@ -968,11 +1011,12 @@ This guide looks into different aspects when working with Quick by following an 
 <ul>
 <li>A tool for querying GraphQL endpoints.
   This guide uses <a href="https://github.com/graphql-python/gql">gql</a>.
-  You can install it with pip: 
+  You can install it with pip:
   <div class="highlight"><pre><span></span><code>pip install <span class="s1">&#39;gql[all]==3.1.0&#39;</span>
 </code></pre></div></li>
 <li>(Optional) <a href="https://stedolan.github.io/jq/">jq</a> to pretty-print JSON output.
-  There are a lot of options for installing jq, see <a href="https://stedolan.github.io/jq/download/">their download page</a>.</li>
+  There are many options for installing jq. 
+  Please see <a href="https://stedolan.github.io/jq/download/">their download page</a>.</li>
 </ul>
 
               

@@ -217,7 +217,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../contributing/" class="md-tabs__link md-tabs__link--active">
+      <a href="../architecture/" class="md-tabs__link md-tabs__link--active">
         Developer guide
       </a>
     </li>
@@ -232,6 +232,18 @@
   <li class="md-tabs__item">
     <a href="../../changelog/" class="md-tabs__link">
       Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../roadmap/" class="md-tabs__link">
+      Roadmap
     </a>
   </li>
 
@@ -790,6 +802,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3">
@@ -803,6 +817,20 @@
           Developer guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -866,10 +894,10 @@
       
         <li class="md-nav__item">
   <a href="#build-logic" class="md-nav__link">
-    Build Logic
+    Build logic
   </a>
   
-    <nav class="md-nav" aria-label="Build Logic">
+    <nav class="md-nav" aria-label="Build logic">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -908,7 +936,7 @@
         
           <li class="md-nav__item">
   <a href="#local-development" class="md-nav__link">
-    Local Development
+    Local development
   </a>
   
 </li>
@@ -947,20 +975,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
-        Architecture
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../operations/" class="md-nav__link">
         Operations
       </a>
@@ -983,6 +997,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -999,6 +1027,21 @@
     <li class="md-nav__item">
       <a href="../../changelog/" class="md-nav__link">
         Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        Roadmap
       </a>
     </li>
   
@@ -1039,10 +1082,10 @@
       
         <li class="md-nav__item">
   <a href="#build-logic" class="md-nav__link">
-    Build Logic
+    Build logic
   </a>
   
-    <nav class="md-nav" aria-label="Build Logic">
+    <nav class="md-nav" aria-label="Build logic">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1081,7 +1124,7 @@
         
           <li class="md-nav__item">
   <a href="#local-development" class="md-nav__link">
-    Local Development
+    Local development
   </a>
   
 </li>
@@ -1125,43 +1168,44 @@
 
 <h1 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h1>
 <h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">&para;</a></h2>
-<p>We differentiate between unit tests and integration tests in our test suite. 
-The latter has a custom annotation <code>@IntegrationTest</code> that should be used to mark those types of tests.
-We do not run them for draft PRs to keep the feedback loop.</p>
-<h2 id="build-logic">Build Logic<a class="headerlink" href="#build-logic" title="Permanent link">&para;</a></h2>
+<p>We differentiate between unit tests and integration tests in our test suite.
+The latter has a custom annotation <code>@IntegrationTest</code> that should be used to mark those tests.
+We don't run them for draft PRs to keep the feedback loop.</p>
+<h2 id="build-logic">Build logic<a class="headerlink" href="#build-logic" title="Permanent link">&para;</a></h2>
 <p>We use custom Gradle build logic to orchestrate our builds.
-It is located in the <code>build-logic</code> directory and referenced by <code>includeBuild("build-logic")</code> in <code>settings.gradle.kts</code>.
+It's located in the <code>build-logic</code> directory and referenced by <code>includeBuild("build-logic")</code> in <code>settings.gradle.kts</code>.
 The build-logic contains two modules: convention and libraries.</p>
 <h3 id="convention">Convention<a class="headerlink" href="#convention" title="Permanent link">&para;</a></h3>
 <p>The convention module configures conventions and plugins that can be applied to a subproject.</p>
 <dl>
 <dt><code>base-dependencies</code></dt>
-<dd>This convention applies dependencies that are used throughout all quick subprojects. Among others, this includes our
-logging setup and test dependencies.</dd>
+<dd>This convention applies dependencies that are used throughout all Quick subprojects.
+Among others, this includes our logging setup and test dependencies.</dd>
 <dt><code>http-service</code></dt>
-<dd>This adds micronaut dependencies for running a http service. It allows configuring whether the service is secured.</dd>
+<dd>This adds Micronauts dependencies for running an HTTP service. 
+It allows configuring whether the service is secured.</dd>
 <dt><code>BasePlugin</code></dt>
 <dd>The <a href="https://github.com/bakdata/quick/blob/master/build-logic/convention/src/main/kotlin/buildlogic/convention/BasePlugin.kt">BasePlugin</a>
-is applied to all quick projects.
-It configures Java, Compiler Settings, Lombok and more.</dd>
+is applied to all Quick projects.
+It configures Java, Compiler Settings, Lombok, and more.</dd>
 <dt><code>QuickJibPlugin</code></dt>
-<dd>The plugin applies Google's Jib plugin and the sets the image location.</dd>
+<dd>The plugin applies Google's Jib plugin and sets the image location.</dd>
 <dt><code>QuickCodeQualityPlugin</code></dt>
 <dd>Plugin that ensures the project's code quality.
-This includes checkstyle, errorprone, nullaway and jacoco.
+This includes checkstyle, errorprone, nullaway, and jacoco.
 See <a href="../contributing/#code-quality">Contributing - Code Quality</a> for detailed information.</dd>
 <dt><code>ReporterPlugin</code></dt>
 <dd>The reporter plugin is applied to the root project.
-It allows the aggregation of data from subproject.
-For example, we  use this to collect and merge Jacoco test coverage for the whole project.
+It allows the aggregation of data from subprojects.
+For example, we use this to collect and merge Jacoco test coverage for the whole project.
 See <a href="../operations/#container-registry">Operations - Registry</a> for more information.</dd>
 </dl>
 <h3 id="libraries">Libraries<a class="headerlink" href="#libraries" title="Permanent link">&para;</a></h3>
 <p>The libraries module holds all information about all dependencies.
-This makes sure they are defined at a common place.</p>
+This makes sure they're defined in a common place.</p>
 <h2 id="openapi">OpenAPI<a class="headerlink" href="#openapi" title="Permanent link">&para;</a></h2>
 <p>The manager API is specified in <a href="https://github.com/bakdata/quick/tree/master/openapi/spec">the <code>openapi</code> directory</a>.
-We use the <a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI generator</a> (Version 4.3.1) to generate our 
+We use the <a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI generator</a> (Version 4.3.1) to generate our
 <a href="https://github.com/bakdata/quick-cli/tree/master/quick_client">python client</a>.</p>
 <div class="highlight"><pre><span></span><code>java -jar openapi-generator-cli.jar generate <span class="se">\</span>
 -i quick/openapi/spec/Quick-Manager-v1.yaml <span class="se">\</span>
@@ -1178,41 +1222,42 @@ We use the <a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI g
 </code></pre></div>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <p>The documentation is part of the main repository.
-It is built with <a href="https://squidfunk.github.io/mkdocs-material/">mkdocs-materialize</a>.
+It's built with <a href="https://squidfunk.github.io/mkdocs-material/">mkdocs-materialize</a>.
 mkdocs generates static websites from markdown files.
 You can find all related files in the <code>docs</code> directory.</p>
-<h3 id="local-development">Local Development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h3>
+<h3 id="local-development">Local development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h3>
 <p>mkdocs is a Python project.
 You can install all required dependencies with the provided <code>requirements.txt</code>.
-For local development, run <code>mkdocs serve</code> from the <code>docs</code> directory.
+Run <code>mkdocs serve</code> from the <code>docs</code> directory for local development.
 Then you can view a live version of the documentation on <a href="http://localhost:8000">http://localhost:8000</a>.
 mkdocs is configured by the <code>mkdocs.yaml</code> file.
-The markdown files themselves are in their own <code>docs</code> directory, because mkdocs expects the files in a subdirectory.</p>
+The markdown files are in their own <code>docs</code> directory because mkdocs expects the files in a subdirectory.</p>
 <h3 id="build">Build<a class="headerlink" href="#build" title="Permanent link">&para;</a></h3>
 <p>We deploy our built documentation to the <code>gh-pages</code> branch.
 For versioning, we use <a href="https://github.com/jimporter/mike"><code>mike</code></a>.
-As suggested by <code>mike</code>, we omit the patch from the documentation version.
+As suggested by <code>mike</code>, we omit the documentation version's patch.
 To push a new version, run:
 <div class="highlight"><pre><span></span><code>mike deploy x.y latest
 </code></pre></div></p>
-<p>This command also sets <code>x.y</code> as latest. 
+<p>This command also sets <code>x.y</code> as <code>latest</code>.
 With that, <code>/latest</code> redirects to <code>/x.y</code>.
-If you just update an older release, omit <code>latest</code>, e.g.:
+If you update an older release, omit <code>latest</code>, e.g.:
 <div class="highlight"><pre><span></span><code>mike deploy x.y
 </code></pre></div>
-We also want to redirect <code>/</code> to <code>/latest/</code>, which then redirects to <code>/x.y/</code>.
+We also want to redirect <code>/</code> to <code>/latest/</code>, which redirects to <code>/x.y/</code>.
 This was done with:
 <div class="highlight"><pre><span></span><code>mike set-default latest
 </code></pre></div>
-It creates an <code>index.html</code> in the root, which redirect to <code>/latest/</code>.
+It creates an <code>index.html</code> in the root, redirecting to <code>/latest/</code>.
 Unless the file was deleted, there is no need to run the command above.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>These commands should only be ran locally for testig purposes. Therefore, we drop the <code>--push</code> flag here.</p>
+<p>These commands should only be run locally for testing purposes. 
+Therefore, we drop the <code>--push</code> flag here.</p>
 </div>
 <h3 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h3>
-<p>As described, <code>mike</code> pushes to the <code>gh-pages</code> branch. GitHub automatically hosts the branch on
-<code>bakdata.github.io/quick</code>.</p>
+<p>As described, <code>mike</code> pushes to the <code>gh-pages</code> branch.
+GitHub automatically hosts the branch on <code>bakdata.github.io/quick</code>.</p>
 
               
             </article>
@@ -1242,13 +1287,13 @@ Unless the file was deleted, there is no need to run the command above.</p>
       
       
         
-        <a href="../architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Architecture" rel="next">
+        <a href="../operations/" class="md-footer__link md-footer__link--next" aria-label="Next: Operations" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Architecture
+              Operations
             </div>
           </div>
           <div class="md-footer__button md-icon">

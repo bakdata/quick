@@ -217,7 +217,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../developer/contributing/" class="md-tabs__link">
+      <a href="../../../../developer/architecture/" class="md-tabs__link">
         Developer guide
       </a>
     </li>
@@ -232,6 +232,18 @@
   <li class="md-tabs__item">
     <a href="../../../../changelog/" class="md-tabs__link">
       Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../../roadmap/" class="md-tabs__link">
+      Roadmap
     </a>
   </li>
 
@@ -856,6 +868,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3">
@@ -869,6 +883,20 @@
           Developer guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -904,20 +932,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../developer/architecture/" class="md-nav__link">
-        Architecture
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../../../developer/operations/" class="md-nav__link">
         Operations
       </a>
@@ -940,6 +954,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -956,6 +984,21 @@
     <li class="md-nav__item">
       <a href="../../../../changelog/" class="md-nav__link">
         Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../roadmap/" class="md-nav__link">
+        Roadmap
       </a>
     </li>
   
@@ -1043,11 +1086,11 @@ As the GraphQL interface, it holds the schema describing your data and lets you 
 The <code>example</code> parameter defines the name of your gateway.
 Since you can have many gateways, you will need the name when applying a new schema or querying data from it.</p>
 <p>It will take a couple of seconds before the gateway is ready.
-You can run <code>quick gateway describe example</code> to check the status of the gateway.
-It should output: 
+You can run <code>quick gateway describe example</code> to check the gateway's status.
+It should output:
 <div class="highlight"><pre><span></span><code>Name: example
 Replicas: 1
-Tag: 0.4.1-dev
+Tag: 0.7.0-dev
 </code></pre></div></p>
 <h2 id="the-graphql-schema">The GraphQL schema<a class="headerlink" href="#the-graphql-schema" title="Permanent link">&para;</a></h2>
 <p>After the gateway finished starting, you can apply your first schema.
@@ -1077,16 +1120,16 @@ You can start with a basic schema like this:
     <span class="nl">currency</span><span class="p">:</span> <span class="n">String</span>
 <span class="p">}</span>
 </code></pre></div>
-The central type is <code>Purchase</code> describing a user buying a product.
-It has a link to the <code>Product</code> type through its field <code>productId</code> and a nested type <code>Price</code>.</p>
-<p>The <code>Query</code> type is unique in GraphQL since it is a root type that functions as an entry point.
+The central type is <code>Purchase</code>, describing a user buying a product.
+It links the <code>Product</code> type through its field <code>productId</code> and a nested type <code>Price</code>.</p>
+<p>The <code>Query</code> type is special in GraphQL since it's a root type that functions as an entry point.
 The schema defines a query field <code>findPurchase</code>, that takes a <code>purchaseId</code> and returns a <code>Purchase</code>.
-As you may have noticed some fields have a trailing exclamation mark:
+As you may have noticed, some fields have a trailing exclamation mark:
 Those fields aren't nullable.</p>
 <div class="admonition attention">
 <p class="admonition-title">Attention</p>
 <p>Every GraphQL schema requires the <code>Query</code> type.
-If you don't specify it, the Gateway won't parse the schema.
+The gateway won't parse the schema if you don't specify it.
 In case you don't need or want one, you can use an empty query: <code>type Query {}</code>.</p>
 </div>
 <h2 id="applying-a-schema">Applying a schema<a class="headerlink" href="#applying-a-schema" title="Permanent link">&para;</a></h2>
@@ -1096,10 +1139,10 @@ In case you don't need or want one, you can use an empty query: <code>type Query
 The <code>example</code> parameter is the name of the newly created gateway that you can reference like this.
 The <code>-f</code> flag lets you pass the GraphQL schema to the command.</p>
 <h2 id="accessing-the-gateway">Accessing the gateway<a class="headerlink" href="#accessing-the-gateway" title="Permanent link">&para;</a></h2>
-<p>You can connect to the GraphQL API of the gateway with the address <code>$QUICK_URL/gateway/example/graphql</code>, 
+<p>You can connect to the GraphQL API of the gateway with the address <code>$QUICK_URL/gateway/example/graphql</code>,
 where <code>example</code> is the name of the gateway you created earlier.
-The gateway requires the <code>QUICK_API_KEY</code> to be set in the header <code>X-API-Key</code>. </p>
-<p>You can now use <a href="../#requirements">gql</a> to see whether the gateway has the correct schema:
+The gateway requires the <code>QUICK_API_KEY</code> to be set in the header <code>X-API-Key</code>.</p>
+<p>You can now use <a href="../#prerequisites">gql</a> to see whether the gateway has the correct schema:
 <div class="highlight"><pre><span></span><code>gql-cli <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/gateway/example/graphql&quot;</span> <span class="se">\</span>
   -H <span class="s2">&quot;X-API-Key:</span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span> <span class="se">\</span>
   --print-schema

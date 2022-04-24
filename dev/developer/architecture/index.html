@@ -217,7 +217,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../contributing/" class="md-tabs__link md-tabs__link--active">
+      <a href="./" class="md-tabs__link md-tabs__link--active">
         Developer guide
       </a>
     </li>
@@ -232,6 +232,18 @@
   <li class="md-tabs__item">
     <a href="../../changelog/" class="md-tabs__link">
       Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../roadmap/" class="md-tabs__link">
+      Roadmap
     </a>
   </li>
 
@@ -790,6 +802,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3">
@@ -803,34 +817,6 @@
           Developer guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../contributing/" class="md-nav__link">
-        Contributing
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../development/" class="md-nav__link">
-        Development
-      </a>
-    </li>
-  
-
-            
           
             
               
@@ -886,8 +872,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ingest-service" class="md-nav__link">
-    Ingest Service
+  <a href="#ingest" class="md-nav__link">
+    Ingest
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mirror" class="md-nav__link">
+    Mirror
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gateway" class="md-nav__link">
+    Gateway
   </a>
   
 </li>
@@ -903,6 +903,34 @@
   
 </nav>
       
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        Development
+      </a>
     </li>
   
 
@@ -936,6 +964,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -952,6 +994,21 @@
     <li class="md-nav__item">
       <a href="../../changelog/" class="md-nav__link">
         Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        Roadmap
       </a>
     </li>
   
@@ -998,8 +1055,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ingest-service" class="md-nav__link">
-    Ingest Service
+  <a href="#ingest" class="md-nav__link">
+    Ingest
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mirror" class="md-nav__link">
+    Mirror
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gateway" class="md-nav__link">
+    Gateway
   </a>
   
 </li>
@@ -1031,16 +1102,14 @@
 
 <h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
 <p>Quick has the following high-level architecture:</p>
-<p><img alt="General Architecture" src="../../assets/images/architecture.png" /></p>
+<p><img alt="General Architecture" src="../../assets/images/quick-architecture.jpg" /></p>
 <p>The system is deployed in Kubernetes.
-We use Traefik is an ingress load balancer, that can route to the manager, ingest service and gateways.
+We use Traefik as an ingress load balancer that can route to the manager, ingest service, and gateways.
 Since Quick central functionality is built on top of Kafka, we also use it to store any metadata.</p>
 <h2 id="traefik">Traefik<a class="headerlink" href="#traefik" title="Permanent link">&para;</a></h2>
-<p>We deploy Traefik with a LoadBalancer service, and hence a public IP.
-The host should be set before the deployment.
-The deployment contains the respective TLS certificate.</p>
-<p>For internal routing, Traefik is configured through two K8s resources: <code>Ingress</code> and <code>Middleware</code>.
-An ingress defines a path to service mapping, e.g. <code>demo.d9p.io/manager</code> should go to the manager service.
+<p>We use Traefik as a load balancer.
+For routing, Traefik is configured through two K8s resources: <code>Ingress</code> and <code>Middleware</code>.
+An ingress defines a path to service mapping, e.g., <code>demo.d9p.io/manager</code> should go to the manager service.
 The ingress is annotated with a middleware:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.k8s.io/v1</span><span class="w"></span>
 <span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ingress</span><span class="w"></span>
@@ -1051,21 +1120,28 @@ The ingress is annotated with a middleware:</p>
 <p>We use the middleware to strip prefixes from the path.
 For instance, we can access GraphQL of the gateway <code>demo</code> through <code>https://demo.d9p.io/gateway/demo/graphql</code>.
 The middleware ensures that Traefik forwards this request to <code>http://quick-gateway-demo/graphql</code>.</p>
-<p>For gateways, the manager has to deploy these resources.</p>
+<p>For gateways, the manager has to deploy those resources.</p>
 <h2 id="manager">Manager<a class="headerlink" href="#manager" title="Permanent link">&para;</a></h2>
 <p>The manager handles user requests from the <a href="../../user/reference/cli-commands/">CLI</a>.
 Most tasks are therefore based on k8s resources.
-For new resource, we use a templating engine that creates the respective yaml strings.
+We use a templating engine for a new resource that creates the respective YAML strings.
 The strings are then loaded into <a href="https://github.com/fabric8io/kubernetes-client">fabric8io k8s client's</a> models and
 sent to the k8s API.</p>
-<p>Additionally the manger has administrative-like tasks:
-* deployment of topic registry at start up
+<p>Additionally, the manager has administrative-like tasks:
+* deployment of the topic registry at startup
 * deletion of succeeded jobs</p>
-<h2 id="ingest-service">Ingest Service<a class="headerlink" href="#ingest-service" title="Permanent link">&para;</a></h2>
-<p>The ingest service is a HTTP service for ingesting data into a Kafka topic.
-As this requires the use of serializers for the keys and values, we need to know which to use.
+<h2 id="ingest">Ingest<a class="headerlink" href="#ingest" title="Permanent link">&para;</a></h2>
+<p>The ingest service is an HTTP service for ingesting data into a Kafka topic.
+As this requires serializers for the keys and values, we need to know which to use.
 The ingest service requests (and caches) this information from the topic registry.
-Further, when a topic is marked as immutable in the topic registry, the ingest service first checks its mirror.</p>
+Further, when a topic is immutable in the topic registry, the ingest service first checks its mirror.</p>
+<h2 id="mirror">Mirror<a class="headerlink" href="#mirror" title="Permanent link">&para;</a></h2>
+<p>Mirrors are Kafka Streams applications that read the content of a topic and expose it through a key-value REST API.
+See our <a href="https://medium.com/bakdata/queryable-kafka-topics-with-kafka-streams-8d2cca9de33f">our blog post</a> for more information on why we use this approach.
+A mirror is automatically deployed when the user creates a new topic.</p>
+<h2 id="gateway">Gateway<a class="headerlink" href="#gateway" title="Permanent link">&para;</a></h2>
+<p>The gateway is Quick's implementation for the GraphQL server.
+The user can apply a schema to it through the manager.</p>
 <h2 id="common">Common<a class="headerlink" href="#common" title="Permanent link">&para;</a></h2>
 <p>All our subprojects share a library called <code>common</code>.
 The package contains code that is used throughout the projects, including:</p>
@@ -1088,7 +1164,7 @@ The package contains code that is used throughout the projects, including:</p>
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../development/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Development" rel="prev">
+        <a href="../../user/reference/dependency-versions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Dependency versions" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1097,20 +1173,20 @@ The package contains code that is used throughout the projects, including:</p>
               <span class="md-footer__direction">
                 Previous
               </span>
-              Development
+              Dependency versions
             </div>
           </div>
         </a>
       
       
         
-        <a href="../operations/" class="md-footer__link md-footer__link--next" aria-label="Next: Operations" rel="next">
+        <a href="../contributing/" class="md-footer__link md-footer__link--next" aria-label="Next: Contributing" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Operations
+              Contributing
             </div>
           </div>
           <div class="md-footer__button md-icon">

@@ -217,7 +217,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../../developer/contributing/" class="md-tabs__link">
+      <a href="../../../../developer/architecture/" class="md-tabs__link">
         Developer guide
       </a>
     </li>
@@ -232,6 +232,18 @@
   <li class="md-tabs__item">
     <a href="../../../../changelog/" class="md-tabs__link">
       Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../../roadmap/" class="md-tabs__link">
+      Roadmap
     </a>
   </li>
 
@@ -849,6 +861,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3">
@@ -862,6 +876,20 @@
           Developer guide
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -897,20 +925,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../developer/architecture/" class="md-nav__link">
-        Architecture
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../../../developer/operations/" class="md-nav__link">
         Operations
       </a>
@@ -933,6 +947,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -949,6 +977,21 @@
     <li class="md-nav__item">
       <a href="../../../../changelog/" class="md-nav__link">
         Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../roadmap/" class="md-nav__link">
+        Roadmap
       </a>
     </li>
   
@@ -1020,43 +1063,44 @@
 
 
 <h1 id="topics">Topics<a class="headerlink" href="#topics" title="Permanent link">&para;</a></h1>
-<p>With the initial schema applied to the gateway, you can now create new topics.
-Because they're responsible for storing all data, topics are a fundamental component of Quick.</p>
+<p>With the initial schema applied to the gateway, you can create new topics.
+Because they're responsible for storing all data in Apache Kafka, topics are a fundamental part of Quick.</p>
 <h2 id="creating-new-topics">Creating new topics<a class="headerlink" href="#creating-new-topics" title="Permanent link">&para;</a></h2>
-<p>Recalling <a href="../gateway/#the-graphql-schema">the schema</a> from the previous section, there are two types of data: <code>Purchase</code> and <code>Product</code>.
+<p>Recalling <a href="../gateway/#the-graphql-schema">the schema</a> from the previous section,
+there are two types of data: <code>Purchase</code> and <code>Product</code>.
 The application should be able to store the data of both types.
 Therefore, the next step is to create the corresponding topics.</p>
 <p>First, you create the topic for <code>Purchase</code> by running:
 <div class="highlight"><pre><span></span><code>quick topic create purchase <span class="se">\</span>
   --key-type string --value-type schema --schema example.Purchase 
 </code></pre></div></p>
-<p>The first parameter is <code>purchase</code>: the name of the topic you create. </p>
-<p>The <code>key-type</code> and <code>value-type</code> options define the values of key and value respectively.
+<p>The first parameter is <code>purchase</code>, the topic's name you create.</p>
+<p>The <code>key-type</code> and <code>value-type</code> options define the key and value types, respectively.
 Quick ensures that data ingested into this topic conforms to these types.
-If you'd try to ingest data with a number as key into the <code>purchase</code> topic, Quick throws an error.</p>
-<p>Next to primitives types like <code>string</code>, Quick also support complex types defined by <code>schema</code>.
-When using the schema option, you have to tell Quick how this schema should look like.
-You can do this by referencing a type of a GraphQL schema applied to a gateway.
-In this case, you want to first reference the earlier create gateway called <code>example</code>.
+If you'd try to ingest data with a number as the key into the <code>purchase</code> topic, Quick throws an error.</p>
+<p>Next to primitives types like <code>string</code>, Quick also supports complex types defined by <code>schema</code>.
+When using the schema option, you have to tell Quick what this schema should look like.
+You can do this by referencing a type of GraphQL schema applied to a gateway.
+In this case, you want first to reference the gateway, here called <code>example</code>.
 In <code>example</code>, the <code>Purchase</code> type corresponds to the data in this topic.
-The <code>--schema</code> option is therefore <code>example.Purchase</code>.</p>
+Therefore, the <code>--schema</code> option is <code>example.Purchase</code>.</p>
 <p>You can now also create the product topic and a price topic:
 <div class="highlight"><pre><span></span><code>quick topic create product --key-type long --value-type schema --schema example.Product <span class="o">&amp;&amp;</span> 
   quick topic create price --key-type long --value-type schema --schema example.Price
 </code></pre></div></p>
-<p>In contrast to the purchase topic, this topic has keys of type long.</p>
+<p>In contrast to the <code>purchase</code> topic, this topic has a key type <code>long</code>.</p>
 <h2 id="topic-information">Topic information<a class="headerlink" href="#topic-information" title="Permanent link">&para;</a></h2>
 <p>The Quick CLI comes with commands to view the current state of topics in Quick.
-You can first take a look at the created topics:
+First, you can take a look at existing topics:
 <div class="highlight"><pre><span></span><code>quick topic list
 </code></pre></div>
-Next, you can also view a more detailed information about a topic:
+Next, you can also view more detailed information about a topic:
 <div class="highlight"><pre><span></span><code>quick topic describe purchase
 </code></pre></div>
-This command returns among others the types and schema of the topic.</p>
+This command returns the types and schema of the topic.</p>
 <h2 id="deleting-topics">Deleting topics<a class="headerlink" href="#deleting-topics" title="Permanent link">&para;</a></h2>
 <p>You can also delete topics.
-For example, the price topic is no longer used, and you want to remove it:
+For example, the price topic is no longer needed, and you want to remove it:
 <div class="highlight"><pre><span></span><code>quick topic delete price
 </code></pre></div></p>
 
