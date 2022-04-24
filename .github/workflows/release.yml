@@ -23,7 +23,7 @@ jobs:
           # required for getting all tags
           fetch-depth: 0
           # required for bypassing status checks when pushing
-          token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Setup just
         uses: extractions/setup-just@v1
@@ -141,7 +141,7 @@ jobs:
         uses: ./.github/actions/update-docs
         with:
           tag: ${{ needs.prepare-release.outputs.tag }}
-          token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
 
 
   publish-helm:
@@ -149,7 +149,7 @@ jobs:
     needs: [ prepare-release ]
     uses: ./.github/workflows/update-helm-chart.yml
     secrets:
-      github-token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+      github-token: ${{ secrets.GH_TOKEN }}
 
 
   # Prepare new release cycle by updating hardcoded versions to "-dev"
@@ -162,7 +162,7 @@ jobs:
         with:
           ref: master
           # required for bypassing status checks when pushing
-          token: ${{ secrets.BAKDATA_BOT_ACCESS_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 0
 
       - name: Setup just
@@ -189,7 +189,7 @@ jobs:
           # Set email and username for github-actions bot
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          # In case there was an update to master in the meantime 
+          # In case there was an update to master in the meantime
           git pull
           # Add changes
           git add .
