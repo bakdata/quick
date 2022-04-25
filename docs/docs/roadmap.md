@@ -28,7 +28,7 @@ Development: Q3 2022
 
 ## Completed releases
 
-The [changelog](/changelog) has a detailed list of releases.
+The [changelog](../changelog) has a detailed list of releases.
 
 ### 0.6
 
