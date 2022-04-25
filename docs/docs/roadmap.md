@@ -22,16 +22,14 @@ Development: Q3 2022
 
 ### Further ideas
 
-* Support for custom authorization 
+* Support for custom authorization
 * Support different ingress controllers like nginx
 
 
 ## Completed releases
 
-The [changelog](changelog) has a detailed list of releases.
+The [changelog](/changelog) has a detailed list of releases.
 
 ### 0.6
 
 * Open-Source release 🎉
-
-

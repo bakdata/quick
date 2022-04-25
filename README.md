@@ -20,8 +20,8 @@ the [documentation](https://bakdata.github.io/quick/latest/user/).
 
 - [What is Quick?](https://bakdata.github.io/quick/latest/user/)
 - [Setup Quick and its infrastructure](https://bakdata.github.io/quick/latest/user/getting-started/setup-quick/)
-- [Setup Quick CLI](https://bakdata.github.io/quick/latest/user/getting-started/setup-quick/setup-cli)
-- [Working with Quick](https://bakdata.github.io/quick/latest/user/getting-started/setup-quick/working-with-quick/)
+- [Setup Quick CLI](https://bakdata.github.io/quick/latest/user/getting-started/setup-cli)
+- [Working with Quick](https://bakdata.github.io/quick/latest/user/getting-started/working-with-quick/)
 - [Examples](https://bakdata.github.io/quick/latest/user/examples)
 
 ## Contributing
