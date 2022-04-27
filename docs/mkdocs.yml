@@ -69,6 +69,7 @@ nav:
       - Examples:
           - user/examples/index.md
           - user/examples/TinyURL.md
+          - user/examples/real-time-customer-profiles.md
       - Reference:
           - user/reference/graphql-extensions.md
           - user/reference/cli-commands.md
