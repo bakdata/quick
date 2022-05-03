@@ -175,6 +175,20 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
             .satisfies(container -> assertThat(container.getArgs()).contains("--input-topics=" + TOPIC_NAME));
     }
 
+    @Test
+    void shouldRejectBadMirrorName() {
+        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
+                TOPIC_NAME,
+                TOPIC_NAME,
+                1,
+                null,
+                null);
+        final Throwable firstDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
+        assertThat(firstDeployment).isNull();
+        final Throwable invalidDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
+        assertThat(invalidDeployment).isNotNull();
+    }
+
     private void createMirror(final MirrorCreationData mirrorCreationData) {
         final Completable completable = this.mirrorService.createMirror(mirrorCreationData);
         Optional.ofNullable(completable.blockingGet()).ifPresent(Assertions::fail);

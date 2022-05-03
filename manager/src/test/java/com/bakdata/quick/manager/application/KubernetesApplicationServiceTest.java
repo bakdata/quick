@@ -134,6 +134,22 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
             });
     }
 
+    @Test
+    void shouldRejectBadApplicationName() {
+        final ApplicationCreationData applicationCreationData = new ApplicationCreationData(APP_NAME,
+                DOCKER_REGISTRY,
+                IMAGE_NAME,
+                DEFAULT_IMAGE_TAG,
+                1,
+                DEFAULT_PORT,
+                Map.of());
+
+        final Completable firstDeployment = this.service.deployApplication(applicationCreationData);
+        Optional.ofNullable(firstDeployment.blockingGet()).ifPresent(Assertions::fail);
+        final Throwable invalidDeployment = this.service.deployApplication(applicationCreationData).blockingGet();
+        assertThat(invalidDeployment).isNotNull();
+    }
+
     private void deployApplication(@Nullable final Integer port, final Map<String, String> arguments) {
         final ApplicationCreationData applicationCreationData = new ApplicationCreationData(APP_NAME,
             DOCKER_REGISTRY,

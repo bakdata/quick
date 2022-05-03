@@ -85,6 +85,7 @@ public class KubernetesGatewayService implements GatewayService {
 
     @Override
     public Completable createGateway(final GatewayCreationData gatewayCreationData) {
+
         return Single.fromCallable(() -> this.loader.forCreation(gatewayCreationData, ResourcePrefix.GATEWAY))
             .flatMapCompletable(this.kubernetesManagerClient::deploy);
     }

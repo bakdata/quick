@@ -321,6 +321,15 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         assertThat(this.getConfigMaps()).isNullOrEmpty();
     }
 
+    @Test
+    void shouldRejectBadGatewayName() {
+        final GatewayCreationData creationData = new GatewayCreationData(GATEWAY_NAME, 1, null, null);
+        final Throwable firstDeployment = this.gatewayService.createGateway(creationData).blockingGet();
+        assertThat(firstDeployment).isNull();
+        final Throwable invalidDeployment = this.gatewayService.createGateway(creationData).blockingGet();
+        assertThat(invalidDeployment).isNotNull();
+    }
+
 
     private void deleteGatewayResources() {
         this.gatewayService.deleteGateway(GATEWAY_NAME).blockingAwait();
