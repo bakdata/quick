@@ -50,4 +50,7 @@ public interface QuickResources {
             this.prefix = deploymentPrefix;
         }
     }
+
+    String getResourcesName();
+
 }

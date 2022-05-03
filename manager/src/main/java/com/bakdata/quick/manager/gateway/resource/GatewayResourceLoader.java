@@ -105,7 +105,8 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
 
         final String dockerRegistry = this.deploymentConfig.getDockerRegistry();
         final ImageConfig imageConfig = ImageConfig.of(dockerRegistry, GATEWAY_IMAGE, imageReplicas, imageTag);
-        final String resourceName = getResourceName(gatewayCreationData.getName());
+        final String gatewayName = gatewayCreationData.getName();
+        final String resourceName = getResourceName(gatewayName);
         final boolean hasFixedTag = gatewayCreationData.getTag() != null;
 
         final GatewayDeployment deployment = new GatewayDeployment(
@@ -124,7 +125,7 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
         final GatewayConfigMap configMap =
             new GatewayConfigMap(this.createGatewayConfigMap(resourceName, gatewayCreationData.getSchema()));
 
-        return new GatewayResources(deployment, service, ingress, middleware, configMap);
+        return new GatewayResources(gatewayName, deployment, service, ingress, middleware, configMap);
     }
 
     /**
@@ -150,7 +151,7 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
         final GatewayConfigMap configMap =
             new GatewayConfigMap(KubernetesResources.forDeletion(ConfigMap.class, getConfigMapName(name)));
 
-        return new GatewayResources(deployment, service, ingress, middleware, configMap);
+        return new GatewayResources(name, deployment, service, ingress, middleware, configMap);
     }
 
     /**

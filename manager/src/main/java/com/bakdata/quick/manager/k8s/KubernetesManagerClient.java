@@ -90,11 +90,8 @@ public class KubernetesManagerClient {
             if (resourcesMetadata.stream().allMatch(Objects::isNull)) {
                 return this.client.resourceList(resourceList).inNamespace(this.namespace).createOrReplace();
             } else {
-                final String names = resourcesMetadata.stream()
-                        .filter(Objects::nonNull)
-                        .map(singleResourceMetadata -> singleResourceMetadata.getMetadata().getName())
-                        .collect(Collectors.joining(", "));
-                throw new BadArgumentException(String.format("Following resources already exist: %s", names));
+                String resourcesName = quickResources.getResourcesName();
+                throw new BadArgumentException(String.format("Following resources already exist: %s", resourcesName));
             }
         });
     }

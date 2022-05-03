@@ -79,7 +79,7 @@ public class KubernetesApplicationService implements ApplicationService {
             .map(serviceExists -> {
                 final ApplicationResources applicationResources = this.loader.forDeletion(deploymentName);
                 if (!serviceExists) {
-                    return new ApplicationResources(applicationResources.getDeployment(), Optional.empty());
+                    return new ApplicationResources(name, applicationResources.getDeployment(), Optional.empty());
                 }
                 return applicationResources;
             })

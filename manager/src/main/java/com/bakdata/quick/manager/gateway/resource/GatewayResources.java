@@ -45,6 +45,7 @@ public class GatewayResources implements QuickResources {
 
     public static final String GATEWAY_IMAGE = "quick-gateway";
 
+    private final String name;
     private final GatewayDeployment deployment;
     private final GatewayService service;
     private final GatewayIngress ingress;
@@ -60,8 +61,10 @@ public class GatewayResources implements QuickResources {
      * @param middleware        For gateway Middleware resource
      * @param configMap         For gateway ConfigMap resource
      */
-    public GatewayResources(final GatewayDeployment gatewayDeployment, final GatewayService gatewayService,
-        final GatewayIngress gatewayIngress, final GatewayMiddleware middleware, final GatewayConfigMap configMap) {
+    public GatewayResources(final String name, final GatewayDeployment gatewayDeployment,
+                            final GatewayService gatewayService, final GatewayIngress gatewayIngress,
+                            final GatewayMiddleware middleware, final GatewayConfigMap configMap) {
+        this.name = name;
         this.deployment = gatewayDeployment;
         this.service = gatewayService;
         this.ingress = gatewayIngress;
@@ -120,4 +123,11 @@ public class GatewayResources implements QuickResources {
     public List<QuickResource> listResources() {
         return List.of(this.deployment, this.service, this.ingress, this.middleware, this.configMap);
     }
+
+    @Override
+    public String getResourcesName() {
+        return this.name;
+    }
+
+
 }
