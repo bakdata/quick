@@ -136,7 +136,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
     }
 
     @Test
-    void shouldRejectBadApplicationName() {
+    void shouldRejectDuplicateApplicationCreation() {
         final ApplicationCreationData applicationCreationData = new ApplicationCreationData(APP_NAME,
                 DOCKER_REGISTRY,
                 IMAGE_NAME,

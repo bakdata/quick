@@ -178,7 +178,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
     }
 
     @Test
-    void shouldRejectBadMirrorName() {
+    void shouldRejectDuplicateMirrorCreation() {
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
                 TOPIC_NAME,
                 TOPIC_NAME,

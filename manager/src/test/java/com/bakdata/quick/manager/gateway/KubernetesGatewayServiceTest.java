@@ -323,7 +323,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
     }
 
     @Test
-    void shouldRejectBadGatewayName() {
+    void shouldRejectDuplicateGatewayCreation() {
         final GatewayCreationData creationData = new GatewayCreationData(GATEWAY_NAME, 1, null, null);
         final Throwable firstDeployment = this.gatewayService.createGateway(creationData).blockingGet();
         assertThat(firstDeployment).isNull();
