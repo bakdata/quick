@@ -18,8 +18,10 @@ package com.bakdata.quick.manager.mirror;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
 import com.bakdata.quick.manager.k8s.KubernetesTest;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
@@ -186,7 +188,8 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
         final Throwable firstDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
         assertThat(firstDeployment).isNull();
         final Throwable invalidDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
-        assertThat(invalidDeployment).isNotNull();
+        assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
+                .hasMessageContaining("Following resources already exist");
     }
 
     private void createMirror(final MirrorCreationData mirrorCreationData) {

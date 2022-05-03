@@ -77,10 +77,10 @@ public class KubernetesManagerClient {
     }
 
     /**
-     * Deploys all the resources passed in provided that they have not already been deployed.
+     * Deploys all the resources passed in.
      *
      * @param quickResources A quick resources object containing one or many kubernetes resources
-     * @return Completable or throws an exception if specific resources already exist
+     * @return Returns a Completable or throws an exception if specific resources already exist
      */
     public Completable deploy(final QuickResources quickResources) {
         return Completable.fromCallable(() -> {
@@ -91,6 +91,7 @@ public class KubernetesManagerClient {
                 return this.client.resourceList(resourceList).inNamespace(this.namespace).createOrReplace();
             } else {
                 final String names = resourcesMetadata.stream()
+                        .filter(Objects::nonNull)
                         .map(singleResourceMetadata -> singleResourceMetadata.getMetadata().getName())
                         .collect(Collectors.joining(", "));
                 throw new BadArgumentException(String.format("Following resources already exist: %s", names));

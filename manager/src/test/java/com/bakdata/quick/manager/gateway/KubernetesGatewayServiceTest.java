@@ -22,6 +22,7 @@ import com.bakdata.quick.common.api.client.GatewayClient;
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import com.bakdata.quick.common.api.model.manager.GatewayDescription;
 import com.bakdata.quick.common.api.model.manager.creation.GatewayCreationData;
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.manager.gateway.resource.GatewayResourceLoader;
 import com.bakdata.quick.manager.graphql.GraphQLToAvroConverter;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
@@ -327,7 +328,8 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         final Throwable firstDeployment = this.gatewayService.createGateway(creationData).blockingGet();
         assertThat(firstDeployment).isNull();
         final Throwable invalidDeployment = this.gatewayService.createGateway(creationData).blockingGet();
-        assertThat(invalidDeployment).isNotNull();
+        assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
+                .hasMessageContaining("Following resources already exist");
     }
 
 

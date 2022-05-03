@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.common.api.model.manager.creation.ApplicationCreationData;
 import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.manager.application.resources.ApplicationResourceLoader;
 import com.bakdata.quick.manager.k8s.ImageConfig;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
@@ -147,7 +148,8 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
         final Completable firstDeployment = this.service.deployApplication(applicationCreationData);
         Optional.ofNullable(firstDeployment.blockingGet()).ifPresent(Assertions::fail);
         final Throwable invalidDeployment = this.service.deployApplication(applicationCreationData).blockingGet();
-        assertThat(invalidDeployment).isNotNull();
+        assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
+                .hasMessageContaining("Following resources already exist");
     }
 
     private void deployApplication(@Nullable final Integer port, final Map<String, String> arguments) {
