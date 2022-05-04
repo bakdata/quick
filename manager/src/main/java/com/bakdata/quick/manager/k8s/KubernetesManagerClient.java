@@ -80,7 +80,7 @@ public class KubernetesManagerClient {
      * Deploys all the resources passed in.
      *
      * @param quickResources A quick resources object containing one or many kubernetes resources
-     * @return Returns a Completable or throws an exception if specific resources already exist
+     * @return Completable or an exception if the specific resources already exist
      */
     public Completable deploy(final QuickResources quickResources) {
         return Completable.fromCallable(() -> {

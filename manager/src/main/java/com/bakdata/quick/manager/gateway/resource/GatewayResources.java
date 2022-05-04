@@ -128,6 +128,4 @@ public class GatewayResources implements QuickResources {
     public String getResourcesName() {
         return this.name;
     }
-
-
 }
