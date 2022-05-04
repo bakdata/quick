@@ -329,7 +329,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         assertThat(firstDeployment).isNull();
         final Throwable invalidDeployment = this.gatewayService.createGateway(creationData).blockingGet();
         assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
-                .hasMessageContaining("Following resources already exist: test-gateway");
+                .hasMessageContaining("The resource with the name test-gateway already exists");
     }
 
 

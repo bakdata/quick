@@ -149,7 +149,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
         Optional.ofNullable(firstDeployment.blockingGet()).ifPresent(Assertions::fail);
         final Throwable invalidDeployment = this.service.deployApplication(applicationCreationData).blockingGet();
         assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
-                .hasMessage("Following resources already exist: my-app");
+                .hasMessage("The resource with the name my-app already exists");
     }
 
     private void deployApplication(@Nullable final Integer port, final Map<String, String> arguments) {
