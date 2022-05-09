@@ -73,7 +73,8 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
      */
     @Override
     public MirrorResources forCreation(final MirrorCreationData mirrorCreationData, final ResourcePrefix prefix) {
-        final String deploymentName = prefix.getPrefix() + mirrorCreationData.getName();
+        final String mirrorName = mirrorCreationData.getName();
+        final String deploymentName = prefix.getPrefix() + mirrorName;
         final String imageTag =
             Objects.requireNonNullElse(mirrorCreationData.getTag(), this.deploymentConfig.getDefaultImageTag());
         final int imageReplicas =
@@ -91,7 +92,7 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
 
         final MirrorService service = new MirrorService(this.createMirrorService(deploymentName));
 
-        return new MirrorResources(deployment, service);
+        return new MirrorResources(mirrorName, deployment, service);
     }
 
     /**
@@ -107,7 +108,7 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
         final MirrorDeployment deployment =
             new MirrorDeployment(KubernetesResources.forDeletion(Deployment.class, name));
         final MirrorService service = new MirrorService(KubernetesResources.forDeletion(Service.class, name));
-        return new MirrorResources(deployment, service);
+        return new MirrorResources(name, deployment, service);
     }
 
     public static String getDeploymentName(final String name) {

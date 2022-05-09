@@ -50,4 +50,11 @@ public interface QuickResources {
             this.prefix = deploymentPrefix;
         }
     }
+
+    /**
+     * Retrieves the name of resources (without prefix).
+     * @return The name that a user has chosen for a specific type of resources.
+     */
+    String getResourcesName();
+
 }

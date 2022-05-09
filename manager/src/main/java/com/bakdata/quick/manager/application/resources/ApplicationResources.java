@@ -32,12 +32,15 @@ import lombok.Getter;
  */
 public class ApplicationResources implements QuickResources {
 
+    private final String name;
     @Getter
     private final ApplicationDeployment deployment;
     private final Optional<ApplicationService> service;
 
-    public ApplicationResources(final ApplicationDeployment deployment,
-        final Optional<ApplicationService> service) {
+    public ApplicationResources(final String name,
+                                final ApplicationDeployment deployment,
+                                final Optional<ApplicationService> service) {
+        this.name = name;
         this.deployment = deployment;
         this.service = service;
     }
@@ -46,5 +49,10 @@ public class ApplicationResources implements QuickResources {
     public List<QuickResource> listResources() {
         return this.service.map(applicationService -> List.of(this.deployment, applicationService))
             .orElseGet(() -> List.of(this.deployment));
+    }
+
+    @Override
+    public String getResourcesName() {
+        return this.name;
     }
 }
