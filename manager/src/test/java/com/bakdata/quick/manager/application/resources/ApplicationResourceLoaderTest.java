@@ -27,9 +27,16 @@ import com.bakdata.quick.manager.k8s.KubernetesResources;
 import com.bakdata.quick.manager.k8s.KubernetesTest;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.EnvFromSource;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
+import io.fabric8.kubernetes.api.model.Container;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -92,7 +99,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
                     });
 
                 final PodSpec podSpec = deploymentSpec.getTemplate().getSpec();
-                assertThat(podSpec.getImagePullSecrets()).isNull();
+                assertThat(podSpec.getImagePullSecrets()).isNullOrEmpty();
                 assertThat(podSpec.getContainers())
                     .isNotNull()
                     .hasSize(1)
