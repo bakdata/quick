@@ -1,11 +1,11 @@
 # Real-time customer profiles
 
 This example demonstrates how you can use Quick to create real-time customer profiles for a music streaming service.
-The profiles build user metrics,
-record charts of the most-streamed albums, artists and tracks,
-and create recommendations based on the user's playlist.
+The profiles include user metrics,
+charts of the most-streamed albums, artists and tracks,
+and recommendations based on the user's playlist.
 
-You can find the complete code in [the Quick's example repository](https://github.com/bakdata/quick-examples).
+You can find the complete code in [Quick's example repository](https://github.com/bakdata/quick-examples).
 The example uses the real world data set LFM-1b.
 The Kafka Streams application is written with
 our [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap).
@@ -31,14 +31,14 @@ For modeling and querying data in this example, you first define a schema with G
 The query called `getUserProfile` combines six metrics of the customer profile:
 
 - total listening events
-- first and the last time a user listened to a song 
+- first and the last time a user listened to a song
 - charts with user’s most listened albums, artists and tracks.
 
 Those charts, however, contain only ids and not the names of the corresponding music data.
-Therefore, you can let Quick resolve the chart's ids from topics like `topartists` with names from topic artists in our GraphQL schema an call the corresponding type NamedArtistCount.
+You can let Quick resolve those ids with names.
+For that, you use topics containing the mapping from id to names and then reference them in the GraphQL schema.
 
-
-??? "The GraphQL schema"
+??? "The GraphQL schema (`schema-user-profile.gql`)" 
     ```graphql
     type Query {
         getUserProfile(userId: Long!): UserProfile
@@ -89,3 +89,54 @@ Therefore, you can let Quick resolve the chart's ids from topics like `topartist
     }
     ...
     ```
+
+---
+
+You are now ready to process and query the data.
+In case you don't have a running Quick instance,
+you can refer to the [getting started guide](../getting-started/setup-quick).
+
+First, initialize the Quick CLI.
+Second, create a new gateway and apply the GraphQL schema.
+
+```shell
+quick context create --host "$QUICK_URL" --key "$QUICK_API_KEY" --context customer-profiles
+quick gateway create profiles
+quick gateway apply profiles -f schema-user-profile.gql
+```
+
+---
+
+Then, you create the input topics for:  
+
+- albums data
+    ```shell
+    quick topic create albums \ 
+        --key long \
+        --value schema -s profiles.Item
+    ```    
+- artists data
+    ```shell
+    quick topic create artists \ 
+        --key long \
+        --value schema -s profiles.Item
+    ```    
+- tracks data 
+    ```shell
+    quick topic create tracks \ 
+        --key long \
+        --value schema -s profiles.Item
+    ```
+- listening events
+
+    ```shell
+    quick topic create listeningevents \
+        --key long \
+        --value schema -s profiles.ListeningEvent
+    ```
+
+
+
+The command expects the topic name as well as the type or schema of key and value.
+Since we have complex values, we define a global GraphQL schema and apply it to the gateway.
+That way we will not need to specify a file, but use <name of the gateway>.<name of the type> from the global GraphQL schema for topic creation.
