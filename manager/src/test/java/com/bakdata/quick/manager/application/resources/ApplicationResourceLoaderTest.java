@@ -92,7 +92,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
                     });
 
                 final PodSpec podSpec = deploymentSpec.getTemplate().getSpec();
-                assertThat(podSpec.getImagePullSecrets()).isEqualTo(null);
+                assertThat(podSpec.getImagePullSecrets()).isNull();
                 assertThat(podSpec.getContainers())
                     .isNotNull()
                     .hasSize(1)
