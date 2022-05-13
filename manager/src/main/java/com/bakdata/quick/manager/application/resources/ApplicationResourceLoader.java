@@ -122,8 +122,8 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
      * @param resourceConfig memory + cpu requests and limits to use
      */
     private Deployment createAppDeployment(final String name, final List<String> arguments,
-        final ImageConfig imageConfig, final ResourceConfig resourceConfig, @Nullable final Integer port,
-                                           @Nullable final String imagePullSecret) {
+                                           final ImageConfig imageConfig, final ResourceConfig resourceConfig,
+                                           @Nullable final Integer port, @Nullable final String imagePullSecret) {
         final Context root = new Context();
         root.setVariable("name", name);
         root.setVariable("args", arguments);
