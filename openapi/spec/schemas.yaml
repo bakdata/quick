@@ -130,6 +130,8 @@ components:
         port:
           type: integer
           format: int32
+        imagePullSecret:
+          type: string
         arguments:
           type: object
           properties:
