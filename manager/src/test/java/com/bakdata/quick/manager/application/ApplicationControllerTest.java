@@ -76,7 +76,7 @@ class ApplicationControllerTest {
     @Test
     void shouldDeployApplication() {
         final ApplicationCreationData applicationCreationData =
-            new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, ARGS);
+            new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, null, ARGS);
 
         when(this.service.deployApplication(applicationCreationData))
             .thenReturn(Completable.complete());
@@ -115,7 +115,7 @@ class ApplicationControllerTest {
     @Test
     void shouldCallDeployApplication() {
         final ApplicationCreationData applicationCreationData =
-            new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, ARGS);
+            new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, null, ARGS);
 
         when(this.service.deployApplication(applicationCreationData))
             .thenReturn(Completable.complete());

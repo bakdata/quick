@@ -84,7 +84,7 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
 
         final ApplicationDeployment deployment =
             new ApplicationDeployment(this.createAppDeployment(deploymentName, listArgs, config, this.resourceConfig,
-                appCreationData.getPort()));
+                appCreationData.getPort(),  appCreationData.getImagePullSecret()));
 
         if (appCreationData.getPort() != null) {
             final ApplicationService service =
@@ -122,7 +122,8 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
      * @param resourceConfig memory + cpu requests and limits to use
      */
     private Deployment createAppDeployment(final String name, final List<String> arguments,
-        final ImageConfig imageConfig, final ResourceConfig resourceConfig, @Nullable final Integer port) {
+        final ImageConfig imageConfig, final ResourceConfig resourceConfig, @Nullable final Integer port,
+                                           @Nullable final String imagePullSecret) {
         final Context root = new Context();
         root.setVariable("name", name);
         root.setVariable("args", arguments);
@@ -135,6 +136,7 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
         root.setVariable("resourceConfig", resourceConfig);
         root.setVariable("port", port);
         root.setVariable("hasService", !Objects.isNull(port));
+        root.setVariable("imagePullSecret", imagePullSecret);
         return this.kubernetesResources.loadResource(root, "streamsApp/deployment", Deployment.class);
     }
 

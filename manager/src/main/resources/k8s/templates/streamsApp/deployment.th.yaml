@@ -48,3 +48,5 @@ spec:
             requests:
               memory: [(${resourceConfig.memory.request})]
               cpu: [(${resourceConfig.cpu.request})]
+      imagePullSecrets: [# th:if="${imagePullSecret}"]
+        - name: [(${imagePullSecret})] [/]

@@ -34,5 +34,7 @@ public class ApplicationCreationData implements CreationData {
     @Nullable
     Integer port;
     @Nullable
+    String imagePullSecret;
+    @Nullable
     Map<String, String> arguments;
 }
