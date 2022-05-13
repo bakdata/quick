@@ -51,3 +51,4 @@ spec:
       [# th:if="${imagePullSecret}"]
       imagePullSecrets:
         - name: [(${imagePullSecret})] [/]
+
