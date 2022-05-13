@@ -143,6 +143,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
                 DEFAULT_IMAGE_TAG,
                 1,
                 DEFAULT_PORT,
+                null,
                 Map.of());
 
         final Completable firstDeployment = this.service.deployApplication(applicationCreationData);
@@ -159,6 +160,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
             DEFAULT_IMAGE_TAG,
             1,
             port,
+            null,
             arguments);
 
         final Completable completable = this.service.deployApplication(applicationCreationData);

@@ -27,15 +27,16 @@ import com.bakdata.quick.manager.k8s.KubernetesResources;
 import com.bakdata.quick.manager.k8s.KubernetesTest;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvFromSource;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
+import io.fabric8.kubernetes.api.model.Container;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +48,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
     private static final int DEFAULT_PORT = 8080;
     private static final String NAME = "application-name";
     private static final String DEFAULT_DEPLOYMENT_NAME = ResourcePrefix.APPLICATION.getPrefix() + NAME;
+    private static final String DEFAULT_SECRET = "secret";
 
     private ApplicationResourceLoader loader = null;
     private final KafkaConfig kafkaConfig = new KafkaConfig("bootstrap", "http://dummy:123");
@@ -65,6 +67,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
 
         final ApplicationResources applicationResources =
             this.createApplicationResource(
+                null,
                 null,
                 null,
                 Map.of());
@@ -96,7 +99,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
                     });
 
                 final PodSpec podSpec = deploymentSpec.getTemplate().getSpec();
-
+                assertThat(podSpec.getImagePullSecrets()).isNullOrEmpty();
                 assertThat(podSpec.getContainers())
                     .isNotNull()
                     .hasSize(1)
@@ -133,6 +136,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
             this.createApplicationResource(
                 null,
                 null,
+                null,
                 Map.of("--test", "my-value", "--foo", "bar"));
 
         final Optional<HasMetadata> hasMetadata = findResource(applicationResources, ResourceKind.DEPLOYMENT);
@@ -161,6 +165,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
             this.createApplicationResource(
                 3,
                 null,
+                null,
                 Map.of());
 
         final Optional<HasMetadata> hasMetadata = findResource(applicationResources, ResourceKind.DEPLOYMENT);
@@ -186,6 +191,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
             this.createApplicationResource(
                 null,
                 null,
+                null,
                 Map.of());
 
         final Optional<HasMetadata> hasMetadata = findResource(applicationResources, ResourceKind.DEPLOYMENT);
@@ -208,6 +214,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
             this.createApplicationResource(
                 null,
                 DEFAULT_PORT,
+                null,
                 Map.of());
 
         final Optional<HasMetadata> hasMetadata = findResource(applicationResources, ResourceKind.DEPLOYMENT);
@@ -237,6 +244,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
             this.createApplicationResource(
                 1,
                 DEFAULT_PORT,
+                null,
                 Map.of());
 
         final Optional<HasMetadata> hasMetadata = findResource(applicationResources, ResourceKind.DEPLOYMENT);
@@ -255,6 +263,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
             this.createApplicationResource(
                 1,
                 DEFAULT_PORT,
+                    null,
                 Map.of());
 
         final Optional<HasMetadata> hasMetadata = findResource(applicationResources, ResourceKind.SERVICE);
@@ -278,6 +287,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
             this.createApplicationResource(
                 null,
                 DEFAULT_PORT,
+                null,
                 Map.of());
 
         final Optional<HasMetadata> hasMetadata = findResource(applicationResources, ResourceKind.SERVICE);
@@ -304,6 +314,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
             this.createApplicationResource(
                 null,
                 DEFAULT_PORT,
+                null,
                 Map.of());
 
         final Optional<HasMetadata> hasMetadata = findResource(applicationResources, ResourceKind.DEPLOYMENT);
@@ -326,13 +337,36 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
                 });
     }
 
+    @Test
+    void shouldCreateAppDeploymentWithImagePullSecret() {
+        final ApplicationResources applicationResources =
+                this.createApplicationResource(
+                        null,
+                        null,
+                        DEFAULT_SECRET,
+                        Map.of());
+
+        final Optional<HasMetadata> hasMetadata = findResource(applicationResources, ResourceKind.DEPLOYMENT);
+
+        assertThat(hasMetadata)
+                .isPresent()
+                .get(InstanceOfAssertFactories.type(Deployment.class))
+                .satisfies(deployment -> {
+                    final List<LocalObjectReference> imagePullSecrets = deployment.getSpec().getTemplate().getSpec()
+                            .getImagePullSecrets();
+                    assertThat(imagePullSecrets).hasSize(1);
+                    final String imagePullSecret = imagePullSecrets.get(0).getName();
+                    assertThat(imagePullSecret).isEqualTo(DEFAULT_SECRET);
+                });
+    }
+
     private ApplicationResources createApplicationResource(@Nullable final Integer replicas,
-        @Nullable final Integer port,
+        @Nullable final Integer port, @Nullable final String imagePullSecret,
         final Map<String, String> arguments) {
 
         final ApplicationCreationData appCreationData =
             new ApplicationCreationData(NAME, KubernetesTest.DOCKER_REGISTRY, "test",
-                "snapshot", replicas, port, arguments);
+                "snapshot", replicas, port, imagePullSecret, arguments);
 
         return this.loader.forCreation(appCreationData, ResourcePrefix.APPLICATION);
     }
