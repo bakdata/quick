@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.common.api.model.manager.creation.ApplicationCreationData;
 import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.manager.application.resources.ApplicationResourceLoader;
 import com.bakdata.quick.manager.k8s.ImageConfig;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
@@ -134,6 +135,24 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
             });
     }
 
+    @Test
+    void shouldRejectDuplicateApplicationCreation() {
+        final ApplicationCreationData applicationCreationData = new ApplicationCreationData(APP_NAME,
+                DOCKER_REGISTRY,
+                IMAGE_NAME,
+                DEFAULT_IMAGE_TAG,
+                1,
+                DEFAULT_PORT,
+                null,
+                Map.of());
+
+        final Completable firstDeployment = this.service.deployApplication(applicationCreationData);
+        Optional.ofNullable(firstDeployment.blockingGet()).ifPresent(Assertions::fail);
+        final Throwable invalidDeployment = this.service.deployApplication(applicationCreationData).blockingGet();
+        assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
+                .hasMessageContaining(String.format("The resource with the name %s already exists", APP_NAME));
+    }
+
     private void deployApplication(@Nullable final Integer port, final Map<String, String> arguments) {
         final ApplicationCreationData applicationCreationData = new ApplicationCreationData(APP_NAME,
             DOCKER_REGISTRY,
@@ -141,6 +160,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
             DEFAULT_IMAGE_TAG,
             1,
             port,
+            null,
             arguments);
 
         final Completable completable = this.service.deployApplication(applicationCreationData);

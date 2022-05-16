@@ -26,8 +26,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.api.client.ApplicationClient;
-import com.bakdata.quick.common.api.model.manager.creation.ApplicationCreationData;
 import com.bakdata.quick.common.api.model.manager.ApplicationDescription;
+import com.bakdata.quick.common.api.model.manager.creation.ApplicationCreationData;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.uri.UriBuilder;
@@ -76,7 +76,7 @@ class ApplicationControllerTest {
     @Test
     void shouldDeployApplication() {
         final ApplicationCreationData applicationCreationData =
-            new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, ARGS);
+            new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, null, ARGS);
 
         when(this.service.deployApplication(applicationCreationData))
             .thenReturn(Completable.complete());
@@ -115,7 +115,7 @@ class ApplicationControllerTest {
     @Test
     void shouldCallDeployApplication() {
         final ApplicationCreationData applicationCreationData =
-            new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, ARGS);
+            new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, null, ARGS);
 
         when(this.service.deployApplication(applicationCreationData))
             .thenReturn(Completable.complete());

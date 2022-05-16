@@ -77,20 +77,21 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
             Objects.requireNonNullElse(appCreationData.getReplicas(), this.deploymentConfig.getDefaultReplicas());
         final ImageConfig config = ImageConfig.of(appCreationData.getRegistry(), appCreationData.getImageName(),
             replicas, appCreationData.getTag());
-        final String deploymentName = getDeploymentName(appCreationData.getName());
+        final String applicationName = appCreationData.getName();
+        final String deploymentName = getDeploymentName(applicationName);
         final Map<String, String> arguments = Objects.requireNonNullElse(appCreationData.getArguments(), Map.of());
         final List<String> listArgs = CliArgHandler.convertArgs(arguments, this.kafkaConfig);
 
         final ApplicationDeployment deployment =
             new ApplicationDeployment(this.createAppDeployment(deploymentName, listArgs, config, this.resourceConfig,
-                appCreationData.getPort()));
+                appCreationData.getPort(),  appCreationData.getImagePullSecret()));
 
         if (appCreationData.getPort() != null) {
             final ApplicationService service =
                 new ApplicationService(this.createApplicationService(deploymentName, appCreationData.getPort()));
-            return new ApplicationResources(deployment, Optional.of(service));
+            return new ApplicationResources(applicationName, deployment, Optional.of(service));
         }
-        return new ApplicationResources(deployment, Optional.empty());
+        return new ApplicationResources(applicationName, deployment, Optional.empty());
     }
 
     /**
@@ -109,7 +110,7 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
         final ApplicationService service =
             new ApplicationService(KubernetesResources.forDeletion(Service.class, name));
 
-        return new ApplicationResources(deployment, Optional.of(service));
+        return new ApplicationResources(name, deployment, Optional.of(service));
     }
 
     /**
@@ -121,7 +122,8 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
      * @param resourceConfig memory + cpu requests and limits to use
      */
     private Deployment createAppDeployment(final String name, final List<String> arguments,
-        final ImageConfig imageConfig, final ResourceConfig resourceConfig, @Nullable final Integer port) {
+                                           final ImageConfig imageConfig, final ResourceConfig resourceConfig,
+                                           @Nullable final Integer port, @Nullable final String imagePullSecret) {
         final Context root = new Context();
         root.setVariable("name", name);
         root.setVariable("args", arguments);
@@ -134,6 +136,7 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
         root.setVariable("resourceConfig", resourceConfig);
         root.setVariable("port", port);
         root.setVariable("hasService", !Objects.isNull(port));
+        root.setVariable("imagePullSecret", imagePullSecret);
         return this.kubernetesResources.loadResource(root, "streamsApp/deployment", Deployment.class);
     }
 

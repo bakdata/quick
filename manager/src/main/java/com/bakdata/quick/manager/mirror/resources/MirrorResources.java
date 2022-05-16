@@ -31,11 +31,14 @@ import java.util.List;
 public class MirrorResources implements QuickResources {
     public static final String MIRROR_IMAGE = "quick-mirror";
 
+    private final String name;
     private final MirrorDeployment deployment;
     private final MirrorService service;
 
-    public MirrorResources(final MirrorDeployment deployment,
-        final MirrorService service) {
+    public MirrorResources(final String name,
+                           final MirrorDeployment deployment,
+                           final MirrorService service) {
+        this.name = name;
         this.deployment = deployment;
         this.service = service;
     }
@@ -43,5 +46,10 @@ public class MirrorResources implements QuickResources {
     @Override
     public List<QuickResource> listResources() {
         return List.of(this.deployment, this.service);
+    }
+
+    @Override
+    public String getResourcesName() {
+        return this.name;
     }
 }

@@ -36,6 +36,7 @@ import io.reactivex.Completable;
 import io.reactivex.Single;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -79,12 +80,19 @@ public class KubernetesManagerClient {
      * Deploys all the resources passed in.
      *
      * @param quickResources A quick resources object containing one or many kubernetes resources
-     * @return Completable or throws an exception if fail
+     * @return Completable or an exception if the specific resources already exist
      */
     public Completable deploy(final QuickResources quickResources) {
         return Completable.fromCallable(() -> {
             final KubernetesList resourceList = getKubernetesList(quickResources);
-            return this.client.resourceList(resourceList).inNamespace(this.namespace).createOrReplace();
+            final List<HasMetadata> resourcesMetadata = this.client.resourceList(resourceList)
+                    .inNamespace(this.namespace).fromServer().get();
+            if (resourcesMetadata.stream().allMatch(Objects::isNull)) {
+                return this.client.resourceList(resourceList).inNamespace(this.namespace).createOrReplace();
+            } else {
+                final String resourcesName = quickResources.getResourcesName();
+                throw new BadArgumentException(String.format("The resource with the name %s already exists", resourcesName));
+            }
         });
     }
 
