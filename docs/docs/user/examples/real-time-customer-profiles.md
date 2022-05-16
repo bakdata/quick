@@ -16,8 +16,12 @@ our [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap).
 ---
 
 There is also a video, explaining this example:
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/aitX3hoS5Xc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
+<div class="video-wrapper">
+<iframe allow="accelerometer; autoplay;
+                clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+        src="https://www.youtube-nocookie.com/embed/aitX3hoS5Xc"
+        title="YouTube video player" width="900" height="500" ></iframe>
+</div>
 ## Listening events
 
 Every time a customer listens to a song, the system emits a listening event containing the ids of album,
