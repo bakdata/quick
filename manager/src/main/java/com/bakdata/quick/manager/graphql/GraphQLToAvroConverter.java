@@ -22,10 +22,11 @@ import static graphql.schema.GraphQLTypeUtil.isNonNull;
 import static graphql.schema.GraphQLTypeUtil.isScalar;
 import static graphql.schema.GraphQLTypeUtil.unwrapOne;
 
+import com.bakdata.quick.common.condition.AvroSchemaFormatCondition;
+import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.graphql.GraphQLUtils;
 import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.manager.config.AvroConfig;
 import com.google.common.annotations.VisibleForTesting;
 import graphql.Scalars;
 import graphql.language.EnumValueDefinition;
@@ -42,6 +43,7 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import io.micronaut.context.annotation.Requires;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,14 +56,16 @@ import org.apache.avro.Schema;
  * Converts a GraphQL Schema to an Avro Schema.
  */
 @Singleton
+@Requires(condition = AvroSchemaFormatCondition.class)
 public final class GraphQLToAvroConverter {
     @Getter
     private final String avroNamespace;
     private static final Map<GraphQLScalarType, Schema.Type> SCALAR_MAPPING = scalarTypeMap();
 
     @Inject
-    public GraphQLToAvroConverter(final AvroConfig avroConfig) {
-        this(avroConfig.getNamespace());
+    public GraphQLToAvroConverter(final SchemaConfig schemaConfig) {
+        this(schemaConfig.getAvro().getNamespace()
+            .orElseThrow(() -> new IllegalArgumentException("Avro namespace expected")));
     }
 
     @VisibleForTesting

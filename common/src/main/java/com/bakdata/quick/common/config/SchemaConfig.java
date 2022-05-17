@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.common.config;
 
+
 import com.bakdata.quick.common.schema.SchemaFormat;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
@@ -25,9 +26,11 @@ import lombok.Getter;
 /**
  * Configurations for schemas used by Quick.
  */
-@ConfigurationProperties("quick.schema")
+@ConfigurationProperties(SchemaConfig.PREFIX)
 @Getter
 public class SchemaConfig {
+    public static final String PREFIX = "quick.schema";
+    public static final String SCHEMA_FORMAT = PREFIX + ".format";
     public static final SchemaFormat DEFAULT_FORMAT = SchemaFormat.AVRO;
     /**
      * Format of the schema to use in Quick.
@@ -39,8 +42,19 @@ public class SchemaConfig {
      */
     private final SchemaFormat format;
 
+    // Ideally, we'd like to make this optional and only to be created if "quick.schema.avro..." properties are set
+    // It seems this isn't supported by micronaut though.
+    // Therefore, all fields of avro config must be optional
+    private final AvroConfig avro;
+
     @ConfigurationInject
-    public SchemaConfig(final Optional<SchemaFormat> format) {
+    public SchemaConfig(final Optional<SchemaFormat> format, final AvroConfig avro) {
         this.format = format.orElse(DEFAULT_FORMAT);
+        this.avro = avro;
+
+        if (this.format == SchemaFormat.AVRO) {
+            this.avro.validate();
+        }
     }
+
 }

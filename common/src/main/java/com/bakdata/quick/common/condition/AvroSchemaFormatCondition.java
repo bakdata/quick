@@ -14,23 +14,22 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.manager.config;
+package com.bakdata.quick.common.condition;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import com.bakdata.quick.common.config.SchemaConfig;
+import com.bakdata.quick.common.schema.SchemaFormat;
+import io.micronaut.context.condition.Condition;
+import io.micronaut.context.condition.ConditionContext;
 
-import io.micronaut.context.annotation.Property;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import javax.inject.Inject;
-import org.junit.jupiter.api.Test;
-
-@MicronautTest
-@Property(name = "quick.avro.namespace", value = "foo.bar.test.avro")
-class AvroConfigInjectionTest {
-    @Inject
-    private AvroConfig avroConfig;
-
-    @Test
-    void shouldInjectConfigWithCorrectNamespace() {
-        assertThat(this.avroConfig.getNamespace()).isEqualTo("foo.bar.test.avro");
+/**
+ * Condition for beans requiring the {@link SchemaFormat} to be Avro.
+ *
+ * @see SchemaConfig
+ * @see com.bakdata.quick.common.config.AvroConfig
+ */
+public class AvroSchemaFormatCondition implements Condition {
+    @Override
+    public boolean matches(final ConditionContext context) {
+        return context.getBean(SchemaConfig.class).getFormat() == SchemaFormat.AVRO;
     }
 }
