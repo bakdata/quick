@@ -40,7 +40,7 @@ public class SchemaConfig {
      *
      * <p>
      * This is a global configuration that is set when deploying Quick. Quick will convert GraphQL schemas to this
-     * format when user create a new topic, and register them with the Schema Registry.
+     * format when users create a new topic, and register them with the Schema Registry.
      * </p>
      */
     private final SchemaFormat format;
