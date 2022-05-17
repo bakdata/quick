@@ -17,11 +17,9 @@
 package com.bakdata.quick.common.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.bakdata.quick.common.ConfigUtils;
 import com.bakdata.quick.common.schema.SchemaFormat;
-import io.micronaut.context.exceptions.BeanInstantiationException;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -39,19 +37,6 @@ class SchemaConfigTest {
         final Map<String, Object> properties = Map.of("quick.schema.format", "PROTOBUF");
         final SchemaConfig schemaConfig = ConfigUtils.createWithProperties(properties, SchemaConfig.class);
         assertThat(schemaConfig.getFormat()).isEqualTo(SchemaFormat.PROTOBUF);
-    }
-
-    @Test
-    void shouldCreateConfigWithAvro() {
-        final Map<String, Object> properties = Map.of(
-            "quick.schema.format", "avro",
-            "quick.schema.avro.namespace", "test"
-        );
-        final SchemaConfig schemaConfig = ConfigUtils.createWithProperties(properties, SchemaConfig.class);
-        assertThat(schemaConfig.getFormat()).isEqualTo(SchemaFormat.AVRO);
-        assertThat(schemaConfig.getAvro().getNamespace())
-            .isPresent().get()
-            .isEqualTo("test");
     }
 
     @Test
@@ -84,18 +69,10 @@ class SchemaConfigTest {
     @Test
     void shouldCreateConfigFromEnvVariableAvro() {
         final Map<String, Object> env = Map.of(
-            "QUICK_SCHEMA_FORMAT", "Avro",
-            "quick.schema.avro.namespace", "test"
+            "QUICK_SCHEMA_FORMAT", "Avro"
         );
         final SchemaConfig schemaConfig = ConfigUtils.createWithEnvironment(env, SchemaConfig.class);
         assertThat(schemaConfig.getFormat()).isEqualTo(SchemaFormat.AVRO);
-
-    }
-
-    @Test
-    void shouldNotCreateAvroConfigByDefault() {
-        assertThatExceptionOfType(BeanInstantiationException.class)
-            .isThrownBy(() -> ConfigUtils.createWithProperties(Map.of(), SchemaConfig.class));
     }
 
 }

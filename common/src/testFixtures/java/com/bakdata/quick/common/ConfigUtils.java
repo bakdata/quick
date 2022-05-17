@@ -34,8 +34,20 @@ public class ConfigUtils {
     }
 
     private <T> T createWithSource(final PropertySource propertySource, final Class<T> configClass) {
-        try (final ApplicationContext context = ApplicationContext.run(propertySource, propertySource.getName())) {
+        try (final ApplicationContext context = createWithSource(propertySource)) {
             return context.getBean(configClass);
         }
+    }
+
+    public ApplicationContext createWithProperties(final Map<String, Object> properties) {
+        return createWithSource(MapPropertySource.of(TestEnvironmentPropertySource.NAME, properties));
+    }
+
+    public ApplicationContext createWithEnvironment(final Map<String, Object> environment) {
+        return createWithSource(new TestEnvironmentPropertySource(environment));
+    }
+
+    private ApplicationContext createWithSource(final PropertySource propertySource) {
+        return ApplicationContext.run(propertySource, propertySource.getName());
     }
 }

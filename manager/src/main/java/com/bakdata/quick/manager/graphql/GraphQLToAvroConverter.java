@@ -23,7 +23,7 @@ import static graphql.schema.GraphQLTypeUtil.isScalar;
 import static graphql.schema.GraphQLTypeUtil.unwrapOne;
 
 import com.bakdata.quick.common.condition.AvroSchemaFormatCondition;
-import com.bakdata.quick.common.config.SchemaConfig;
+import com.bakdata.quick.common.config.AvroConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.graphql.GraphQLUtils;
 import com.bakdata.quick.common.type.QuickTopicType;
@@ -63,9 +63,8 @@ public final class GraphQLToAvroConverter {
     private static final Map<GraphQLScalarType, Schema.Type> SCALAR_MAPPING = scalarTypeMap();
 
     @Inject
-    public GraphQLToAvroConverter(final SchemaConfig schemaConfig) {
-        this(schemaConfig.getAvro().getNamespace()
-            .orElseThrow(() -> new IllegalArgumentException("Avro namespace expected")));
+    public GraphQLToAvroConverter(final AvroConfig avroConfig) {
+        this(avroConfig.getNamespace());
     }
 
     @VisibleForTesting

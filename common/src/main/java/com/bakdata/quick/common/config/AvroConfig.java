@@ -16,10 +16,11 @@
 
 package com.bakdata.quick.common.config;
 
+import com.bakdata.quick.common.condition.AvroSchemaFormatCondition;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.exceptions.ConfigurationException;
-import java.util.Optional;
 import java.util.regex.Pattern;
 import lombok.Getter;
 
@@ -30,20 +31,16 @@ import lombok.Getter;
  * Moreover, it checks if the Avro namespace fulfills the naming convention in the specification.
  * </p>
  *
- * <p>
- * All fields must be optional because Micronaut {@link AvroConfig} itself is optional in {@link SchemaConfig} and
- * Micronaut doesn't allow making it optional in schema config.
- * </p>
- *
  * @see <a href="https://avro.apache.org/docs/current/spec.html">Avro Specification</a>
  */
+@Requires(condition = AvroSchemaFormatCondition.class)
 @ConfigurationProperties(AvroConfig.PREFIX)
 @Getter
 public class AvroConfig {
     private static final Pattern NAMESPACE_PATTERN = Pattern.compile("^[A-z_](\\.?\\w)*$");
     public static final String PREFIX = SchemaConfig.PREFIX + ".avro";
 
-    private final Optional<String> namespace;
+    private final String namespace;
 
     /**
      * Default constructor.
@@ -51,26 +48,13 @@ public class AvroConfig {
      * @param namespace The value of this field holds the name of the namespace where the object is stored.
      */
     @ConfigurationInject
-    public AvroConfig(final Optional<String> namespace) {
-        namespace.ifPresent(AvroConfig::validateNamespace);
-        this.namespace = namespace;
-    }
-
-    private static void validateNamespace(final String namespace) {
+    public AvroConfig(final String namespace) {
         if (!NAMESPACE_PATTERN.matcher(namespace).matches()) {
             throw new ConfigurationException(
                 String.format("The Avro namespace %s does not fulfill the naming convention of Avro specification.",
                     namespace));
         }
-    }
-
-    /**
-     * Validate that all required fields are set.
-     */
-    public void validate() {
-        if (this.namespace.isEmpty()) {
-            throw new ConfigurationException("Namespace must be set when Avro is used as schema format");
-        }
+        this.namespace = namespace;
     }
 
 }
