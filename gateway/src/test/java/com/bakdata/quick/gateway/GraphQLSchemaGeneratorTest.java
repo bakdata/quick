@@ -476,7 +476,7 @@ class GraphQLSchemaGeneratorTest {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
         assertThatExceptionOfType(QuickDirectiveException.class)
                 .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
-                .withMessage("When the return type is not a list,"
+                .withMessage("When the return type is not a list for a non-mutation and non-subscription type,"
                         + " key information (keyArgument or keyField) is needed");
     }
 
@@ -485,7 +485,7 @@ class GraphQLSchemaGeneratorTest {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
         assertThatExceptionOfType(QuickDirectiveException.class)
                 .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
-                .withMessage("When the return type is not a list,"
+                .withMessage("When the return type is not a list for a non-mutation and non-subscription type,"
                         + " key information (keyArgument or keyField) is needed");
     }
 
