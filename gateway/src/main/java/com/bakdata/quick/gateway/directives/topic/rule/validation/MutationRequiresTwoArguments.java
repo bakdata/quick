@@ -24,7 +24,19 @@ import java.util.Optional;
  * Validation for {@link com.bakdata.quick.gateway.directives.topic.TopicDirective}
  *
  * <p>
- * When a user declares a mutation type, they have to provide two input arguments (an id and a type).
+ * The following example presents the correct way of providing arguments to the mutation type.
+ * <pre>{@code
+ * type Mutation {
+ *      setProduct(id: ID, product: ProductInput): Product @topic(name: "product-topic")
+ * }
+ *}</pre>
+ * On the other hand, the example below depicts a code example in which the rules for providing
+ * arguments to the mutation type are violated (there is only a single argument whereas two are needed):
+ * <pre>{@code
+ * type Mutation {
+ *      setClick(clickCount: Long): Long @topic(name: "click-topic")
+ * }
+ * }</pre>
  */
 public class MutationRequiresTwoArguments implements ValidationRule {
 

@@ -18,10 +18,10 @@ package com.bakdata.quick.gateway.directives.topic.rule.validation;
 
 import com.bakdata.quick.common.graphql.GraphQLUtils;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
-import graphql.language.FieldDefinition;
+import graphql.language.InputValueDefinition;
 import graphql.language.ObjectTypeDefinition;
 import graphql.language.TypeDefinition;
-
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -59,27 +59,26 @@ public class KeyInformation implements ValidationRule {
 
     @Override
     public Optional<String> validate(final TopicDirectiveContext context) {
-        if (checkIfBasicContextPropertiesAreInvalid(context)) {
+        if (this.checkIfBasicContextPropertiesAreInvalid(context)) {
             return Optional.of("When the return type is not a list for a non-mutation and non-subscription type,"
                     + " key information (keyArgument or keyField) is needed.");
         }
         // additional check for key arguments
         if (context.getTopicDirective().getKeyArgument() != null) {
-            String keyArg = context.getTopicDirective().getKeyArgument();
-            String inputName = "";
+            final boolean inputNameAndKeyArgsMatch;
             if (context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE)) {
-                inputName = findInputNameIfTopicDirectiveInQueryType(context);
+                inputNameAndKeyArgsMatch = this.findInputNameIfTopicDirectiveInQueryType(context);
             } else {
-                inputName = findInputNameIfTopicDirectiveInNonQueryType(context);
+                inputNameAndKeyArgsMatch = this.findInputNameIfTopicDirectiveInNonQueryType(context);
             }
-            if (!keyArg.equals(inputName)) {
+            if (!inputNameAndKeyArgsMatch) {
                 return Optional.of("Key argument has to be identical to the input name.");
             }
         }
         return Optional.empty();
     }
 
-    private boolean checkIfBasicContextPropertiesAreInvalid(TopicDirectiveContext context) {
+    private boolean checkIfBasicContextPropertiesAreInvalid(final TopicDirectiveContext context) {
         return !context.getParentContainerName().equals(GraphQLUtils.MUTATION_TYPE)
                 && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE)
                 && !context.isListType()
@@ -87,18 +86,27 @@ public class KeyInformation implements ValidationRule {
                 && !context.getTopicDirective().hasKeyField();
     }
 
-    private String findInputNameIfTopicDirectiveInQueryType(final TopicDirectiveContext context) {
-        return context.getEnvironment().getElement().getDefinition().getInputValueDefinitions().get(0).getName();
+    private boolean findInputNameIfTopicDirectiveInQueryType(final TopicDirectiveContext context) {
+        final String keyArg = context.getTopicDirective().getKeyArgument();
+        return context.getEnvironment().getElement().getDefinition().getInputValueDefinitions().stream()
+                .map(InputValueDefinition::getName).anyMatch(name -> Objects.equals(name, keyArg));
+
     }
 
-    private String findInputNameIfTopicDirectiveInNonQueryType(final TopicDirectiveContext context) {
-        Optional<TypeDefinition> queryTypeDef = context.getEnvironment()
-                .getRegistry().getType("Query");
-        String inputName = "";
-        if (queryTypeDef.isPresent()) {
-            inputName = ((ObjectTypeDefinition) queryTypeDef.get()).getFieldDefinitions().get(0)
-                    .getInputValueDefinitions().get(0).getName();
+    private boolean findInputNameIfTopicDirectiveInNonQueryType(final TopicDirectiveContext context) {
+        final Optional<TypeDefinition> queryTypeDef = context.getEnvironment().getRegistry().getType("Query");
+        if (queryTypeDef.isEmpty()) {
+            throw new IllegalStateException("Something went wrong - The query type is mandatory.");
+        } else {
+            final String keyArg = context.getTopicDirective().getKeyArgument();
+            // We can cast here because ObjectTypeDefinition has the type of TypeDefinition (i.e. it implements
+            // TypeDefinition)
+            return ((ObjectTypeDefinition) queryTypeDef.get()).getFieldDefinitions()
+                    .stream()
+                    .flatMap(fieldDef -> fieldDef.getInputValueDefinitions().stream())
+                    .map(InputValueDefinition::getName)
+                    .anyMatch(name -> Objects.equals(name, keyArg));
+
         }
-        return inputName;
     }
 }
