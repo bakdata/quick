@@ -18,20 +18,54 @@ package com.bakdata.quick.common.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.micronaut.context.annotation.Property;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import com.bakdata.quick.common.ConfigUtils;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-@MicronautTest
-@Property(name = "quick.kafka.bootstrap.server", value = "localhost:9092")
-@Property(name = "quick.kafka.schema.registry.url", value = "https://localhost:8081")
-@Property(name = "quick.kafka.application.id", value = "testId")
 class KafkaConfigTest {
     @Test
-    void createConfig(final KafkaConfig config) {
+    void shouldCreateConfig() {
+        final Map<String, Object> properties = Map.of(
+                "quick.kafka.bootstrap.server", "localhost:9092",
+                "quick.kafka.schema.registry.url", "https://localhost:8081",
+                "quick.kafka.application.id", "testId"
+        );
+
+        final KafkaConfig config = ConfigUtils.createWithProperties(properties, KafkaConfig.class);
+
         assertThat(config.getBootstrapServer()).isEqualTo("localhost:9092");
         assertThat(config.getSchemaRegistryUrl()).isEqualTo("https://localhost:8081");
         assertThat(config.getApplicationId()).isEqualTo(Optional.of("testId"));
+    }
+
+
+    @Test
+    void shouldCreateConfigFromEnv() {
+        final Map<String, Object> env = Map.of(
+                "QUICK_KAFKA_BOOTSTRAP_SERVER", "localhost:9092",
+                "QUICK_KAFKA_SCHEMA_REGISTRY_URL", "https://localhost:8081",
+                "QUICK_KAFKA_APPLICATION_ID", "testId"
+        );
+
+        final KafkaConfig config = ConfigUtils.createWithEnvironment(env, KafkaConfig.class);
+
+        assertThat(config.getBootstrapServer()).isEqualTo("localhost:9092");
+        assertThat(config.getSchemaRegistryUrl()).isEqualTo("https://localhost:8081");
+        assertThat(config.getApplicationId()).isEqualTo(Optional.of("testId"));
+    }
+
+    @Test
+    void shouldCreateConfigWithoutAppId() {
+        final Map<String, Object> env = Map.of(
+                "QUICK_KAFKA_BOOTSTRAP_SERVER", "localhost:9092",
+                "QUICK_KAFKA_SCHEMA_REGISTRY_URL", "https://localhost:8081"
+        );
+
+        final KafkaConfig config = ConfigUtils.createWithEnvironment(env, KafkaConfig.class);
+
+        assertThat(config.getBootstrapServer()).isEqualTo("localhost:9092");
+        assertThat(config.getSchemaRegistryUrl()).isEqualTo("https://localhost:8081");
+        assertThat(config.getApplicationId()).isEqualTo(Optional.empty());
     }
 }
