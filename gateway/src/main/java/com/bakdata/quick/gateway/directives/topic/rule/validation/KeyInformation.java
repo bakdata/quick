@@ -100,7 +100,6 @@ public class KeyInformation implements ValidationRule {
                 .stream()
                 .map(InputValueDefinition::getName)
                 .anyMatch(name -> Objects.equals(name, keyArg));
-
     }
 
     private boolean checkIfInputNameAndKeyArgMatchInNonQueryType(final TopicDirectiveContext context) {
@@ -115,7 +114,6 @@ public class KeyInformation implements ValidationRule {
                     .flatMap(fieldDef -> fieldDef.getInputValueDefinitions().stream())
                     .map(InputValueDefinition::getName)
                     .anyMatch(name -> Objects.equals(name, keyArg));
-
         }
     }
 }
