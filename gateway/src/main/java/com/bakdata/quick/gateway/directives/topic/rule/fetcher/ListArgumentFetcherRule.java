@@ -17,8 +17,8 @@
 package com.bakdata.quick.gateway.directives.topic.rule.fetcher;
 
 import com.bakdata.quick.common.graphql.GraphQLUtils;
-import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import com.bakdata.quick.gateway.DataFetcherSpecification;
+import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLTypeUtil;

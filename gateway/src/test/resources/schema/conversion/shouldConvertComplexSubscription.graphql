@@ -7,6 +7,6 @@ type Subscription {
 }
 
 type Profile {
-  buyerProfile: String @topic(name: "buyer-profile")
-  customerProfile: String @topic(name: "customer-profile")
+  buyerProfile: String @topic(name: "buyer-profile", keyArgument: "id")
+  customerProfile: String @topic(name: "customer-profile", keyArgument: "id")
 }

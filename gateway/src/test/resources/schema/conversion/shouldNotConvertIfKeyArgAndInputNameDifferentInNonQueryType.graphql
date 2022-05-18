@@ -1,0 +1,14 @@
+type Query {
+    getProduct(productId: ID): ProductInfo
+}
+
+type ProductInfo {
+    product: Product @topic(name: "product-topic", keyArgument: "id")
+    url: String @topic(name: "url-topic", keyArgument: "productId")
+}
+
+type Product   {
+    productId: ID!,
+    name: String,
+    description: String
+}

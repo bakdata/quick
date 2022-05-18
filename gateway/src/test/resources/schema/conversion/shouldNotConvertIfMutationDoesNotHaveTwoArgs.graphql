@@ -1,0 +1,6 @@
+type Mutation {
+    setClick(clickCount: Long): Long @topic(name: "click-topic")
+}
+
+type Query {
+}
