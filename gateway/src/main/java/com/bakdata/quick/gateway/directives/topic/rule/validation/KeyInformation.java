@@ -21,8 +21,8 @@ import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import graphql.language.InputValueDefinition;
 import graphql.language.ObjectTypeDefinition;
 import graphql.language.TypeDefinition;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Objects;
 
 /**
  * Validation for {@link com.bakdata.quick.gateway.directives.topic.TopicDirective}
@@ -54,7 +54,6 @@ import java.util.Optional;
  * }
  * }</pre>
  */
-
 public class KeyInformation implements ValidationRule {
 
     @Override
@@ -64,12 +63,21 @@ public class KeyInformation implements ValidationRule {
                     + " key information (keyArgument or keyField) is needed.");
         }
         // additional check for key arguments
+        final Optional<String> additionalKeyArgCheckResult = makeCheckForKeyArgument(context);
+        if (additionalKeyArgCheckResult.isPresent()) {
+            return additionalKeyArgCheckResult;
+        }
+        // TODO: additional check for key field
+        return Optional.empty();
+    }
+
+    private Optional<String> makeCheckForKeyArgument(final TopicDirectiveContext context) {
         if (context.getTopicDirective().getKeyArgument() != null) {
             final boolean inputNameAndKeyArgsMatch;
             if (context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE)) {
-                inputNameAndKeyArgsMatch = this.findInputNameIfTopicDirectiveInQueryType(context);
+                inputNameAndKeyArgsMatch = this.checkIfInputNameAndKeyArgMatchInQueryType(context);
             } else {
-                inputNameAndKeyArgsMatch = this.findInputNameIfTopicDirectiveInNonQueryType(context);
+                inputNameAndKeyArgsMatch = this.checkIfInputNameAndKeyArgMatchInNonQueryType(context);
             }
             if (!inputNameAndKeyArgsMatch) {
                 return Optional.of("Key argument has to be identical to the input name.");
@@ -86,21 +94,22 @@ public class KeyInformation implements ValidationRule {
                 && !context.getTopicDirective().hasKeyField();
     }
 
-    private boolean findInputNameIfTopicDirectiveInQueryType(final TopicDirectiveContext context) {
+    private boolean checkIfInputNameAndKeyArgMatchInQueryType(final TopicDirectiveContext context) {
         final String keyArg = context.getTopicDirective().getKeyArgument();
-        return context.getEnvironment().getElement().getDefinition().getInputValueDefinitions().stream()
-                .map(InputValueDefinition::getName).anyMatch(name -> Objects.equals(name, keyArg));
+        return context.getEnvironment().getElement().getDefinition().getInputValueDefinitions()
+                .stream()
+                .map(InputValueDefinition::getName)
+                .anyMatch(name -> Objects.equals(name, keyArg));
 
     }
 
-    private boolean findInputNameIfTopicDirectiveInNonQueryType(final TopicDirectiveContext context) {
+    private boolean checkIfInputNameAndKeyArgMatchInNonQueryType(final TopicDirectiveContext context) {
         final Optional<TypeDefinition> queryTypeDef = context.getEnvironment().getRegistry().getType("Query");
         if (queryTypeDef.isEmpty()) {
             throw new IllegalStateException("Something went wrong - The query type is mandatory.");
         } else {
             final String keyArg = context.getTopicDirective().getKeyArgument();
-            // We can cast here because ObjectTypeDefinition has the type of TypeDefinition (i.e. it implements
-            // TypeDefinition)
+            // We can cast here because we know that Query must be of the type ObjectTypeDefinition
             return ((ObjectTypeDefinition) queryTypeDef.get()).getFieldDefinitions()
                     .stream()
                     .flatMap(fieldDef -> fieldDef.getInputValueDefinitions().stream())
