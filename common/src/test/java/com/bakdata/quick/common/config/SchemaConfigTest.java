@@ -33,6 +33,14 @@ class SchemaConfigTest {
     }
 
     @Test
+    void shouldReadFormatCaseInsensitive() {
+        final Map<String, Object> properties = Map.of("quick.schema.format", "ProtoBuf");
+        final SchemaConfig schemaConfig = ConfigUtils.createWithProperties(properties, SchemaConfig.class);
+        assertThat(schemaConfig.getFormat()).isEqualTo(SchemaFormat.PROTOBUF);
+    }
+
+
+    @Test
     void shouldCreateConfigFromCaps() {
         final Map<String, Object> properties = Map.of("quick.schema.format", "PROTOBUF");
         final SchemaConfig schemaConfig = ConfigUtils.createWithProperties(properties, SchemaConfig.class);
