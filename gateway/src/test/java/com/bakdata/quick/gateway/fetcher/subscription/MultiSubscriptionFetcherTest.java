@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -34,6 +35,7 @@ import reactor.core.publisher.Flux;
 class MultiSubscriptionFetcherTest {
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "CI", matches = "true", disabledReason = "Flaky on CI")
     void shouldReturnComplexType() {
         final DataFetcherClient<?> field1Client = Mockito.mock(DataFetcherClient.class);
         final DataFetcherClient<?> field2Client = Mockito.mock(DataFetcherClient.class);

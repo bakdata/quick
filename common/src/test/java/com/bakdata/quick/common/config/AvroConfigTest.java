@@ -14,17 +14,39 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.manager.config;
+package com.bakdata.quick.common.config;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+import com.bakdata.quick.common.ConfigUtils;
+import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.exceptions.ConfigurationException;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class AvroConfigTest {
+
+    @Test
+    void shouldReadNamespace() {
+        final Map<String, Object> properties = Map.of("quick.schema.avro.namespace", "test");
+        final AvroConfig config = ConfigUtils.createWithProperties(properties, AvroConfig.class);
+        assertThat(config.getNamespace()).isEqualTo("test");
+    }
+
+    @Test
+    void shouldNotExistIfFormatIsProtobuf() {
+        final Map<String, Object> properties = Map.of("quick.schema.format", "protobuf");
+        final Optional<AvroConfig> config;
+        try (final ApplicationContext context = ConfigUtils.createWithProperties(properties)) {
+            config = context.findBean(AvroConfig.class);
+            assertThat(config).isEmpty();
+        }
+    }
 
     @ParameterizedTest
     @MethodSource("provideCorrectAvroNamespaces")
@@ -38,9 +60,8 @@ class AvroConfigTest {
     void shouldThrowExceptionWhenNameIsWrong(final String input) {
         assertThatThrownBy(() -> new AvroConfig(input))
             .isInstanceOf(ConfigurationException.class)
-            .hasMessage(
-                String.format("The Avro namespace %s does not fulfill the naming convention of Avro specification.",
-                    input));
+            .hasMessage(String.format(
+                "The Avro namespace %s does not fulfill the naming convention of Avro specification.", input));
     }
 
     private static List<String> provideCorrectAvroNamespaces() {

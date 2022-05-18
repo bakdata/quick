@@ -14,23 +14,11 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.manager.config;
+package com.bakdata.quick.common.schema;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
-import io.micronaut.context.annotation.Property;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import javax.inject.Inject;
-import org.junit.jupiter.api.Test;
-
-@MicronautTest
-@Property(name = "quick.avro.namespace", value = "foo.bar.test.avro")
-class AvroConfigInjectionTest {
-    @Inject
-    private AvroConfig avroConfig;
-
-    @Test
-    void shouldInjectConfigWithCorrectNamespace() {
-        assertThat(this.avroConfig.getNamespace()).isEqualTo("foo.bar.test.avro");
-    }
+/**
+ * Schema formats supported by Quick.
+ */
+public enum SchemaFormat {
+    AVRO, PROTOBUF
 }

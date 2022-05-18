@@ -18,18 +18,42 @@ package com.bakdata.quick.common.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.micronaut.context.annotation.Property;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import com.bakdata.quick.common.ConfigUtils;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-@MicronautTest
-@Property(name = "quick.topic-registry.topicName", value = "test-topic")
-@Property(name = "quick.topic-registry.serviceName", value = "test-service")
-@Property(name = "quick.topic-registry.partitions", value = "3")
-@Property(name = "quick.topic-registry.replicationFactor", value = "1")
 class TopicRegistryConfigTest {
     @Test
-    void shouldCreateTopicRegistryConfig(final TopicRegistryConfig config) {
+    void shouldCreateTopicRegistryConfig() {
+
+        final Map<String, Object> properties = Map.of(
+                "quick.topic-registry.topicName", "test-topic",
+                "quick.topic-registry.serviceName", "test-service",
+                "quick.topic-registry.partitions", "3",
+                "quick.topic-registry.replicationFactor", "1"
+        );
+
+        final TopicRegistryConfig config = ConfigUtils.createWithProperties(properties, TopicRegistryConfig.class);
+
+        assertThat(config.getTopicName()).isEqualTo("test-topic");
+        assertThat(config.getServiceName()).isEqualTo("test-service");
+        assertThat(config.getPartitions()).isEqualTo(3);
+        assertThat(config.getReplicationFactor()).isEqualTo((short) 1);
+    }
+
+
+    @Test
+    void shouldCreateTopicRegistryConfigFromEnv() {
+
+        final Map<String, Object> properties = Map.of(
+                "QUICK_TOPIC_REGISTRY_TOPIC_NAME", "test-topic",
+                "QUICK_TOPIC_REGISTRY_SERVICE_NAME", "test-service",
+                "QUICK_TOPIC_REGISTRY_PARTITIONS", "3",
+                "QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR", "1"
+        );
+
+        final TopicRegistryConfig config = ConfigUtils.createWithEnvironment(properties, TopicRegistryConfig.class);
+
         assertThat(config.getTopicName()).isEqualTo("test-topic");
         assertThat(config.getServiceName()).isEqualTo("test-service");
         assertThat(config.getPartitions()).isEqualTo(3);
