@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bakdata.quick.avro.Person;
 import com.bakdata.quick.common.exception.HttpClientException;
 import com.bakdata.schemaregistrymock.junit5.SchemaRegistryMockExtension;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Single;
@@ -47,8 +48,8 @@ class SchemaRegistryFetcherTest {
 
         final SchemaFetcher schemaFetcher = this.applicationContext.createBean(SchemaRegistryFetcher.class);
         this.srMock.registerValueSchema(TOPIC, Person.getClassSchema());
-        final Schema schema = schemaFetcher.getValueSchema(TOPIC).blockingGet();
-        assertThat(schema).isEqualTo(Person.getClassSchema());
+        final ParsedSchema schema = schemaFetcher.getValueSchema(TOPIC).blockingGet();
+        assertThat(schema.rawSchema()).isEqualTo(Person.getClassSchema());
     }
 
     @Test
@@ -56,7 +57,7 @@ class SchemaRegistryFetcherTest {
         this.applicationContext.environment(env -> env.addPropertySource("quick-test",
             Map.of("quick.kafka.schema-registry-url", this.srMock.getUrl())));
         final SchemaFetcher schemaFetcher = this.applicationContext.createBean(SchemaRegistryFetcher.class);
-        final Single<Schema> valueSchema = schemaFetcher.getValueSchema(TOPIC);
+        final Single<ParsedSchema> valueSchema = schemaFetcher.getValueSchema(TOPIC);
         valueSchema.test().await()
             .assertError(HttpClientException.class)
             .assertErrorMessage("Not Found");

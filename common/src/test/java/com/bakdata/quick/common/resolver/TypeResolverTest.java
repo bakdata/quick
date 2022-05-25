@@ -19,7 +19,9 @@ package com.bakdata.quick.common.resolver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.avro.ChartRecord;
+import com.bakdata.quick.common.api.model.AvroQuickTopicType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,7 +41,7 @@ class TypeResolverTest {
     @Test
     void testValueFromString() {
         final GenericAvroResolver resolver = new GenericAvroResolver();
-        resolver.configure(ChartRecord.getClassSchema());
+        resolver.configure(new AvroSchema(ChartRecord.getClassSchema()));
         final GenericRecord genericRecord = resolver.fromString(JSON_RECORD);
         assertThat(genericRecord.getSchema()).isEqualTo(this.chartRecord.getSchema());
         assertThat(genericRecord.get("fieldId")).isEqualTo(EXPECTED_FIELD_ID);
@@ -49,7 +51,7 @@ class TypeResolverTest {
     @Test
     void testRecordToString() {
         final TypeResolver<GenericRecord> resolver = new GenericAvroResolver();
-        resolver.configure(ChartRecord.getClassSchema());
+        resolver.configure(new AvroSchema(ChartRecord.getClassSchema()));
         final String resolvedRecord = resolver.toString(this.chartRecord);
         assertThat(resolvedRecord).isEqualTo(JSON_RECORD);
     }
@@ -57,7 +59,7 @@ class TypeResolverTest {
     @Test
     void testValueFromObject() {
         final GenericAvroResolver resolver = new GenericAvroResolver();
-        resolver.configure(ChartRecord.getClassSchema());
+        resolver.configure(new AvroSchema(ChartRecord.getClassSchema()));
         final GenericRecord genericRecord = resolver.fromObject(MAP_RECORD);
         assertThat(genericRecord.getSchema()).isEqualTo(this.chartRecord.getSchema());
         assertThat(genericRecord.get("fieldId")).isEqualTo(EXPECTED_FIELD_ID);
@@ -68,7 +70,7 @@ class TypeResolverTest {
     void checkNullable() throws IOException {
         final String schema = Files.readString(workingDirectory.resolve("product-schema.avsc"));
         final GenericAvroResolver resolver = new GenericAvroResolver();
-        resolver.configure(new Parser().parse(schema));
+        resolver.configure(new AvroSchema(schema));
 
         final ObjectMapper objectMapper = new ObjectMapper();
         final String data = Files.readString(workingDirectory.resolve("product.json"));

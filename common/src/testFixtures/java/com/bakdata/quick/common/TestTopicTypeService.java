@@ -22,6 +22,9 @@ import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.reactivex.Single;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -36,20 +39,21 @@ public class TestTopicTypeService implements TopicTypeService {
     private final Supplier<String> urlSupplier;
     private final QuickTopicType keyType;
     private final QuickTopicType valueType;
-    private final Schema keySchema;
-    private final Schema valueSchema;
+    private final ParsedSchema keySchema;
+    private final ParsedSchema valueSchema;
 
     /**
      * Constructor for builder.
      */
     @Builder
     public TestTopicTypeService(final Supplier<String> urlSupplier, final QuickTopicType keyType,
-        final QuickTopicType valueType, final Schema keySchema, final Schema valueSchema) {
+                                final QuickTopicType valueType, @Nullable final Schema keySchema,
+                                @Nullable final Schema valueSchema) {
         this.urlSupplier = urlSupplier;
         this.keyType = keyType;
         this.valueType = valueType;
-        this.keySchema = keySchema;
-        this.valueSchema = valueSchema;
+        this.keySchema = keySchema == null ? null : new AvroSchema(keySchema.toString());
+        this.valueSchema = valueSchema == null ? null : new AvroSchema(valueSchema.toString());
     }
 
     @Override

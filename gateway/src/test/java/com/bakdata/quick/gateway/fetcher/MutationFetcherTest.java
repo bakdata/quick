@@ -196,7 +196,8 @@ class MutationFetcherTest {
         kafkaCluster.createTopic(TopicConfig.withName(topic).useDefaults());
 
         final KafkaIngestService kafkaIngestService =
-            new KafkaIngestService(topicTypeService(QuickTopicType.STRING, valueInfo.getType(), null),
+            new KafkaIngestService(
+                topicTypeService(QuickTopicType.STRING, valueInfo.getType(), ChartRecord.getClassSchema()),
                 kafkaConfig);
 
         final DataFetcher<T> mutationFetcher =

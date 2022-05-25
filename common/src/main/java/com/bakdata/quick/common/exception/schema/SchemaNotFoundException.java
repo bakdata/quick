@@ -14,28 +14,19 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.resolver;
+package com.bakdata.quick.common.exception.schema;
 
-import com.bakdata.quick.common.type.QuickTopicType;
-import com.fasterxml.jackson.databind.JavaType;
-import io.confluent.kafka.schemaregistry.ParsedSchema;
-import org.apache.avro.Schema;
+import io.micronaut.http.HttpStatus;
 
-/**
- * A TypeResolver is used for serializing values dynamically in quick.
- */
-public interface TypeResolver<T> {
-    T fromString(String value);
+public class SchemaNotFoundException extends SchemaException {
+    private static final String MESSAGE = "Subject \"%s\" not found in schema registry";
 
-    String toString(T value);
+    public SchemaNotFoundException(final String subject) {
+        super(String.format(MESSAGE, subject));
+    }
 
-    QuickTopicType getType();
-
-    JavaType getElementType();
-
-    T fromObject(Object obj);
-
-    default void configure(final ParsedSchema schema) {
-        // do nothing for primitive resolver
+    @Override
+    protected HttpStatus getStatus() {
+        return HttpStatus.NOT_FOUND;
     }
 }

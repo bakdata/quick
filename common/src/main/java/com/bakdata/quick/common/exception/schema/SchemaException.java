@@ -14,28 +14,17 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.resolver;
+package com.bakdata.quick.common.exception.schema;
 
-import com.bakdata.quick.common.type.QuickTopicType;
-import com.fasterxml.jackson.databind.JavaType;
-import io.confluent.kafka.schemaregistry.ParsedSchema;
-import org.apache.avro.Schema;
+import com.bakdata.quick.common.exception.QuickException;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * A TypeResolver is used for serializing values dynamically in quick.
- */
-public interface TypeResolver<T> {
-    T fromString(String value);
+public abstract class SchemaException extends QuickException {
+    protected SchemaException(@Nullable String message) {
+        super(message);
+    }
 
-    String toString(T value);
-
-    QuickTopicType getType();
-
-    JavaType getElementType();
-
-    T fromObject(Object obj);
-
-    default void configure(final ParsedSchema schema) {
-        // do nothing for primitive resolver
+    public SchemaException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

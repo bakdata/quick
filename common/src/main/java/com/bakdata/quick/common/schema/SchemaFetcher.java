@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.common.schema;
 
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.reactivex.Single;
 import org.apache.avro.Schema;
 
@@ -27,12 +28,12 @@ public interface SchemaFetcher {
     /**
      * Retrieves the value schema for a given topic.
      */
-    Single<Schema> getValueSchema(final String topic);
+    Single<ParsedSchema> getValueSchema(final String topic);
 
     /**
      * Retrieves the key schema for a given topic.
      */
-    Single<Schema> getKeySchema(final String topic);
+    Single<ParsedSchema> getKeySchema(final String topic);
 
 
     /**
@@ -42,6 +43,6 @@ public interface SchemaFetcher {
      * Generally, a subject conforms to the following naming convetion: {@code <TOPIC_NAME>-<KEY|VALUE>},
      * e.g., topic1-key.
      */
-    Single<Schema> getSchema(final String subject);
+    Single<ParsedSchema> getSchema(final String subject);
 
 }
