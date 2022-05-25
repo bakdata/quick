@@ -49,6 +49,13 @@ public class GraphQLSchemaGenerator {
     private final List<QuickGraphQLType<?>> quickGraphQLTypes;
     private final List<SchemaGeneratorPostProcessing> postProcessings;
 
+    /**
+     * Injectable constructor.
+     *
+     * @param directiveWirings  wirings for implementing custom directives
+     * @param quickGraphQLTypes additional GraphQL types specific to Quick
+     * @param postProcessings   post processor for the GraphQL schema
+     */
     @Inject
     public GraphQLSchemaGenerator(final List<QuickDirectiveWiring> directiveWirings,
                                   final List<QuickGraphQLType<?>> quickGraphQLTypes,

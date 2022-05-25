@@ -91,7 +91,8 @@ public class KubernetesManagerClient {
                 return this.client.resourceList(resourceList).inNamespace(this.namespace).createOrReplace();
             } else {
                 final String resourcesName = quickResources.getResourcesName();
-                throw new BadArgumentException(String.format("The resource with the name %s already exists", resourcesName));
+                throw new BadArgumentException(
+                    String.format("The resource with the name %s already exists", resourcesName));
             }
         });
     }

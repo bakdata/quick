@@ -35,6 +35,13 @@ public class MirrorResources implements QuickResources {
     private final MirrorDeployment deployment;
     private final MirrorService service;
 
+    /**
+     * Default constructor.
+     *
+     * @param name       name of  the mirror
+     * @param deployment k8s deployment for the mirror
+     * @param service    k8s service for the mirrror
+     */
     public MirrorResources(final String name,
                            final MirrorDeployment deployment,
                            final MirrorService service) {

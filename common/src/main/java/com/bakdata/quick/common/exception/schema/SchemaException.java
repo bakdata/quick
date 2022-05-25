@@ -17,14 +17,17 @@
 package com.bakdata.quick.common.exception.schema;
 
 import com.bakdata.quick.common.exception.QuickException;
-import org.jetbrains.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
+/**
+ * Exceptions that are thrown when working with schemas.
+ */
 public abstract class SchemaException extends QuickException {
-    protected SchemaException(@Nullable String message) {
+    protected SchemaException(@Nullable final String message) {
         super(message);
     }
 
-    public SchemaException(String message, Throwable cause) {
+    public SchemaException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

@@ -19,14 +19,12 @@ package com.bakdata.quick.common.resolver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.avro.ChartRecord;
-import com.bakdata.quick.common.api.model.AvroQuickTopicType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import org.apache.avro.Schema.Parser;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Test;
 

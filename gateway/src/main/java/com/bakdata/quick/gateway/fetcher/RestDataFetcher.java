@@ -74,7 +74,7 @@ public class RestDataFetcher<T> implements DataFetcher<T> {
      * @param url            base url of the underlying rest service
      * @param pathParameter  names of the GraphQL arguments that are used in the http path
      * @param queryParameter names of the GraphQL arguments that are used in the http query
-     * @param bodyParameter
+     * @param bodyParameter  name of the GraphQL argument that is used as the HTTP body
      * @param isNullable     true if this data fetcher's return type is nullable
      * @param methodType     HTTP method to use
      */

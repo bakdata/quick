@@ -21,6 +21,9 @@ import io.micronaut.context.env.MapPropertySource;
 import io.micronaut.context.env.PropertySource;
 import java.util.Map;
 
+/**
+ * Utils for testing configuration within micronaut apps.
+ */
 public final class ConfigUtils {
 
     private ConfigUtils() {
@@ -31,22 +34,22 @@ public final class ConfigUtils {
         return createWithSource(MapPropertySource.of(TestEnvironmentPropertySource.NAME, properties), configClass);
     }
 
+    public static ApplicationContext createWithProperties(final Map<String, Object> properties) {
+        return createWithSource(MapPropertySource.of(TestEnvironmentPropertySource.NAME, properties));
+    }
+
     public static <T> T createWithEnvironment(final Map<String, Object> environment, final Class<T> configClass) {
         return createWithSource(new TestEnvironmentPropertySource(environment), configClass);
+    }
+
+    public static ApplicationContext createWithEnvironment(final Map<String, Object> environment) {
+        return createWithSource(new TestEnvironmentPropertySource(environment));
     }
 
     private static <T> T createWithSource(final PropertySource propertySource, final Class<T> configClass) {
         try (final ApplicationContext context = createWithSource(propertySource)) {
             return context.getBean(configClass);
         }
-    }
-
-    public static ApplicationContext createWithProperties(final Map<String, Object> properties) {
-        return createWithSource(MapPropertySource.of(TestEnvironmentPropertySource.NAME, properties));
-    }
-
-    public static ApplicationContext createWithEnvironment(final Map<String, Object> environment) {
-        return createWithSource(new TestEnvironmentPropertySource(environment));
     }
 
     private static ApplicationContext createWithSource(final PropertySource propertySource) {

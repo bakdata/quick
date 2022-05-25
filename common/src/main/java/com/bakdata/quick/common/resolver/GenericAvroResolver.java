@@ -50,7 +50,7 @@ public class GenericAvroResolver implements TypeResolver<GenericRecord> {
     @Override
     public void configure(final ParsedSchema schema) {
         if (!(schema instanceof AvroSchema)) {
-            throw new IllegalArgumentException("Expected Avro required");
+            throw new IllegalArgumentException("Avro schema required");
         }
         this.schema = (Schema) schema.rawSchema();
     }
