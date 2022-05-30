@@ -22,13 +22,16 @@ import static com.bakdata.quick.common.api.model.KeyValueEnum.VALUE;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.exception.HttpClientException;
+import com.bakdata.quick.common.exception.schema.SchemaNotFoundException;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.SchemaProvider;
+import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
+import io.confluent.kafka.schemaregistry.client.rest.entities.Schema;
 import io.micronaut.http.HttpStatus;
 import io.reactivex.Single;
 import javax.inject.Singleton;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Parser;
 
 /**
  * Client for retrieving Avro schemas from the schema registry.
@@ -37,6 +40,7 @@ import org.apache.avro.Schema.Parser;
 public class SchemaRegistryFetcher implements SchemaFetcher {
     private final HttpClient client;
     private final String schemaRegistryUrl;
+    private final SchemaProvider schemaProvider;
 
     /**
      * Default constructor.
@@ -44,33 +48,34 @@ public class SchemaRegistryFetcher implements SchemaFetcher {
     public SchemaRegistryFetcher(final HttpClient client, final KafkaConfig kafkaConfig) {
         this.client = client;
         this.schemaRegistryUrl = kafkaConfig.getSchemaRegistryUrl();
+        this.schemaProvider = new AvroSchemaProvider();
     }
 
     @Override
-    public Single<Schema> getValueSchema(final String topic) {
+    public Single<ParsedSchema> getValueSchema(final String topic) {
         return this.getSchema(VALUE.asSubject(topic));
     }
 
     @Override
-    public Single<Schema> getKeySchema(final String topic) {
+    public Single<ParsedSchema> getKeySchema(final String topic) {
         return this.getSchema(KEY.asSubject(topic));
     }
 
     @Override
-    public Single<Schema> getSchema(final String subject) {
+    public Single<ParsedSchema> getSchema(final String subject) {
         final Request build = new Request.Builder()
             .url(String.format("%s/subjects/%s/versions/latest", this.schemaRegistryUrl, subject))
             .header("Content-Type", "application/vnd.schemaregistry.v1+json")
             .build();
 
-        final Parser parser = new Parser();
         return Single.fromCallable(() -> {
             try (final Response response = this.client.newCall(build).execute()) {
                 if (response.code() != HttpStatus.OK.getCode()) {
                     throw new HttpClientException(HttpStatus.valueOf(response.code()));
                 }
-                return parser.parse(this.client.objectMapper().readValue(response.body().byteStream(),
-                    io.confluent.kafka.schemaregistry.client.rest.entities.Schema.class).getSchema());
+                final Schema schema = this.client.objectMapper().readValue(response.body().byteStream(), Schema.class);
+                return this.schemaProvider.parseSchema(schema.getSchema(), schema.getReferences())
+                    .orElseThrow(() -> new SchemaNotFoundException(subject));
             }
         });
     }

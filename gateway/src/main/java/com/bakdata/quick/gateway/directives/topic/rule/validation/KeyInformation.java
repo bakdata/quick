@@ -21,8 +21,8 @@ import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import graphql.language.InputValueDefinition;
 import graphql.language.ObjectTypeDefinition;
 import graphql.language.TypeDefinition;
-import java.util.Optional;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Validation for {@link com.bakdata.quick.gateway.directives.topic.TopicDirective}
