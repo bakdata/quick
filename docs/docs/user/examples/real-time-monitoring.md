@@ -73,17 +73,15 @@ Quick’s querying logic is built upon the data query language GraphQL.
 It allows us to create a global schema of our data and the supported operations.
 Subscriptions are one type of such operations, which allow us to consume real-time updates of the data through websocket
 connections.
-The first snippet shows an exemplary GraphQL schema for live updates of the emitted status events.
+This is an exemplary GraphQL schema for live updates of the emitted status events.
 With that, we have a subscription operation called `statusUpdates` that we can use to get live updates of `Status`
 events.
-The second snippet shows how a `Status` looks like.
-
 ```graphql
 type Subscription {
     statusUpdates: Status @topic(name: "status")
 }
 ```
-
+The events have the following schema.
 ```graphql
 type Status {
     statusId: String
@@ -105,7 +103,7 @@ Besides the live updates, we also require access to a single trip.
 A trip is the accumulation of all statuses with the same trip id.
 As we want to query this information on demand, subscriptions do not work in this case.
 GraphQL offers the `Query` operation instead.
-The third snippet shows a query called `trip` that allows us to pass an id as an argument and returns the
+Our query is called `trip` and allows us to pass an id as an argument and returns the
 corresponding `Trip`.
 
 ```graphql
@@ -125,15 +123,13 @@ type Trip {
 Quick introduces a custom GraphQL directive called `@topic`.
 It allows you to annotate fields and connect them to a topic.
 With that, we can define the relationship between our GraphQL Schema and Kafka.
-We first connect the `statusUpdates` subscription to the status topic.
-It ensures that each event written to the Kafka topic is pushed into the GraphQL websocket connection.
-
 ```graphql
 type Query {
     trip(id: String): Trip @topic(name: "trip", keyArgument: "id")
 }
 ```
-
+We first connect the `statusUpdates` subscription to the status topic.
+It ensures that each event written to the Kafka topic is pushed into the GraphQL websocket connection.
 Second, we want to display information about a vehicle when querying a trip.
 Instead of creating a separate operation, we can add this information to `Trip` itself:
 `Trip` has a new field `vehicle`.
@@ -169,16 +165,56 @@ quick context create --host $HOST --key $KEY
 
 Second, we create a new gateway and apply our GraphQL schema.
 
+??? "schema.gql"
+    ```graphl
+
+    type Query {
+        trip(id: String): Trip @topic(name: "trip", keyArgument: "id")
+    }
+
+    type Trip {
+        id: String!,
+        vehicleId: String!,
+        vehicle: Vehicle @topic(name: "vehicle", keyField: "vehicleId")
+        route: [Status]
+    }
+    
+    type Vehicle {
+        id: String!,
+        name: String!,
+        maxRange: Int!
+    }
+
+    type Subscription {
+        statusUpdates: Status @topic(name: "status")
+    }
+    
+    type Status {
+        statusId: String
+        tripId: String
+        vehicleId: String
+        position: Position
+        batteryLevel: Int
+        distance: Int
+        timestamp: Int
+    }
+    
+    type Position {
+        lat: Float
+        lon: Float
+    }
+    ```
+
 ```shell
 quick gateway create car-sharing
-quick gateway apply car-sharing -f ./quick/schema.graphql
+quick gateway apply car-sharing -f ./schema.graphql
 ```
 
 ## Start Kafka Streams Application
 
 First, we create all required topics.
 The command expects the topic name as well as the type or schema of key and value.
-Since we have complex values, we define a GraphQL schema.
+Since we have complex values, we reference the GraphQL types.
 
 ```shell
 quick topic create vehicle -k string -v schema --schema car-sharing.Vehicle
@@ -201,7 +237,7 @@ quick app deploy trip-aggregator \
 
 When all resources are up, we can start to ingest data into our system.
 Quick supports the ingest through a REST-API.
-For example, the first snippet shows a command ingesting new vehicles into the `vehicle` topic.
+For example, the following snippet shows a command ingesting new vehicles into the `vehicle` topic.
 
 ```shell
 curl -X POST --url $HOST/ingest/vehicle \
@@ -212,7 +248,7 @@ curl -X POST --url $HOST/ingest/vehicle \
 
 When cars are ingesting their status events into the system, we can start to use our query and subscribe operations.
 
-```graphql
+```graphql title="Subscription query"
 subscription {
     carSharing {
         statusId
@@ -230,30 +266,24 @@ subscription {
 ```
 
 For example, we can run a subscription with these results:
-When all resources are up, we can start to ingest data into our system. Quick supports the ingest through a REST-API.
-For example, the first snippet shows a command ingesting new vehicles into the vehicle topic. When cars are ingesting
-their status events into the system, we can start to use our query and subscribe operations. For example, we can run a
-subscription with these results:
 
-| statusId           | tripId | vehicleId |  latitude | longitude | batteryLevel | distance |  timestamp |
-|:-------------------|:-------|:----------|----------:|----------:|-------------:|---------:|-----------:| 
-| drj02vln8nwvwp5goc | 2i8wnx | o0338h    | 13.422029 |  52.50517 |           75 |    24942 | 1616808550 |
-| 271m5qzgno3lrh0bn6 | blnd1l | eikegb    | 13.293791 |  52.54985 |           75 |    26312 | 1616808550 |
-| 02xhrscvc6o0vijyk8 | jkehob | jis2t3    | 13.262929 |  52.54061 |           86 |    33972 | 1616808550 |   
-| 8clm8g1cu50tasdje8 | 5vfevl | uae6rs    | 13.454952 |  52.48825 |           79 |    50281 | 1616808550 |
-| ru3bcvq4t08rko7n4i | vkzhze | 2vn7p2    | 13.424133 | 52.485806 |           70 |   118558 | 1616808550 |
-| h27j9qbpnim6v1l62x | x7rsxx | xc9bwi    | 13.411969 |  52.54107 |           54 |   147317 | 1616808550 |
-| k77v3tnu38n14n9unu | 6a8t0o | bkoi9p    | 13.505628 |  52.57557 |           82 |    29753 | 1616808550 |
-| f0so763cwocqmronef | mikdho | 1sjhjr    | 13.285142 |  52.49432 |           41 |   168217 | 1616808550 |
-| 367iyqn9x7xcls7lwv | f4ialb | 06zmlu    | 13.351915 | 52.472813 |           67 |    69773 | 1616808550 |
-| kqtlcsiz08cjxjhk3h | mdoh37 | wu3qia    | 13.293555 | 52.536884 |           45 |   172664 | 1616808550 |
-| oxi6tmcg9kied6svuc | uwz5xq | 3q0q0d    | 13.398802 | 52.572403 |           47 |   102869 | 1616808550 |
-| 9rodzbkwqllqqbc3d3 | voxul7 | v6k3ou    | 13.444397 |  52.46356 |           91 |     9592 | 1616808551 |
-| ...                | ...    | ...       |       ... |       ... |          ... |      ... |        ... |
+| statusId           | tripId | vehicleId | position.lat | position.lon | batteryLevel | distance |  timestamp |
+|:-------------------|:-------|:----------|-------------:|-------------:|-------------:|---------:|-----------:| 
+| drj02vln8nwvwp5goc | 2i8wnx | o0338h    |    13.422029 |     52.50517 |           75 |    24942 | 1616808550 |
+| 271m5qzgno3lrh0bn6 | blnd1l | eikegb    |    13.293791 |     52.54985 |           75 |    26312 | 1616808550 |
+| 02xhrscvc6o0vijyk8 | jkehob | jis2t3    |    13.262929 |     52.54061 |           86 |    33972 | 1616808550 |   
+| 8clm8g1cu50tasdje8 | 5vfevl | uae6rs    |    13.454952 |     52.48825 |           79 |    50281 | 1616808550 |
+| ru3bcvq4t08rko7n4i | vkzhze | 2vn7p2    |    13.424133 |    52.485806 |           70 |   118558 | 1616808550 |
+| h27j9qbpnim6v1l62x | x7rsxx | xc9bwi    |    13.411969 |     52.54107 |           54 |   147317 | 1616808550 |
+| k77v3tnu38n14n9unu | 6a8t0o | bkoi9p    |    13.505628 |     52.57557 |           82 |    29753 | 1616808550 |
+| f0so763cwocqmronef | mikdho | 1sjhjr    |    13.285142 |     52.49432 |           41 |   168217 | 1616808550 |
+| 367iyqn9x7xcls7lwv | f4ialb | 06zmlu    |    13.351915 |    52.472813 |           67 |    69773 | 1616808550 |
+| kqtlcsiz08cjxjhk3h | mdoh37 | wu3qia    |    13.293555 |    52.536884 |           45 |   172664 | 1616808550 |
+| oxi6tmcg9kied6svuc | uwz5xq | 3q0q0d    |    13.398802 |    52.572403 |           47 |   102869 | 1616808550 |
+| 9rodzbkwqllqqbc3d3 | voxul7 | v6k3ou    |    13.444397 |     52.46356 |           91 |     9592 | 1616808551 |
+| ...                | ...    | ...       |          ... |          ... |          ... |      ... |        ... |
 
-### Query a single trip
-
-```graphl
+```graphl title="Query a single trip"
 {
   trip(id: "jvae2u") {
     id
@@ -275,7 +305,7 @@ subscription with these results:
 }
 ```
 
-```json
+```json title="Exemplary results"
 {
   "data": {
     "trip": {
