@@ -34,12 +34,12 @@ The result is written into the trip topic.
 
 ```java
 void buildTopology(StreamsBuilder builder){
-        builder.stream("status")
+    builder.stream("status")
         .groupBy((key,status)->status.getTripId())
         .aggregate(Trip::new,this::aggregateTrip)
         .toStream()
         .to("trip");
-        }
+}
 ```
 
 You can find the full code in [our repository](https://github.com/bakdata/quick-carsharing).
@@ -52,18 +52,18 @@ One could for example build a predictive maintenance service with it.
 
 ```java
 Trip aggregateTrip(String tripId,Status newStatus,Trip trip){
-        List<Status> route=trip.getRoute();
-        // first time we see this trip id
-        if(route==null){
+    List<Status> route = trip.getRoute();
+    // first time we see this trip id
+    if (route == null) {
         trip.setId(tripId);
         trip.setVehicleId(newStatus.getVehicleId());
         route=new ArrayList<>();
         trip.setRoute(route);
-        }
+    }
 
-        route.add(newStatus);
+    route.add(newStatus);
         return trip;
-        }
+}
 ```
 
 ## GraphQL Schema
@@ -324,9 +324,7 @@ For example, we can run a subscription with these results:
           "distance": 180625,
           "timestamp": "1616789646"
         },
-        [
-          ...
-        ],
+        [...],
         {
           "statusId": "oebajab2xrgvdgo30d",
           "position": {
