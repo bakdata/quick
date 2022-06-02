@@ -153,10 +153,11 @@ type Vehicle {
 }
 ```
 
-## Setting-Up Quick & Gateways
+## Quick
 
-We are ready to process and query our data.
-We start by setting up our Quick instance.
+We are ready to process and query our data. In case you don't have a running Quick instance, you can refer to the [getting started guide](http://www.cp.jku.at/datasets/LFM-1b/).
+
+#### Gateway
 First, we initialize the Quick CLI, which requires a base URL and an API-Key.
 
 ```shell
@@ -165,7 +166,7 @@ quick context create --host $HOST --key $KEY
 
 Second, we create a new gateway and apply our GraphQL schema.
 
-??? "schema.gql"
+??? "Final GraphQL schema (`schema.gql`)"
     ```graphl
 
     type Query {
@@ -207,12 +208,11 @@ Second, we create a new gateway and apply our GraphQL schema.
 
 ```shell
 quick gateway create car-sharing
-quick gateway apply car-sharing -f ./schema.graphql
+quick gateway apply car-sharing -f ./schema.gql
 ```
 
-## Start Kafka Streams Application
-
-First, we create all required topics.
+#### Topics
+Next, we create all required topics.
 The command expects the topic name as well as the type or schema of key and value.
 Since we have complex values, we reference the GraphQL types.
 
@@ -222,6 +222,7 @@ quick topic create trip -k string -v schema --schema car-sharing.Trip
 quick topic create status -k string -v schema --schema car-sharing.Status
 ```
 
+#### Application
 Then, we can start our Kafka Streams application.
 Quick supports running dockerized applications.
 
@@ -248,7 +249,7 @@ curl -X POST --url $HOST/ingest/vehicle \
 
 When cars are ingesting their status events into the system, we can start to use our query and subscribe operations.
 
-```graphql title="Subscription query"
+```graphql
 subscription {
     carSharing {
         statusId
@@ -283,7 +284,8 @@ For example, we can run a subscription with these results:
 | 9rodzbkwqllqqbc3d3 | voxul7 | v6k3ou    |    13.444397 |     52.46356 |           91 |     9592 | 1616808551 |
 | ...                | ...    | ...       |          ... |          ... |          ... |      ... |        ... |
 
-```graphl title="Query a single trip"
+Query a single trip:
+```graphl
 {
   trip(id: "jvae2u") {
     id
