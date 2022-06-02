@@ -9,7 +9,7 @@ You can use then use Quick to visualize the real-time profiles in a front-end.
 To see an example, you can [view the demo website](https://profile-store.d9p.io/dashboard/).
 
 You can find the complete code in [Quick's example repository](https://github.com/bakdata/quick-examples).
-The example uses the real world data set LFM-1b.
+The example uses the real world data set [LFM-1b](http://www.cp.jku.at/datasets/LFM-1b/).
 The Kafka Streams application is written with
 our [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap).
 
@@ -123,38 +123,20 @@ quick gateway apply profiles -f schema-user-profile.gql
 
 #### Topics
 
-Then, you create the input topics for:  
+Then, you create the input topics for the artist, album and track data.  
 
-- albums data
-    ```shell
-    quick topic create albums \ 
-        --key long \
-        --value schema -s profiles.Item
-    ```    
-- artists data
-    ```shell
-    quick topic create artists \ 
-        --key long \
-        --value schema -s profiles.Item
-    ```    
-- tracks data 
-    ```shell
-    quick topic create tracks \ 
-        --key long \
-        --value schema -s profiles.Item
-    ```
-- listening events
+```shell
+quick topic create albums  --key long --value schema -s profiles.Item
+quick topic create artists --key long --value schema -s profiles.Item
+quick topic create tracks  --key long --value schema -s profiles.Item
 
-    ```shell
-    quick topic create listeningevents \
-        --key long \
-        --value schema -s profiles.ListeningEvent
-    ```
+quick topic create listeningevents --key long --value schema \
+  --schema profiles.ListeningEvent
+```
 
 The command expects the topic name and the type or schema of key and value.
-Since the topics contain complex values, you define a global GraphQL schema and apply it to the gateway.
-That way, you won't need to specify a file,
-but use `<name of the gateway>.<name of the type>` from the global GraphQL schema for topic creation.
+Since the topics contain complex values, you define them in the global GraphQL schema and apply that to the gateway.
+For topic creation, you won't need to specify a file, but reference them with `<gateway name>.<type name>` .
 
 
 ## Creating profiles
@@ -164,7 +146,7 @@ Kafka Streams applications process the data and compute the respective parts of 
 
 ### Metrics
 
-The use profile has the following metrics:
+The user profile has the following metrics:
 
 - first listening event
 - last listening event
@@ -186,12 +168,12 @@ The use profile has the following metrics:
     --image user-listen-activity \
     --tag "1.0.0" \
     --args input-topics=listeningevents, output-topic=firstlisten, kind=FIRST, productive=false
-    ``` 
+    ```
 
-   Quick supports running dockerized applications.
-   You can deploy those applications with the command `quick app deploy [...]`.
-   For more detailed information, call `quick app deploy -h`
-   or [see reference](../reference/cli-commands.md#quick-app-deploy).
+Quick supports running dockerized applications.
+You can deploy those applications with the command `quick app deploy [...]`.
+For more detailed information, call `quick app deploy -h`
+or [see reference](../reference/cli-commands.md#quick-app-deploy).
 
 ### Charts
 
@@ -273,16 +255,18 @@ you can resolve the ids from the REST service with the name from the `artistis` 
 You can deploy the recommendation service via Quick as well:
 ```shell
 quick app deploy recommender \
---registry bakdata/quick-examples \
---image recommender \
---tag "1.0.0" \
---port 8080 \
---args input-topics=listeningevents productive=false 
+  --registry bakdata/quick-examples \
+  --image recommender \
+  --tag "1.0.0" \
+  --port 8080 \
+  --args input-topics=listeningevents productive=false 
 ```
+
+You find the parametrized `app deploy` commands for the remaining applications in the example directory.
 
 ### Querying recommendations
 
-Now everything is in place to query the artist recommendation:
+Now everything is in place to query the artist recommendation.
 
 ```shell
 query{
@@ -295,7 +279,7 @@ query{
 }
 ```
 
-```json
+```json title="Exemplary results"
 {
   "data": {
     "getArtistRecommendations": {
