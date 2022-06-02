@@ -1,0 +1,12 @@
+type Query {}
+
+type Scalars {
+    int: Int
+    float: Float
+    string: String
+    bool: Boolean
+    id: ID
+    long: Long
+    short: Short
+    char: Char
+}

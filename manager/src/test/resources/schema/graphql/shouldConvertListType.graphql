@@ -1,0 +1,18 @@
+type Query {}
+
+type ListType {
+    simpleList: [Int]
+    complexList: [ComplexObject]
+    requiredSimpleList: [Int]!
+    requiredComplexList: [ComplexObject]!
+    optionalComplexList2: [ComplexObject2]
+    requiredComplexList2: [ComplexObject2]!
+}
+
+type ComplexObject {
+    id: ID
+}
+
+type ComplexObject2 {
+    id: ID
+}

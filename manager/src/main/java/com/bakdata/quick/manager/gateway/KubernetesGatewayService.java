@@ -129,7 +129,7 @@ public class KubernetesGatewayService implements GatewayService {
                 .map(response -> {
                     String schema = response.getSchema();
                     if (format == SchemaFormat.AVRO) {
-                        schema = graphQLToAvroConverter.convertToSchema(schema).toString();
+                        schema = this.graphQLToAvroConverter.convertToSchema(schema).toString();
                     }
                     return new SchemaData(schema);
                 });

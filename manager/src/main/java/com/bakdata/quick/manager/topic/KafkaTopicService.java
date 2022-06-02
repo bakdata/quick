@@ -213,6 +213,7 @@ public class KafkaTopicService implements TopicService {
 
         return Single.fromCallable(() -> {
             // if subject exists, we have to check compatibility
+            // TODO: Replacer this with ParsedSchema
             return this.schemaRegistryClient.getAllSubjects().contains(subject)
                 && this.schemaRegistryClient.testCompatibility(subject, schema.get().getAvroSchema());
         })
@@ -258,6 +259,7 @@ public class KafkaTopicService implements TopicService {
         return Completable.fromAction(() -> {
             final String subject = keyValue.asSubject(topic);
             log.debug("Register subject '{}' with schema registry", subject);
+            // TODO: Replace with ParsedSchema
             this.schemaRegistryClient.register(subject, avroSchema.get().getAvroSchema());
             }
         );

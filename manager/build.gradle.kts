@@ -13,7 +13,7 @@ dependencies {
     implementation(libs.KUBE_MANAGER_CLIENT)
     implementation(libs.SCHEMA_REGISTRY_CLIENT)
     implementation(libs.THYMELEAF)
-
+    implementation(libs.PROTOBUF)
     compileOnly(libs.SUNDR_IO)
     annotationProcessor(libs.SUNDR_IO)
     annotationProcessor(libs.KUBE_MANAGER_CLIENT)

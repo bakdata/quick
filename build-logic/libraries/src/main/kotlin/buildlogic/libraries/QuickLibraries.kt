@@ -57,6 +57,7 @@ abstract class QuickLibraries {
     val STREAMS_BOOTSTRAP_VERSION = "1.7.0"
     val CONFLUENT_VERSION = "6.1.1"
     val AVRO_VERSION = "1.9.2"
+    val PROTOBUF_VERSION = "3.20.1"
     val FLUENT_STREAMS_VERSION = "2.3.1"
     val REACTIVE_KAFKA_VERSION = "1.3.4"
 
@@ -65,6 +66,7 @@ abstract class QuickLibraries {
     val KAFKA_STREAMS = "org.apache.kafka:kafka-streams:$KAFKA_VERSION"
     val STREAMS_BOOTSTRAP = "com.bakdata.kafka:streams-bootstrap:$STREAMS_BOOTSTRAP_VERSION"
     val AVRO = "org.apache.avro:avro:$AVRO_VERSION"
+    val PROTOBUF = "com.google.protobuf:protobuf-java:$PROTOBUF_VERSION"
     val KAFKA_STREAMS_SERDE = "io.confluent:kafka-streams-avro-serde:$CONFLUENT_VERSION"
     val SCHEMA_REGISTRY_CLIENT = "io.confluent:kafka-schema-registry-client:$CONFLUENT_VERSION"
 

@@ -1,0 +1,10 @@
+type Query {}
+
+type Product {
+    status: Status
+}
+
+enum Status {
+    STATUS_SOLD
+    STATUS_AVAILABLE
+}
