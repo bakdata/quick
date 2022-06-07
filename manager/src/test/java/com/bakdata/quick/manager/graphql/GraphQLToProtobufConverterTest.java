@@ -1,25 +1,42 @@
-package com.bakdata.quick.manager.graphql;
+/*
+ *    Copyright 2022 bakdata GmbH
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
 
-import static org.assertj.core.api.Assertions.assertThat;
+package com.bakdata.quick.manager.graphql;
 
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.Descriptors.DescriptorValidationException;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GraphQLToProtobufConverterTest {
     private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "graphql");
 
     private final GraphQLToProtobufConverter graphQLToProtobufConverter =
-        new GraphQLToProtobufConverter("foo.bar.test.v1");
+            new GraphQLToProtobufConverter("foo.bar.test.v1");
 
     @Test
     void shouldSetProtobufPackageFromProperties() {
@@ -27,7 +44,7 @@ public class GraphQLToProtobufConverterTest {
     }
 
     @Test
-    void shouldConvertGraphQLObjectTypes(final TestInfo testInfo) throws IOException, DescriptorValidationException {
+    void shouldConvertGraphQLObjectTypes(final TestInfo testInfo) throws IOException {
         final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
         final FileDescriptor file = parsedSchema.getFile();
 
@@ -63,7 +80,7 @@ public class GraphQLToProtobufConverterTest {
     }
 
     @Test
-    void shouldConvertGraphQLEnumFields(final TestInfo testInfo) throws IOException, DescriptorValidationException {
+    void shouldConvertGraphQLEnumFields(final TestInfo testInfo) throws IOException {
         final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
         final FileDescriptor file = parsedSchema.getFile();
 
@@ -78,18 +95,18 @@ public class GraphQLToProtobufConverterTest {
     }
 
     @Test
-    void shouldConvertGraphQLScalarFields(final TestInfo testInfo) throws IOException, DescriptorValidationException {
+    void shouldConvertGraphQLScalarFields(final TestInfo testInfo) throws IOException {
         final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
 
         final List<FieldDescriptorProto> expectedFieldDescriptorList = List.of(
-            FieldDescriptorProto.newBuilder().setName("int").setType(Type.TYPE_INT32).build(),
-            FieldDescriptorProto.newBuilder().setName("float").setType(Type.TYPE_FLOAT).build(),
-            FieldDescriptorProto.newBuilder().setName("string").setType(Type.TYPE_STRING).build(),
-            FieldDescriptorProto.newBuilder().setName("bool").setType(Type.TYPE_BOOL).build(),
-            FieldDescriptorProto.newBuilder().setName("id").setType(Type.TYPE_STRING).build(),
-            FieldDescriptorProto.newBuilder().setName("long").setType(Type.TYPE_INT64).build(),
-            FieldDescriptorProto.newBuilder().setName("short").setType(Type.TYPE_INT32).build(),
-            FieldDescriptorProto.newBuilder().setName("char").setType(Type.TYPE_STRING).build()
+                FieldDescriptorProto.newBuilder().setName("int").setType(Type.TYPE_INT32).build(),
+                FieldDescriptorProto.newBuilder().setName("float").setType(Type.TYPE_FLOAT).build(),
+                FieldDescriptorProto.newBuilder().setName("string").setType(Type.TYPE_STRING).build(),
+                FieldDescriptorProto.newBuilder().setName("bool").setType(Type.TYPE_BOOL).build(),
+                FieldDescriptorProto.newBuilder().setName("id").setType(Type.TYPE_STRING).build(),
+                FieldDescriptorProto.newBuilder().setName("long").setType(Type.TYPE_INT64).build(),
+                FieldDescriptorProto.newBuilder().setName("short").setType(Type.TYPE_INT32).build(),
+                FieldDescriptorProto.newBuilder().setName("char").setType(Type.TYPE_STRING).build()
         );
 
         assertThat(parsedSchema.getFields().size()).isEqualTo(8);
@@ -101,7 +118,7 @@ public class GraphQLToProtobufConverterTest {
     }
 
     @Test
-    void shouldConvertOptionalAndRequired(final TestInfo testInfo) throws IOException, DescriptorValidationException {
+    void shouldConvertOptionalAndRequired(final TestInfo testInfo) throws IOException {
         final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
         assertThat(parsedSchema.getFields().size()).isEqualTo(2);
 
@@ -117,7 +134,7 @@ public class GraphQLToProtobufConverterTest {
     }
 
     @Test
-    void shouldConvertListType(final TestInfo testInfo) throws IOException, DescriptorValidationException {
+    void shouldConvertListType(final TestInfo testInfo) throws IOException {
         final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
 
         final FileDescriptor file = parsedSchema.getFile();
@@ -159,10 +176,10 @@ public class GraphQLToProtobufConverterTest {
         });
     }
 
-    private Descriptor getFileDescriptorProto(final TestInfo testInfo) throws IOException,
-        DescriptorValidationException {
+    private Descriptor getFileDescriptorProto(final TestInfo testInfo) throws IOException {
         final String allScalarsSchema =
-            Files.readString(workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
-        return this.graphQLToProtobufConverter.convertToDescriptor(allScalarsSchema);
+                Files.readString(workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
+        ProtobufSchema protobufSchema = (ProtobufSchema) this.graphQLToProtobufConverter.convert(allScalarsSchema);
+        return protobufSchema.toDescriptor();
     }
 }

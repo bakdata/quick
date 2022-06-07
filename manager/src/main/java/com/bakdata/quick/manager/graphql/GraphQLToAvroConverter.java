@@ -25,8 +25,6 @@ import static graphql.schema.GraphQLTypeUtil.unwrapOne;
 import com.bakdata.quick.common.condition.AvroSchemaFormatCondition;
 import com.bakdata.quick.common.config.AvroConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
-import com.bakdata.quick.common.graphql.GraphQLUtils;
-import com.bakdata.quick.common.type.QuickTopicType;
 import com.google.common.annotations.VisibleForTesting;
 import graphql.Scalars;
 import graphql.language.EnumValueDefinition;
@@ -35,14 +33,9 @@ import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
-import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeUtil;
 import graphql.schema.GraphQLUnionType;
-import graphql.schema.idl.RuntimeWiring;
-import graphql.schema.idl.SchemaGenerator;
-import graphql.schema.idl.SchemaParser;
-import graphql.schema.idl.TypeDefinitionRegistry;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.micronaut.context.annotation.Requires;
@@ -86,7 +79,7 @@ public final class GraphQLToAvroConverter implements GraphQLConverter {
      * @param schema GraphQL schema
      * @return Avro schema
      */
-    public Schema convertToSchema(final String schema) {
+    private Schema convertToSchema(final String schema) {
         // first, we parse the schema and translate it into GraphQL object definition. Then, we can convert this
         // representation to an avro schema.
         // TODO: evaluate whether the GraphQL's SDLDefinition might be enough for translating to avro

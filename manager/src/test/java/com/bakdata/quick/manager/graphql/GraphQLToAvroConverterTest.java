@@ -19,6 +19,7 @@ package com.bakdata.quick.manager.graphql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,13 +57,13 @@ class GraphQLToAvroConverterTest {
 
     @Test
     void shouldSetAvroNamespaceInSchema() {
-        final Schema parsedSchema = this.graphQLToAvroConverter.convertToSchema(productSchema);
+        final Schema parsedSchema = this.getSchema(productSchema);
         assertThat(parsedSchema.getNamespace()).isEqualTo(this.graphQLToAvroConverter.getAvroNamespace());
     }
 
     @Test
     void shouldConvertGraphQLSchema() {
-        final Schema parsedSchema = this.graphQLToAvroConverter.convertToSchema(productSchema);
+        final Schema parsedSchema = this.getSchema(productSchema);
 
         assertThat(parsedSchema.getName()).isEqualTo("Product");
 
@@ -133,7 +134,7 @@ class GraphQLToAvroConverterTest {
 
     @Test
     void shouldConvertGraphQLSchemaWithLists() {
-        final Schema parsedSchema = this.graphQLToAvroConverter.convertToSchema(contractSchema);
+        final Schema parsedSchema = this.getSchema(contractSchema);
 
         assertThat(parsedSchema.getName()).isEqualTo("Contract");
 
@@ -265,7 +266,7 @@ class GraphQLToAvroConverterTest {
 
     @Test
     void shouldConvertAllScalars() {
-        final Schema parsedSchema = this.graphQLToAvroConverter.convertToSchema(scalarSchema);
+        final Schema parsedSchema = this.getSchema(scalarSchema);
         assertThat(parsedSchema.getName()).isEqualTo("Scalars");
 
         final Map<String, Type> expectedTypeForField = Map.ofEntries(
@@ -284,6 +285,11 @@ class GraphQLToAvroConverterTest {
                 .extracting(field -> field.schema().getType())
                 .isEqualTo(typeEntry.getValue());
         }
+    }
+
+    private Schema getSchema(final String graphQLSchema) {
+        AvroSchema parsedSchema = (AvroSchema) this.graphQLToAvroConverter.convert(graphQLSchema);
+        return parsedSchema.rawSchema();
     }
 
     private static List<Type> unwrapSchemaType(final Schema schema) {
