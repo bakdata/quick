@@ -1,5 +1,3 @@
-type Query {}
-
 type ListType {
     simpleList: [Int]
     complexList: [ComplexObject]

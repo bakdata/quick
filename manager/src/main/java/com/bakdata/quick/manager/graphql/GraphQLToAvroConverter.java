@@ -43,6 +43,8 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.micronaut.context.annotation.Requires;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +59,7 @@ import org.apache.avro.Schema;
  */
 @Singleton
 @Requires(condition = AvroSchemaFormatCondition.class)
-public final class GraphQLToAvroConverter {
+public final class GraphQLToAvroConverter implements GraphQLConverter {
     @Getter
     private final String avroNamespace;
     private static final Map<GraphQLScalarType, Schema.Type> SCALAR_MAPPING = scalarTypeMap();
@@ -72,6 +74,12 @@ public final class GraphQLToAvroConverter {
         this.avroNamespace = namespace;
     }
 
+    @Override
+    public ParsedSchema convert(final String graphQLSchema) {
+        final Schema schema = this.convertToSchema(graphQLSchema);
+        return new AvroSchema(schema);
+    }
+
     /**
      * Converts a GraphQL Schema to an Avro Schema.
      *
@@ -83,23 +91,12 @@ public final class GraphQLToAvroConverter {
         // representation to an avro schema.
         // TODO: evaluate whether the GraphQL's SDLDefinition might be enough for translating to avro
 
-        // extending the schema with an empty query type is necessary because parsing fails otherwise
-        final String extendedSchema = schema + "type Query{}";
-        final SchemaParser schemaParser = new SchemaParser();
-        final TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(extendedSchema);
-        final String rootTypeName = GraphQLUtils.getRootType(QuickTopicType.SCHEMA, typeDefinitionRegistry);
-
-        // existence required for building a GraphQLSchema, no wiring needed otherwise
-        final RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring().build();
-        final SchemaGenerator schemaGenerator = new SchemaGenerator();
-        final GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
-
-        final GraphQLObjectType rootType = graphQLSchema.getObjectType(rootTypeName);
+        final GraphQLObjectType rootType = this.getRootTypeFromSchema(schema);
         final List<Schema.Field> fields = rootType.getFieldDefinitions().stream()
             .map(this::fromFieldDefinition)
             .collect(Collectors.toList());
 
-        return Schema.createRecord(rootTypeName, rootType.getDescription(), this.avroNamespace, false, fields);
+        return Schema.createRecord(rootType.getName(), rootType.getDescription(), this.avroNamespace, false, fields);
     }
 
     /**

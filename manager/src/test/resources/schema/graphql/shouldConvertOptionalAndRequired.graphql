@@ -1,5 +1,3 @@
-type Query {}
-
 type OptionalRequired {
     required: Int!
     optional: Int

@@ -1,52 +1,34 @@
 package com.bakdata.quick.manager.graphql;
 
-import static graphql.schema.GraphQLTypeUtil.isEnum;
-import static graphql.schema.GraphQLTypeUtil.isList;
-import static graphql.schema.GraphQLTypeUtil.isNonNull;
-import static graphql.schema.GraphQLTypeUtil.isScalar;
-import static graphql.schema.GraphQLTypeUtil.unwrapOne;
-
 import com.bakdata.quick.common.config.ProtobufConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
-import com.bakdata.quick.common.graphql.GraphQLUtils;
-import com.bakdata.quick.common.type.QuickTopicType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.*;
 import com.google.protobuf.DescriptorProtos.DescriptorProto.Builder;
-import com.google.protobuf.DescriptorProtos.EnumDescriptorProto;
-import com.google.protobuf.DescriptorProtos.EnumValueDescriptorProto;
-import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
-import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.DescriptorValidationException;
 import graphql.Scalars;
-import graphql.schema.GraphQLEnumType;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
-import graphql.schema.GraphQLScalarType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
-import graphql.schema.GraphQLTypeUtil;
-import graphql.schema.idl.RuntimeWiring;
-import graphql.schema.idl.SchemaGenerator;
-import graphql.schema.idl.SchemaParser;
-import graphql.schema.idl.TypeDefinitionRegistry;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import graphql.schema.*;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import javax.ws.rs.BadRequestException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static graphql.schema.GraphQLTypeUtil.*;
+
 @Singleton
-public class GraphQLToProtobufConverter {
+public class GraphQLToProtobufConverter implements GraphQLConverter {
 
     @Getter
     private final String protobufPackage;
@@ -63,26 +45,25 @@ public class GraphQLToProtobufConverter {
         this.protobufPackage = protobufPackage;
     }
 
-    public Descriptor convertToSchema(final String schema) throws DescriptorValidationException {
-        // TODO move to base class
-        // extending the schema with an empty query type is necessary because parsing fails otherwise
-        final SchemaParser schemaParser = new SchemaParser();
-        final TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
-        final String rootTypeName = GraphQLUtils.getRootType(QuickTopicType.SCHEMA, typeDefinitionRegistry);
+    @Override
+    public ParsedSchema convert(String graphQLSchema) {
+        try {
+            Descriptor descriptor = this.convertToDescriptor(graphQLSchema);
+            return new ProtobufSchema(descriptor);
+        } catch (DescriptorValidationException e) {
+            throw new BadRequestException();
+        }
+    }
 
-        // existence required for building a GraphQLSchema, no wiring needed otherwise
-        final RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring().build();
-        final SchemaGenerator schemaGenerator = new SchemaGenerator();
-        final GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
-
-        final GraphQLObjectType rootType = graphQLSchema.getObjectType(rootTypeName);
+    public Descriptor convertToDescriptor(final String schema) throws DescriptorValidationException {
+        GraphQLObjectType rootType = this.getRootTypeFromSchema(schema);
 
         final FileDescriptorProto.Builder file =
             DescriptorProtos.FileDescriptorProto
                 .newBuilder()
                 .setSyntax("proto3")
                 .setPackage(this.protobufPackage)
-                .setName(rootTypeName + ".proto");
+                .setName(rootType.getName() + ".proto");
 
         generateFile(rootType.getName(), rootType.getFieldDefinitions(), file);
 
@@ -113,9 +94,7 @@ public class GraphQLToProtobufConverter {
                 extracted(fileBuilder, currentMessage, graphQLFieldDefinition, graphQLType, fieldNumber,
                     Label.LABEL_OPTIONAL);
             }
-
         }
-
         fileBuilder.addMessageType(currentMessage);
     }
 

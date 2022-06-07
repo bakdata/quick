@@ -163,6 +163,6 @@ public class GraphQLToProtobufConverterTest {
         DescriptorValidationException {
         final String allScalarsSchema =
             Files.readString(workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
-        return this.graphQLToProtobufConverter.convertToSchema(allScalarsSchema);
+        return this.graphQLToProtobufConverter.convertToDescriptor(allScalarsSchema);
     }
 }
