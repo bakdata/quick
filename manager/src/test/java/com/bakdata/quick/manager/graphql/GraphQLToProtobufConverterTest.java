@@ -36,7 +36,7 @@ public class GraphQLToProtobufConverterTest {
     private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "graphql");
 
     private final GraphQLToProtobufConverter graphQLToProtobufConverter =
-            new GraphQLToProtobufConverter("foo.bar.test.v1");
+        new GraphQLToProtobufConverter("foo.bar.test.v1");
 
     @Test
     void shouldSetProtobufPackageFromProperties() {
@@ -99,14 +99,14 @@ public class GraphQLToProtobufConverterTest {
         final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
 
         final List<FieldDescriptorProto> expectedFieldDescriptorList = List.of(
-                FieldDescriptorProto.newBuilder().setName("int").setType(Type.TYPE_INT32).build(),
-                FieldDescriptorProto.newBuilder().setName("float").setType(Type.TYPE_FLOAT).build(),
-                FieldDescriptorProto.newBuilder().setName("string").setType(Type.TYPE_STRING).build(),
-                FieldDescriptorProto.newBuilder().setName("bool").setType(Type.TYPE_BOOL).build(),
-                FieldDescriptorProto.newBuilder().setName("id").setType(Type.TYPE_STRING).build(),
-                FieldDescriptorProto.newBuilder().setName("long").setType(Type.TYPE_INT64).build(),
-                FieldDescriptorProto.newBuilder().setName("short").setType(Type.TYPE_INT32).build(),
-                FieldDescriptorProto.newBuilder().setName("char").setType(Type.TYPE_STRING).build()
+            FieldDescriptorProto.newBuilder().setName("int").setType(Type.TYPE_INT32).build(),
+            FieldDescriptorProto.newBuilder().setName("float").setType(Type.TYPE_FLOAT).build(),
+            FieldDescriptorProto.newBuilder().setName("string").setType(Type.TYPE_STRING).build(),
+            FieldDescriptorProto.newBuilder().setName("bool").setType(Type.TYPE_BOOL).build(),
+            FieldDescriptorProto.newBuilder().setName("id").setType(Type.TYPE_STRING).build(),
+            FieldDescriptorProto.newBuilder().setName("long").setType(Type.TYPE_INT64).build(),
+            FieldDescriptorProto.newBuilder().setName("short").setType(Type.TYPE_INT32).build(),
+            FieldDescriptorProto.newBuilder().setName("char").setType(Type.TYPE_STRING).build()
         );
 
         assertThat(parsedSchema.getFields().size()).isEqualTo(8);
@@ -140,18 +140,18 @@ public class GraphQLToProtobufConverterTest {
         final FileDescriptor file = parsedSchema.getFile();
 
         final List<Descriptor> messageTypes = file.getMessageTypes();
-        assertThat(messageTypes.size()).isEqualTo(3);
+        assertThat(messageTypes).hasSize(2);
 
-        final List<FieldDescriptor> fields = messageTypes.get(2).getFields();
-        assertThat(fields.size()).isEqualTo(6);
+        final List<FieldDescriptor> fields = messageTypes.get(1).getFields();
+        assertThat(fields).hasSize(4);
 
         assertThat(fields.get(0)).satisfies(fieldDescriptor -> {
-            assertThat(fieldDescriptor.getName()).isEqualTo("simpleList");
+            assertThat(fieldDescriptor.getName()).isEqualTo("optionalSimpleList");
             assertThat(fieldDescriptor.isRepeated()).isTrue();
         });
 
         assertThat(fields.get(1)).satisfies(fieldDescriptor -> {
-            assertThat(fieldDescriptor.getName()).isEqualTo("complexList");
+            assertThat(fieldDescriptor.getName()).isEqualTo("optionalComplexList");
             assertThat(fieldDescriptor.isRepeated()).isTrue();
         });
 
@@ -164,22 +164,12 @@ public class GraphQLToProtobufConverterTest {
             assertThat(fieldDescriptor.getName()).isEqualTo("requiredComplexList");
             assertThat(fieldDescriptor.isRepeated()).isTrue();
         });
-
-        assertThat(fields.get(4)).satisfies(fieldDescriptor -> {
-            assertThat(fieldDescriptor.getName()).isEqualTo("optionalComplexList2");
-            assertThat(fieldDescriptor.isRepeated()).isTrue();
-        });
-
-        assertThat(fields.get(5)).satisfies(fieldDescriptor -> {
-            assertThat(fieldDescriptor.getName()).isEqualTo("requiredComplexList2");
-            assertThat(fieldDescriptor.isRepeated()).isTrue();
-        });
     }
 
     private Descriptor getFileDescriptorProto(final TestInfo testInfo) throws IOException {
-        final String allScalarsSchema =
-                Files.readString(workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
-        ProtobufSchema protobufSchema = (ProtobufSchema) this.graphQLToProtobufConverter.convert(allScalarsSchema);
+        final String graphQLSchema =
+            Files.readString(workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
+        ProtobufSchema protobufSchema = (ProtobufSchema) this.graphQLToProtobufConverter.convert(graphQLSchema);
         return protobufSchema.toDescriptor();
     }
 }

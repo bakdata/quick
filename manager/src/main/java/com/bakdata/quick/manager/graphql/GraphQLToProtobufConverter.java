@@ -155,21 +155,20 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         final int fieldNumber,
         final Label label) {
         if (graphQLType instanceof GraphQLObjectType) {
-            final GraphQLObjectType graphQLObjectType = (GraphQLObjectType) graphQLType;
             handleObjectType(fileBuilder, currentMessage, graphQLFieldDefinition, fieldNumber, label,
-                graphQLObjectType);
+                (GraphQLObjectType) graphQLType);
+
         } else if (isScalar(graphQLType)) {
             final FieldDescriptorProto scalarFieldBuilder =
                 createFieldDescriptor((GraphQLScalarType) graphQLType,
                     graphQLFieldDefinition.getName(),
                     fieldNumber,
                     label);
-
             currentMessage.addField(scalarFieldBuilder);
 
         } else if (isEnum(graphQLType)) {
-            final GraphQLEnumType graphQLEnumType = (GraphQLEnumType) graphQLType;
-            handleEnumType(fileBuilder, currentMessage, graphQLFieldDefinition, fieldNumber, label, graphQLEnumType);
+            handleEnumType(fileBuilder, currentMessage, graphQLFieldDefinition, fieldNumber, label,
+                (GraphQLEnumType) graphQLType);
         } else if (isList(graphQLType)) {
             final GraphQLList graphQLList = (GraphQLList) graphQLType;
 
