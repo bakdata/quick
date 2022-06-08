@@ -11,7 +11,6 @@ dependencies {
     implementation(libs.GUAVA)
     implementation(libs.GRAPHQL)
     implementation(libs.AVRO)
-    implementation(libs.PROTOBUF)
     implementation(libs.KAFKA_STREAMS)
     implementation(libs.KAFKA_STREAMS_SERDE)
     implementation(libs.JSON2AVRO_CONVERTER)

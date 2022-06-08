@@ -236,7 +236,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     }
 
     /**
-     * This function creates a FieldDescriptorProto object from a scalar GraphQL type.
+     * This function creates a {@link FieldDescriptorProto} object from a scalar GraphQL type.
      */
     @NotNull
     private static FieldDescriptorProto createFieldDescriptor(
@@ -278,6 +278,9 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         fileBuilder.addEnumType(enumSchema);
     }
 
+    /**
+     * This function creates a {@link EnumDescriptorProto} object from a scalar GraphQL type.
+     */
     private static EnumDescriptorProto createEnumDescriptor(final GraphQLEnumType enumType) {
         final List<EnumValueDescriptorProto> values = enumType.getDefinition()
             .getEnumValueDefinitions()

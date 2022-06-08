@@ -80,6 +80,8 @@ public class KafkaTopicService implements TopicService {
      * @param topicConfig         configuration for Kafka topics
      * @param kafkaConfig         configuration for Kafka
      */
+
+    //TODO: Inject GraphQLConverter instead of GraphQLToAvroConverter
     public KafkaTopicService(final TopicRegistryClient topicRegistryClient, final GatewayClient gatewayClient,
         final GraphQLToAvroConverter graphQLToAvroConverter, final MirrorService mirrorService,
         final GatewayService gatewayService, final QuickTopicConfig topicConfig, final KafkaConfig kafkaConfig) {
