@@ -64,6 +64,8 @@ import lombok.Getter;
 @Requires(condition = ProtobufSchemaFormatCondition.class)
 public class GraphQLToProtobufConverter implements GraphQLConverter {
 
+    private static final String SYNTAX = "proto3";
+    private static final String PROTO_FILE_EXTENSION = ".proto";
     @Getter
     private final String protobufPackage;
 
@@ -92,9 +94,9 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         final FileDescriptorProto.Builder file =
             DescriptorProtos.FileDescriptorProto
                 .newBuilder()
-                .setSyntax("proto3")
+                .setSyntax(SYNTAX)
                 .setPackage(this.protobufPackage)
-                .setName(rootType.getName() + ".proto");
+                .setName(rootType.getName() + PROTO_FILE_EXTENSION);
 
         generateFile(rootType.getName(), rootType.getFieldDefinitions(), file);
 
@@ -135,14 +137,12 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
                 label);
         }
 
-        if (!fileBuilder.getMessageTypeList().contains(currentMessage.build())) {
-            fileBuilder.addMessageType(currentMessage);
-        }
+        fileBuilder.addMessageType(currentMessage);
     }
 
     private static void createMessage(
         final FileDescriptorProto.Builder fileBuilder,
-        final Builder currentMessage,
+        final DescriptorProto.Builder currentMessage,
         final GraphQLFieldDefinition graphQLFieldDefinition,
         final GraphQLType graphQLType,
         final int fieldNumber,
@@ -153,7 +153,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
 
         } else if (isScalar(graphQLType)) {
             final FieldDescriptorProto scalarFieldBuilder =
-                createFieldDescriptor((GraphQLScalarType) graphQLType,
+                createFieldDescriptorForScalarType((GraphQLScalarType) graphQLType,
                     graphQLFieldDefinition.getName(),
                     fieldNumber,
                     label);
@@ -177,6 +177,10 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         }
     }
 
+    /**
+     * Adds a field of type to the message and then calls the generateFile function again to unwrap the object type and
+     * create a new message. If the message already exists in the file it will return.
+     */
     private static void handleObjectType(
         final FileDescriptorProto.Builder fileBuilder,
         final Builder currentMessage,
@@ -184,28 +188,30 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         final int fieldNumber,
         final Label label,
         final GraphQLObjectType graphQLObjectType) {
-        currentMessage.addField(buildFieldWithType(graphQLFieldDefinition.getName(),
+        currentMessage.addField(createFieldWithType(graphQLFieldDefinition.getName(),
             fieldNumber,
             Type.TYPE_MESSAGE,
             graphQLObjectType.getName(),
             label));
 
-        final DescriptorProto.Builder descriptorProtoBuilder = DescriptorProto.newBuilder();
-        descriptorProtoBuilder.setName(graphQLObjectType.getName());
+        if (fileBuilder.getMessageTypeList().stream()
+            .anyMatch(message -> message.getName().equals(graphQLObjectType.getName()))) {
+            return;
+        }
 
         generateFile(graphQLObjectType.getName(), graphQLObjectType.getFieldDefinitions(), fileBuilder);
     }
 
     /**
-     * Creates a FieldDescriptorProto object for a specific type. These fields could be either a type of
-     * TYPE_MESSAGE or TYPE_ENUM. If a FieldDescriptorProto object type is one of these the property TypeName must be
-     * specified otherwise a {@link DescriptorValidationException} is thrown.
+     * Creates a FieldDescriptorProto object for a specific type. These fields could be either a type of TYPE_MESSAGE or
+     * TYPE_ENUM. If a FieldDescriptorProto object type is one of these the property TypeName must be specified
+     * otherwise a {@link DescriptorValidationException} is thrown.
      *
      * @see com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type#TYPE_MESSAGE
      * @see com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type#TYPE_ENUM
      * @see com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Builder#setTypeName(String)
      */
-    private static FieldDescriptorProto buildFieldWithType(
+    private static FieldDescriptorProto createFieldWithType(
         final String fieldName,
         final int fieldNumber,
         final Type type,
@@ -224,7 +230,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     /**
      * Creates a {@link FieldDescriptorProto} object from a scalar GraphQL type.
      */
-    private static FieldDescriptorProto createFieldDescriptor(
+    private static FieldDescriptorProto createFieldDescriptorForScalarType(
         final GraphQLScalarType graphQLScalarType,
         final String fieldName,
         final int fieldNumber,
@@ -245,15 +251,18 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
             .build();
     }
 
+    /**
+     * Sets the field to a type of Enum and adds an {@link EnumDescriptorProto} to the file builder.
+     */
     private static void handleEnumType(
         final FileDescriptorProto.Builder fileBuilder,
-        final Builder currentMessage,
+        final DescriptorProto.Builder currentMessage,
         final GraphQLFieldDefinition graphQLFieldDefinition,
         final int fieldNumber,
         final Label label,
         final GraphQLEnumType graphQLEnumType) {
 
-        currentMessage.addField(buildFieldWithType(graphQLFieldDefinition.getName(),
+        currentMessage.addField(createFieldWithType(graphQLFieldDefinition.getName(),
             fieldNumber,
             Type.TYPE_ENUM,
             graphQLEnumType.getName(),
@@ -308,19 +317,19 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
      * @return enum field name
      */
     private static String generateEnumFieldName(final String typeName, final String enumValueDefinitionName) {
-        return typeName.toUpperCase() + "_" + enumValueDefinitionName;
+        return typeName.toUpperCase() + "_" + enumValueDefinitionName.toUpperCase();
     }
 
     private static Map<GraphQLScalarType, Type> scalarTypeMap() {
-        return Map.ofEntries(
-            Map.entry(Scalars.GraphQLInt, Type.TYPE_INT32),
-            Map.entry(Scalars.GraphQLFloat, Type.TYPE_FLOAT),
-            Map.entry(Scalars.GraphQLString, Type.TYPE_STRING),
-            Map.entry(Scalars.GraphQLBoolean, Type.TYPE_BOOL),
-            Map.entry(Scalars.GraphQLID, Type.TYPE_STRING),
-            Map.entry(Scalars.GraphQLLong, Type.TYPE_INT64),
-            Map.entry(Scalars.GraphQLShort, Type.TYPE_INT32),
-            Map.entry(Scalars.GraphQLChar, Type.TYPE_STRING)
+        return Map.of(
+            Scalars.GraphQLInt, Type.TYPE_INT32,
+            Scalars.GraphQLFloat, Type.TYPE_FLOAT,
+            Scalars.GraphQLString, Type.TYPE_STRING,
+            Scalars.GraphQLBoolean, Type.TYPE_BOOL,
+            Scalars.GraphQLID, Type.TYPE_STRING,
+            Scalars.GraphQLLong, Type.TYPE_INT64,
+            Scalars.GraphQLShort, Type.TYPE_INT32,
+            Scalars.GraphQLChar, Type.TYPE_STRING
         );
     }
 }

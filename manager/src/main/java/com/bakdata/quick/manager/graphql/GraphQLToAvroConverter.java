@@ -197,15 +197,15 @@ public final class GraphQLToAvroConverter implements GraphQLConverter {
         // Map.entry(Scalars.GraphQLByte, Schema.Type.BYTES),
         // Map.entry(Scalars.GraphQLBigInteger, Schema.Type.LONG),
         // Map.entry(Scalars.GraphQLBigDecimal, Schema.Type.LONG),
-        return Map.ofEntries(
-            Map.entry(Scalars.GraphQLInt, Schema.Type.INT),
-            Map.entry(Scalars.GraphQLFloat, Schema.Type.FLOAT),
-            Map.entry(Scalars.GraphQLString, Schema.Type.STRING),
-            Map.entry(Scalars.GraphQLBoolean, Schema.Type.BOOLEAN),
-            Map.entry(Scalars.GraphQLID, Schema.Type.STRING),
-            Map.entry(Scalars.GraphQLLong, Schema.Type.LONG),
-            Map.entry(Scalars.GraphQLShort, Schema.Type.INT),
-            Map.entry(Scalars.GraphQLChar, Schema.Type.STRING)
+        return Map.of(
+            Scalars.GraphQLInt, Schema.Type.INT,
+            Scalars.GraphQLFloat, Schema.Type.FLOAT,
+            Scalars.GraphQLString, Schema.Type.STRING,
+            Scalars.GraphQLBoolean, Schema.Type.BOOLEAN,
+            Scalars.GraphQLID, Schema.Type.STRING,
+            Scalars.GraphQLLong, Schema.Type.LONG,
+            Scalars.GraphQLShort, Schema.Type.INT,
+            Scalars.GraphQLChar, Schema.Type.STRING
         );
     }
 }
