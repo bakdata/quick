@@ -16,19 +16,20 @@
 
 package com.bakdata.quick.common.config;
 
+import com.bakdata.quick.common.condition.ProtobufSchemaFormatCondition;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
+import io.micronaut.context.annotation.Requires;
 import lombok.Getter;
 
 /**
  * Configuration regarding the converted GraphQL to Protobuf schemas.
- *
  */
+@Requires(condition = ProtobufSchemaFormatCondition.class)
 @ConfigurationProperties(ProtobufConfig.PREFIX)
 @Getter
 public class ProtobufConfig {
-    private static final String PROTO_FILE_EXTENSION = ".proto";
-    static final String PREFIX = SchemaConfig.PREFIX + PROTO_FILE_EXTENSION;
+    static final String PREFIX = SchemaConfig.PREFIX + ".protobuf";
     private final String protobufPackage;
 
     /**
