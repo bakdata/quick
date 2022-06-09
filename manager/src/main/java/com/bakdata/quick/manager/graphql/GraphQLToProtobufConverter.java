@@ -25,6 +25,7 @@ import static graphql.schema.GraphQLTypeUtil.unwrapOne;
 import com.bakdata.quick.common.condition.ProtobufSchemaFormatCondition;
 import com.bakdata.quick.common.config.ProtobufConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
+import com.bakdata.quick.common.exception.InternalErrorException;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.DescriptorProto.Builder;
@@ -54,7 +55,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.BadRequestException;
 import lombok.Getter;
 
 /**
@@ -80,8 +80,9 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
             final Descriptor descriptor = this.convertToDescriptor(graphQLSchema);
             return new ProtobufSchema(descriptor);
         } catch (final DescriptorValidationException exception) {
-            throw new BadRequestException(
-                String.format(exception.getMessage(), "The protobuf message can not be converted %s"));
+            throw new InternalErrorException(
+                String.format(exception.getMessage(),
+                    "Something went wrong on our side! The protobuf message can not be converted: %s"));
         }
     }
 
