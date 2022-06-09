@@ -1,8 +1,9 @@
 type Product {
     status: Status
+    status2: Status
 }
 
 enum Status {
-    STATUS_SOLD
-    STATUS_AVAILABLE
+    SOLD
+    AVAILABLE
 }

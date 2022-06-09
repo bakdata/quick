@@ -16,27 +16,27 @@
 
 package com.bakdata.quick.manager.graphql;
 
-import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
-import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
+
+import com.bakdata.quick.common.config.ProtobufConfig;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors.EnumDescriptor;
+import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 public class GraphQLToProtobufConverterTest {
     private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "graphql");
 
     private final GraphQLToProtobufConverter graphQLToProtobufConverter =
-        new GraphQLToProtobufConverter("foo.bar.test.v1");
+        new GraphQLToProtobufConverter(new ProtobufConfig("foo.bar.test.v1"));
 
     @Test
     void shouldSetProtobufPackageFromProperties() {
@@ -44,132 +44,136 @@ public class GraphQLToProtobufConverterTest {
     }
 
     @Test
-    void shouldConvertGraphQLObjectTypes(final TestInfo testInfo) throws IOException {
-        final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
-        final FileDescriptor file = parsedSchema.getFile();
+    void shouldConvertGraphQLEnumFields(final TestInfo testInfo) throws IOException {
+        final FileDescriptor file = this.getFileDescriptor(testInfo);
 
-        final List<Descriptor> messageTypes = file.getMessageTypes();
-        assertThat(messageTypes.size()).isEqualTo(3);
+        assertThat(file.getMessageTypes()).hasSize(1);
+        assertThat(file.findMessageTypeByName("Product"))
+            .isNotNull()
+            .extracting(Descriptor::getFields, list(FieldDescriptor.class))
+            .hasSize(2)
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors).
+                extracting(FieldDescriptor::getName)
+                .containsExactly("status", "status2"))
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
+                .extracting(FieldDescriptor::getType)
+                .containsExactly(FieldDescriptor.Type.ENUM, FieldDescriptor.Type.ENUM));
 
-        assertThat(messageTypes.get(2)).satisfies(rootMessage -> {
-            assertThat(rootMessage.getName()).isEqualTo("Mock");
-            assertThat(rootMessage.getFields().size()).isEqualTo(3);
-
-            final FieldDescriptor complexField = rootMessage.getFields().get(1);
-            assertThat(complexField.getName()).isEqualTo("complexObject");
-            assertThat(complexField.getType().toProto()).isEqualTo(Type.TYPE_MESSAGE);
-        });
-
-        assertThat(messageTypes.get(1)).satisfies(complexMessage -> {
-            assertThat(complexMessage.getName()).isEqualTo("ComplexObject");
-            assertThat(complexMessage.getFields().size()).isEqualTo(2);
-
-            final FieldDescriptor complexField = complexMessage.getFields().get(1);
-            assertThat(complexField.getName()).isEqualTo("nestedObject");
-            assertThat(complexField.getType().toProto()).isEqualTo(Type.TYPE_MESSAGE);
-        });
-
-        assertThat(messageTypes.get(0)).satisfies(complexMessage -> {
-            assertThat(complexMessage.getName()).isEqualTo("NestedObject");
-            assertThat(complexMessage.getFields().size()).isEqualTo(1);
-
-            final FieldDescriptor complexField = complexMessage.getFields().get(0);
-            assertThat(complexField.getName()).isEqualTo("id");
-            assertThat(complexField.getType().toProto()).isEqualTo(Type.TYPE_STRING);
-        });
+        assertThat(file.getEnumTypes()).hasSize(1);
+        assertThat(file.findEnumTypeByName("Status")).isNotNull()
+            .extracting(EnumDescriptor::getValues, list(EnumValueDescriptor.class))
+            .hasSize(3)
+            .satisfies(values -> assertThat(values).extracting(EnumValueDescriptor::getName)
+                .containsExactly("STATUS_UNSPECIFIED", "STATUS_SOLD", "STATUS_AVAILABLE"));
     }
 
     @Test
-    void shouldConvertGraphQLEnumFields(final TestInfo testInfo) throws IOException {
-        final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
-        final FileDescriptor file = parsedSchema.getFile();
+    void shouldConvertGraphQLObjectTypes(final TestInfo testInfo) throws IOException {
+        final FileDescriptor file = this.getFileDescriptor(testInfo);
 
-        assertThat(file.getEnumTypes().size()).isEqualTo(1);
+        assertThat(file.getMessageTypes()).hasSize(3);
 
-        assertThat(file.getEnumTypes().get(0)).satisfies(statusEnum -> {
-            assertThat(statusEnum.getName()).isEqualTo("Status");
-            assertThat(statusEnum.getValues().size()).isEqualTo(2);
-            assertThat(statusEnum.getValues().get(0).getName()).isEqualTo("STATUS_SOLD");
-            assertThat(statusEnum.getValues().get(1).getName()).isEqualTo("STATUS_AVAILABLE");
-        });
+        assertThat(file.findMessageTypeByName("Mock"))
+            .isNotNull()
+            .extracting(Descriptor::getFields, list(FieldDescriptor.class))
+            .hasSize(3)
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
+                .extracting(FieldDescriptor::getName).containsExactly("id", "complexObject", "simpleString"))
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
+                .extracting(FieldDescriptor::getType)
+                .containsExactly(FieldDescriptor.Type.STRING,
+                    FieldDescriptor.Type.MESSAGE,
+                    FieldDescriptor.Type.STRING));
+
+        assertThat(file.findMessageTypeByName("ComplexObject"))
+            .isNotNull()
+            .extracting(Descriptor::getFields, list(FieldDescriptor.class))
+            .hasSize(2)
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
+                .extracting(FieldDescriptor::getName).containsExactly("id", "nestedObject"))
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
+                .extracting(FieldDescriptor::getType)
+                .containsExactly(FieldDescriptor.Type.STRING,
+                    FieldDescriptor.Type.MESSAGE));
+
+        assertThat(file.findMessageTypeByName("NestedObject"))
+            .isNotNull()
+            .extracting(Descriptor::getFields, list(FieldDescriptor.class))
+            .hasSize(1)
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
+                .extracting(FieldDescriptor::getName).containsExactly("id"))
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
+                .extracting(FieldDescriptor::getType)
+                .containsExactly(FieldDescriptor.Type.STRING));
     }
 
     @Test
     void shouldConvertGraphQLScalarFields(final TestInfo testInfo) throws IOException {
-        final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
+        final FileDescriptor file = this.getFileDescriptor(testInfo);
 
-        final List<FieldDescriptorProto> expectedFieldDescriptorList = List.of(
-            FieldDescriptorProto.newBuilder().setName("int").setType(Type.TYPE_INT32).build(),
-            FieldDescriptorProto.newBuilder().setName("float").setType(Type.TYPE_FLOAT).build(),
-            FieldDescriptorProto.newBuilder().setName("string").setType(Type.TYPE_STRING).build(),
-            FieldDescriptorProto.newBuilder().setName("bool").setType(Type.TYPE_BOOL).build(),
-            FieldDescriptorProto.newBuilder().setName("id").setType(Type.TYPE_STRING).build(),
-            FieldDescriptorProto.newBuilder().setName("long").setType(Type.TYPE_INT64).build(),
-            FieldDescriptorProto.newBuilder().setName("short").setType(Type.TYPE_INT32).build(),
-            FieldDescriptorProto.newBuilder().setName("char").setType(Type.TYPE_STRING).build()
-        );
-
-        assertThat(parsedSchema.getFields().size()).isEqualTo(8);
-
-        for (int index = 0; index < expectedFieldDescriptorList.size(); index++) {
-            final FieldDescriptorProto fieldDescriptorProto = parsedSchema.toProto().getField(index);
-            assertThat(fieldDescriptorProto.getType()).isEqualTo(expectedFieldDescriptorList.get(index).getType());
-        }
+        assertThat(file.findMessageTypeByName("Scalars"))
+            .isNotNull()
+            .extracting(Descriptor::getFields, list(FieldDescriptor.class))
+            .hasSize(8)
+            .extracting(FieldDescriptor::getType)
+            .containsExactly(FieldDescriptor.Type.INT32,
+                FieldDescriptor.Type.FLOAT,
+                FieldDescriptor.Type.STRING,
+                FieldDescriptor.Type.BOOL,
+                FieldDescriptor.Type.STRING,
+                FieldDescriptor.Type.INT64,
+                FieldDescriptor.Type.INT32,
+                FieldDescriptor.Type.STRING);
     }
 
     @Test
     void shouldConvertOptionalAndRequired(final TestInfo testInfo) throws IOException {
-        final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
-        assertThat(parsedSchema.getFields().size()).isEqualTo(2);
+        final FileDescriptor file = this.getFileDescriptor(testInfo);
 
-        assertThat(parsedSchema.getFields().get(0)).satisfies(requiredField -> {
-            assertThat(requiredField.getName()).isEqualTo("required");
-            assertThat(requiredField.isRequired()).isTrue();
-        });
-
-        assertThat(parsedSchema.getFields().get(1)).satisfies(requiredField -> {
-            assertThat(requiredField.getName()).isEqualTo("optional");
-            assertThat(requiredField.isRequired()).isFalse();
-        });
+        assertThat(file.findMessageTypeByName("OptionalRequired"))
+            .isNotNull()
+            .extracting(Descriptor::getFields, list(FieldDescriptor.class))
+            .hasSize(2)
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors).extracting(FieldDescriptor::getName)
+                .containsExactly("required", "optional"))
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors).extracting(FieldDescriptor::isRequired)
+                .containsExactly(true, false));
     }
 
     @Test
     void shouldConvertListType(final TestInfo testInfo) throws IOException {
-        final Descriptor parsedSchema = this.getFileDescriptorProto(testInfo);
+        final FileDescriptor file = this.getFileDescriptor(testInfo);
 
-        final FileDescriptor file = parsedSchema.getFile();
+        assertThat(file.getMessageTypes()).hasSize(2);
 
-        final List<Descriptor> messageTypes = file.getMessageTypes();
-        assertThat(messageTypes).hasSize(2);
+        assertThat(file.findMessageTypeByName("ListType"))
+            .isNotNull()
+            .extracting(Descriptor::getFields, list(FieldDescriptor.class))
+            .hasSize(4)
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
+                .extracting(FieldDescriptor::getName)
+                .containsExactly("optionalSimpleList", "optionalComplexList", "requiredSimpleList",
+                    "requiredComplexList"))
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors).extracting(FieldDescriptor::isRepeated)
+                .containsExactly(true, true, true, true));
 
-        final List<FieldDescriptor> fields = messageTypes.get(1).getFields();
-        assertThat(fields).hasSize(4);
-
-        assertThat(fields.get(0)).satisfies(fieldDescriptor -> {
-            assertThat(fieldDescriptor.getName()).isEqualTo("optionalSimpleList");
-            assertThat(fieldDescriptor.isRepeated()).isTrue();
-        });
-
-        assertThat(fields.get(1)).satisfies(fieldDescriptor -> {
-            assertThat(fieldDescriptor.getName()).isEqualTo("optionalComplexList");
-            assertThat(fieldDescriptor.isRepeated()).isTrue();
-        });
-
-        assertThat(fields.get(2)).satisfies(fieldDescriptor -> {
-            assertThat(fieldDescriptor.getName()).isEqualTo("requiredSimpleList");
-            assertThat(fieldDescriptor.isRepeated()).isTrue();
-        });
-
-        assertThat(fields.get(3)).satisfies(fieldDescriptor -> {
-            assertThat(fieldDescriptor.getName()).isEqualTo("requiredComplexList");
-            assertThat(fieldDescriptor.isRepeated()).isTrue();
-        });
+        assertThat(file.findMessageTypeByName("ComplexObject"))
+            .isNotNull()
+            .extracting(Descriptor::getFields, list(FieldDescriptor.class))
+            .hasSize(1)
+            .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
+                .extracting(FieldDescriptor::getName)
+                .containsExactly("id"))
+            .satisfies(fieldDescriptor -> assertThat(fieldDescriptor)
+                .extracting(FieldDescriptor::getType)
+                .containsExactly(FieldDescriptor.Type.STRING)
+            );
     }
 
-    private Descriptor getFileDescriptorProto(final TestInfo testInfo) throws IOException {
+    private FileDescriptor getFileDescriptor(final TestInfo testInfo) throws IOException {
         final String graphQLSchema =
             Files.readString(workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
         ProtobufSchema protobufSchema = (ProtobufSchema) this.graphQLToProtobufConverter.convert(graphQLSchema);
-        return protobufSchema.toDescriptor();
+        return protobufSchema.toDescriptor().getFile();
     }
 }

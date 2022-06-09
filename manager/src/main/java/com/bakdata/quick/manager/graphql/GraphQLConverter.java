@@ -27,7 +27,7 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 
 /**
- * An interface for converting GraphQL schema to a {@link ParsedSchema} object.
+ * Converter for transforming a GraphQL schema to a {@link ParsedSchema} object.
  */
 public interface GraphQLConverter {
 

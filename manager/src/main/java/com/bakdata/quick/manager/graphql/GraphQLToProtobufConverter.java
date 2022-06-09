@@ -22,9 +22,9 @@ import static graphql.schema.GraphQLTypeUtil.isNonNull;
 import static graphql.schema.GraphQLTypeUtil.isScalar;
 import static graphql.schema.GraphQLTypeUtil.unwrapOne;
 
+import com.bakdata.quick.common.condition.ProtobufSchemaFormatCondition;
 import com.bakdata.quick.common.config.ProtobufConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
 import com.google.protobuf.DescriptorProtos.DescriptorProto.Builder;
@@ -48,6 +48,7 @@ import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeUtil;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
+import io.micronaut.context.annotation.Requires;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,12 +56,12 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.BadRequestException;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Converts a GraphQL Schema to a Protobuf Schema.
  */
 @Singleton
+@Requires(condition = ProtobufSchemaFormatCondition.class)
 public class GraphQLToProtobufConverter implements GraphQLConverter {
 
     @Getter
@@ -70,12 +71,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
 
     @Inject
     public GraphQLToProtobufConverter(final ProtobufConfig protobufConfig) {
-        this(protobufConfig.getProtobufPackage());
-    }
-
-    @VisibleForTesting
-    public GraphQLToProtobufConverter(final String protobufPackage) {
-        this.protobufPackage = protobufPackage;
+        this.protobufPackage = protobufConfig.getProtobufPackage();
     }
 
     @Override
@@ -108,8 +104,8 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     }
 
     /**
-     * This function iterates over all the fields in GraphQL Type and creates a Protobuf message that is appended to the
-     * protobuf file.
+     * Iterates over all the fields in GraphQL Type and creates a Protobuf message that is appended to the protobuf
+     * file.
      *
      * @param messageName name of the protobuf message.
      * @param fieldDefinitions Fields of the GraphQL Object type.
@@ -127,28 +123,24 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
             final GraphQLFieldDefinition graphQLFieldDefinition = fieldDefinitions.get(index);
             final GraphQLOutputType graphQLType = graphQLFieldDefinition.getType();
 
-            final int fieldNumber = index + 1;
+            final Label label = isNonNull(graphQLType) ? Label.LABEL_REQUIRED : Label.LABEL_OPTIONAL;
+            final GraphQLType unwrappedType = isNonNull(graphQLType) ? unwrapOne(graphQLType) : graphQLType;
 
-            if (isNonNull(graphQLType)) {
-                createMessage(fileBuilder,
-                    currentMessage,
-                    graphQLFieldDefinition,
-                    unwrapOne(graphQLType),
-                    fieldNumber,
-                    Label.LABEL_REQUIRED);
-            } else {
-                createMessage(fileBuilder,
-                    currentMessage,
-                    graphQLFieldDefinition,
-                    graphQLType,
-                    fieldNumber,
-                    Label.LABEL_OPTIONAL);
-            }
+            createMessage(fileBuilder,
+                currentMessage,
+                graphQLFieldDefinition,
+                unwrappedType,
+                index + 1,
+                label);
         }
-        fileBuilder.addMessageType(currentMessage);
+
+        if (!fileBuilder.getMessageTypeList().contains(currentMessage.build())) {
+            fileBuilder.addMessageType(currentMessage);
+        }
     }
 
-    private static void createMessage(final FileDescriptorProto.Builder fileBuilder,
+    private static void createMessage(
+        final FileDescriptorProto.Builder fileBuilder,
         final Builder currentMessage,
         final GraphQLFieldDefinition graphQLFieldDefinition,
         final GraphQLType graphQLType,
@@ -197,16 +189,10 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
             graphQLObjectType.getName(),
             label));
 
-        final Builder descriptorProtoBuilder = DescriptorProto.newBuilder();
+        final DescriptorProto.Builder descriptorProtoBuilder = DescriptorProto.newBuilder();
         descriptorProtoBuilder.setName(graphQLObjectType.getName());
 
-        final FileDescriptorProto.Builder tempFile = FileDescriptorProto.newBuilder();
-
-        generateFile(graphQLObjectType.getName(), graphQLObjectType.getFieldDefinitions(), tempFile);
-
-        final List<DescriptorProto> collect = tempFile.getMessageTypeList().stream()
-            .filter(message -> !fileBuilder.getMessageTypeList().contains(message)).collect(Collectors.toList());
-        fileBuilder.addAllMessageType(collect);
+        generateFile(graphQLObjectType.getName(), graphQLObjectType.getFieldDefinitions(), fileBuilder);
     }
 
     /**
@@ -218,7 +204,6 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
      * @see com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type#TYPE_ENUM
      * @see com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Builder#setTypeName(String)
      */
-    @NotNull
     private static FieldDescriptorProto buildFieldWithType(
         final String fieldName,
         final int fieldNumber,
@@ -238,7 +223,6 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     /**
      * This function creates a {@link FieldDescriptorProto} object from a scalar GraphQL type.
      */
-    @NotNull
     private static FieldDescriptorProto createFieldDescriptor(
         final GraphQLScalarType graphQLScalarType,
         final String fieldName,
@@ -274,25 +258,56 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
             graphQLEnumType.getName(),
             label));
 
-        final EnumDescriptorProto enumSchema = createEnumDescriptor(graphQLEnumType);
-        fileBuilder.addEnumType(enumSchema);
+        final EnumDescriptorProto enumDescriptor = createEnumDescriptor(graphQLEnumType);
+        if (!fileBuilder.getEnumTypeList().contains(enumDescriptor)) {
+            fileBuilder.addEnumType(enumDescriptor);
+        }
     }
 
     /**
-     * This function creates a {@link EnumDescriptorProto} object from a scalar GraphQL type.
+     * Creates a {@link EnumDescriptorProto} object from a scalar GraphQL type. For example the GraphQL * enum with
+     * these fields:
+     * <pre>
+     * enum Foo {
+     *   A, B
+     * }
+     * </pre>
+     * Will be transformed to a protobuf enum with these fields:
+     * <pre>
+     * enum Foo {
+     *   FOO_UNSPECIFIED = 0;
+     *   FOO_A = 1;
+     *   FOO_B = 2;
+     * }
+     * </pre>
+     * For more information regarding protobuf enums visit the <a
+     * href="https://docs.buf.build/best-practices/style-guide#enums">buf style-guide</a>
      */
     private static EnumDescriptorProto createEnumDescriptor(final GraphQLEnumType enumType) {
+        final String unspecifiedField = generateEnumFieldName(enumType.getName(), "UNSPECIFIED");
         final List<EnumValueDescriptorProto> values = enumType.getDefinition()
             .getEnumValueDefinitions()
             .stream()
             .map(enumValueDefinition -> EnumValueDescriptorProto.newBuilder()
-                .setName(enumValueDefinition.getName()).build())
+                .setName(generateEnumFieldName(enumType.getName(), enumValueDefinition.getName())).build())
             .collect(Collectors.toList());
 
         return EnumDescriptorProto.newBuilder()
             .setName(enumType.getName())
+            .addValue(0, EnumValueDescriptorProto.newBuilder().setName(unspecifiedField).build())
             .addAllValue(values)
             .build();
+    }
+
+    /**
+     * Generates the enum field name by prefixing the uppercase type name to the field name.
+     *
+     * @param typeName prefix to the field name
+     * @param enumValueDefinitionName the graphQL enum field name
+     * @return enum field name
+     */
+    private static String generateEnumFieldName(final String typeName, final String enumValueDefinitionName) {
+        return typeName.toUpperCase() + "_" + enumValueDefinitionName;
     }
 
     private static Map<GraphQLScalarType, Type> scalarTypeMap() {
