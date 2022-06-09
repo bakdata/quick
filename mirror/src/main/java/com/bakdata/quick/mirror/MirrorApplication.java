@@ -31,10 +31,12 @@ import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.CliArgHandler;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.service.QueryContextProvider;
 import com.bakdata.quick.mirror.service.QueryServiceContext;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
+import io.micronaut.context.ProviderFactory;
 import io.micronaut.runtime.Micronaut;
 import io.micronaut.runtime.server.EmbeddedServer;
 import io.reactivex.Single;
@@ -42,6 +44,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -69,6 +72,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     private final QuickTopicConfig topicConfig;
     private final ApplicationContext context;
     private final HostConfig hostConfig;
+    private final QueryContextProvider<K, V> contextProvider;
 
     // CLI Arguments
     @Option(names = "--store-type", description = "Kafka Store to use. Choices: ${COMPLETION-CANDIDATES}",
@@ -87,11 +91,13 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      * @param hostConfig       host config for this pod
      */
     public MirrorApplication(final ApplicationContext context, final TopicTypeService topicTypeService,
-        final QuickTopicConfig topicConfig, final HostConfig hostConfig) {
+                             final QuickTopicConfig topicConfig, final HostConfig hostConfig,
+                             final QueryContextProvider<K, V> contextProvider) {
         this.topicTypeService = topicTypeService;
         this.topicConfig = topicConfig;
         this.context = context;
         this.hostConfig = hostConfig;
+        this.contextProvider = contextProvider;
     }
 
     public static void main(final String[] args) {
@@ -154,7 +160,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         final List<String> allArgs = CliArgHandler.convertArgs(kafkaConfig);
         allArgs.addAll(Arrays.asList(args));
         return allArgs.toArray(String[]::new);
-
     }
 
     /**
@@ -178,7 +183,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             MIRROR_STORE,
             this.getTopologyData().getTopicData()
         );
-        this.context.registerSingleton(serviceContext);
+        this.contextProvider.setQueryContext(serviceContext);
         super.runStreamsApplication();
     }
 

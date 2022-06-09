@@ -28,6 +28,7 @@ import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.base.HostConfig;
+import com.bakdata.quick.mirror.service.QueryContextProvider;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
@@ -57,6 +58,8 @@ class MirrorApplicationIntegrationTest {
     HostConfig hostConfig;
     @Inject
     ApplicationContext applicationContext;
+    @Inject
+    QueryContextProvider<String, String> queryContextProvider;
     private EmbeddedKafkaCluster kafkaCluster;
 
     @BeforeEach
@@ -117,10 +120,8 @@ class MirrorApplicationIntegrationTest {
 
     private MirrorApplication<String, String> setUpApp() {
         final MirrorApplication<String, String> app = new MirrorApplication<>(
-            this.applicationContext,
-            this.topicTypeService(),
-            TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig
+            this.applicationContext, this.topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
+            this.hostConfig, this.queryContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(this.kafkaCluster.getBrokerList());

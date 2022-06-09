@@ -48,6 +48,7 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
  */
 @Slf4j
 public class KafkaQueryService<K, V> implements QueryService<V> {
+
     private final HttpClient client;
     private final KafkaStreams streams;
     private final HostInfo hostInfo;
@@ -61,10 +62,11 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     /**
      * Injectable constructor.
      *
-     * @param context query service data
+     * @param contextProvider query service data
      */
     @Inject
-    public KafkaQueryService(final QueryServiceContext<K, V> context, final HttpClient client) {
+    public KafkaQueryService(final QueryContextProvider<K, V> contextProvider, final HttpClient client) {
+        QueryServiceContext<K, V> context = contextProvider.get();
         this.client = client;
         this.streams = context.getStreams();
         this.hostInfo = context.getHostInfo();
