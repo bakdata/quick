@@ -197,7 +197,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     }
 
     /**
-     * This function creates a FieldDescriptorProto object for a specific type. These fields could be either a type of
+     * Creates a FieldDescriptorProto object for a specific type. These fields could be either a type of
      * TYPE_MESSAGE or TYPE_ENUM. If a FieldDescriptorProto object type is one of these the property TypeName must be
      * specified otherwise a {@link DescriptorValidationException} is thrown.
      *
@@ -222,7 +222,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     }
 
     /**
-     * This function creates a {@link FieldDescriptorProto} object from a scalar GraphQL type.
+     * Creates a {@link FieldDescriptorProto} object from a scalar GraphQL type.
      */
     private static FieldDescriptorProto createFieldDescriptor(
         final GraphQLScalarType graphQLScalarType,

@@ -34,8 +34,8 @@ public interface GraphQLConverter {
     ParsedSchema convert(String graphQLSchema);
 
     /**
-     * This function returns the root (type) object of the GraphQL schema. This object is later parsed by the
-     * implemented classes to do the conversion.
+     * Gets the root (type) object of the GraphQL schema. This object is later parsed by the implemented classes to
+     * do the conversion.
      *
      * @param schema The string containing the GraphQL schema.
      * @return a {@link GraphQLObjectType} object, which contains information of the root object in the schema.
