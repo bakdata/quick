@@ -24,6 +24,7 @@ import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.type.QuickTopicData;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 import io.reactivex.Flowable;
@@ -36,6 +37,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.processor.internals.InternalTopologyBuilder;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
@@ -65,16 +67,17 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
      * @param contextProvider query service data
      */
     @Inject
-    public KafkaQueryService(final QueryContextProvider<K, V> contextProvider, final HttpClient client) {
-        QueryServiceContext<K, V> context = contextProvider.get();
+    public KafkaQueryService(final QueryContextProvider contextProvider, final QuickTopicData<K, V> topicData,
+                             final HttpClient client) {
+        final QueryServiceContext context = contextProvider.get();
         this.client = client;
         this.streams = context.getStreams();
         this.hostInfo = context.getHostInfo();
         this.storeName = context.getStoreName();
-        this.keySerializer = context.getTopic().getKeyData().getSerde().serializer();
-        this.keyResolver = context.getTopic().getKeyData().getResolver();
-        this.valueResolver = context.getTopic().getValueData().getResolver();
-        this.topicName = context.getTopic().getName();
+        this.keySerializer = topicData.getKeyData().getSerde().serializer();
+        this.keyResolver = topicData.getKeyData().getResolver();
+        this.valueResolver = topicData.getValueData().getResolver();
+        this.topicName = topicData.getName();
         this.storeQueryParameters = StoreQueryParameters.fromNameAndType(
             this.storeName,
             QueryableStoreTypes.keyValueStore()

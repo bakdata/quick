@@ -44,6 +44,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import javax.annotation.PostConstruct;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +73,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     private final QuickTopicConfig topicConfig;
     private final ApplicationContext context;
     private final HostConfig hostConfig;
-    private final QueryContextProvider<K, V> contextProvider;
+    private final QueryContextProvider contextProvider;
 
     // CLI Arguments
     @Option(names = "--store-type", description = "Kafka Store to use. Choices: ${COMPLETION-CANDIDATES}",
@@ -92,7 +93,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      */
     public MirrorApplication(final ApplicationContext context, final TopicTypeService topicTypeService,
                              final QuickTopicConfig topicConfig, final HostConfig hostConfig,
-                             final QueryContextProvider<K, V> contextProvider) {
+                             final QueryContextProvider contextProvider) {
         this.topicTypeService = topicTypeService;
         this.topicConfig = topicConfig;
         this.context = context;
@@ -177,13 +178,15 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Override
     protected void runStreamsApplication() {
         // we have to manually register the context singleton because we cannot access the streams object beforehand
-        final QueryServiceContext<K, V> serviceContext = new QueryServiceContext<>(
+        final QueryServiceContext serviceContext = new QueryServiceContext(
             this.getStreams(),
             this.hostConfig.toInfo(),
-            MIRROR_STORE,
-            this.getTopologyData().getTopicData()
+            MIRROR_STORE
         );
         this.contextProvider.setQueryContext(serviceContext);
+        // register bean
+        final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
+        this.context.registerSingleton(quickTopicData);
         super.runStreamsApplication();
     }
 
