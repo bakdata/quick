@@ -19,6 +19,7 @@ package com.bakdata.quick.common.config;
 import com.bakdata.quick.common.condition.ProtobufSchemaFormatCondition;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
+import io.micronaut.context.annotation.Property;
 import io.micronaut.context.annotation.Requires;
 import lombok.Getter;
 
@@ -38,7 +39,7 @@ public class ProtobufConfig {
      * @param protobufPackage Holds the name of the protobuf package where the object is stored.
      */
     @ConfigurationInject
-    public ProtobufConfig(final String protobufPackage) {
+    public ProtobufConfig(@Property(name = PREFIX + ".package") final String protobufPackage) {
         this.protobufPackage = protobufPackage;
     }
 }

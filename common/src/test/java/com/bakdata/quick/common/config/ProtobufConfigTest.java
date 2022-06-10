@@ -13,7 +13,7 @@ class ProtobufConfigTest {
     @Test
     void shouldReadNamespace() {
         final Map<String, Object> properties =
-            Map.of("quick.schema.format", "protobuf", "quick.schema.protobuf.protobuf-package", "test");
+            Map.of("quick.schema.format", "protobuf", "quick.schema.protobuf.package", "test");
         final ProtobufConfig config = ConfigUtils.createWithProperties(properties, ProtobufConfig.class);
         assertThat(config.getProtobufPackage()).isEqualTo("test");
     }
