@@ -25,6 +25,7 @@ import io.micronaut.http.annotation.Produces;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.StreamsMetadata;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import javax.inject.Inject;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class StreamsStateController {
     private final String storeName;
 
     @Inject
-    public StreamsStateController(final QueryContextProvider contextProvider) {
+    public StreamsStateController(@NotNull final QueryContextProvider contextProvider) {
         this.streams = contextProvider.get().getStreams();
         this.storeName = contextProvider.get().getStoreName();
     }

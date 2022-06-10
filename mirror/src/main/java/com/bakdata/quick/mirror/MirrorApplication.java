@@ -186,7 +186,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         );
         this.contextProvider.setQueryContext(serviceContext);
 
-        // register a bean which is need for QueryService
+        // register a bean which is needed for QueryService
         final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
         this.context.registerSingleton(quickTopicData);
         super.runStreamsApplication();

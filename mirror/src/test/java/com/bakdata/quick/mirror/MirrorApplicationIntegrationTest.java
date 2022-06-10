@@ -82,10 +82,12 @@ class MirrorApplicationIntegrationTest {
         final Thread runThread = new Thread(app);
         runThread.start();
 
+        Thread.sleep(2000);
+
         log.info("Validate");
-        await().atMost(Duration.ofSeconds(10))
-            .untilAsserted(() -> when()
-                .get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
                 .then()
                 .statusCode(200)
                 .body(equalTo("{\"value\":\"value1\"}")));
