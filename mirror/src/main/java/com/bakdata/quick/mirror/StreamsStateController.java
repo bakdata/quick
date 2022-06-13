@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 /**
  * REST API exposing current Kafka Streams state.
  */
-@Controller("/mirror")
+@Controller("/streams")
 public class StreamsStateController {
     private final KafkaStreams streams;
     private final String storeName;

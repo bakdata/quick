@@ -72,7 +72,7 @@ class StreamsStateControllerTest {
         final String expectedBody = String.format("{\"0\":\"127.0.0.1:%d\"}", port);
         await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> when()
-                        .get("http://" + this.hostConfig.toConnectionString() + "/mirror/partitions")
+                        .get("http://" + this.hostConfig.toConnectionString() + "/streams/partitions")
                         .then()
                         .statusCode(200)
                         .body(equalTo(expectedBody)));
