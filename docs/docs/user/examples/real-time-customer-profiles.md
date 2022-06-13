@@ -8,7 +8,7 @@ and recommendations based on the user's playlist.
 You can use then use Quick to visualize the real-time profiles in a front-end. 
 To see an example, you can [view the demo website](https://profile-store.d9p.io/dashboard/).
 
-You can find the complete code in [Quick's example repository](https://github.com/bakdata/quick-examples).
+You can find the complete code in [Quick's example repository](https://github.com/bakdata/quick-examples/profile-store).
 The example uses the real world data set [LFM-1b](http://www.cp.jku.at/datasets/LFM-1b/).
 The Kafka Streams application is written with
 our [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap).
@@ -22,6 +22,7 @@ There is also a video, explaining this example:
         src="https://www.youtube-nocookie.com/embed/aitX3hoS5Xc"
         title="YouTube video player" width="900" height="500" ></iframe>
 </div>
+
 ## Listening events
 
 Every time a customer listens to a song, the system emits a listening event containing the ids of album,
@@ -110,6 +111,9 @@ You are now ready to process and query the data.
 In case you don't have a running Quick instance,
 you can refer to the [getting started guide](../getting-started/setup-quick).
 
+To avoid redundancy, we show the setup of the integral parts.
+You find the steps for a complete deployment in the `justfile` in the [example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store/deployment/justfile). 
+
 #### Gateway
 
 First, initialize the Quick CLI.
@@ -164,8 +168,8 @@ The user profile has the following metrics:
 
     ```shell
     quick app deploy firstlisten \
-    --registry bakdata/quick-examples \
-    --image user-listen-activity \
+    --registry bakdata \
+    --image quick-demo-profile-listenings-activity \
     --tag "1.0.0" \
     --args input-topics=listeningevents, output-topic=firstlisten, kind=FIRST, productive=false
     ```
@@ -194,8 +198,8 @@ Similar to the metrics, you can now add support for the user charts of the profi
 2. Deploy the applications:
     ```shell
     quick app deploy topartists \
-    --registry bakdata/quick-examples \
-    --image user-charts \
+    --registry bakdata \
+    --image quick-demo-profile-listenings-charts \
     --tag "1.0.0" \
     --args input-topics=listeningevents output-topic=topartists productive=false
     ```
@@ -255,14 +259,13 @@ you can resolve the ids from the REST service with the name from the `artistis` 
 You can deploy the recommendation service via Quick as well:
 ```shell
 quick app deploy recommender \
-  --registry bakdata/quick-examples \
-  --image recommender \
+  --registry bakdata \
+  --image quick-demo-profile-recommender \
   --tag "1.0.0" \
   --port 8080 \
   --args input-topics=listeningevents productive=false 
 ```
 
-You find the parametrized `app deploy` commands for the remaining applications in the example directory.
 
 ### Querying recommendations
 

@@ -9,6 +9,8 @@ as well as the current position and car’s battery level.
 Our [dashboard](https://carsharing.d9p.io/) provides insights into the current status of all cars
 as well as details for single trips.
 
+You can find the source code of the project together with additional information in [Quick's examples repository](https://github.com/bakdata/quick-examples/carsharing).
+
 [![carsharing-app](../../assets/images/carsharing.png)](https://carsharing.d9p.io/)
 
 ---
@@ -51,7 +53,7 @@ With Kafka Streams you can also build more advanced applications.
 One could for example build a predictive maintenance service with it.
 
 ```java
-Trip aggregateTrip(String tripId,Status newStatus,Trip trip){
+Trip aggregateTrip(String tripId, Status newStatus, Trip trip){
     List<Status> route = trip.getRoute();
     // first time we see this trip id
     if (route == null) {
@@ -228,8 +230,8 @@ Quick supports running dockerized applications.
 
 ```shell
 quick app deploy trip-aggregator \
- --registry us.gcr.io/d9p-quick/demo \
- --image trip-aggregator \
+ --registry bakdata \
+ --image quick-demo-monitoring-trip-aggregator \
  --tag latest \
  --args input-topics=status output-topic=trip
 ```
