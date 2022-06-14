@@ -17,29 +17,32 @@
 package com.bakdata.quick.mirror;
 
 
-import com.bakdata.quick.mirror.service.QueryServiceContext;
+import com.bakdata.quick.mirror.service.QueryContextProvider;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Produces;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.StreamsMetadata;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
+import javax.inject.Inject;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * REST API exposing current Kafka Streams state.
  */
-@Controller("/mirror")
-public class ApplicationResource {
+@Controller("/streams")
+public class StreamsStateController {
     private final KafkaStreams streams;
     private final String storeName;
 
-    public ApplicationResource(final QueryServiceContext<?, ?> context) {
-        this.streams = context.getStreams();
-        this.storeName = context.getStoreName();
+    @Inject
+    public StreamsStateController(@NotNull final QueryContextProvider contextProvider) {
+        this.streams = contextProvider.get().getStreams();
+        this.storeName = contextProvider.get().getStoreName();
     }
 
     /**
@@ -49,7 +52,7 @@ public class ApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Map<Integer, String> getApplicationHosts() {
         return Seq.seq(this.streams.allMetadataForStore(this.storeName))
-            .flatMap(ApplicationResource::getAddressesForPartitions)
+            .flatMap(StreamsStateController::getAddressesForPartitions)
             .distinct(PartitionAddress::getPartition)
             .collect(Collectors.toMap(PartitionAddress::getPartition, PartitionAddress::getAddress));
     }
