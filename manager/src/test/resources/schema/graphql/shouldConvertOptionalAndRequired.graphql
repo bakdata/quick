@@ -1,0 +1,4 @@
+type OptionalRequired {
+    required: Int!
+    optional: Int
+}
