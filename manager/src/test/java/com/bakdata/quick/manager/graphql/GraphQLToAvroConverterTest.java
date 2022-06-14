@@ -214,6 +214,24 @@ class GraphQLToAvroConverterTest {
             .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
             .hasSize(1)
             .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("id"));
+
+        assertThat(parsedSchema.getField("requiredComplexList2"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .satisfies(field -> assertThat(field.getType()).isEqualTo(Type.UNION))
+            .extracting(Schema::getTypes)
+            .satisfies(types ->
+                assertThat(types)
+                    .extracting(Schema::getType)
+                    .containsExactly(Type.NULL, Type.ARRAY)
+            );
+
+        assertThat(parsedSchema.getField("requiredComplexList3"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .satisfies(field -> assertThat(field.getType()).isEqualTo(Type.ARRAY))
+            .extracting(Schema::getElementType)
+            .satisfies(items -> assertThat(items.getType()).isEqualTo(Type.RECORD));
     }
 
     @Test

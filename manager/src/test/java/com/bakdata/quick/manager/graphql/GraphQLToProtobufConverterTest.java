@@ -149,13 +149,14 @@ public class GraphQLToProtobufConverterTest {
         assertThat(file.findMessageTypeByName("ListType"))
             .isNotNull()
             .extracting(Descriptor::getFields, list(FieldDescriptor.class))
-            .hasSize(4)
+            .hasSize(8)
             .satisfies(fieldDescriptors -> assertThat(fieldDescriptors)
                 .extracting(FieldDescriptor::getName)
                 .containsExactly("optionalSimpleList", "optionalComplexList", "requiredSimpleList",
-                    "requiredComplexList"))
+                    "requiredComplexList", "requiredSimpleList2", "requiredComplexList2", "requiredSimpleList3",
+                    "requiredComplexList3"))
             .satisfies(fieldDescriptors -> assertThat(fieldDescriptors).extracting(FieldDescriptor::isRepeated)
-                .containsExactly(true, true, true, true));
+                .containsExactly(true, true, true, true, true, true, true, true));
 
         assertThat(file.findMessageTypeByName("ComplexObject"))
             .isNotNull()

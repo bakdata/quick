@@ -163,14 +163,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
             handleEnumType(fileBuilder, currentMessage, graphQLFieldDefinition, fieldNumber, label,
                 (GraphQLEnumType) graphQLType);
         } else if (isList(graphQLType)) {
-            final GraphQLList graphQLList = (GraphQLList) graphQLType;
-
-            createMessage(fileBuilder,
-                currentMessage,
-                graphQLFieldDefinition,
-                graphQLList.getWrappedType(),
-                fieldNumber,
-                Label.LABEL_REPEATED);
+            handleListType(fileBuilder, currentMessage, graphQLFieldDefinition, (GraphQLList) graphQLType, fieldNumber);
         } else {
             throw new BadArgumentException(
                 String.format("Type %s not recognized", GraphQLTypeUtil.simplePrint(graphQLType)));
@@ -183,7 +176,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
      */
     private static void handleObjectType(
         final FileDescriptorProto.Builder fileBuilder,
-        final Builder currentMessage,
+        final DescriptorProto.Builder currentMessage,
         final GraphQLFieldDefinition graphQLFieldDefinition,
         final int fieldNumber,
         final Label label,
@@ -318,6 +311,28 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
      */
     private static String generateEnumFieldName(final String typeName, final String enumValueDefinitionName) {
         return typeName.toUpperCase() + "_" + enumValueDefinitionName.toUpperCase();
+    }
+
+    /**
+     * Handles GraphQL list type. Gets the wrapped type and check the nullability  of the field. It then crates the
+     * message.
+     */
+    private static void handleListType(
+        final FileDescriptorProto.Builder fileBuilder,
+        final DescriptorProto.Builder currentMessage,
+        final GraphQLFieldDefinition graphQLFieldDefinition,
+        final GraphQLList graphQLList,
+        final int fieldNumber) {
+
+        final GraphQLType wrappedType = graphQLList.getWrappedType();
+        final GraphQLType unwrappedType = isNonNull(wrappedType) ? unwrapOne(wrappedType) : wrappedType;
+
+        createMessage(fileBuilder,
+            currentMessage,
+            graphQLFieldDefinition,
+            unwrappedType,
+            fieldNumber,
+            Label.LABEL_REPEATED);
     }
 
     private static Map<GraphQLScalarType, Type> scalarTypeMap() {

@@ -34,14 +34,13 @@ public interface GraphQLConverter {
     ParsedSchema convert(String graphQLSchema);
 
     /**
-     * Gets the root (type) object of the GraphQL schema. This object is later parsed by the implemented classes to
-     * do the conversion.
+     * Gets the root (type) object of the GraphQL schema. This object is later parsed by the implemented classes to do
+     * the conversion.
      *
      * @param schema The string containing the GraphQL schema.
      * @return a {@link GraphQLObjectType} object, which contains information of the root object in the schema.
      */
     default GraphQLObjectType getRootTypeFromSchema(String schema) {
-        // extending the schema with an empty query type is necessary because parsing fails otherwise
         final SchemaParser schemaParser = new SchemaParser();
 
         // extending the schema with an empty query type is necessary because parsing fails otherwise
@@ -49,7 +48,6 @@ public interface GraphQLConverter {
         final TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(extendedSchema);
         final String rootTypeName = GraphQLUtils.getRootType(QuickTopicType.SCHEMA, typeDefinitionRegistry);
 
-        // existence required for building a GraphQLSchema, no wiring needed otherwise
         final RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring().build();
         final SchemaGenerator schemaGenerator = new SchemaGenerator();
         final GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
