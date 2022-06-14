@@ -27,7 +27,7 @@ For other ways of installing k3d,
 you can have a look at their [installation guide](https://k3d.io/v5.3.0/#installation).
 
 !!! Attention
-	k3d includes [Traefik](https://traefik.io) as a load balancer.
+	k3s includes [Traefik](https://traefik.io) as a load balancer.
 	If you want to use a different Kubernetes distribution, you might have to install Traefik separately.
 	For more information, please refer to the [Traefik deployment](setup-quick.md#traefik-optional) section.
 
@@ -74,9 +74,9 @@ Set them like this:
 	```
 
 ## Traefik (optional)
-k3d uses [Traefik](https://doc.traefik.io/traefik/) as its load balancer.
-If you are using k3d as your Kubernetes distribution,
-you can jump directly to the [Kafka deployment](setup-quick.md#kafka) section.
+k3s uses [Traefik](https://doc.traefik.io/traefik/) as its load balancer.
+If you are using k3s as your Kubernetes distribution,
+you can go directly to the [Kafka deployment](setup-quick.md#kafka) section.
 However, if you use another Kubernetes distribution,
 you can use this guide to deploy Traefik to your Kubernetes cluster.
 
