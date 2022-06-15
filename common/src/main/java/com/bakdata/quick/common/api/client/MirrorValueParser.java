@@ -69,8 +69,4 @@ class MirrorValueParser<V> {
         return this.resolver.fromString(element.isTextual() ? element.textValue() : element.toString());
     }
 
-    interface ParserFunction<T> {
-        MirrorValue<T> parse(InputStream inputStream) throws IOException;
-    }
-
 }

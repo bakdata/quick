@@ -18,12 +18,23 @@ package com.bakdata.quick.common.resolver;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.UncheckedIOException;
 
+/**
+ * Type resolver for known types.
+ *
+ * @param <T> type to resolve
+ */
 public class KnownTypeResolver<T> implements TypeResolver<T> {
     private final Class<T> typeClass;
     private final ObjectMapper objectMapper;
 
-
+    /**
+     * Default constructor.
+     *
+     * @param typeClass    class of the type to resolve
+     * @param objectMapper jackson's object mapper
+     */
     public KnownTypeResolver(final Class<T> typeClass, final ObjectMapper objectMapper) {
         this.typeClass = typeClass;
         this.objectMapper = objectMapper;
@@ -34,7 +45,7 @@ public class KnownTypeResolver<T> implements TypeResolver<T> {
         try {
             return this.objectMapper.readValue(value, this.typeClass);
         } catch (final JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(String.format("Could not convert \"%s\" into %s", value, this.typeClass), e);
         }
     }
 

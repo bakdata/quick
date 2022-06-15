@@ -14,18 +14,24 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.json;
+package com.bakdata.quick.common.api.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.bakdata.quick.common.api.model.mirror.MirrorValue;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Configuration for Jackson's {@link ObjectMapper}.
+ * Custom parser for values returned by a mirror application.
+ *
+ * @param <T> type of the returned value
  */
-public interface ObjectMapperConfiguration {
+interface ParserFunction<T> {
     /**
-     * Configures the object mapper.
+     * Parses an input stream of data into a deserialized value.
      *
-     * @param objectMapper object to configure
+     * @param inputStream the raw response body
+     * @return the deserialized mirror value
+     * @throws IOException if an error reading the input stream occurs
      */
-    void configureObjectMapper(ObjectMapper objectMapper);
+    MirrorValue<T> parse(InputStream inputStream) throws IOException;
 }

@@ -97,7 +97,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     }
 
     @Nullable
-    private <T> T sendRequest(final String url, final MirrorValueParser.ParserFunction<T> parser) {
+    private <T> T sendRequest(final String url, final ParserFunction<T> parser) {
         final Request request = new Request.Builder().url(url).get().build();
 
         try (final Response response = this.client.newCall(request).execute()) {
