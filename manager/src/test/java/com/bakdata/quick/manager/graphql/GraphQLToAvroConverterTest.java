@@ -18,7 +18,9 @@ package com.bakdata.quick.manager.graphql;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,24 +32,12 @@ import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 class GraphQLToAvroConverterTest {
     private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "graphql");
-
-    private static String productSchema = null;
-    private static String contractSchema = null;
-    private static String scalarSchema = null;
-
     private final GraphQLToAvroConverter graphQLToAvroConverter = new GraphQLToAvroConverter("foo.bar.test.avro");
-
-    @BeforeAll
-    static void beforeAll() throws IOException {
-        productSchema = Files.readString(workingDirectory.resolve("product.graphql"));
-        contractSchema = Files.readString(workingDirectory.resolve("contract.graphql"));
-        scalarSchema = Files.readString(workingDirectory.resolve("allScalars.graphql"));
-    }
 
     @Test
     void shouldSetAvroNamespaceFromProperties() {
@@ -55,26 +45,32 @@ class GraphQLToAvroConverterTest {
     }
 
     @Test
-    void shouldSetAvroNamespaceInSchema() {
-        final Schema parsedSchema = this.graphQLToAvroConverter.convertToSchema(productSchema);
-        assertThat(parsedSchema.getNamespace()).isEqualTo(this.graphQLToAvroConverter.getAvroNamespace());
+    void shouldConvertGraphQLEnumFields(final TestInfo testInfo) throws IOException {
+        final Schema parsedSchema = this.getSchema(testInfo);
+
+        assertThat(parsedSchema.getField("status"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
+            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
+            .extracting(Schema::getType)
+            .containsExactly(Type.NULL, Type.ENUM);
+
+        assertThat(parsedSchema.getField("status").schema().getTypes())
+            .last()
+            .satisfies(enumType -> assertThat(enumType.getName()).isEqualTo("Status"))
+            .extracting(Schema::getEnumSymbols)
+            .satisfies(symbols -> {
+                assertThat(symbols.size()).isEqualTo(2);
+                assertThat(symbols).containsExactly("SOLD", "AVAILABLE");
+            });
     }
 
     @Test
-    void shouldConvertGraphQLSchema() {
-        final Schema parsedSchema = this.graphQLToAvroConverter.convertToSchema(productSchema);
+    void shouldConvertGraphQLObjectTypes(final TestInfo testInfo) throws IOException {
+        final Schema parsedSchema = this.getSchema(testInfo);
 
-        assertThat(parsedSchema.getName()).isEqualTo("Product");
-
-        assertThat(parsedSchema.getField("productId"))
-            .isNotNull()
-            .extracting(Field::schema)
-            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .extracting(Schema::getType)
-            .containsExactly(Type.NULL, Type.INT);
-
-        assertThat(parsedSchema.getField("name"))
+        assertThat(parsedSchema.getField("id"))
             .isNotNull()
             .extracting(Field::schema)
             .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
@@ -82,15 +78,7 @@ class GraphQLToAvroConverterTest {
             .extracting(Schema::getType)
             .contains(Type.NULL, Type.STRING);
 
-        assertThat(parsedSchema.getField("description"))
-            .isNotNull()
-            .extracting(Field::schema)
-            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .extracting(Schema::getType)
-            .contains(Type.NULL, Type.STRING);
-
-        assertThat(parsedSchema.getField("price"))
+        assertThat(parsedSchema.getField("complexObject"))
             .isNotNull()
             .extracting(Field::schema)
             .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
@@ -100,173 +88,36 @@ class GraphQLToAvroConverterTest {
                 .containsExactly(Type.NULL, Type.RECORD)
             )
             .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("name", "Price")
+            .hasFieldOrPropertyWithValue("name", "ComplexObject")
             .hasFieldOrPropertyWithValue("type", Type.RECORD)
             .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
             .hasSize(2)
-            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("value", "currency"))
+            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("id", "nestedObject"))
             .satisfies(fields -> assertThat(fields)
                 .flatExtracting(field -> unwrapSchemaType(field.schema()))
-                .containsExactly(Type.NULL, Type.FLOAT, Type.NULL, Type.STRING)
+                .containsExactly(Type.NULL, Type.STRING, Type.NULL, Type.RECORD)
             );
 
-        assertThat(parsedSchema.getField("metadata"))
-            .isNotNull()
+        assertThat(parsedSchema.getField("complexObject"))
             .extracting(Field::schema)
-            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
             .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .satisfies(types -> assertThat(types)
-                .extracting(Schema::getType)
-                .containsExactly(Type.NULL, Type.RECORD)
-            )
             .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("name", "Metadata")
-            .hasFieldOrPropertyWithValue("type", Type.RECORD)
             .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
-            .hasSize(2)
-            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("created_at", "source"))
+            .last(InstanceOfAssertFactories.type(Field.class))
+            .extracting(Field::schema)
+            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
+            .last(InstanceOfAssertFactories.type(Schema.class))
+            .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
+            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("id"))
             .satisfies(fields -> assertThat(fields)
                 .flatExtracting(field -> unwrapSchemaType(field.schema()))
-                .containsExactly(Type.NULL, Type.INT, Type.NULL, Type.STRING)
+                .containsExactly(Type.NULL, Type.STRING)
             );
     }
 
     @Test
-    void shouldConvertGraphQLSchemaWithLists() {
-        final Schema parsedSchema = this.graphQLToAvroConverter.convertToSchema(contractSchema);
-
-        assertThat(parsedSchema.getName()).isEqualTo("Contract");
-
-        assertThat(parsedSchema.getField("_id"))
-            .isNotNull()
-            .extracting(field -> field.schema().getType())
-            .isEqualTo(Type.STRING);
-
-        assertThat(parsedSchema.getField("policyHolderId"))
-            .isNotNull()
-            .extracting(Field::schema)
-            .hasFieldOrPropertyWithValue("type", Type.UNION)
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .satisfies(types ->
-                assertThat(types)
-                    .extracting(Schema::getType)
-                    .containsExactly(Type.NULL, Type.ARRAY)
-            )
-            .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("type", Type.ARRAY)
-            .extracting(Schema::getElementType)
-            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .satisfies(types ->
-                assertThat(types)
-                    .extracting(Schema::getType)
-                    .containsExactly(Type.NULL, Type.RECORD))
-            .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("name", "PersonGrainValue")
-            .hasFieldOrPropertyWithValue("type", Type.RECORD)
-            .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
-            .hasSize(3)
-            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("_in_utc", "_v", "_c"))
-            .satisfies(fields -> assertThat(fields)
-                .flatExtracting(field -> unwrapSchemaType(field.schema()))
-                .containsExactly(Type.STRING, Type.STRING, Type.NULL, Type.FLOAT)
-            );
-
-        assertThat(parsedSchema.getField("insuredPersonId"))
-            .isNotNull()
-            .extracting(Field::schema)
-            .hasFieldOrPropertyWithValue("type", Type.UNION)
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .satisfies(types ->
-                assertThat(types)
-                    .extracting(Schema::getType)
-                    .containsExactly(Type.NULL, Type.ARRAY)
-            )
-            .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("type", Type.ARRAY)
-            .extracting(Schema::getElementType)
-            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .satisfies(types ->
-                assertThat(types)
-                    .extracting(Schema::getType)
-                    .containsExactly(Type.NULL, Type.RECORD))
-            .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("name", "PersonGrainValue")
-            .hasFieldOrPropertyWithValue("type", Type.RECORD)
-            .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
-            .hasSize(3)
-            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("_in_utc", "_v", "_c"))
-            .satisfies(fields -> assertThat(fields)
-                .flatExtracting(field -> unwrapSchemaType(field.schema()))
-                .containsExactly(Type.STRING, Type.STRING, Type.NULL, Type.FLOAT)
-            );
-
-        assertThat(parsedSchema.getField("term"))
-            .isNotNull()
-            .extracting(Field::schema)
-            .hasFieldOrPropertyWithValue("type", Type.UNION)
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .satisfies(types ->
-                assertThat(types)
-                    .extracting(Schema::getType)
-                    .containsExactly(Type.NULL, Type.ARRAY)
-            )
-            .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("type", Type.ARRAY)
-            .extracting(Schema::getElementType)
-            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .satisfies(types ->
-                assertThat(types)
-                    .extracting(Schema::getType)
-                    .containsExactly(Type.NULL, Type.RECORD))
-            .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("name", "GrainValue")
-            .hasFieldOrPropertyWithValue("type", Type.RECORD)
-            .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
-            .hasSize(3)
-            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("_in_utc", "_v", "_c"))
-            .satisfies(fields -> assertThat(fields)
-                .flatExtracting(field -> unwrapSchemaType(field.schema()))
-                .containsExactly(Type.STRING, Type.STRING, Type.NULL, Type.FLOAT)
-            );
-
-        assertThat(parsedSchema.getField("value"))
-            .isNotNull()
-            .extracting(Field::schema)
-            .hasFieldOrPropertyWithValue("type", Type.UNION)
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .satisfies(types ->
-                assertThat(types)
-                    .extracting(Schema::getType)
-                    .containsExactly(Type.NULL, Type.ARRAY)
-            )
-            .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("type", Type.ARRAY)
-            .extracting(Schema::getElementType)
-            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
-            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
-            .satisfies(types ->
-                assertThat(types)
-                    .extracting(Schema::getType)
-                    .containsExactly(Type.NULL, Type.RECORD))
-            .last(InstanceOfAssertFactories.type(Schema.class))
-            .hasFieldOrPropertyWithValue("name", "GrainValue")
-            .hasFieldOrPropertyWithValue("type", Type.RECORD)
-            .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
-            .hasSize(3)
-            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("_in_utc", "_v", "_c"))
-            .satisfies(fields -> assertThat(fields)
-                .flatExtracting(field -> unwrapSchemaType(field.schema()))
-                .containsExactly(Type.STRING, Type.STRING, Type.NULL, Type.FLOAT)
-            );
-    }
-
-    @Test
-    void shouldConvertAllScalars() {
-        final Schema parsedSchema = this.graphQLToAvroConverter.convertToSchema(scalarSchema);
-        assertThat(parsedSchema.getName()).isEqualTo("Scalars");
+    void shouldConvertGraphQLScalarFields(final TestInfo testInfo) throws IOException {
+        final Schema parsedSchema = this.getSchema(testInfo);
 
         final Map<String, Type> expectedTypeForField = Map.ofEntries(
             Map.entry("int", Type.INT),
@@ -286,6 +137,127 @@ class GraphQLToAvroConverterTest {
         }
     }
 
+    @Test
+    void shouldConvertListType(final TestInfo testInfo) throws IOException {
+        final Schema parsedSchema = this.getSchema(testInfo);
+
+        assertThat(parsedSchema.getField("optionalSimpleList"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
+            .satisfies(types ->
+                assertThat(types)
+                    .extracting(Schema::getType)
+                    .containsExactly(Type.NULL, Type.ARRAY)
+            ).last(InstanceOfAssertFactories.type(Schema.class))
+            .hasFieldOrPropertyWithValue("type", Type.ARRAY)
+            .extracting(Schema::getElementType)
+            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
+            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
+            .satisfies(types ->
+                assertThat(types)
+                    .extracting(Schema::getType)
+                    .containsExactly(Type.NULL, Type.INT)
+            );
+
+        assertThat(parsedSchema.getField("optionalComplexList"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
+            .satisfies(types ->
+                assertThat(types)
+                    .extracting(Schema::getType)
+                    .containsExactly(Type.NULL, Type.ARRAY)
+            ).last(InstanceOfAssertFactories.type(Schema.class))
+            .hasFieldOrPropertyWithValue("type", Type.ARRAY)
+            .extracting(Schema::getElementType)
+            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
+            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
+            .satisfies(types ->
+                assertThat(types)
+                    .extracting(Schema::getType)
+                    .containsExactly(Type.NULL, Type.RECORD)
+            ).last(InstanceOfAssertFactories.type(Schema.class))
+            .hasFieldOrPropertyWithValue("name", "ComplexObject")
+            .hasFieldOrPropertyWithValue("type", Type.RECORD)
+            .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
+            .hasSize(1)
+            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("id"));
+
+        assertThat(parsedSchema.getField("requiredSimpleList"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .satisfies(field -> assertThat(field.getType()).isEqualTo(Type.ARRAY))
+            .extracting(Schema::getElementType)
+            .satisfies(items -> assertThat(items.getType()).isEqualTo(Type.UNION))
+            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
+            .satisfies(types ->
+                assertThat(types)
+                    .extracting(Schema::getType)
+                    .containsExactly(Type.NULL, Type.INT)
+            );
+
+        assertThat(parsedSchema.getField("requiredComplexList"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .satisfies(field -> assertThat(field.getType()).isEqualTo(Type.ARRAY))
+            .extracting(Schema::getElementType)
+            .satisfies(items -> assertThat(items.getType()).isEqualTo(Type.UNION))
+            .extracting(Schema::getTypes, InstanceOfAssertFactories.list(Schema.class))
+            .satisfies(types ->
+                assertThat(types)
+                    .extracting(Schema::getType)
+                    .containsExactly(Type.NULL, Type.RECORD)
+            ).last(InstanceOfAssertFactories.type(Schema.class))
+            .hasFieldOrPropertyWithValue("name", "ComplexObject")
+            .hasFieldOrPropertyWithValue("type", Type.RECORD)
+            .extracting(Schema::getFields, InstanceOfAssertFactories.list(Field.class))
+            .hasSize(1)
+            .satisfies(fields -> assertThat(fields).extracting(Field::name).containsExactly("id"));
+
+        assertThat(parsedSchema.getField("requiredComplexList2"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .satisfies(field -> assertThat(field.getType()).isEqualTo(Type.UNION))
+            .extracting(Schema::getTypes)
+            .satisfies(types ->
+                assertThat(types)
+                    .extracting(Schema::getType)
+                    .containsExactly(Type.NULL, Type.ARRAY)
+            );
+
+        assertThat(parsedSchema.getField("requiredComplexList3"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .satisfies(field -> assertThat(field.getType()).isEqualTo(Type.ARRAY))
+            .extracting(Schema::getElementType)
+            .satisfies(items -> assertThat(items.getType()).isEqualTo(Type.RECORD));
+    }
+
+    @Test
+    void shouldConvertOptionalAndRequired(final TestInfo testInfo) throws IOException {
+        final Schema parsedSchema = this.getSchema(testInfo);
+
+        assertThat(parsedSchema.getField("required"))
+            .isNotNull()
+            .extracting(field -> field.schema().getType())
+            .isEqualTo(Type.INT);
+
+        assertThat(parsedSchema.getField("optional"))
+            .isNotNull()
+            .extracting(Field::schema)
+            .satisfies(schema -> assertThat(schema.getType()).isEqualTo(Type.UNION))
+            .extracting(Schema::getTypes, list(Schema.class))
+            .satisfies(types -> assertThat(types).extracting(Schema::getType).containsExactly(Type.NULL, Type.INT));
+    }
+
+    private Schema getSchema(final TestInfo testInfo) throws IOException {
+        final String graphQLSchema =
+            Files.readString(workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
+        AvroSchema parsedSchema = (AvroSchema) this.graphQLToAvroConverter.convert(graphQLSchema);
+        return parsedSchema.rawSchema();
+    }
+
     private static List<Type> unwrapSchemaType(final Schema schema) {
         switch (schema.getType()) {
             case ARRAY:
@@ -297,6 +269,5 @@ class GraphQLToAvroConverterTest {
             default:
                 return List.of(schema.getType());
         }
-
     }
 }

@@ -48,6 +48,7 @@ import com.bakdata.quick.manager.graphql.GraphQLToAvroConverter;
 import com.bakdata.quick.manager.mirror.MirrorService;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.bakdata.schemaregistrymock.junit5.SchemaRegistryMockExtension;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.micronaut.http.HttpResponse;
@@ -60,7 +61,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
-import org.apache.avro.Schema;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -190,7 +190,7 @@ class KafkaTopicServiceTest {
         final String topicName = UUID.randomUUID().toString();
         this.successfulMock();
 
-        this.schemaRegistry.registerValueSchema(topicName, this.graphQLToAvroConverter.convertToSchema(SCHEMA));
+        this.schemaRegistry.registerValueSchema(topicName, this.graphQLToAvroConverter.convert(SCHEMA));
 
         when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway()))
             .thenReturn(Single.just(new GatewayDescription("test", 1, "latest")));
@@ -270,10 +270,10 @@ class KafkaTopicServiceTest {
 
         final SchemaRegistryClient schemaRegistryClient = this.schemaRegistry.getSchemaRegistryClient();
         final String subject = topicName + "-value";
-        final Schema expectedSchema = this.graphQLToAvroConverter.convertToSchema(SCHEMA);
+        final ParsedSchema expectedSchema = this.graphQLToAvroConverter.convert(SCHEMA);
 
         assertThat(schemaRegistryClient.getAllSubjects()).containsExactly(subject);
-        assertThat(schemaRegistryClient.getBySubjectAndId(subject, 1)).isEqualTo(expectedSchema);
+        assertThat(schemaRegistryClient.getSchemaById(1)).isEqualTo(expectedSchema);
     }
 
     @Test

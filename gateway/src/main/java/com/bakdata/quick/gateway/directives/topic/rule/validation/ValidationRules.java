@@ -30,8 +30,10 @@ public class ValidationRules implements TopicDirectiveRules {
 
     static {
         validationRules = List.of(
-            new SubscriptionList(),
-            new ExclusiveArguments()
+                new SubscriptionList(),
+                new ExclusiveArguments(),
+                new KeyInformation(),
+                new MutationRequiresTwoArguments()
         );
     }
 

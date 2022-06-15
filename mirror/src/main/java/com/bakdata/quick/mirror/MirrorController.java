@@ -18,16 +18,15 @@ package com.bakdata.quick.mirror;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.mirror.service.QueryService;
-import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.QueryValue;
-import io.reactivex.Flowable;
 import io.reactivex.Single;
-import java.util.List;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.inject.Inject;
+import java.util.List;
 
 /**
  * REST API of mirror applications.

@@ -21,6 +21,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,8 +48,11 @@ public class GenericAvroResolver implements TypeResolver<GenericRecord> {
     }
 
     @Override
-    public void configure(final Schema schema) {
-        this.schema = schema;
+    public void configure(final ParsedSchema schema) {
+        if (!(schema instanceof AvroSchema)) {
+            throw new IllegalArgumentException("Avro schema required");
+        }
+        this.schema = (Schema) schema.rawSchema();
     }
 
     @Override

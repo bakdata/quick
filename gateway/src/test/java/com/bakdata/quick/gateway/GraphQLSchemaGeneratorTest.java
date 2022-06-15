@@ -17,11 +17,13 @@
 package com.bakdata.quick.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.bakdata.quick.common.TestTopicRegistryClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.type.QuickTopicType;
+import com.bakdata.quick.gateway.directives.QuickDirectiveException;
 import com.bakdata.quick.gateway.fetcher.KeyFieldFetcher;
 import com.bakdata.quick.gateway.fetcher.ListArgumentFetcher;
 import com.bakdata.quick.gateway.fetcher.MutationFetcher;
@@ -467,6 +469,48 @@ class GraphQLSchemaGeneratorTest {
         assertThat(rootDataFetcher)
             .isNotNull()
             .isInstanceOf(MutationFetcher.class);
+    }
+
+    @Test
+    void shouldNotConvertIfMissingKeyInfoInQueryType(final TestInfo testInfo) {
+        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        assertThatExceptionOfType(QuickDirectiveException.class)
+                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .withMessage("When the return type is not a list for a non-mutation and non-subscription type,"
+                        + " key information (keyArgument or keyField) is needed.");
+    }
+
+    @Test
+    void shouldNotConvertIfMissingKeyInfoInBasicType(final TestInfo testInfo) {
+        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        assertThatExceptionOfType(QuickDirectiveException.class)
+                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .withMessage("When the return type is not a list for a non-mutation and non-subscription type,"
+                        + " key information (keyArgument or keyField) is needed.");
+    }
+
+    @Test
+    void shouldNotConvertIfMutationDoesNotHaveTwoArgs(final TestInfo testInfo) {
+        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        assertThatExceptionOfType(QuickDirectiveException.class)
+                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .withMessage("Mutation requires two input arguments");
+    }
+
+    @Test
+    void shouldNotConvertIfKeyArgAndInputNameDifferentInQueryType(final TestInfo testInfo) {
+        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        assertThatExceptionOfType(QuickDirectiveException.class)
+                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .withMessage("Key argument has to be identical to the input name.");
+    }
+
+    @Test
+    void shouldNotConvertIfKeyArgAndInputNameDifferentInNonQueryType(final TestInfo testInfo) {
+        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        assertThatExceptionOfType(QuickDirectiveException.class)
+                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .withMessage("Key argument has to be identical to the input name.");
     }
 
     private static void hasFieldWithListType(final GraphQLObjectType objectType, final String insuredPersonId,

@@ -14,26 +14,31 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.manager.config;
+package com.bakdata.quick.common.config;
 
+import com.bakdata.quick.common.condition.AvroSchemaFormatCondition;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.exceptions.ConfigurationException;
 import java.util.regex.Pattern;
 import lombok.Getter;
-import org.apache.avro.AvroTypeException;
 
 /**
- * Configuration regarding the converted GraphQL to Avro schemas. Moreover, it checks if the Avro namespace fulfills the
- * naming convention in the specification.
+ * Configuration regarding the converted GraphQL to Avro schemas.
+ *
+ * <p>
+ * Moreover, it checks if the Avro namespace fulfills the naming convention in the specification.
+ * </p>
  *
  * @see <a href="https://avro.apache.org/docs/current/spec.html">Avro Specification</a>
  */
-@ConfigurationProperties("quick.avro")
+@Requires(condition = AvroSchemaFormatCondition.class)
+@ConfigurationProperties(AvroConfig.PREFIX)
 @Getter
 public class AvroConfig {
-
-    private static final Pattern namespacePattern = Pattern.compile("^[A-z_](\\.?[A-Za-z0-9_])*$");
+    static final String PREFIX = SchemaConfig.PREFIX + ".avro";
+    private static final Pattern NAMESPACE_PATTERN = Pattern.compile("^[A-z_](\\.?\\w)*$");
 
     private final String namespace;
 
@@ -44,11 +49,12 @@ public class AvroConfig {
      */
     @ConfigurationInject
     public AvroConfig(final String namespace) {
-        if (!namespacePattern.matcher(namespace).matches()) {
+        if (!NAMESPACE_PATTERN.matcher(namespace).matches()) {
             throw new ConfigurationException(
                 String.format("The Avro namespace %s does not fulfill the naming convention of Avro specification.",
                     namespace));
         }
         this.namespace = namespace;
     }
+
 }

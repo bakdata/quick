@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.type.QuickTopicData;
+import lombok.Data;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;
@@ -24,13 +25,11 @@ import org.apache.kafka.streams.state.HostInfo;
 /**
  * Context for holding information about Kafka state.
  *
- * @param <K> key type
- * @param <V> value type
  */
 @Value
-public class QueryServiceContext<K, V> {
+public class QueryServiceContext {
     KafkaStreams streams;
     HostInfo hostInfo;
     String storeName;
-    QuickTopicData<K, V> topic;
+    
 }

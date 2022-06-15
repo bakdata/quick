@@ -22,10 +22,9 @@ import static graphql.schema.GraphQLTypeUtil.isNonNull;
 import static graphql.schema.GraphQLTypeUtil.isScalar;
 import static graphql.schema.GraphQLTypeUtil.unwrapOne;
 
+import com.bakdata.quick.common.condition.AvroSchemaFormatCondition;
+import com.bakdata.quick.common.config.AvroConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
-import com.bakdata.quick.common.graphql.GraphQLUtils;
-import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.manager.config.AvroConfig;
 import com.google.common.annotations.VisibleForTesting;
 import graphql.Scalars;
 import graphql.language.EnumValueDefinition;
@@ -34,14 +33,12 @@ import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
-import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeUtil;
 import graphql.schema.GraphQLUnionType;
-import graphql.schema.idl.RuntimeWiring;
-import graphql.schema.idl.SchemaGenerator;
-import graphql.schema.idl.SchemaParser;
-import graphql.schema.idl.TypeDefinitionRegistry;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.micronaut.context.annotation.Requires;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,7 +51,8 @@ import org.apache.avro.Schema;
  * Converts a GraphQL Schema to an Avro Schema.
  */
 @Singleton
-public final class GraphQLToAvroConverter {
+@Requires(condition = AvroSchemaFormatCondition.class)
+public final class GraphQLToAvroConverter implements GraphQLConverter {
     @Getter
     private final String avroNamespace;
     private static final Map<GraphQLScalarType, Schema.Type> SCALAR_MAPPING = scalarTypeMap();
@@ -69,34 +67,29 @@ public final class GraphQLToAvroConverter {
         this.avroNamespace = namespace;
     }
 
+    @Override
+    public ParsedSchema convert(final String graphQLSchema) {
+        final Schema schema = this.convertToSchema(graphQLSchema);
+        return new AvroSchema(schema);
+    }
+
     /**
      * Converts a GraphQL Schema to an Avro Schema.
      *
      * @param schema GraphQL schema
      * @return Avro schema
      */
-    public Schema convertToSchema(final String schema) {
+    private Schema convertToSchema(final String schema) {
         // first, we parse the schema and translate it into GraphQL object definition. Then, we can convert this
         // representation to an avro schema.
         // TODO: evaluate whether the GraphQL's SDLDefinition might be enough for translating to avro
 
-        // extending the schema with an empty query type is necessary because parsing fails otherwise
-        final String extendedSchema = schema + "type Query{}";
-        final SchemaParser schemaParser = new SchemaParser();
-        final TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(extendedSchema);
-        final String rootTypeName = GraphQLUtils.getRootType(QuickTopicType.SCHEMA, typeDefinitionRegistry);
-
-        // existence required for building a GraphQLSchema, no wiring needed otherwise
-        final RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring().build();
-        final SchemaGenerator schemaGenerator = new SchemaGenerator();
-        final GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
-
-        final GraphQLObjectType rootType = graphQLSchema.getObjectType(rootTypeName);
+        final GraphQLObjectType rootType = this.getRootTypeFromSchema(schema);
         final List<Schema.Field> fields = rootType.getFieldDefinitions().stream()
             .map(this::fromFieldDefinition)
             .collect(Collectors.toList());
 
-        return Schema.createRecord(rootTypeName, rootType.getDescription(), this.avroNamespace, false, fields);
+        return Schema.createRecord(rootType.getName(), rootType.getDescription(), this.avroNamespace, false, fields);
     }
 
     /**
@@ -204,15 +197,15 @@ public final class GraphQLToAvroConverter {
         // Map.entry(Scalars.GraphQLByte, Schema.Type.BYTES),
         // Map.entry(Scalars.GraphQLBigInteger, Schema.Type.LONG),
         // Map.entry(Scalars.GraphQLBigDecimal, Schema.Type.LONG),
-        return Map.ofEntries(
-            Map.entry(Scalars.GraphQLInt, Schema.Type.INT),
-            Map.entry(Scalars.GraphQLFloat, Schema.Type.FLOAT),
-            Map.entry(Scalars.GraphQLString, Schema.Type.STRING),
-            Map.entry(Scalars.GraphQLBoolean, Schema.Type.BOOLEAN),
-            Map.entry(Scalars.GraphQLID, Schema.Type.STRING),
-            Map.entry(Scalars.GraphQLLong, Schema.Type.LONG),
-            Map.entry(Scalars.GraphQLShort, Schema.Type.INT),
-            Map.entry(Scalars.GraphQLChar, Schema.Type.STRING)
+        return Map.of(
+            Scalars.GraphQLInt, Schema.Type.INT,
+            Scalars.GraphQLFloat, Schema.Type.FLOAT,
+            Scalars.GraphQLString, Schema.Type.STRING,
+            Scalars.GraphQLBoolean, Schema.Type.BOOLEAN,
+            Scalars.GraphQLID, Schema.Type.STRING,
+            Scalars.GraphQLLong, Schema.Type.LONG,
+            Scalars.GraphQLShort, Schema.Type.INT,
+            Scalars.GraphQLChar, Schema.Type.STRING
         );
     }
 }

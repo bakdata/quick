@@ -46,6 +46,7 @@ import com.bakdata.quick.ingest.service.IngestService;
 import com.bakdata.quick.ingest.service.KafkaIngestService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
@@ -178,7 +179,7 @@ class IngestControllerTest {
 
     private static QuickData<GenericRecord> getAvroInfo() {
         final QuickData<GenericRecord> avroInfo = newAvroData();
-        avroInfo.getResolver().configure(ChartRecord.getClassSchema());
+        avroInfo.getResolver().configure(new AvroSchema(ChartRecord.getClassSchema()));
         return avroInfo;
     }
 

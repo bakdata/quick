@@ -37,6 +37,13 @@ public class ApplicationResources implements QuickResources {
     private final ApplicationDeployment deployment;
     private final Optional<ApplicationService> service;
 
+    /**
+     * Default constructor.
+     *
+     * @param name       name of the app
+     * @param deployment k8s deployment of the app
+     * @param service    k8s service of the app. Optional because not every app needs to be accesible.
+     */
     public ApplicationResources(final String name,
                                 final ApplicationDeployment deployment,
                                 final Optional<ApplicationService> service) {

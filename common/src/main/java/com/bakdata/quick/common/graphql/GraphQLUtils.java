@@ -41,10 +41,11 @@ import java.util.Objects;
  * Utility class for common GraphQL operations.
  */
 public final class GraphQLUtils {
-    // name of the query and subscription type for the new GraphQL schema
+    // name of the query, the subscription, and the mutation type for the new GraphQL schema
     // value can not be changed as our GraphQL expects these names
     public static final String QUERY_TYPE = "Query";
     public static final String SUBSCRIPTION_TYPE = "Subscription";
+    public static final String MUTATION_TYPE = "Mutation";
     // maps primitives topic types (all except avro) to their respective scalar in GraphQL
     public static final Map<QuickTopicType, String> TYPE_TO_GQL_SCALAR_NAME_MAP = typeToScalarNameMap();
 

@@ -18,6 +18,7 @@ package com.bakdata.quick.common.resolver;
 
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.databind.JavaType;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import org.apache.avro.Schema;
 
 /**
@@ -34,7 +35,7 @@ public interface TypeResolver<T> {
 
     T fromObject(Object obj);
 
-    default void configure(final Schema schema) {
-        // do nothing
+    default void configure(final ParsedSchema schema) {
+        // do nothing for primitive resolver
     }
 }

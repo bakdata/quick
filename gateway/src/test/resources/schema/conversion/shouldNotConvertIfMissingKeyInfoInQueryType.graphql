@@ -1,0 +1,8 @@
+type Product {
+    id: ID!
+    name: String!
+}
+
+type Query {
+    getProduct(id: ID): Product @topic(name: "product-topic")
+}

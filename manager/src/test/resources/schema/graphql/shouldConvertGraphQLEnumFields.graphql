@@ -1,0 +1,9 @@
+type Product {
+    status: Status
+    status2: Status
+}
+
+enum Status {
+    SOLD
+    AVAILABLE
+}

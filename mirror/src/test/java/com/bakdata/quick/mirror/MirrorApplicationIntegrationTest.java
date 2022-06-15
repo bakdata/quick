@@ -18,7 +18,6 @@ package com.bakdata.quick.mirror;
 
 import static io.restassured.RestAssured.when;
 import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
-import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.useDefaults;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -28,6 +27,7 @@ import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.base.HostConfig;
+import com.bakdata.quick.mirror.service.QueryContextProvider;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
@@ -57,6 +57,8 @@ class MirrorApplicationIntegrationTest {
     HostConfig hostConfig;
     @Inject
     ApplicationContext applicationContext;
+    @Inject
+    QueryContextProvider queryContextProvider;
     private EmbeddedKafkaCluster kafkaCluster;
 
     @BeforeEach
@@ -74,35 +76,42 @@ class MirrorApplicationIntegrationTest {
 
     @Test
     void test() throws InterruptedException {
+
         final MirrorApplication<String, String> app = this.setUpApp();
-
-        log.info("Send values");
-        final List<KeyValue<String, String>> keyValueList = List.of(new KeyValue<>("key1", "value1"),
-            new KeyValue<>("key2222", "value2"),
-            new KeyValue<>("key2", "value2"));
-        final SendKeyValuesTransactional<String, String> sendRequest = SendKeyValuesTransactional
-            .inTransaction(INPUT_TOPIC, keyValueList)
-            .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
-            .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
-            .with("schema.registry.url", this.schemaRegistry.getUrl())
-            .build();
-
-        this.kafkaCluster.send(sendRequest);
-        log.info("Process...");
-
+        sendValuesToKafka();
         final Thread runThread = new Thread(app);
         runThread.start();
-        log.info("Validate");
 
-        await().atMost(Duration.ofSeconds(10))
-            .untilAsserted(() -> when()
-                .get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
+        Thread.sleep(3000);
+
+        log.info("Validate");
+        await()
+                .atMost(Duration.ofSeconds(12))
+                .untilAsserted(() -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
                 .then()
                 .statusCode(200)
                 .body(equalTo("{\"value\":\"value1\"}")));
         app.close();
         app.getStreams().cleanUp();
         runThread.interrupt();
+    }
+
+
+
+    private void sendValuesToKafka() throws InterruptedException {
+        log.info("Send values");
+        final List<KeyValue<String, String>> keyValueList = List.of(new KeyValue<>("key1", "value1"),
+                new KeyValue<>("key2222", "value2"),
+                new KeyValue<>("key2", "value2"));
+        final SendKeyValuesTransactional<String, String> sendRequest = SendKeyValuesTransactional
+                .inTransaction(INPUT_TOPIC, keyValueList)
+                .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
+                .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
+                .with("schema.registry.url", this.schemaRegistry.getUrl())
+                .build();
+
+        this.kafkaCluster.send(sendRequest);
+        log.info("Process...");
     }
 
     private TopicTypeService topicTypeService() {
@@ -117,10 +126,8 @@ class MirrorApplicationIntegrationTest {
 
     private MirrorApplication<String, String> setUpApp() {
         final MirrorApplication<String, String> app = new MirrorApplication<>(
-            this.applicationContext,
-            this.topicTypeService(),
-            TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig
+                this.applicationContext, this.topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
+                this.hostConfig, this.queryContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(this.kafkaCluster.getBrokerList());

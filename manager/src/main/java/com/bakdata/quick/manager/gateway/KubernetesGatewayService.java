@@ -23,7 +23,7 @@ import com.bakdata.quick.common.api.model.manager.GatewaySchema;
 import com.bakdata.quick.common.api.model.manager.creation.GatewayCreationData;
 import com.bakdata.quick.manager.gateway.resource.GatewayResourceLoader;
 import com.bakdata.quick.manager.gateway.resource.GatewayResources;
-import com.bakdata.quick.manager.graphql.GraphQLToAvroConverter;
+import com.bakdata.quick.manager.graphql.GraphQLConverter;
 import com.bakdata.quick.manager.k8s.KubernetesManagerClient;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
 import io.micronaut.context.annotation.Requires;
@@ -47,7 +47,7 @@ public class KubernetesGatewayService implements GatewayService {
 
     private final KubernetesManagerClient kubernetesManagerClient;
     private final GatewayClient gatewayClient;
-    private final GraphQLToAvroConverter graphQLToAvroConverter;
+    private final GraphQLConverter graphQLConverter;
     private final GatewayResourceLoader loader;
 
     /**
@@ -58,11 +58,11 @@ public class KubernetesGatewayService implements GatewayService {
      * @param loader the resource loader
      */
     public KubernetesGatewayService(final KubernetesManagerClient kubernetesManagerClient,
-        final GatewayClient gatewayClient, final GraphQLToAvroConverter graphQLToAvroConverter,
+        final GatewayClient gatewayClient, final GraphQLConverter graphQLConverter,
         final GatewayResourceLoader loader) {
         this.kubernetesManagerClient = kubernetesManagerClient;
         this.gatewayClient = gatewayClient;
-        this.graphQLToAvroConverter = graphQLToAvroConverter;
+        this.graphQLConverter = graphQLConverter;
         this.loader = loader;
     }
 
@@ -129,8 +129,9 @@ public class KubernetesGatewayService implements GatewayService {
                 .map(response -> {
                     String schema = response.getSchema();
                     if (format == SchemaFormat.AVRO) {
-                        schema = graphQLToAvroConverter.convertToSchema(schema).toString();
+                        schema = this.graphQLConverter.convert(schema).toString();
                     }
+                    // TODO: Add support for protobuf
                     return new SchemaData(schema);
                 });
 

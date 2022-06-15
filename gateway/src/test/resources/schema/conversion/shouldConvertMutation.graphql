@@ -9,7 +9,7 @@ type Product {
 }
 
 type Query {
-    getProduct(id: ID): Product @topic(name: "product-topic")
+    getProduct(id: ID): Product @topic(name: "product-topic", keyArgument: "id")
 }
 
 type Mutation {
