@@ -1,0 +1,17 @@
+type ListType {
+    optionalSimpleList: [Int]
+    optionalComplexList: [ComplexObject]
+
+    requiredSimpleList: [Int]!
+    requiredComplexList: [ComplexObject]!
+
+    requiredSimpleList2: [Int!]
+    requiredComplexList2: [ComplexObject!]
+
+    requiredSimpleList3: [Int!]!
+    requiredComplexList3: [ComplexObject!]!
+}
+
+type ComplexObject {
+    id: ID
+}

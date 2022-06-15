@@ -1,0 +1,14 @@
+type Mock {
+    id: ID
+    complexObject: ComplexObject
+    simpleString: String
+}
+
+type ComplexObject {
+    id: ID
+    nestedObject: NestedObject
+}
+
+type NestedObject {
+    id: ID
+}

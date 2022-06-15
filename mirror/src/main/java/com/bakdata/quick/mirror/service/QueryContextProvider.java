@@ -14,22 +14,26 @@
  *    limitations under the License.
  */
 
+
 package com.bakdata.quick.mirror.service;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import lombok.Data;
-import lombok.Value;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.state.HostInfo;
-
 /**
- * Context for holding information about Kafka state.
- *
+ * Imitates the functionality of the javax's Provider
+ * and extends it with an additional method to set a context.
  */
-@Value
-public class QueryServiceContext {
-    KafkaStreams streams;
-    HostInfo hostInfo;
-    String storeName;
-    
+public interface QueryContextProvider {
+
+    /**
+     * Provides a fully-constructed and injected instance of QueryServiceContext.
+     * @return An instance of the QueryServiceContext
+     */
+    QueryServiceContext get();
+
+    /**
+     * Sets a context. The idea behind this method is to
+     * circumvent the need to a bean through the ApplicationContext
+     * @param context an instance of QueryServiceContext
+     */
+    void setQueryContext(QueryServiceContext context);
+
 }

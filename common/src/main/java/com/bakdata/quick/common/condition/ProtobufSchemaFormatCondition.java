@@ -14,22 +14,22 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.service;
+package com.bakdata.quick.common.condition;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import lombok.Data;
-import lombok.Value;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.state.HostInfo;
+import com.bakdata.quick.common.config.SchemaConfig;
+import com.bakdata.quick.common.schema.SchemaFormat;
+import io.micronaut.context.condition.Condition;
+import io.micronaut.context.condition.ConditionContext;
 
 /**
- * Context for holding information about Kafka state.
+ * Condition for beans requiring the {@link SchemaFormat} to be Protobuf.
  *
+ * @see SchemaConfig
+ * @see com.bakdata.quick.common.config.ProtobufConfig
  */
-@Value
-public class QueryServiceContext {
-    KafkaStreams streams;
-    HostInfo hostInfo;
-    String storeName;
-    
+public class ProtobufSchemaFormatCondition implements Condition {
+    @Override
+    public boolean matches(final ConditionContext context) {
+        return context.getBean(SchemaConfig.class).getFormat() == SchemaFormat.PROTOBUF;
+    }
 }
