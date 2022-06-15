@@ -14,16 +14,18 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.resolver;
+package com.bakdata.quick.common.exception.schema;
 
-/**
- * Resolver for long primitives.
- */
-public class LongResolver implements TypeResolver<Long> {
+import io.micronaut.http.HttpStatus;
+
+public class SchemaConfigurationException extends SchemaException {
+    protected SchemaConfigurationException(final String message) {
+        super(message);
+    }
 
     @Override
-    public Long fromString(final String value) {
-        return Long.valueOf(value);
+    protected HttpStatus getStatus() {
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
 }

@@ -21,7 +21,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.type.QuickTopicType;
+import com.bakdata.quick.common.resolver.DoubleResolver;
+import com.bakdata.quick.common.resolver.IntegerResolver;
+import com.bakdata.quick.common.resolver.KnownTypeResolver;
+import com.bakdata.quick.common.resolver.LongResolver;
+import com.bakdata.quick.common.resolver.StringResolver;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
@@ -54,7 +59,8 @@ class QueryKeyArgumentFetcherTest {
         final String purchaseJson = this.mapper.writeValueAsString(new MirrorValue<>(purchase));
         this.server.enqueue(new MockResponse().setBody(purchaseJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(QuickTopicType.SCHEMA);
+        final DataFetcherClient<?> fetcherClient =
+            this.createClient(new KnownTypeResolver<>(Purchase.class, this.mapper));
         final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
@@ -62,8 +68,7 @@ class QueryKeyArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
         final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult)
-            .isEqualTo(this.mapper.convertValue(purchase, DataFetcherClient.OBJECT_TYPE_REFERENCE));
+        assertThat(fetcherResult).isEqualTo(purchase);
     }
 
     @Test
@@ -72,7 +77,7 @@ class QueryKeyArgumentFetcherTest {
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(QuickTopicType.STRING);
+        final DataFetcherClient<?> fetcherClient = this.createClient(new StringResolver());
         final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
@@ -90,7 +95,7 @@ class QueryKeyArgumentFetcherTest {
 
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(QuickTopicType.INTEGER);
+        final DataFetcherClient<?> fetcherClient = this.createClient(new IntegerResolver());
         final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
@@ -108,7 +113,7 @@ class QueryKeyArgumentFetcherTest {
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(QuickTopicType.LONG);
+        final DataFetcherClient<?> fetcherClient = this.createClient(new LongResolver());
         final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
@@ -126,7 +131,7 @@ class QueryKeyArgumentFetcherTest {
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(QuickTopicType.DOUBLE);
+        final DataFetcherClient<?> fetcherClient = this.createClient(new DoubleResolver());
         final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
@@ -137,7 +142,7 @@ class QueryKeyArgumentFetcherTest {
         assertThat(fetcherResult).isEqualTo(value);
     }
 
-    private MirrorDataFetcherClient<?> createClient(final QuickTopicType type) {
+    private <T> MirrorDataFetcherClient<T> createClient(final TypeResolver<T> type) {
         return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, type);
     }
 

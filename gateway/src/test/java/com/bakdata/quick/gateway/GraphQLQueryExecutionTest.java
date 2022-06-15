@@ -61,7 +61,7 @@ class GraphQLQueryExecutionTest {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy", "dummy");
         final TopicTypeService topicTypeService = mock(TopicTypeService.class);
         final FetcherFactory fetcherFactory =
-            new FetcherFactory(kafkaConfig, this.registryClient, this.objectMapper, this.supplier,
+            new FetcherFactory(kafkaConfig, this.objectMapper, this.supplier,
                 topicTypeService);
         final QuickDirectiveWiring topicDirectiveWiring = new TopicDirectiveWiring(fetcherFactory);
         this.generator = new GraphQLSchemaGenerator(List.of(topicDirectiveWiring), Collections.emptyList(),

@@ -14,23 +14,29 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.model;
+package com.bakdata.quick.common.exception;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.QuickTopicData.QuickData;
-import com.bakdata.quick.common.type.QuickTopicType;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import lombok.Value;
+import io.micronaut.http.HttpStatus;
 
 /**
- * Data for a topic.
+ * An exception that can be thrown when working with a Quick mirror.
  */
-@Value
-public class TopicData {
-    String name;
-    TopicWriteType writeType;
-    QuickTopicType keyType;
-    QuickTopicType valueType;
-    @Nullable String schema;
+public final class MirrorException extends QuickException {
+    private final HttpStatus status;
 
+    public MirrorException(@Nullable final String message, final HttpStatus status) {
+        super(message);
+        this.status = status;
+    }
+
+    public MirrorException(final String message, final HttpStatus status, final Throwable cause) {
+        super(message, cause);
+        this.status = status;
+    }
+
+    @Override
+    protected HttpStatus getStatus() {
+        return this.status;
+    }
 }

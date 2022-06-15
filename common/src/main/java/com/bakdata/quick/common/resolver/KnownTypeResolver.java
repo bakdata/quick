@@ -16,14 +16,26 @@
 
 package com.bakdata.quick.common.resolver;
 
-/**
- * Resolver for long primitives.
- */
-public class LongResolver implements TypeResolver<Long> {
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class KnownTypeResolver<T> implements TypeResolver<T> {
+    private final Class<T> typeClass;
+    private final ObjectMapper objectMapper;
+
+
+    public KnownTypeResolver(final Class<T> typeClass, final ObjectMapper objectMapper) {
+        this.typeClass = typeClass;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
-    public Long fromString(final String value) {
-        return Long.valueOf(value);
+    public T fromString(final String value) {
+        try {
+            return this.objectMapper.readValue(value, this.typeClass);
+        } catch (final JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
