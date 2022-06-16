@@ -8,7 +8,7 @@ and recommendations based on the user's playlist.
 You can use then use Quick to visualize the real-time profiles in a front-end. 
 To see an example, you can [view the demo website](https://profile-store.d9p.io/dashboard/).
 
-You can find the complete code in [Quick's example repository](https://github.com/bakdata/quick-examples/profile-store).
+You can find the complete code in [Quick's example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store).
 The example uses the real world data set [LFM-1b](http://www.cp.jku.at/datasets/LFM-1b/).
 The Kafka Streams application is written with
 our [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap).
@@ -109,7 +109,7 @@ For that, you use topics containing the mapping from id to names and then refere
 
 You are now ready to process and query the data.
 In case you don't have a running Quick instance,
-you can refer to the [getting started guide](../getting-started/setup-quick).
+you can refer to the [getting started guide](../../getting-started/setup-quick).
 
 To avoid redundancy, we show the setup of the integral parts.
 You find the steps for a complete deployment in the `justfile` in the [example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store/deployment/justfile). 

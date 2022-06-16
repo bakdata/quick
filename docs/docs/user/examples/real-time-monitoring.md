@@ -9,8 +9,6 @@ as well as the current position and car’s battery level.
 Our [dashboard](https://carsharing.d9p.io/) provides insights into the current status of all cars
 as well as details for single trips.
 
-You can find the source code of the project together with additional information in [Quick's examples repository](https://github.com/bakdata/quick-examples/carsharing).
-
 [![carsharing-app](../../assets/images/carsharing.png)](https://carsharing.d9p.io/)
 
 ---
@@ -44,14 +42,6 @@ void buildTopology(StreamsBuilder builder){
 }
 ```
 
-You can find the full code in [our repository](https://github.com/bakdata/quick-carsharing).
-The Kafka Streams application is written with
-our [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap),
-which, among others, offers sensible defaults and reduces the required boilerplate code.
-Of course, you are not limited to simple aggregation.
-With Kafka Streams you can also build more advanced applications.
-One could for example build a predictive maintenance service with it.
-
 ```java
 Trip aggregateTrip(String tripId, Status newStatus, Trip trip){
     List<Status> route = trip.getRoute();
@@ -59,14 +49,23 @@ Trip aggregateTrip(String tripId, Status newStatus, Trip trip){
     if (route == null) {
         trip.setId(tripId);
         trip.setVehicleId(newStatus.getVehicleId());
-        route=new ArrayList<>();
+        route = new ArrayList<>();
         trip.setRoute(route);
     }
 
     route.add(newStatus);
-        return trip;
+    return trip;
 }
 ```
+
+
+You can find the full code in our [example repository](https://github.com/bakdata/quick-examples/tree/main/carsharing).
+The Kafka Streams application is written with
+our [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap),
+which, among others, offers sensible defaults and reduces the required boilerplate code.
+Of course, you are not limited to simple aggregation.
+With Kafka Streams you can also build more advanced applications.
+One could for example build a predictive maintenance service with it.
 
 ## GraphQL Schema
 
@@ -125,13 +124,14 @@ type Trip {
 Quick introduces a custom GraphQL directive called `@topic`.
 It allows you to annotate fields and connect them to a topic.
 With that, we can define the relationship between our GraphQL Schema and Kafka.
-```graphql
-type Query {
-    trip(id: String): Trip @topic(name: "trip", keyArgument: "id")
-}
-```
+
 We first connect the `statusUpdates` subscription to the status topic.
 It ensures that each event written to the Kafka topic is pushed into the GraphQL websocket connection.
+```graphql
+type Subscription {
+    statusUpdates: Status @topic(name: "status")
+}
+```
 Second, we want to display information about a vehicle when querying a trip.
 Instead of creating a separate operation, we can add this information to `Trip` itself:
 `Trip` has a new field `vehicle`.
@@ -141,6 +141,10 @@ When querying a trip, the user can decide if they indeed require the vehicle inf
 If this is not the case, the corresponding data is never loaded and thus no overhead occurs.
 
 ```graphql
+type Query {
+    trip(id: String): Trip @topic(name: "trip", keyArgument: "id")
+}
+
 type Trip {
     id: String!,
     vehicleId: String!,
@@ -157,7 +161,7 @@ type Vehicle {
 
 ## Quick
 
-We are ready to process and query our data. In case you don't have a running Quick instance, you can refer to the [getting started guide](http://www.cp.jku.at/datasets/LFM-1b/).
+We are ready to process and query our data. In case you don't have a running Quick instance, you can refer to the [getting started guide](../../getting-started/setup-quick).
 
 #### Gateway
 First, we initialize the Quick CLI, which requires a base URL and an API-Key.
@@ -220,8 +224,8 @@ Since we have complex values, we reference the GraphQL types.
 
 ```shell
 quick topic create vehicle -k string -v schema --schema car-sharing.Vehicle
-quick topic create trip -k string -v schema --schema car-sharing.Trip
 quick topic create status -k string -v schema --schema car-sharing.Status
+quick topic create trip -k string -v schema --schema car-sharing.Trip
 ```
 
 #### Application
@@ -243,17 +247,29 @@ Quick supports the ingest through a REST-API.
 For example, the following snippet shows a command ingesting new vehicles into the `vehicle` topic.
 
 ```shell
-curl -X POST --url $HOST/ingest/vehicle \
-  --header 'content-type: application/json' \
-  --header 'X-API-Key:$KEY' \
-  --data "@./data/vehicles.json"
+curl -X POST --url $QUICK_URL/ingest/vehicle \
+  --header "content-type: application/json" \
+  --header "X-API-Key:$QUICK_API_KEY" \
+  --data "@./simulator/data/vehicles.json"
 ```
 
-When cars are ingesting their status events into the system, we can start to use our query and subscribe operations.
+Exemplary data are contained in the [simulator subdirectory](https://github.com/bakdata/quick-examples/tree/main/carsharing/simulator).
+You may also follow the steps described there to create your own dataset.
+
+You can now start the simulation by sending data to the status topic.
+The script requires the environment variables `QUICK_URL` and `QUICK_API_KEY` set
+and the [python requirements](https://github.com/bakdata/quick-examples/tree/main/carsharing/simulator/requirements.txt) installed.
+```
+python -m car_sharing_simulator.simulator
+```
+
+Now we can start to use our query and subscribe operations.
+
+Subscriptions target the url `wss://${QUICK_HOST}/gatway/car-sharing/graphql-ws`
 
 ```graphql
 subscription {
-    carSharing {
+    statusUpdates {
         statusId
         tripId
         vehicleId
