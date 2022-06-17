@@ -25,11 +25,24 @@ import io.micronaut.http.HttpStatus;
 public final class MirrorException extends QuickException {
     private final HttpStatus status;
 
+    /**
+     * New instance without an underlying cause.
+     *
+     * @param message error message
+     * @param status  status code from mirror's response
+     */
     public MirrorException(@Nullable final String message, final HttpStatus status) {
         super(message);
         this.status = status;
     }
 
+    /**
+     * New instance with underlying cause.
+     *
+     * @param message error message
+     * @param status  status code from mirror's response
+     * @param cause   underlying cause
+     */
     public MirrorException(final String message, final HttpStatus status, final Throwable cause) {
         super(message, cause);
         this.status = status;

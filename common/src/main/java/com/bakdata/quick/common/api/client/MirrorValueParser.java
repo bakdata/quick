@@ -34,6 +34,10 @@ import java.util.stream.StreamSupport;
  * @param <V> type of the value
  */
 class MirrorValueParser<V> {
+    /**
+     * Name of the field in {@link MirrorValue} containing the value.
+     */
+    public static final String FIELD_NAME = "value";
     private final TypeResolver<V> resolver;
     private final ObjectMapper objectMapper;
 
@@ -44,7 +48,7 @@ class MirrorValueParser<V> {
 
     MirrorValue<V> deserialize(final InputStream inputStream) throws IOException {
         final JsonNode jsonNode = this.objectMapper.readTree(inputStream);
-        final JsonNode value = jsonNode.get("value");
+        final JsonNode value = jsonNode.get(FIELD_NAME);
         if (value.isArray()) {
             throw new MirrorException("Expected single value, but got an array", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -53,7 +57,7 @@ class MirrorValueParser<V> {
 
     MirrorValue<List<V>> deserializeList(final InputStream inputStream) throws IOException {
         final JsonNode jsonNode = this.objectMapper.readTree(inputStream);
-        final JsonNode valueNode = jsonNode.get("value");
+        final JsonNode valueNode = jsonNode.get(FIELD_NAME);
         if (!valueNode.isArray()) {
             throw new MirrorException("Expected an array, but got a single value", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -66,7 +70,8 @@ class MirrorValueParser<V> {
 
     private V parseValue(final JsonNode element) {
         // If this is a textualValue, `toString()` returns a string with unwanted quotes
-        return this.resolver.fromString(element.isTextual() ? element.textValue() : element.toString());
+        final String stringValue = element.isTextual() ? element.textValue() : element.toString();
+        return this.resolver.fromString(stringValue);
     }
 
 }

@@ -23,6 +23,7 @@ import com.bakdata.quick.common.resolver.LongResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import java.util.Map;
 import java.util.Objects;
@@ -38,7 +39,12 @@ public enum QuickTopicType {
     SCHEMA {
         @Override
         public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
-            final Schema schema = (Schema) Objects.requireNonNull(parsedSchema).rawSchema();
+            Objects.requireNonNull(parsedSchema, "Schema must not be null for Avro types");
+            if (!(parsedSchema instanceof AvroSchema)) {
+                throw new IllegalArgumentException(
+                    "Expected Avro schema, but got " + parsedSchema.getClass().getName());
+            }
+            final Schema schema = (Schema) parsedSchema.rawSchema();
             return configuredTypeResolve(new GenericAvroResolver(schema));
         }
 
@@ -47,7 +53,6 @@ public enum QuickTopicType {
             return configuredSerde(new GenericAvroSerde(), configs, isKey);
         }
     },
-
     DOUBLE {
         @Override
         public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
@@ -59,7 +64,6 @@ public enum QuickTopicType {
             return configuredSerde(Serdes.Double(), configs, isKey);
         }
     },
-
     INTEGER {
         @Override
         public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
@@ -71,7 +75,6 @@ public enum QuickTopicType {
             return configuredSerde(Serdes.Integer(), configs, isKey);
         }
     },
-
     LONG {
         @Override
         public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
