@@ -17,10 +17,12 @@
 package com.bakdata.quick.common.api.model.mirror;
 
 import com.bakdata.quick.common.config.MirrorConfig;
+import lombok.Getter;
 
 /**
  * Utility for setting a Mirror host in Quick.
  */
+@Getter
 public class MirrorHost {
     private final String host;
     private final MirrorConfig config;

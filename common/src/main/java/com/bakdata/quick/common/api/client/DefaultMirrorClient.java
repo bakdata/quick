@@ -16,9 +16,11 @@
 
 package com.bakdata.quick.common.api.client;
 
+import com.bakdata.quick.common.api.client.routing.PartitionRouter;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
+import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.exception.QuickException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -43,10 +45,12 @@ import okhttp3.ResponseBody;
  */
 @Slf4j
 public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
-    private final MirrorHost host;
+    private final MirrorHost mirrorHost;
+    private final StreamsStateHost streamsStateHost;
     private final HttpClient client;
     private final JavaType valueType;
     private final JavaType listType;
+    private final PartitionRouter<K> router;
 
     /**
      * Constructor for client.
@@ -57,10 +61,12 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
         final JavaType valueType) {
-        this.host = new MirrorHost(topicName, mirrorConfig);
+        this.mirrorHost = new MirrorHost(topicName, mirrorConfig);
+        this.streamsStateHost = StreamsStateHost.fromMirrorHost(this.mirrorHost);
         this.client = client;
         this.valueType = this.getValueType(valueType);
         this.listType = this.getListType(valueType);
+        this.router = new PartitionRouter<>(client, streamsStateHost);
     }
 
     /**
@@ -71,21 +77,26 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param valueType  value type
      */
     public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final JavaType valueType) {
-        this.host = mirrorHost;
+        this.mirrorHost = mirrorHost;
+        this.streamsStateHost = StreamsStateHost.fromMirrorHost(this.mirrorHost);
         this.client = client;
         this.valueType = this.getValueType(valueType);
         this.listType = this.getListType(valueType);
+        this.router = new PartitionRouter<>(client, streamsStateHost);
     }
 
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        return this.sendRequest(this.host.forKey(key.toString()), this.valueType);
+
+        // TODO: choose correct host
+        MirrorHost currentKeyHost = router.getHost(key);
+        return this.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()), this.valueType);
     }
 
     @Override
     public List<V> fetchAll() {
-        return Objects.requireNonNullElse(this.sendRequest(this.host.forAll(), this.listType), Collections.emptyList());
+        return Objects.requireNonNullElse(this.sendRequest(this.mirrorHost.forAll(), this.listType), Collections.emptyList());
     }
 
     @Override
@@ -97,7 +108,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
         final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
-        return this.sendRequest(this.host.forKeys(collect), this.listType);
+        return this.sendRequest(this.mirrorHost.forKeys(collect), this.listType);
     }
 
 
@@ -142,25 +153,5 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
         return typeFactory.constructParametricType(MirrorValue.class, collectionType);
     }
 
-    /**
-     * An exception that can be thrown when working with a Quick mirror.
-     */
-    public static final class MirrorException extends QuickException {
-        private final HttpStatus status;
 
-        private MirrorException(@Nullable final String message, final HttpStatus status) {
-            super(message);
-            this.status = status;
-        }
-
-        private MirrorException(final String message, final HttpStatus status, final Throwable cause) {
-            super(message, cause);
-            this.status = status;
-        }
-
-        @Override
-        protected HttpStatus getStatus() {
-            return this.status;
-        }
-    }
 }
