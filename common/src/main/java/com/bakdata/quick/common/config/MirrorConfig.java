@@ -30,6 +30,7 @@ public class MirrorConfig {
 
     public static final String DEFAULT_MIRROR_HOST_PREFIX = "quick-mirror-";
     public static final String DEFAULT_MIRROR_HOST_PATH = "mirror";
+    public static final String DEFAULT_PARTITION_MAPPING_PATH = "streams/partitions";
     public static final int DEFAULT_MIRROR_POD_PORT = 8080;
 
     private final String prefix;
@@ -67,5 +68,9 @@ public class MirrorConfig {
      */
     public static MirrorConfig directAccess() {
         return new MirrorConfig(Optional.of(""), Optional.of(DEFAULT_MIRROR_HOST_PATH));
+    }
+
+    public static MirrorConfig getConfigForPartitionMappingInfo() {
+        return new MirrorConfig(Optional.of(""), Optional.of(DEFAULT_PARTITION_MAPPING_PATH));
     }
 }
