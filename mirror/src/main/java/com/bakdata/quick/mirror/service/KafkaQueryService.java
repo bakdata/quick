@@ -18,6 +18,7 @@ package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
@@ -25,6 +26,7 @@ import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.type.QuickTopicType;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 import io.reactivex.Flowable;
@@ -55,9 +57,9 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private final KafkaStreams streams;
     private final HostInfo hostInfo;
     private final String storeName;
+    private final QuickTopicType keyType;
     private final String topicName;
     private final Serializer<K> keySerializer;
-    private final TypeResolver<V> valueResolver;
     private final TypeResolver<K> keyResolver;
     private final StoreQueryParameters<ReadOnlyKeyValueStore<K, V>> storeQueryParameters;
 
@@ -76,7 +78,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.storeName = context.getStoreName();
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
-        this.valueResolver = topicData.getValueData().getResolver();
+        TypeResolver<V> valueResolver = topicData.getValueData().getResolver();
+        this.keyType = topicData.getKeyData().getType();
         this.topicName = topicData.getName();
         this.storeQueryParameters = StoreQueryParameters.fromNameAndType(
             this.storeName,

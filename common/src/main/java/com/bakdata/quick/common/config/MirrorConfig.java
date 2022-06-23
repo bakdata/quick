@@ -16,6 +16,10 @@
 
 package com.bakdata.quick.common.config;
 
+import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
+import com.bakdata.quick.common.api.client.routing.PartitionFinder;
+import com.bakdata.quick.common.api.client.routing.PartitionRouter;
+import com.bakdata.quick.common.api.client.routing.Router;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import java.util.Optional;
@@ -72,5 +76,9 @@ public class MirrorConfig {
 
     public static MirrorConfig getConfigForPartitionMappingInfo() {
         return new MirrorConfig(Optional.of(""), Optional.of(DEFAULT_PARTITION_MAPPING_PATH));
+    }
+
+    public static PartitionFinder getDefaultPartitionFinder() {
+        return new DefaultPartitionFinder();
     }
 }

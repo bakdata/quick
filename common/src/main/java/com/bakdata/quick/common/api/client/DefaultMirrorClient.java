@@ -16,7 +16,10 @@
 
 package com.bakdata.quick.common.api.client;
 
+import com.bakdata.quick.common.api.client.routing.PartitionFinder;
 import com.bakdata.quick.common.api.client.routing.PartitionRouter;
+import com.bakdata.quick.common.api.client.routing.Router;
+import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
@@ -42,6 +45,9 @@ import okhttp3.ResponseBody;
  */
 @Slf4j
 public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
     private final MirrorHost mirrorHost;
     private final StreamsStateHost streamsStateHost;
     private final HttpClient client;

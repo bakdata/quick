@@ -44,6 +44,7 @@ class TopicRegistryMirrorClientTest {
     private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
     private final String host = String.format("%s:%d", this.server.getHostName(), this.server.getPort());
     private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
+    private final TopicData topicData = createTopicData("dummy");
     private final MirrorClient<String, TopicData> topicDataClient =
         new DefaultMirrorClient<>(this.mirrorHost, this.client, new KnownTypeResolver<>(TopicData.class, this.mapper));
 
