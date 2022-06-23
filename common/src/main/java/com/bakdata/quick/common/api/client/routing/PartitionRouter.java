@@ -2,9 +2,11 @@ package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.StreamsStateHost;
+import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
+import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
-import edu.umd.cs.findbugs.annotations.Nullable;
+import com.bakdata.quick.common.type.QuickTopicType;
 import io.micronaut.http.HttpStatus;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -14,15 +16,23 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PartitionRouter<K> {
+
+public class PartitionRouter<K> implements Router<K> {
 
     private final HttpClient client;
     private final StreamsStateHost streamsStateHost;
+    private final QuickTopicType keyType;
+    private final String topic;
+    private final PartitionFinder partitionFinder;
     private final HashMap<Integer, MirrorHost> partitionToHost;
 
-    public PartitionRouter(HttpClient client, StreamsStateHost streamsStateHost) {
+    public PartitionRouter(final HttpClient client, final StreamsStateHost streamsStateHost,
+                           final QuickTopicType keyType, final String topic) {
         this.client = client;
         this.streamsStateHost = streamsStateHost;
+        this.keyType = keyType;
+        this.topic = topic;
+        this.partitionFinder = MirrorConfig.getDefaultPartitionFinder();
         this.partitionToHost = new HashMap<>();
         init();
     }
@@ -61,16 +71,10 @@ public class PartitionRouter<K> {
 
     }
 
-
-    @Nullable
+    @Override
     public MirrorHost getHost(K key) {
-        // TODO find: partition(key) -> x
-        int partition = findPartitionForKey(key);
-        // return: partitionToHost(x)
+        final byte[] serializedKey = keyType.getSerde().serializer().serialize(topic, key);
+        final int partition = partitionFinder.getForSerializedKey(serializedKey, this.partitionToHost.size());
         return this.partitionToHost.get(partition);
-    }
-
-    private int findPartitionForKey(K key) {
-        return 0;
     }
 }

@@ -57,9 +57,11 @@ public class MirrorRegistryClient implements TopicRegistryClient {
         final HttpClient client) {
         this.registryTopic = topicRegistryConfig.getTopicName();
         this.ingestClient = ingestClient;
-        this.topicDataClient = createMirrorClient(topicRegistryConfig, client);
-        this.registryData = new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING,
-            QuickTopicType.SCHEMA, null);
+        TopicData registryData = new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING,
+                QuickTopicType.SCHEMA, null);
+        this.registryData = registryData;
+        this.topicDataClient = createMirrorClient(topicRegistryConfig, client, registryData);
+
     }
 
     @Override
@@ -95,10 +97,9 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     }
 
     private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
-        final HttpClient client) {
-        final JavaType valueType = client.typeFactory().constructType(TopicData.class);
+        final HttpClient client, final TopicData topicData) {
         final String serviceName = topicRegistryConfig.getServiceName();
-        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), valueType);
+        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), topicData.getKeyType());
     }
 
     private Single<TopicData> getSelf() {

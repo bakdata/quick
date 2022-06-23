@@ -26,7 +26,7 @@ public class StreamsStateHost {
     }
 
     /**
-     * Generates a URL for fetching a single key in a topic.
+     * Generates a URL for fetching partition info.
      */
     public String getPartitionToHostUrl() {
         return String.format("http://%s%s", this.host, this.config.getPath());

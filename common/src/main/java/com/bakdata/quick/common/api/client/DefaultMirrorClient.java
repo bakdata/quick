@@ -16,13 +16,18 @@
 
 package com.bakdata.quick.common.api.client;
 
+import com.bakdata.quick.common.api.client.routing.PartitionFinder;
 import com.bakdata.quick.common.api.client.routing.PartitionRouter;
+import com.bakdata.quick.common.api.client.routing.Router;
+import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.exception.QuickException;
+import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -45,28 +50,36 @@ import okhttp3.ResponseBody;
  */
 @Slf4j
 public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
     private final MirrorHost mirrorHost;
     private final StreamsStateHost streamsStateHost;
     private final HttpClient client;
+    private final QuickTopicType keyType;
+    private final String topic;
     private final JavaType valueType;
     private final JavaType listType;
-    private final PartitionRouter<K> router;
+    private final Router<K> router;
 
     /**
      * Constructor for client.
      *
      * @param topicName name of the topic the mirror is deployed
      * @param client    http client
-     * @param valueType value type
+     * @param mirrorConfig mirror config
+     * @param keyType key type
      */
-    public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-        final JavaType valueType) {
+    public DefaultMirrorClient(final String topicName, final HttpClient client,
+                               final MirrorConfig mirrorConfig, final QuickTopicType keyType) {
         this.mirrorHost = new MirrorHost(topicName, mirrorConfig);
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(this.mirrorHost);
         this.client = client;
-        this.valueType = this.getValueType(valueType);
+        this.topic = topicName;
+        this.keyType = keyType;
+        this.valueType = this.getValueType(this.mapper.constructType(TopicData.class));
         this.listType = this.getListType(valueType);
-        this.router = new PartitionRouter<>(client, streamsStateHost);
+        this.router = new PartitionRouter<>(client, streamsStateHost, keyType, topicName);
     }
 
     /**
@@ -74,22 +87,23 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      *
      * @param mirrorHost host to use
      * @param client     http client
-     * @param valueType  value type
+     * @param topicName  topic name
+     * @param keyType    key type
      */
-    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final JavaType valueType) {
+    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final String topicName, final QuickTopicType keyType) {
         this.mirrorHost = mirrorHost;
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(this.mirrorHost);
         this.client = client;
-        this.valueType = this.getValueType(valueType);
+        this.topic = topicName;
+        this.keyType = keyType;
+        this.valueType = this.getValueType(this.mapper.constructType(TopicData.class));
         this.listType = this.getListType(valueType);
-        this.router = new PartitionRouter<>(client, streamsStateHost);
+        this.router = new PartitionRouter<>(client, streamsStateHost, keyType, topic);
     }
 
     @Override
     @Nullable
     public V fetchValue(final K key) {
-
-        // TODO: choose correct host
         MirrorHost currentKeyHost = router.getHost(key);
         return this.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()), this.valueType);
     }

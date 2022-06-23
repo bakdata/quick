@@ -72,7 +72,6 @@ public class MirrorDataFetcherClient<T> implements DataFetcherClient<T> {
     @NotNull
     private DefaultMirrorClient<String, T> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
         final HttpClient client, final Lazy<QuickTopicType> type) {
-        final JavaType elementType = type.get().getTypeResolver().getElementType();
-        return new DefaultMirrorClient<>(host, client, mirrorConfig, elementType);
+        return new DefaultMirrorClient<>(host, client, mirrorConfig, type.get());
     }
 }

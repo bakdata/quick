@@ -82,7 +82,7 @@ public class IngestFilter {
         // Value doesnt matter
         // still TODO get class from topic data
         final MirrorClient<K, Object> client =
-            new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig, TypeFactory.unknownType());
+            new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig, topicData.getKeyData().getType());
 
         return Flowable.fromIterable(pairs)
             .map(pair -> {
