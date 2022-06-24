@@ -16,27 +16,27 @@
 
 package com.bakdata.quick.common.api.client;
 
-import com.bakdata.quick.common.api.client.routing.PartitionFinder;
 import com.bakdata.quick.common.api.client.routing.PartitionRouter;
 import com.bakdata.quick.common.api.client.routing.Router;
-import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.type.QuickTopicType;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 /**
  * Default HTTP client for working with Quick mirrors.
@@ -47,19 +47,11 @@ import okhttp3.ResponseBody;
 @Slf4j
 public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
 
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private final MirrorHost mirrorHost;
-    private final StreamsStateHost streamsStateHost;
     private final HttpClient client;
     private final MirrorValueParser<V> parser;
-    private final QuickTopicType keyType;
-    private final String topic;
-    private final JavaType valueType;
-    private final JavaType listType;
     private final Router<K> router;
 
-    private List<MirrorHost> knownHosts = new ArrayList<>();
+    private final List<MirrorHost> knownHosts;
 
 
     /**
@@ -71,8 +63,8 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param typeResolver the value's {@link TypeResolver}
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-                               final TypeResolver<V> typeResolver) {
-        this(new MirrorHost(topicName, mirrorConfig), client, typeResolver);
+                               final TypeResolver<V> typeResolver, final QuickTopicType keyType) {
+        this(new MirrorHost(topicName, mirrorConfig), client, typeResolver, topicName, keyType);
     }
 
     /**
@@ -83,24 +75,28 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param typeResolver the value's {@link TypeResolver}
      */
     public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
-                               final TypeResolver<V> typeResolver) {
-        this.host = mirrorHost;
+                               final TypeResolver<V> typeResolver, final String topicName, final QuickTopicType keyType) {
         this.client = client;
         this.parser = new MirrorValueParser<>(typeResolver, client.objectMapper());
+        StreamsStateHost streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
+        this.router = new PartitionRouter<>(client, streamsStateHost, keyType, topicName);
+        this.knownHosts = this.router.getAllHosts();
     }
 
     @Override
     @Nullable
     public V fetchValue(final K key) {
+
         MirrorHost currentKeyHost = router.getHost(key);
-        return this.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()), this.valueType);
+        return this.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()), this.parser::deserialize);
     }
 
     @Override
     public List<V> fetchAll() {
         List<V> valuesFromAllHosts = new ArrayList<>();
         for (MirrorHost host : this.knownHosts) {
-            List<V> valuesFromSingleHost = Objects.requireNonNullElse(this.sendRequest(host.forAll(), this.listType), Collections.emptyList());
+            List<V> valuesFromSingleHost = Objects.requireNonNullElse(this.sendRequest(
+                    host.forAll(), this.parser::deserializeList), Collections.emptyList());
             valuesFromAllHosts.addAll(valuesFromSingleHost);
         }
         return valuesFromAllHosts;
