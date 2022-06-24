@@ -46,6 +46,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     private final MirrorClient<String, TopicData> topicDataClient;
     private final TopicData registryData;
 
+
     /**
      * Injectable constructor.
      *

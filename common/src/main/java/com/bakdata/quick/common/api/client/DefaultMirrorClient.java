@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -62,6 +63,9 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     private final JavaType listType;
     private final Router<K> router;
 
+    private List<MirrorHost> knownHosts = new ArrayList<>();
+
+
     /**
      * Constructor for client.
      *
@@ -80,6 +84,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
         this.valueType = this.getValueType(this.mapper.constructType(TopicData.class));
         this.listType = this.getListType(valueType);
         this.router = new PartitionRouter<>(client, streamsStateHost, keyType, topicName);
+        this.knownHosts = this.router.getAllHosts();
     }
 
     /**
@@ -110,7 +115,12 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
 
     @Override
     public List<V> fetchAll() {
-        return Objects.requireNonNullElse(this.sendRequest(this.mirrorHost.forAll(), this.listType), Collections.emptyList());
+        List<V> valuesFromAllHosts = new ArrayList<>();
+        for (MirrorHost host : this.knownHosts) {
+            List<V> valuesFromSingleHost = Objects.requireNonNullElse(this.sendRequest(host.forAll(), this.listType), Collections.emptyList());
+            valuesFromAllHosts.addAll(valuesFromSingleHost);
+        }
+        return valuesFromAllHosts;
     }
 
     @Override
@@ -121,8 +131,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
-        final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
-        return this.sendRequest(this.mirrorHost.forKeys(collect), this.listType);
+        return keys.stream().map(this::fetchValue).collect(Collectors.toList());
     }
 
 
