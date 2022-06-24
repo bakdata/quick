@@ -25,12 +25,13 @@ import com.bakdata.quick.common.resolver.TypeResolver;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
-import java.util.Map;
-import java.util.Objects;
 import org.apache.avro.Schema;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents possible types for Quick topics.

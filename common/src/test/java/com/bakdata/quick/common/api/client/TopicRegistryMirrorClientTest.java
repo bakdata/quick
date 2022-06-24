@@ -16,8 +16,6 @@
 
 package com.bakdata.quick.common.api.client;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
@@ -29,12 +27,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import java.util.List;
-import java.util.Objects;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Objects;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @MicronautTest
 class TopicRegistryMirrorClientTest {
@@ -46,7 +47,8 @@ class TopicRegistryMirrorClientTest {
     private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
     private final TopicData topicData = createTopicData("dummy");
     private final MirrorClient<String, TopicData> topicDataClient =
-        new DefaultMirrorClient<>(this.mirrorHost, this.client, new KnownTypeResolver<>(TopicData.class, this.mapper));
+        new DefaultMirrorClient<>(this.mirrorHost, this.client, new KnownTypeResolver<>(TopicData.class, this.mapper),
+                topicData.getName(), topicData.getKeyType());
 
     private static TopicData createTopicData(final String name) {
         return new TopicData(name, TopicWriteType.IMMUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);

@@ -26,10 +26,11 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.inject.Singleton;
 import java.util.Comparator;
 import java.util.List;
-import javax.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * A client for interacting backed by a topic.
@@ -98,11 +99,11 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     }
 
     private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
-        final HttpClient client) {
+        final HttpClient client, final TopicData topicData) {
         final KnownTypeResolver<TopicData> typeResolver =
             new KnownTypeResolver<>(TopicData.class, client.objectMapper());
         final String serviceName = topicRegistryConfig.getServiceName();
-        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), typeResolver);
+        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), typeResolver, topicData.getKeyType());
     }
 
     private Single<TopicData> getSelf() {

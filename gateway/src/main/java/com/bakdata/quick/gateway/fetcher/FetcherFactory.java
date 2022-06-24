@@ -176,11 +176,12 @@ public class FetcherFactory {
 
         private  <T> DataFetcherClient<T> doCreateClient(final String topic) {
             final Lazy<TypeResolver<T>> quickTopicTypeLazy = this.getQuickTopicTypeLazy(topic);
+            final
             return new MirrorDataFetcherClient<>(
                 topic,
                 this.client,
                 this.mirrorConfig,
-                quickTopicTypeLazy
+                quickTopicTypeLazy,
             );
         }
 

@@ -18,7 +18,6 @@ package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
@@ -32,17 +31,17 @@ import io.micronaut.http.exceptions.HttpStatusException;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
-import java.util.List;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.processor.internals.InternalTopologyBuilder;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
+
+import javax.inject.Inject;
+import java.util.List;
 
 /**
  * Service for querying a kafka state store.
@@ -61,6 +60,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private final String topicName;
     private final Serializer<K> keySerializer;
     private final TypeResolver<K> keyResolver;
+    private final TypeResolver<V> valueResolver;
     private final StoreQueryParameters<ReadOnlyKeyValueStore<K, V>> storeQueryParameters;
 
     /**
@@ -78,7 +78,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.storeName = context.getStoreName();
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
-        TypeResolver<V> valueResolver = topicData.getValueData().getResolver();
+        this.valueResolver = topicData.getValueData().getResolver();
         this.keyType = topicData.getKeyData().getType();
         this.topicName = topicData.getName();
         this.storeQueryParameters = StoreQueryParameters.fromNameAndType(
@@ -151,7 +151,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
         final DefaultMirrorClient<K, V> client =
-            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver);
+            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver, this.topicName, this.keyType);
         // TODO: don't bother deserializing
         final V value = client.fetchValue(key);
 
