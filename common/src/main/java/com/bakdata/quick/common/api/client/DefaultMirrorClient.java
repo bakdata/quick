@@ -28,6 +28,7 @@ import com.bakdata.quick.common.resolver.TypeResolver;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +53,9 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     private final StreamsStateHost streamsStateHost;
     private final HttpClient client;
     private final MirrorValueParser<V> parser;
+
+    private List<MirrorHost> knownHosts = new ArrayList<>();
+
 
     /**
      * Constructor for the client.

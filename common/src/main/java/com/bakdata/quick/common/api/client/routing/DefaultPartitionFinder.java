@@ -2,6 +2,9 @@ package com.bakdata.quick.common.api.client.routing;
 
 import org.apache.kafka.common.utils.Utils;
 
+/**
+ * PartitionFinder with the basic (default) logic for retrieving partitions.
+ */
 public class DefaultPartitionFinder implements PartitionFinder {
 
     @Override
