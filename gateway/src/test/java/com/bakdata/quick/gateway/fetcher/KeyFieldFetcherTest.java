@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.type.QuickTopicType;
+import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
@@ -33,7 +33,6 @@ import lombok.Data;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 class KeyFieldFetcherTest {
@@ -60,7 +59,7 @@ class KeyFieldFetcherTest {
         final String productJson = this.mapper.writeValueAsString(new MirrorValue<>(product));
         this.server.enqueue(new MockResponse().setBody(productJson));
 
-        final DataFetcherClient<Map<String, Object>> fetcherClient = this.createClient();
+        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
         final KeyFieldFetcher<?> queryFetcher =
             new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
@@ -68,8 +67,7 @@ class KeyFieldFetcherTest {
             .build();
 
         final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult)
-            .isEqualTo(this.mapper.convertValue(product, DataFetcherClient.OBJECT_TYPE_REFERENCE));
+        assertThat(fetcherResult).isEqualTo(product);
     }
 
 
@@ -94,7 +92,7 @@ class KeyFieldFetcherTest {
         final String currencyJson = this.mapper.writeValueAsString(new MirrorValue<>(currency));
         this.server.enqueue(new MockResponse().setBody(currencyJson));
 
-        final DataFetcherClient<Map<String, Object>> fetcherClient = this.createClient();
+        final DataFetcherClient<Currency> fetcherClient = this.createClient(Currency.class);
         final KeyFieldFetcher<?> queryFetcher =
             new KeyFieldFetcher<>(this.mapper, "currencyId", fetcherClient);
         final String source = this.mapper.writeValueAsString(purchase);
@@ -102,8 +100,7 @@ class KeyFieldFetcherTest {
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
 
         final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult)
-            .isEqualTo(this.mapper.convertValue(currency, DataFetcherClient.OBJECT_TYPE_REFERENCE));
+        assertThat(fetcherResult).isEqualTo(currency);
     }
 
     @Test
@@ -127,23 +124,22 @@ class KeyFieldFetcherTest {
             .build();
 
 
-        final String listJson = this.mapper.writeValueAsString(List.of(product1, product2));
         this.server.enqueue(
             new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
 
-        final DataFetcherClient<Map<String, Object>> fetcherClient = this.createClient();
+        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
         final KeyFieldFetcher<?> queryFetcher =
             new KeyFieldFetcher<>(this.mapper, "productIds", fetcherClient);
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
         final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(this.mapper.readValue(listJson, DataFetcherClient.LIST_TYPE_REFERENCE));
+        assertThat(fetcherResult).isEqualTo(List.of(product1, product2));
     }
 
-    @NotNull
-    private MirrorDataFetcherClient<Map<String, Object>> createClient() {
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, QuickTopicType.SCHEMA);
+    private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
+        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig,
+            new KnownTypeResolver<>(clazz, this.mapper));
     }
 
     @Data

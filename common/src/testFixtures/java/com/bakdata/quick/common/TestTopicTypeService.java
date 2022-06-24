@@ -59,15 +59,11 @@ public class TestTopicTypeService implements TopicTypeService {
     @Override
     public <K, V> Single<QuickTopicData<K, V>> getTopicData(final String topic) {
         final String schemaRegistryUrl = this.urlSupplier.get();
-        final Serde<K> keySerde = this.keyType.getSerde();
-        final Serde<V> valueSerde = this.valueType.getSerde();
-        final TypeResolver<K> keyResolver = this.keyType.getTypeResolver();
-        final TypeResolver<V> valueResolver = this.valueType.getTypeResolver();
         final Map<String, String> configs = Map.of("schema.registry.url", schemaRegistryUrl);
-        keySerde.configure(configs, true);
-        valueSerde.configure(configs, false);
-        keyResolver.configure(this.keySchema);
-        valueResolver.configure(this.valueSchema);
+        final Serde<K> keySerde = this.keyType.getSerde(configs, true);
+        final Serde<V> valueSerde = this.valueType.getSerde(configs, false);
+        final TypeResolver<K> keyResolver = this.keyType.getTypeResolver(this.keySchema);
+        final TypeResolver<V> valueResolver = this.valueType.getTypeResolver(this.valueSchema);
         final QuickData<K> quickData = new QuickData<>(this.keyType, keySerde, keyResolver);
         final QuickData<V> valueInfo = new QuickData<>(this.valueType, valueSerde, valueResolver);
         final QuickTopicData<K, V> topicInfo =

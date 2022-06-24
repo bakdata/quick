@@ -24,12 +24,7 @@ import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
-import com.bakdata.quick.common.exception.QuickException;
-import com.bakdata.quick.common.type.QuickTopicType;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
@@ -57,6 +52,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     private final MirrorHost mirrorHost;
     private final StreamsStateHost streamsStateHost;
     private final HttpClient client;
+    private final MirrorValueParser<V> parser;
     private final QuickTopicType keyType;
     private final String topic;
     private final JavaType valueType;
@@ -67,43 +63,30 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
 
 
     /**
-     * Constructor for client.
+     * Constructor for the client.
      *
-     * @param topicName name of the topic the mirror is deployed
-     * @param client    http client
-     * @param mirrorConfig mirror config
-     * @param keyType key type
+     * @param topicName    name of the topic the mirror is deployed
+     * @param client       http client
+     * @param mirrorConfig configuration of the mirror host
+     * @param typeResolver the value's {@link TypeResolver}
      */
-    public DefaultMirrorClient(final String topicName, final HttpClient client,
-                               final MirrorConfig mirrorConfig, final QuickTopicType keyType) {
-        this.mirrorHost = new MirrorHost(topicName, mirrorConfig);
-        this.streamsStateHost = StreamsStateHost.fromMirrorHost(this.mirrorHost);
-        this.client = client;
-        this.topic = topicName;
-        this.keyType = keyType;
-        this.valueType = this.getValueType(this.mapper.constructType(TopicData.class));
-        this.listType = this.getListType(valueType);
-        this.router = new PartitionRouter<>(client, streamsStateHost, keyType, topicName);
-        this.knownHosts = this.router.getAllHosts();
+    public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
+                               final TypeResolver<V> typeResolver) {
+        this(new MirrorHost(topicName, mirrorConfig), client, typeResolver);
     }
 
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
      *
-     * @param mirrorHost host to use
-     * @param client     http client
-     * @param topicName  topic name
-     * @param keyType    key type
+     * @param mirrorHost   host to use
+     * @param client       http client
+     * @param typeResolver the value's {@link TypeResolver}
      */
-    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final String topicName, final QuickTopicType keyType) {
-        this.mirrorHost = mirrorHost;
-        this.streamsStateHost = StreamsStateHost.fromMirrorHost(this.mirrorHost);
+    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
+                               final TypeResolver<V> typeResolver) {
+        this.host = mirrorHost;
         this.client = client;
-        this.topic = topicName;
-        this.keyType = keyType;
-        this.valueType = this.getValueType(this.mapper.constructType(TopicData.class));
-        this.listType = this.getListType(valueType);
-        this.router = new PartitionRouter<>(client, streamsStateHost, keyType, topic);
+        this.parser = new MirrorValueParser<>(typeResolver, client.objectMapper());
     }
 
     @Override
@@ -134,10 +117,8 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
         return keys.stream().map(this::fetchValue).collect(Collectors.toList());
     }
 
-
-    @SuppressWarnings("TypeParameterUnusedInFormals")
     @Nullable
-    private <T> T sendRequest(final String url, final JavaType typeReference) {
+    private <T> T sendRequest(final String url, final ParserFunction<T> parser) {
         final Request request = new Request.Builder().url(url).get().build();
 
         try (final Response response = this.client.newCall(request).execute()) {
@@ -159,22 +140,10 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
                 throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            final MirrorValue<T> mirrorValue = this.client.objectMapper().readValue(body.byteStream(), typeReference);
+            final MirrorValue<T> mirrorValue = parser.parse(body.byteStream());
             return mirrorValue.getValue();
         } catch (final IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }
     }
-
-    private JavaType getValueType(final JavaType valueType) {
-        return this.client.typeFactory().constructParametricType(MirrorValue.class, valueType);
-    }
-
-    private JavaType getListType(final JavaType elementType) {
-        final TypeFactory typeFactory = this.client.typeFactory();
-        final CollectionType collectionType = typeFactory.constructCollectionType(List.class, elementType);
-        return typeFactory.constructParametricType(MirrorValue.class, collectionType);
-    }
-
-
 }

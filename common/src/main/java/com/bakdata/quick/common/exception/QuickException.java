@@ -37,7 +37,7 @@ public abstract class QuickException extends RuntimeException {
         super(Objects.requireNonNull(message, MESSAGE));
     }
 
-    public QuickException(final String message, final Throwable cause) {
+    protected QuickException(final String message, final Throwable cause) {
         super(message, cause);
     }
 

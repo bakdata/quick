@@ -23,6 +23,7 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
+import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +46,7 @@ class TopicDataClientTest {
     private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
     private final TopicData topicData = createTopicData("dummy");
     private final MirrorClient<String, TopicData> topicDataClient =
-        new DefaultMirrorClient<>(this.mirrorHost, this.client, topicData.getName(), topicData.getKeyType());
+        new DefaultMirrorClient<>(this.mirrorHost, this.client, new KnownTypeResolver<>(TopicData.class, this.mapper));
 
     private static TopicData createTopicData(final String name) {
         return new TopicData(name, TopicWriteType.IMMUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);

@@ -17,13 +17,11 @@
 package com.bakdata.quick.gateway.fetcher;
 
 import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.client.TopicRegistryClient;
-import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.NotFoundException;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.fetcher.subscription.KafkaSubscriptionProvider;
@@ -47,21 +45,18 @@ import org.jetbrains.annotations.NotNull;
 @Slf4j
 public class FetcherFactory {
     private final KafkaConfig kafkaConfig;
-    private final TopicRegistryClient topicRegistryClient;
     private final ObjectMapper objectMapper;
     private final ClientSupplier clientSupplier;
     private final TopicTypeService topicTypeService;
 
-    // TODO: Investigate if TopicTypeService is enough
 
     /**
      * Visible for testing.
      */
     @VisibleForTesting
-    public FetcherFactory(final KafkaConfig kafkaConfig, final TopicRegistryClient topicRegistryClient,
-        final ObjectMapper objectMapper, final ClientSupplier clientSupplier, final TopicTypeService topicTypeService) {
+    public FetcherFactory(final KafkaConfig kafkaConfig, final ObjectMapper objectMapper,
+                          final ClientSupplier clientSupplier, final TopicTypeService topicTypeService) {
         this.kafkaConfig = kafkaConfig;
-        this.topicRegistryClient = topicRegistryClient;
         this.objectMapper = objectMapper;
         this.clientSupplier = clientSupplier;
         this.topicTypeService = topicTypeService;
@@ -73,10 +68,11 @@ public class FetcherFactory {
      * <p> Parameters are injected.
      */
     @Inject
-    public FetcherFactory(final KafkaConfig kafkaConfig, final TopicRegistryClient topicRegistryClient,
-        final HttpClient client, final MirrorConfig mirrorConfig, final TopicTypeService topicTypeService) {
-        this(kafkaConfig, topicRegistryClient, client.objectMapper(),
-            new DefaultClientSupplier(client, topicRegistryClient, mirrorConfig), topicTypeService);
+    public FetcherFactory(final KafkaConfig kafkaConfig,
+                          final HttpClient client, final MirrorConfig mirrorConfig,
+                          final TopicTypeService topicTypeService) {
+        this(kafkaConfig, client.objectMapper(),
+            new DefaultClientSupplier(client, topicTypeService, mirrorConfig), topicTypeService);
     }
 
     public DataFetcher<?> subscriptionFetcher(final String topic, final String operationName,
@@ -111,7 +107,8 @@ public class FetcherFactory {
             keyArgumentName,
             valueArgumentName,
             this.getTopicDataWithTopicTypeService(topic),
-            new KafkaIngestService(this.topicTypeService, this.kafkaConfig)
+            new KafkaIngestService(this.topicTypeService, this.kafkaConfig),
+            this.objectMapper
         );
     }
 
@@ -138,7 +135,10 @@ public class FetcherFactory {
     }
 
     private <K, V> Lazy<QuickTopicData<K, V>> getTopicData(final String topic) {
-        return new Lazy<>(() -> this.topicRegistryClient.getTopicData(topic).blockingGet().toQuickTopicData());
+        return new Lazy<>(() -> {
+            final Single<QuickTopicData<K, V>> topicData = this.topicTypeService.getTopicData(topic);
+            return topicData.blockingGet();
+        });
     }
 
     private <K, V> Lazy<QuickTopicData<K, V>> getTopicDataWithTopicTypeService(final String topic) {
@@ -159,34 +159,39 @@ public class FetcherFactory {
 
     static final class DefaultClientSupplier implements ClientSupplier {
         private final HttpClient client;
-        private final TopicRegistryClient topicRegistryClient;
+        private final TopicTypeService topicTypeService;
         private final MirrorConfig mirrorConfig;
 
-        private DefaultClientSupplier(final HttpClient client, final TopicRegistryClient topicRegistryClient,
-            final MirrorConfig mirrorConfig) {
+        private DefaultClientSupplier(final HttpClient client, final TopicTypeService topicRegistryClient,
+                                      final MirrorConfig mirrorConfig) {
             this.client = client;
-            this.topicRegistryClient = topicRegistryClient;
+            this.topicTypeService = topicRegistryClient;
             this.mirrorConfig = mirrorConfig;
         }
 
         @Override
         public DataFetcherClient<?> createClient(final String topic) {
+            return this.doCreateClient(topic);
+        }
+
+        private  <T> DataFetcherClient<T> doCreateClient(final String topic) {
+            final Lazy<TypeResolver<T>> quickTopicTypeLazy = this.getQuickTopicTypeLazy(topic);
             return new MirrorDataFetcherClient<>(
                 topic,
                 this.client,
                 this.mirrorConfig,
-                this.getQuickTopicTypeLazy(topic)
+                quickTopicTypeLazy
             );
         }
 
-        @NotNull
-        private Lazy<QuickTopicType> getQuickTopicTypeLazy(final String topic) {
+        private <T> Lazy<TypeResolver<T>> getQuickTopicTypeLazy(final String topic) {
             return new Lazy<>(() -> {
-                final TopicData topicData = this.topicRegistryClient.getTopicData(topic).blockingGet();
+                final Single<QuickTopicData<Object, T>> data = this.topicTypeService.getTopicData(topic);
+                final QuickTopicData<?, T> topicData = data.blockingGet();
                 if (topicData == null) {
                     throw new NotFoundException("Could not find topic " + topic);
                 }
-                return topicData.getValueType();
+                return topicData.getValueData().getResolver();
             });
         }
     }

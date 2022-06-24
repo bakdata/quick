@@ -23,7 +23,6 @@ import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.util.Collection;
@@ -79,10 +78,9 @@ public class IngestFilter {
 
     private <K, V> Single<IngestLists<K, V>> getExistingKeys(final QuickTopicData<K, V> topicData,
         final List<KeyValuePair<K, V>> pairs) {
-        // Value doesnt matter
-        // still TODO get class from topic data
-        final MirrorClient<K, Object> client =
-            new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig, topicData.getKeyData().getType());
+        final MirrorClient<K, V> client =
+            new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig,
+                topicData.getValueData().getResolver());
 
         return Flowable.fromIterable(pairs)
             .map(pair -> {

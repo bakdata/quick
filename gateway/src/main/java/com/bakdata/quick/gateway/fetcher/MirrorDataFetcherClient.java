@@ -20,12 +20,10 @@ import com.bakdata.quick.common.api.client.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.type.QuickTopicType;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.util.Lazy;
-import com.fasterxml.jackson.databind.JavaType;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -42,12 +40,12 @@ public class MirrorDataFetcherClient<T> implements DataFetcherClient<T> {
      * @param type   key type
      */
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final Lazy<QuickTopicType> type) {
+        final Lazy<TypeResolver<T>> type) {
         this.mirrorClient = new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, type));
     }
 
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final QuickTopicType type) {
+        final TypeResolver<T> type) {
         this(host, client, mirrorConfig, new Lazy<>(() -> type));
     }
 
@@ -69,9 +67,8 @@ public class MirrorDataFetcherClient<T> implements DataFetcherClient<T> {
         return this.mirrorClient.get().fetchAll();
     }
 
-    @NotNull
     private DefaultMirrorClient<String, T> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
-        final HttpClient client, final Lazy<QuickTopicType> type) {
-        return new DefaultMirrorClient<>(host, client, mirrorConfig, type.get());
+        final HttpClient client, final Lazy<TypeResolver<T>> resolver) {
+        return new DefaultMirrorClient<>(host, client, mirrorConfig, resolver.get());
     }
 }

@@ -14,16 +14,24 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.resolver;
+package com.bakdata.quick.common.api.client;
+
+import com.bakdata.quick.common.api.model.mirror.MirrorValue;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Resolver for long primitives.
+ * Custom parser for values returned by a mirror application.
+ *
+ * @param <T> type of the returned value
  */
-public class LongResolver implements TypeResolver<Long> {
-
-    @Override
-    public Long fromString(final String value) {
-        return Long.valueOf(value);
-    }
-
+interface ParserFunction<T> {
+    /**
+     * Parses an input stream of data into a deserialized value.
+     *
+     * @param inputStream the raw response body
+     * @return the deserialized mirror value
+     * @throws IOException if an error reading the input stream occurs
+     */
+    MirrorValue<T> parse(InputStream inputStream) throws IOException;
 }
