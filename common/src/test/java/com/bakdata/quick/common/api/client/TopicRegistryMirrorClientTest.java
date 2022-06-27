@@ -37,7 +37,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
-class TopicDataClientTest {
+class TopicRegistryMirrorClientTest {
     private final MockWebServer server = new MockWebServer();
 
     private final ObjectMapper mapper = new ObjectMapper();

@@ -48,7 +48,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     /**
      * Constructor for the client.
      *
-     * @param topicName    name of the topic the mirror is deployed
+     * @param topicName    name of the topic for which the mirror is deployed
      * @param client       http client
      * @param mirrorConfig configuration of the mirror host
      * @param typeResolver the value's {@link TypeResolver}
