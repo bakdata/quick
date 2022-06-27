@@ -25,6 +25,7 @@ public interface QueryContextProvider {
 
     /**
      * Provides a fully-constructed and injected instance of QueryServiceContext.
+     *
      * @return An instance of the QueryServiceContext
      */
     QueryServiceContext get();
@@ -32,6 +33,7 @@ public interface QueryContextProvider {
     /**
      * Sets a context. The idea behind this method is to
      * circumvent the need to a bean through the ApplicationContext
+     *
      * @param context an instance of QueryServiceContext
      */
     void setQueryContext(QueryServiceContext context);
