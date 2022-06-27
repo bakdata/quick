@@ -21,7 +21,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import javax.inject.Singleton;
 
 /**
- * Basic implementation of QueryContextProvider
+ * Basic implementation of QueryContextProvider.
  */
 @Singleton
 public class DefaultQueryContextProvider implements QueryContextProvider {
