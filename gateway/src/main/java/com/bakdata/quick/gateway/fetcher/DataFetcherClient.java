@@ -24,9 +24,9 @@ import java.util.Map;
 /**
  * Client for fetching values from rest endpoints and converting them into generic containers.
  */
-public interface DataFetcherClient<T> {
-    TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<Map<String, Object>>() {};
-    TypeReference<List<Map<String, Object>>> LIST_TYPE_REFERENCE = new TypeReference<List<Map<String, Object>>>() {};
+public interface DataFetcherClient<V> {
+    TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {};
+    TypeReference<List<Map<String, Object>>> LIST_TYPE_REFERENCE = new TypeReference<>() {};
 
     /**
      * Fetches a single value from the given id.
@@ -39,7 +39,7 @@ public interface DataFetcherClient<T> {
      * @return parsed json as Map
      */
     @Nullable
-    T fetchResult(final String id);
+    V fetchResult(final String id);
 
     /**
      * Fetches a list of values from multiple ids.
@@ -52,7 +52,7 @@ public interface DataFetcherClient<T> {
      * @return List of parsed json as Map
      */
     @Nullable
-    List<T> fetchResults(final List<String> ids);
+    List<V> fetchResults(final List<String> ids);
 
     /**
      * Fetches a list of values from a single id.
@@ -64,5 +64,5 @@ public interface DataFetcherClient<T> {
      * @return List of parsed json as map
      */
     @Nullable
-    List<T> fetchList();
+    List<V> fetchList();
 }

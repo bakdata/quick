@@ -81,7 +81,7 @@ public class IngestFilter {
         final List<KeyValuePair<K, V>> pairs) {
         final MirrorClient<K, V> client =
             new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig,
-                    topicData.getValueData().getResolver(), topicData.getKeyData().getType());
+                    topicData.getKeyData().getSerde(), topicData.getValueData().getResolver());
 
         return Flowable.fromIterable(pairs)
             .map(pair -> {

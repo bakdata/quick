@@ -16,8 +16,6 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
@@ -27,18 +25,24 @@ import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.LongResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
-import java.io.IOException;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class QueryKeyArgumentFetcherTest {
 
@@ -48,6 +52,7 @@ class QueryKeyArgumentFetcherTest {
     private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
     private final MirrorConfig mirrorConfig = MirrorConfig.directAccess();
     private final String host = String.format("localhost:%s", this.server.getPort());
+    private final Serde<String> keySerde = Serdes.String();
 
     @Test
     void shouldFetchObjectValue() throws IOException {
@@ -142,8 +147,9 @@ class QueryKeyArgumentFetcherTest {
         assertThat(fetcherResult).isEqualTo(value);
     }
 
-    private <T> MirrorDataFetcherClient<T> createClient(final TypeResolver<T> type) {
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, type);
+    private <V> MirrorDataFetcherClient<V> createClient(final TypeResolver<V> typeResolver) {
+        KeySerdeValResolverWrapper<String, V> wrapper = new KeySerdeValResolverWrapper<>(this.keySerde, typeResolver);
+        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, wrapper);
     }
 
 

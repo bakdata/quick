@@ -23,13 +23,13 @@ import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.type.QuickTopicType;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.kafka.common.serialization.Serde;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,26 +59,29 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param topicName    name of the topic for which the mirror is deployed
      * @param client       http client
      * @param mirrorConfig configuration of the mirror host
-     * @param typeResolver the value's {@link TypeResolver}
+     * @param keySerde     serializer for the key
+     * @param valueResolver the value's {@link TypeResolver}
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-                               final TypeResolver<V> typeResolver, final QuickTopicType keyType) {
-        this(new MirrorHost(topicName, mirrorConfig), client, typeResolver, topicName, keyType);
+                               final Serde<K> keySerde, TypeResolver<V> valueResolver) {
+        this(topicName, new MirrorHost(topicName, mirrorConfig), client, keySerde, valueResolver);
     }
 
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
      *
+     * @param topicName the name of the topic
      * @param mirrorHost   host to use
      * @param client       http client
-     * @param typeResolver the value's {@link TypeResolver}
+     * @param keySerde the serde for the key
+     * @param valueResolver the value's {@link TypeResolver}
      */
-    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
-                               final TypeResolver<V> typeResolver, final String topicName, final QuickTopicType keyType) {
+    public DefaultMirrorClient(final String topicName, final MirrorHost mirrorHost,
+                               final HttpClient client, final Serde<K> keySerde, TypeResolver<V> valueResolver) {
         this.client = client;
-        this.parser = new MirrorValueParser<>(typeResolver, client.objectMapper());
-        StreamsStateHost streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
-        this.router = new PartitionRouter<>(client, streamsStateHost, keyType, topicName);
+        this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
+        final StreamsStateHost streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
+        this.router = new PartitionRouter<>(client, streamsStateHost, keySerde, topicName);
         this.knownHosts = this.router.getAllHosts();
     }
 
