@@ -46,14 +46,14 @@ For modeling and querying data in this example, you first define a schema with G
 The query called `getUserProfile` combines six metrics of the customer profile:
 
 - total listening events
-- first and the last time a user listened to a song
-- charts with user’s most listened albums, artists and tracks.
+- the first and last time a user listened to a song
+- charts with user's most listened albums, artists and tracks
 
 Those charts, however, contain only ids and not the names of the corresponding music data.
 You can let Quick resolve those ids with names.
 For that, you use topics containing the mapping from id to names and then reference them in the GraphQL schema.
 
-??? "The GraphQL schema (`schema-user-profile.gql`)" 
+??? "The GraphQL user profile schema (`schema-user-profile.gql`)" 
     ```graphql
     type Query {
         getUserProfile(userId: Long!): UserProfile
@@ -107,21 +107,24 @@ For that, you use topics containing the mapping from id to names and then refere
 
 ### Quick 
 
-You are now ready to process and query the data.
-In case you don't have a running Quick instance,
-you can refer to the [getting started guide](../../getting-started/setup-quick).
+You are now ready to process and query our data with Quick.
+To start a Quick instance, you can refer to the [getting started guide](../../getting-started/setup-quick).
+If you haven't done so already, you need to create a Quick context with the CLI.
+```shell
+quick context create --host $HOST --key $KEY
+```
 
 To avoid redundancy, we show the setup of the integral parts.
 You find the steps for a complete deployment in the `justfile` in the [example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store/deployment/justfile). 
 
 #### Gateway
 
-First, initialize the Quick CLI.
-Second, create a new gateway and apply the GraphQL schema.
+Create a new gateway and apply the GraphQL schema.
 
 ```shell
-quick context create --host "$QUICK_URL" --key "$QUICK_API_KEY" --context customer-profiles
 quick gateway create profiles
+```
+```shell
 quick gateway apply profiles -f schema-user-profile.gql
 ```
 
@@ -143,7 +146,7 @@ Since the topics contain complex values, you define them in the global GraphQL s
 For topic creation, you won't need to specify a file, but reference them with `<gateway name>.<type name>` .
 
 
-## Creating profiles
+## Creating user profiles
 
 With gateway and input topics in place, the next step is the creation of profiles.
 Kafka Streams applications process the data and compute the respective parts of the profiles.
@@ -219,9 +222,11 @@ type Query {
         walks: Int,
         walkLength: Int,
         resetProbability: Float
-    ):  Recommendations @rest(url: "http://recommender/recommendation",
-        pathParameter: ["userId", "field"],
-        queryParameter: ["limit", "walks", "walkLength", "resetProbability"])
+    ):  Recommendations @rest(
+            url: "http://recommender/recommendation",
+            pathParameter: ["userId", "field"],
+            queryParameter: ["limit", "walks", "walkLength", "resetProbability"]
+        )
 }
 
 enum FieldType {

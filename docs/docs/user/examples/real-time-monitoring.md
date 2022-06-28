@@ -21,7 +21,7 @@ as well as details for single trips.
 
 --- 
 
-## Apache Kafka and Data Processing
+## Apache Kafka and data processing
 
 Quick is based on Apache Kafka.
 It organizes and stores event streams in topics.
@@ -67,12 +67,12 @@ Of course, you are not limited to simple aggregation.
 With Kafka Streams you can also build more advanced applications.
 One could for example build a predictive maintenance service with it.
 
-## GraphQL Schema
+## GraphQL schema
 
 Having our topics defined, we start by modeling the data required in the dashboard.
 Quick’s querying logic is built upon the data query language GraphQL.
 It allows us to create a global schema of our data and the supported operations.
-Subscriptions are one type of such operations, which allow us to consume real-time updates of the data through websocket
+Subscriptions are one type of such operations, allowing us to consume real-time data updates of the data through WebSocket
 connections.
 This is an exemplary GraphQL schema for live updates of the emitted status events.
 With that, we have a subscription operation called `statusUpdates` that we can use to get live updates of `Status`
@@ -123,10 +123,10 @@ type Trip {
 
 Quick introduces a custom GraphQL directive called `@topic`.
 It allows you to annotate fields and connect them to a topic.
-With that, we can define the relationship between our GraphQL Schema and Kafka.
+With that, we can define the relationship between our GraphQL schema and Kafka.
 
 We first connect the `statusUpdates` subscription to the status topic.
-It ensures that each event written to the Kafka topic is pushed into the GraphQL websocket connection.
+It ensures that each event written to the Kafka topic is pushed into the GraphQL WebSocket connection.
 ```graphql
 type Subscription {
     statusUpdates: Status @topic(name: "status")
@@ -135,10 +135,10 @@ type Subscription {
 Second, we want to display information about a vehicle when querying a trip.
 Instead of creating a separate operation, we can add this information to `Trip` itself:
 `Trip` has a new field `vehicle`.
-It populated with the data from the `vehicle` topic based on the value of the trip’s vehicle id field.
+It is populated with the `vehicle` topic data based on the value of the trip’s vehicle id value.
 One major advantage of GraphQL is its flexibility.
 When querying a trip, the user can decide if they indeed require the vehicle information.
-If this is not the case, the corresponding data is never loaded and thus no overhead occurs.
+If this is not the case, the corresponding data is never loaded, and thus no overhead occurs.
 
 ```graphql
 type Query {
@@ -161,16 +161,15 @@ type Vehicle {
 
 ## Quick
 
-We are ready to process and query our data. In case you don't have a running Quick instance, you can refer to the [getting started guide](../../getting-started/setup-quick).
-
-#### Gateway
-First, we initialize the Quick CLI, which requires a base URL and an API-Key.
-
+We are ready to process and query our data with Quick.
+To start a Quick instance, you can refer to the [getting started guide](../../getting-started/setup-quick).
+If you haven't done so already, you need to create a Quick context with the CLI.
 ```shell
 quick context create --host $HOST --key $KEY
 ```
 
-Second, we create a new gateway and apply our GraphQL schema.
+#### Gateway
+Now we create a new gateway and apply our GraphQL schema.
 
 ??? "Final GraphQL schema (`schema.gql`)"
     ```graphl
@@ -240,7 +239,7 @@ quick app deploy trip-aggregator \
  --args input-topics=status output-topic=trip
 ```
 
-## Go Live
+## Go live
 
 When all resources are up, we can start to ingest data into our system.
 Quick supports the ingest through a REST-API.
@@ -265,7 +264,8 @@ python -m car_sharing_simulator.simulator
 
 Now we can start to use our query and subscribe operations.
 
-Subscriptions target the url `wss://${QUICK_HOST}/gatway/car-sharing/graphql-ws`
+Subscriptions target the url `ws://${QUICK_HOST}/gatway/car-sharing/graphql-ws`.
+If you are using Altair, you can follow [this setup](../getting-started/working-with-quick/subscriptions.md#altair-setup).
 
 ```graphql
 subscription {
