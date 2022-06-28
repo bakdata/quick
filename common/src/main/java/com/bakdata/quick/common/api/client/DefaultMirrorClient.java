@@ -85,6 +85,13 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
         this.knownHosts = this.router.getAllHosts();
     }
 
+    public DefaultMirrorClient(final HttpClient client, TypeResolver<V> valueResolver, Router<K> router) {
+        this.client = client;
+        this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
+        this.router = router;
+        this.knownHosts = this.router.getAllHosts();
+    }
+
     @Override
     @Nullable
     public V fetchValue(final K key) {

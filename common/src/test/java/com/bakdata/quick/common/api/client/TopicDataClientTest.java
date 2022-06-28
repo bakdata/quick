@@ -16,6 +16,9 @@
 
 package com.bakdata.quick.common.api.client;
 
+import com.bakdata.quick.common.api.client.routing.PartitionFinder;
+import com.bakdata.quick.common.api.client.routing.PartitionRouter;
+import com.bakdata.quick.common.api.client.routing.Router;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
@@ -30,6 +33,8 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.kafka.common.serialization.Serdes;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -49,22 +54,26 @@ class TopicDataClientTest {
     private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
     private final TopicData topicData = createTopicData("dummy");
     private final Map<String, String> props = new HashMap<>();
-    private final MirrorClient<String, TopicData> topicDataClient =
-        new DefaultMirrorClient<>(topicData.getName(), this.mirrorHost, this.client,
-                topicData.getKeyType().getSerde(props, true), new KnownTypeResolver<>(TopicData.class, this.mapper));
+    private MirrorClient<String, TopicData> topicDataClient;
 
     private static TopicData createTopicData(final String name) {
         return new TopicData(name, TopicWriteType.IMMUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);
+    }
+
+    @BeforeEach
+    void initRouterAndMirror() throws JsonProcessingException {
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, "2"));
+        this.server.enqueue(new MockResponse().setBody(routerBody));
+        Router<String> partitionRouter = new PartitionRouter<>(this.client, StreamsStateHost.fromMirrorHost(this.mirrorHost),
+                Serdes.String(), topicData.getName(), getMockPartitionFinder());
+        this.topicDataClient = new DefaultMirrorClient<>(client, new KnownTypeResolver<>(TopicData.class, this.mapper), partitionRouter);
     }
 
     @Test
     void shouldReturnGetTopicDataWithSpecificKey() throws JsonProcessingException {
 
         final TopicData topicData = createTopicData("dummy");
-
-        final MockResponse mockResponse = TestUtils.generateMockResponseForRouter();
         final String body = TestUtils.generateBody(topicData);
-        this.server.enqueue(mockResponse);
         this.server.enqueue(new MockResponse().setBody(body));
 
         final TopicData topic = this.topicDataClient.fetchValue("dummy");
@@ -111,6 +120,10 @@ class TopicDataClientTest {
         this.server.enqueue(new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.getCode()));
         final Boolean exists = this.topicDataClient.exists("dummy");
         assertThat(exists).isFalse();
+    }
+
+    private static PartitionFinder getMockPartitionFinder() {
+        return (serializedKey, numPartitions) -> 1;
     }
 
 

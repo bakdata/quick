@@ -52,6 +52,18 @@ public class PartitionRouter<K> implements Router<K> {
         init();
     }
 
+    public PartitionRouter(final HttpClient client, final StreamsStateHost streamsStateHost,
+                           final Serde<K> keySerde, final String topic, PartitionFinder partitionFinder) {
+        this.client = client;
+        this.streamsStateHost = streamsStateHost;
+        this.keySerde = keySerde;
+        this.topic = topic;
+        this.partitionFinder = partitionFinder;
+        init();
+    }
+
+
+
     /**
      * Fetches host-partition mapping from the StreamsStateController and updates the content
      * of the partitionToHost map with the retrieved information
@@ -100,7 +112,7 @@ public class PartitionRouter<K> implements Router<K> {
         };
         Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper().readValue(body.byteStream(), typeRef);
         log.info("Collected information about the partitions and hosts. There are {} partitions and {} distinct hosts",
-                partitionHostMappingResponse.size(), partitionHostMappingResponse.values().stream().distinct());
+                partitionHostMappingResponse.size(), (int) partitionHostMappingResponse.values().stream().distinct().count());
         for (Map.Entry<Integer, String> entry : partitionHostMappingResponse.entrySet()) {
             MirrorHost host = new MirrorHost(entry.getValue(), MirrorConfig.directAccess());
             // partition -> host
