@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import okhttp3.OkHttpClient;
+import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.apache.kafka.common.serialization.Serde;
@@ -34,7 +35,7 @@ public class PartitionRouterTest {
     @Test
     void shouldBeInitializedWithTwoDifferentHosts() throws InterruptedException, JsonProcessingException {
 
-        server.enqueue(TestUtils.generateMockResponseForRouter());
+        server.enqueue(new MockResponse().setBody(TestUtils.generateBodyForRouter()));
         Router<String> partitionRouter = new PartitionRouter<>(this.client, streamsStateHost, keySerde, topicData.getName());
         assertThat(partitionRouter.getAllHosts()).hasSize(2);
 

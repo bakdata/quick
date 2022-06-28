@@ -6,7 +6,6 @@ import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.mockwebserver.MockResponse;
 
 import java.util.Map;
 
@@ -24,15 +23,12 @@ public class TestUtils {
         return MAPPER.writeValueAsString(new MirrorValue<>(mirrorValue));
     }
 
-    public static MockResponse generateMockResponseForRouter() throws JsonProcessingException {
-        Map<Integer, String> body = Map.of(1, "1", 2, "2");
-        return generateMockResponseForRouterWithMap(body);
+    public static String generateBodyForRouter() throws JsonProcessingException {
+        Map<Integer, String> elements = Map.of(1, "1", 2, "2");
+        return generateBodyForRouterWith(elements);
     }
 
-    public static MockResponse generateMockResponseForRouterWithMap(Map<Integer, String> body) throws JsonProcessingException {
-        String json = MAPPER.writeValueAsString(body);
-        return new MockResponse()
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .setBody(json);
+    public static String generateBodyForRouterWith(Map<Integer, String> elements) throws JsonProcessingException {
+        return MAPPER.writeValueAsString(elements);
     }
 }
