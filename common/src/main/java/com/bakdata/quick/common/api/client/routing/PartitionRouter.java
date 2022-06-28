@@ -5,6 +5,7 @@ import com.bakdata.quick.common.api.client.StreamsStateHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.micronaut.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
@@ -13,6 +14,7 @@ import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,8 +95,10 @@ public class PartitionRouter<K> implements Router<K> {
      * @throws IOException an exception if a value can be read for the byte stream
      */
     private void updatePartitionToHostMapping(final ResponseBody body) throws IOException {
-        final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper().readValue(
-                body.byteStream(), Map.class);
+        TypeReference<Map<Integer, String>> typeRef
+                = new TypeReference<>() {
+        };
+        Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper().readValue(body.byteStream(), typeRef);
         log.info("Collected information about the partitions and hosts. There are {} partitions and {} distinct hosts",
                 partitionHostMappingResponse.size(), partitionHostMappingResponse.values().stream().distinct());
         for (Map.Entry<Integer, String> entry : partitionHostMappingResponse.entrySet()) {
@@ -135,6 +139,6 @@ public class PartitionRouter<K> implements Router<K> {
         if (partitionToHost.isEmpty()) {
             throw new IllegalStateException("Router has not been initialized properly.");
         }
-        return (List<MirrorHost>) partitionToHost.values();
+        return new ArrayList<>(partitionToHost.values());
     }
 }

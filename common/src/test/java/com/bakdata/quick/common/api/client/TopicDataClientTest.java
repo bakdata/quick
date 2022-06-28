@@ -19,9 +19,9 @@ package com.bakdata.quick.common.api.client;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
+import com.bakdata.quick.common.testutils.TestUtils;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,7 +62,9 @@ class TopicDataClientTest {
 
         final TopicData topicData = createTopicData("dummy");
 
-        final String body = this.generateBody(topicData);
+        final MockResponse mockResponse = TestUtils.generateMockResponseForRouter();
+        final String body = TestUtils.generateBody(topicData);
+        this.server.enqueue(mockResponse);
         this.server.enqueue(new MockResponse().setBody(body));
 
         final TopicData topic = this.topicDataClient.fetchValue("dummy");
@@ -74,7 +76,7 @@ class TopicDataClientTest {
         final TopicData topicData = createTopicData("dummy");
         final TopicData topicData2 = createTopicData("dummy2");
 
-        final String body = this.generateBody(List.of(topicData, topicData2));
+        final String body = TestUtils.generateBody(List.of(topicData, topicData2));
         this.server.enqueue(new MockResponse().setBody(body));
 
         final List<TopicData> topic = this.topicDataClient.fetchValues(List.of("dummy", "dummy2"));
@@ -86,7 +88,7 @@ class TopicDataClientTest {
         final TopicData topicData = createTopicData("dummy");
         final TopicData topicData2 = createTopicData("dummy2");
 
-        final String body = this.generateBody(List.of(topicData, topicData2));
+        final String body = TestUtils.generateBody(List.of(topicData, topicData2));
         this.server.enqueue(new MockResponse().setBody(body));
 
         final List<TopicData> topic = this.topicDataClient.fetchAll();
@@ -97,7 +99,7 @@ class TopicDataClientTest {
     void shouldReturnTrueIfTopicDoesNotExist() throws JsonProcessingException {
         final TopicData topicData = createTopicData("dummy");
 
-        final String body = this.generateBody(topicData);
+        final String body = TestUtils.generateBody(topicData);
         this.server.enqueue(new MockResponse().setBody(body));
 
         final Boolean exists = this.topicDataClient.exists("dummy");
@@ -111,7 +113,5 @@ class TopicDataClientTest {
         assertThat(exists).isFalse();
     }
 
-    private String generateBody(final Object mirrorValue) throws JsonProcessingException {
-        return this.mapper.writeValueAsString(new MirrorValue<>(mirrorValue));
-    }
+
 }
