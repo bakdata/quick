@@ -72,8 +72,8 @@ One could for example build a predictive maintenance service with it.
 Having our topics defined, we start by modeling the data required in the dashboard.
 Quick’s querying logic is built upon the data query language GraphQL.
 It allows us to create a global schema of our data and the supported operations.
-Subscriptions are one type of such operations, allowing us to consume real-time data updates of the data through WebSocket
-connections.
+Subscriptions are one type of such operations, allowing us to consume real-time data updates of the data through
+WebSocket connections.
 This is an exemplary GraphQL schema for live updates of the emitted status events.
 With that, we have a subscription operation called `statusUpdates` that we can use to get live updates of `Status`
 events.
@@ -135,7 +135,7 @@ type Subscription {
 Second, we want to display information about a vehicle when querying a trip.
 Instead of creating a separate operation, we can add this information to `Trip` itself:
 `Trip` has a new field `vehicle`.
-It is populated with the `vehicle` topic data based on the value of the trip’s vehicle id value.
+It is populated with the `vehicle` topic data based on the trip’s `vehicleId` value.
 One major advantage of GraphQL is its flexibility.
 When querying a trip, the user can decide if they indeed require the vehicle information.
 If this is not the case, the corresponding data is never loaded, and thus no overhead occurs.
@@ -238,6 +238,9 @@ quick app deploy trip-aggregator \
  --tag latest \
  --args input-topics=status output-topic=trip
 ```
+
+For more detailed information, call `quick app deploy -h`
+or [see reference](../reference/cli-commands.md#quick-app-deploy).
 
 ## Go live
 

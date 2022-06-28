@@ -211,39 +211,40 @@ Similar to the metrics, you can now add support for the user charts of the profi
 ## Building recommendations
 
 The user profiles are missing the last part: the recommendations.
-You can add to the GraphQL schema the example Query `getArtistRecommendations`:
+You can add to the GraphQL schema the example query `getArtistRecommendations`.
 
-```graphql
-type Query {
-    getArtistRecommendations(
-        userId: Long!,
-        field: FieldType! = ARTIST,
-        limit: Int,
-        walks: Int,
-        walkLength: Int,
-        resetProbability: Float
-    ):  Recommendations @rest(
-            url: "http://recommender/recommendation",
-            pathParameter: ["userId", "field"],
-            queryParameter: ["limit", "walks", "walkLength", "resetProbability"]
-        )
-}
-
-enum FieldType {
-    ARTIST
-    ALBUM
-    TRACK
-}
-
-type Recommendations {
-    recommendations: [Recommendation!]!
-}
-
-type Recommendation {
-    id: Long!
-    artist: Item @topic(name: "artists", keyField: "id")
-}
-```
+??? "Schema extension with `getArtistRecommendations`"
+    ```graphql
+    type Query {
+        getArtistRecommendations(
+            userId: Long!,
+            field: FieldType! = ARTIST,
+            limit: Int,
+            walks: Int,
+            walkLength: Int,
+            resetProbability: Float
+        ):  Recommendations @rest(
+                url: "http://recommender/recommendation",
+                pathParameter: ["userId", "field"],
+                queryParameter: ["limit", "walks", "walkLength", "resetProbability"]
+            )
+    }
+    
+    enum FieldType {
+        ARTIST
+        ALBUM
+        TRACK
+    }
+    
+    type Recommendations {
+        recommendations: [Recommendation!]!
+    }
+    
+    type Recommendation {
+        id: Long!
+        artist: Item @topic(name: "artists", keyField: "id")
+    }
+    ```
 
 It takes a couple parameters:
 
