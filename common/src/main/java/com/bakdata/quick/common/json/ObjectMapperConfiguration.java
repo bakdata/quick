@@ -14,16 +14,18 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.resolver;
+package com.bakdata.quick.common.json;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Resolver for long primitives.
+ * Configuration for Jackson's {@link ObjectMapper}.
  */
-public class LongResolver implements TypeResolver<Long> {
-
-    @Override
-    public Long fromString(final String value) {
-        return Long.valueOf(value);
-    }
-
+public interface ObjectMapperConfiguration {
+    /**
+     * Configures the object mapper.
+     *
+     * @param objectMapper object to configure
+     */
+    void configureObjectMapper(ObjectMapper objectMapper);
 }

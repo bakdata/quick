@@ -25,7 +25,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import lombok.Builder;
+import lombok.Value;
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.parsing.Parser;
 import org.junit.jupiter.api.Test;
 
 class TypeResolverTest {
@@ -38,8 +42,7 @@ class TypeResolverTest {
 
     @Test
     void testValueFromString() {
-        final GenericAvroResolver resolver = new GenericAvroResolver();
-        resolver.configure(new AvroSchema(ChartRecord.getClassSchema()));
+        final GenericAvroResolver resolver = new GenericAvroResolver(ChartRecord.getClassSchema());
         final GenericRecord genericRecord = resolver.fromString(JSON_RECORD);
         assertThat(genericRecord.getSchema()).isEqualTo(this.chartRecord.getSchema());
         assertThat(genericRecord.get("fieldId")).isEqualTo(EXPECTED_FIELD_ID);
@@ -47,28 +50,20 @@ class TypeResolverTest {
     }
 
     @Test
-    void testRecordToString() {
-        final TypeResolver<GenericRecord> resolver = new GenericAvroResolver();
-        resolver.configure(new AvroSchema(ChartRecord.getClassSchema()));
-        final String resolvedRecord = resolver.toString(this.chartRecord);
-        assertThat(resolvedRecord).isEqualTo(JSON_RECORD);
+    void testKnownTypeFromString() {
+        final KnownTypeRecord exepected = KnownTypeRecord.builder().fieldId(5L).countPlays(10L).build();
+        final TypeResolver<KnownTypeRecord> typeResolver =
+            new KnownTypeResolver<>(KnownTypeRecord.class, new ObjectMapper());
+        final KnownTypeRecord knownTypeRecord = typeResolver.fromString(JSON_RECORD);
+        assertThat(knownTypeRecord).isEqualTo(exepected);
     }
-    
-    @Test
-    void testValueFromObject() {
-        final GenericAvroResolver resolver = new GenericAvroResolver();
-        resolver.configure(new AvroSchema(ChartRecord.getClassSchema()));
-        final GenericRecord genericRecord = resolver.fromObject(MAP_RECORD);
-        assertThat(genericRecord.getSchema()).isEqualTo(this.chartRecord.getSchema());
-        assertThat(genericRecord.get("fieldId")).isEqualTo(EXPECTED_FIELD_ID);
-        assertThat(genericRecord.get("countPlays")).isEqualTo(EXPECTED_COUNT_PLAYS);
-    }
+
 
     @Test
     void checkNullable() throws IOException {
         final String schema = Files.readString(workingDirectory.resolve("product-schema.avsc"));
-        final GenericAvroResolver resolver = new GenericAvroResolver();
-        resolver.configure(new AvroSchema(schema));
+        final Schema parsedSchema = new Schema.Parser().parse(schema);
+        final GenericAvroResolver resolver = new GenericAvroResolver(parsedSchema);
 
         final ObjectMapper objectMapper = new ObjectMapper();
         final String data = Files.readString(workingDirectory.resolve("product.json"));
@@ -76,35 +71,10 @@ class TypeResolverTest {
         assertThat(objectMapper.readTree(record.toString())).isEqualTo(objectMapper.readTree(data));
     }
 
-    @Test
-    void testIntegerFromObject() {
-        final IntegerResolver resolver = new IntegerResolver();
-
-        assertThat(resolver.fromObject(5)).isEqualTo(5);
-        assertThat(resolver.fromObject(Integer.valueOf("5"))).isEqualTo(resolver.fromObject(5));
-    }
-
-    @Test
-    void testLongFromObject() {
-        final LongResolver resolver = new LongResolver();
-
-        assertThat(resolver.fromObject(5L)).isEqualTo(5L);
-        assertThat(resolver.fromObject(Long.valueOf("5"))).isEqualTo(5L);
-    }
-
-    @Test
-    void testDoubleFromObject() {
-        final DoubleResolver resolver = new DoubleResolver();
-
-        assertThat(resolver.fromObject(5.)).isEqualTo(5.);
-        assertThat(resolver.fromObject(Double.valueOf("5."))).isEqualTo(5.);
-    }
-
-    @Test
-    void testStringFromObject() {
-        final StringResolver resolver = new StringResolver();
-
-        assertThat(resolver.fromObject("5")).isEqualTo("5");
-        assertThat(resolver.fromObject("5")).isEqualTo("5");
+    @Value
+    @Builder
+    static class KnownTypeRecord {
+        long fieldId;
+        long countPlays;
     }
 }

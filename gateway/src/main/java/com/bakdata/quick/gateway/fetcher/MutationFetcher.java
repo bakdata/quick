@@ -20,6 +20,7 @@ import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.ingest.KafkaIngestService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.GraphqlErrorException;
 import graphql.schema.DataFetcher;
@@ -41,27 +42,30 @@ public class MutationFetcher<K, V> implements DataFetcher<V> {
     private final String valueInputArgumentName;
     private final Lazy<QuickTopicData<K, V>> topicData;
     private final KafkaIngestService kafkaIngestService;
+    private final ObjectMapper objectMapper;
 
     /**
      * Default Constructor.
      *
-     * @param topic name of the topic to ingest data
-     * @param keyInputArgumentName name of the key argument
+     * @param topic                  name of the topic to ingest data
+     * @param keyInputArgumentName   name of the key argument
      * @param valueInputArgumentName name of the value argument
-     * @param quickTopicData topic information
-     * @param kafkaIngestService A Kafka service to ingest data into the topic
+     * @param quickTopicData         topic information
+     * @param kafkaIngestService     A Kafka service to ingest data into the topic
      */
     public MutationFetcher(final String topic,
-        final String keyInputArgumentName,
-        final String valueInputArgumentName,
-        final Lazy<QuickTopicData<K, V>> quickTopicData,
-        final KafkaIngestService kafkaIngestService) {
+                           final String keyInputArgumentName,
+                           final String valueInputArgumentName,
+                           final Lazy<QuickTopicData<K, V>> quickTopicData,
+                           final KafkaIngestService kafkaIngestService,
+                           final ObjectMapper objectMapper) {
 
         this.topic = topic;
         this.keyInputArgumentName = keyInputArgumentName;
         this.valueInputArgumentName = valueInputArgumentName;
         this.topicData = quickTopicData;
         this.kafkaIngestService = kafkaIngestService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -80,7 +84,15 @@ public class MutationFetcher<K, V> implements DataFetcher<V> {
                 .build();
         }
 
-        final V resolvedValue = this.topicData.get().getValueData().getResolver().fromObject(valueInputArgument.get());
+        // We only support conversion from String and therefore have to convert it back
+        final Object rawObject = valueInputArgument.get();
+        final String value;
+        if (rawObject instanceof Number || rawObject instanceof String) {
+            value = rawObject.toString();
+        } else {
+            value = this.objectMapper.writeValueAsString(rawObject);
+        }
+        final V resolvedValue = this.topicData.get().getValueData().getResolver().fromString(value);
 
         final KeyValuePair<?, ?> keyValuePair = new KeyValuePair<>(keyInputArgument.get(), resolvedValue);
 

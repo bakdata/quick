@@ -33,20 +33,4 @@ public class TopicData {
     QuickTopicType valueType;
     @Nullable String schema;
 
-    /**
-     * Converts this to QuickTopicData.
-     */
-    public <K, V> QuickTopicData<K, V> toQuickTopicData() {
-        final QuickData<K> keyData = new QuickData<>(
-            this.keyType,
-            this.keyType.getSerde(),
-            this.keyType.getTypeResolver()
-        );
-        final QuickData<V> valueData = new QuickData<>(
-            this.valueType,
-            this.valueType.getSerde(),
-            this.valueType.getTypeResolver()
-        );
-        return new QuickTopicData<>(this.name, this.writeType, keyData, valueData);
-    }
 }
