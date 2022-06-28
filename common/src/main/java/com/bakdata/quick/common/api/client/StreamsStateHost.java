@@ -38,7 +38,7 @@ public class StreamsStateHost {
      * Generates a URL for fetching partition info.
      */
     public String getPartitionToHostUrl() {
-        return String.format("http://%s%s%s",
+        return String.format("http://%s/%s/%s",
                 this.host, this.config.getPath(), MirrorConfig.DEFAULT_PARTITION_INFO_PATH);
     }
 }
