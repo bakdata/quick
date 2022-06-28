@@ -22,11 +22,14 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.config.TopicRegistryConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
+import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicType;
+import com.bakdata.quick.common.type.TopicTypeService;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serde;
 
 import javax.inject.Singleton;
 import java.util.Comparator;
@@ -54,15 +57,16 @@ public class MirrorRegistryClient implements TopicRegistryClient {
      * @param topicRegistryConfig configuration for Quick's topic registry
      * @param ingestClient        http client for ingest service
      * @param client              http client
+     * @param topicTypeService    topic type service for config info
      */
     public MirrorRegistryClient(final TopicRegistryConfig topicRegistryConfig, final IngestClient ingestClient,
-        final HttpClient client) {
+        final HttpClient client, final TopicTypeService topicTypeService) {
         this.registryTopic = topicRegistryConfig.getTopicName();
         this.ingestClient = ingestClient;
-        TopicData registryData = new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING,
+        this.registryData = new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING,
                 QuickTopicType.SCHEMA, null);
-        this.registryData = registryData;
-        this.topicDataClient = createMirrorClient(topicRegistryConfig, client, registryData);
+        this.topicDataClient = createMirrorClient(topicRegistryConfig, client, registryTopic, topicTypeService);
+
 
     }
 
@@ -99,11 +103,13 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     }
 
     private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
-        final HttpClient client, final TopicData topicData) {
+        final HttpClient client, final String topic, final TopicTypeService topicTypeService) {
+        final Single<QuickTopicData<String, TopicData>> temp = topicTypeService.getTopicData(topic);
+        final Serde<String> keySerde = temp.blockingGet().getKeyData().getSerde();
         final KnownTypeResolver<TopicData> typeResolver =
             new KnownTypeResolver<>(TopicData.class, client.objectMapper());
         final String serviceName = topicRegistryConfig.getServiceName();
-        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), typeResolver, topicData.getKeyType());
+        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), keySerde, typeResolver);
     }
 
     private Single<TopicData> getSelf() {

@@ -25,13 +25,13 @@ import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.QuickTopicType;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
@@ -56,8 +56,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private final KafkaStreams streams;
     private final HostInfo hostInfo;
     private final String storeName;
-    private final QuickTopicType keyType;
     private final String topicName;
+    private final Serde<K> keySerde;
     private final Serializer<K> keySerializer;
     private final TypeResolver<K> keyResolver;
     private final TypeResolver<V> valueResolver;
@@ -76,10 +76,10 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.streams = context.getStreams();
         this.hostInfo = context.getHostInfo();
         this.storeName = context.getStoreName();
-        this.keySerializer = topicData.getKeyData().getSerde().serializer();
+        this.keySerde = topicData.getKeyData().getSerde();
+        this.keySerializer = this.keySerde.serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
         this.valueResolver = topicData.getValueData().getResolver();
-        this.keyType = topicData.getKeyData().getType();
         this.topicName = topicData.getName();
         this.storeQueryParameters = StoreQueryParameters.fromNameAndType(
             this.storeName,
@@ -151,7 +151,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
         final DefaultMirrorClient<K, V> client =
-            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver, this.topicName, this.keyType);
+            new DefaultMirrorClient<>(this.topicName, mirrorHost, this.client, this.keySerde, this.valueResolver);
         // TODO: don't bother deserializing
         final V value = client.fetchValue(key);
 

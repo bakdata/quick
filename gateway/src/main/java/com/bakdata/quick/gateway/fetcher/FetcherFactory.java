@@ -20,9 +20,9 @@ import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.NotFoundException;
-import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.TopicTypeService;
+import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.fetcher.subscription.KafkaSubscriptionProvider;
 import com.bakdata.quick.gateway.fetcher.subscription.SubscriptionFetcher;
@@ -33,10 +33,9 @@ import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import io.reactivex.Single;
+import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Factory for instantiating the different {@link DataFetcher} used in Quick.
@@ -174,25 +173,26 @@ public class FetcherFactory {
             return this.doCreateClient(topic);
         }
 
-        private  <T> DataFetcherClient<T> doCreateClient(final String topic) {
-            final Lazy<TypeResolver<T>> quickTopicTypeLazy = this.getQuickTopicTypeLazy(topic);
-            final
+        private  <V> DataFetcherClient<V> doCreateClient(final String topic) {
+            final Lazy<KeySerdeValResolverWrapper<String, V>> wrapper = this.getKeySerdeValResolverWrapperLazy(topic);
             return new MirrorDataFetcherClient<>(
-                topic,
-                this.client,
-                this.mirrorConfig,
-                quickTopicTypeLazy,
+                    topic,
+                    this.client,
+                    this.mirrorConfig,
+                    wrapper
             );
         }
 
-        private <T> Lazy<TypeResolver<T>> getQuickTopicTypeLazy(final String topic) {
+        private <V> Lazy<KeySerdeValResolverWrapper<String, V>> getKeySerdeValResolverWrapperLazy(final String topic) {
             return new Lazy<>(() -> {
-                final Single<QuickTopicData<Object, T>> data = this.topicTypeService.getTopicData(topic);
-                final QuickTopicData<?, T> topicData = data.blockingGet();
+                final Single<QuickTopicData<String, V>> data = this.topicTypeService.getTopicData(topic);
+                final QuickTopicData<String, V> topicData = data.blockingGet();
                 if (topicData == null) {
                     throw new NotFoundException("Could not find topic " + topic);
                 }
-                return topicData.getValueData().getResolver();
+                return new KeySerdeValResolverWrapper<>(
+                        topicData.getKeyData().getSerde(), topicData.getValueData().getResolver()
+                );
             });
         }
     }

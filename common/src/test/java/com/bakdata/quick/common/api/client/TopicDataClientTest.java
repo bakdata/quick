@@ -32,7 +32,9 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,9 +48,10 @@ class TopicDataClientTest {
     private final String host = String.format("%s:%d", this.server.getHostName(), this.server.getPort());
     private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
     private final TopicData topicData = createTopicData("dummy");
+    private final Map<String, String> props = new HashMap<>();
     private final MirrorClient<String, TopicData> topicDataClient =
-        new DefaultMirrorClient<>(this.mirrorHost, this.client, new KnownTypeResolver<>(TopicData.class, this.mapper),
-                topicData.getName(), topicData.getKeyType());
+        new DefaultMirrorClient<>(topicData.getName(), this.mirrorHost, this.client,
+                topicData.getKeyType().getSerde(props, true), new KnownTypeResolver<>(TopicData.class, this.mapper));
 
     private static TopicData createTopicData(final String name) {
         return new TopicData(name, TopicWriteType.IMMUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);
