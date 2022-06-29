@@ -198,6 +198,11 @@
         z-index: 5;
     }
 
+    /* Moves the search results to the front */
+    .md-search {
+        z-index: 10;
+    }
+
     .mdx-hero__content h1 {
         margin-bottom: 20px;
         color: black;
@@ -229,6 +234,26 @@
             display: none;
         }
     }
+
+    /* Youtube videos */
+    .video-wrapper {
+        position: relative;
+        display: block;
+        height: 0;
+        padding: 0;
+        overflow: hidden;
+        padding-bottom: 56.25%;
+    }
+    .video-wrapper > iframe {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+
 </style>
 
 <!-- Hero for landing page -->
@@ -675,6 +700,10 @@
         
           
         
+          
+        
+          
+        
       
       
         
@@ -705,6 +734,34 @@
     <li class="md-nav__item">
       <a href="user/examples/TinyURL/" class="md-nav__link">
         TinyURL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="user/examples/real-time-monitoring/" class="md-nav__link">
+        Real-time monitoring and analytics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="user/examples/real-time-customer-profiles/" class="md-nav__link">
+        Real-time customer profiles
       </a>
     </li>
   
