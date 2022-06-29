@@ -4,7 +4,7 @@ This use case demonstrates how Quick can be used to process data streams
 and consume the results to build live dashboards.
 For that, we consider the example of a car-sharing company.
 Their fleet of cars drives around the city.
-All of them emit statuses that, among others, include the trip’s and vehicle’s ids
+All of them emit statuses that, among others, include the trip's and vehicle's ids
 as well as the car's current position and battery level.
 A [dashboard](https://carsharing.d9p.io/) displays this information on an interactive map.
 
@@ -24,8 +24,8 @@ A [dashboard](https://carsharing.d9p.io/) displays this information on an intera
 
 Quick is based on Apache Kafka.
 It organizes and stores event streams in topics.
-In the car-sharing scenario, a `vehicle` topic contains the vehicle name and range.
-The `status` topic contains the emitted status events (e.g. battery level).
+In this use-case, a `vehicle` topic contains the vehicle name and range.
+A `status` topic contains the emitted status events (e.g. battery level).
 Such event streams can be processed with the help of Kafka Streams.
 For example, an application can accumulate status events with the same trip id into a trip.
 It simply groups the incoming status events by their trip id and appends them to a list.
@@ -66,8 +66,8 @@ which, among others, offers sensible defaults and reduces the required boilerpla
 ## GraphQL schema
 
 After defining the topics, it is time to model the data required in the dashboard.
-Quick’s querying logic is built upon the data query language GraphQL.
-It allows you to create a global schema of our data and the supported operations.
+Quick's querying logic is built upon the data query language GraphQL.
+It allows you to create a global schema of the data and the supported operations.
 Subscriptions are one type of such operations, allowing you to consume real-time data updates of the data through
 WebSocket connections.
 This is an exemplary GraphQL schema for live updates of the emitted status events.
@@ -119,7 +119,7 @@ type Trip {
 
 Quick introduces a custom GraphQL directive called `@topic`.
 It allows you to annotate fields and connect them to a topic.
-With that, you can define the relationship between our GraphQL schema and Kafka.
+With that, you can define the relationship between the GraphQL schema and Kafka.
 
 First connect the `statusUpdates` subscription to the status topic.
 This ensures that each event written to the Kafka topic is pushed into the GraphQL WebSocket connection.
@@ -131,7 +131,7 @@ type Subscription {
 Second, we want to display information about a vehicle when querying a trip.
 Instead of creating a separate operation, you can add this information to `Trip` itself:
 `Trip` has a new field `vehicle`.
-It is populated with the `vehicle` topic data based on the trip’s `vehicleId` value.
+It is populated with the `vehicle` topic data based on the trip's `vehicleId` value.
 One major advantage of GraphQL is its flexibility.
 When querying a trip, you can decide if you indeed require the vehicle information.
 If this is not the case, the corresponding data is never loaded, and thus no overhead occurs.
@@ -157,7 +157,7 @@ type Vehicle {
 
 ## Quick
 
-Now you are ready to process and query our data with Quick.
+Now you are ready to process and query the data with Quick.
 To start a Quick instance, you can refer to the [getting started guide](../../getting-started/setup-quick).
 
 #### Gateway
@@ -236,7 +236,7 @@ or [see reference](../reference/cli-commands.md#quick-app-deploy).
 
 ## Go live
 
-When all resources are up, you can start to ingest data into our system.
+When all resources are up, you can start to ingest data into the system.
 Quick supports the ingest through a REST-API.
 For example, the following snippet shows a command ingesting new vehicles into the `vehicle` topic.
 
