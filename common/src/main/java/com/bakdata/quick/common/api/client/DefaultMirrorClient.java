@@ -30,7 +30,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,7 +62,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param valueResolver the value's {@link TypeResolver}
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-                               final Serde<K> keySerde, TypeResolver<V> valueResolver) {
+                               final Serde<K> keySerde, final TypeResolver<V> valueResolver) {
         this(topicName, new MirrorHost(topicName, mirrorConfig), client, keySerde, valueResolver);
     }
 
@@ -77,7 +76,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param valueResolver the value's {@link TypeResolver}
      */
     public DefaultMirrorClient(final String topicName, final MirrorHost mirrorHost,
-                               final HttpClient client, final Serde<K> keySerde, TypeResolver<V> valueResolver) {
+                               final HttpClient client, final Serde<K> keySerde, final TypeResolver<V> valueResolver) {
         this.client = client;
         this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
         final StreamsStateHost streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
@@ -85,7 +84,14 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
         this.knownHosts = this.router.getAllHosts();
     }
 
-    public DefaultMirrorClient(final HttpClient client, TypeResolver<V> valueResolver, Router<K> router) {
+    /**
+     * Constructor with an injectable router.
+     *
+     * @param client http client
+     * @param valueResolver value type resolver
+     * @param router router
+     */
+    public DefaultMirrorClient(final HttpClient client, final TypeResolver<V> valueResolver, final Router<K> router) {
         this.client = client;
         this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
         this.router = router;
@@ -96,13 +102,14 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public V fetchValue(final K key) {
         final MirrorHost currentKeyHost = router.getHost(key);
-        return this.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()), this.parser::deserialize);
+        return this.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()),
+                this.parser::deserialize);
     }
 
     @Override
     public List<V> fetchAll() {
         final List<V> valuesFromAllHosts = new ArrayList<>();
-        for (MirrorHost host : this.knownHosts) {
+        for (final MirrorHost host : this.knownHosts) {
             final List<V> valuesFromSingleHost = Objects.requireNonNullElse(this.sendRequest(
                     host.forAll(), this.parser::deserializeList), Collections.emptyList());
             valuesFromAllHosts.addAll(valuesFromSingleHost);

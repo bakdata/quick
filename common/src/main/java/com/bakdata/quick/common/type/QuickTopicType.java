@@ -29,7 +29,6 @@ import org.apache.avro.Schema;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.util.Map;
 import java.util.Objects;
 

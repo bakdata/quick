@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2022 bakdata GmbH
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.client.HttpClient;
@@ -12,7 +28,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +37,8 @@ import java.util.Map;
 /**
  * A router that leverages the fact that a mirror knows which partitions it stores
  * (it has a mapping between a partitions and a host),
- * and thus can use this information to introduce routing based on the specific partition mapping
+ * and thus can use this information to introduce routing based on the specific partition mapping.
+ *
  * @param <K> the type of key
  */
 @Slf4j
@@ -36,7 +52,8 @@ public class PartitionRouter<K> implements Router<K> {
     private final Map<Integer, MirrorHost> partitionToHost = new HashMap<>();
 
     /**
-     * A constructor with the default partitioner that is retrieved from a static method
+     * A constructor with the default partitioner that is retrieved from a static method.
+     *
      * @param client http client
      * @param streamsStateHost info about the streams state host
      * @param keySerde serializer for the key
@@ -53,7 +70,8 @@ public class PartitionRouter<K> implements Router<K> {
     }
 
     /**
-     * A constructor with injectable PartitionFinder
+     * A constructor with injectable PartitionFinder.
+     *
      * @param client http client
      * @param streamsStateHost info about the streams state host
      * @param keySerde serializer for the key
@@ -61,7 +79,8 @@ public class PartitionRouter<K> implements Router<K> {
      * @param partitionFinder partition finder
      */
     public PartitionRouter(final HttpClient client, final StreamsStateHost streamsStateHost,
-                           final Serde<K> keySerde, final String topic, PartitionFinder partitionFinder) {
+                           final Serde<K> keySerde, final String topic,
+                           final PartitionFinder partitionFinder) {
         this.client = client;
         this.streamsStateHost = streamsStateHost;
         this.keySerde = keySerde;
@@ -74,7 +93,7 @@ public class PartitionRouter<K> implements Router<K> {
 
     /**
      * Fetches host-partition mapping from the StreamsStateController and updates the content
-     * of the partitionToHost map with the retrieved information
+     * of the partitionToHost map with the retrieved information.
      */
     private void init() {
         log.info("Initializing partition router...");
@@ -86,9 +105,10 @@ public class PartitionRouter<K> implements Router<K> {
     /**
      * Makes a request to the controller's endpoint responsible for providing partition-host info
      * and processes the corresponding response.
+     *
      * @param request request to the controller
      */
-    private void makeAndProcessRequestForPartitionHostMapping(Request request) {
+    private void makeAndProcessRequestForPartitionHostMapping(final Request request) {
         try (final Response response = this.client.newCall(request).execute()) {
             processResponse(response);
         } catch (final IOException exception) {
@@ -97,12 +117,13 @@ public class PartitionRouter<K> implements Router<K> {
     }
 
     /**
-     * Fetches information about partition-host mapping if response is valid
+     * Fetches information about partition-host mapping if response is valid.
+     *
      * @param response response from endpoint
      * @throws IOException exception if response or body are invalid
      */
-    private void processResponse(Response response) throws IOException {
-        ResponseBody body = getBodyIfResponseValid(response);
+    private void processResponse(final Response response) throws IOException {
+        final ResponseBody body = getBodyIfResponseValid(response);
         if (body == null) {
             throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -110,19 +131,20 @@ public class PartitionRouter<K> implements Router<K> {
     }
 
     /**
-     * Reads value from the response body and converts it to the Partition -> MirrorHost mapping
+     * Reads value from the response body and converts it to the Partition -> MirrorHost mapping.
+     *
      * @param body response body
      * @throws IOException an exception if a value can be read for the byte stream
      */
     private void updatePartitionToHostMapping(final ResponseBody body) throws IOException {
-        TypeReference<Map<Integer, String>> typeRef
-                = new TypeReference<>() {
-        };
-        Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper().readValue(body.byteStream(), typeRef);
+        final TypeReference<Map<Integer, String>> typeRef = new TypeReference<>() {};
+        final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper().readValue(
+                body.byteStream(), typeRef);
         log.info("Collected information about the partitions and hosts. There are {} partitions and {} distinct hosts",
-                partitionHostMappingResponse.size(), (int) partitionHostMappingResponse.values().stream().distinct().count());
-        for (Map.Entry<Integer, String> entry : partitionHostMappingResponse.entrySet()) {
-            MirrorHost host = new MirrorHost(entry.getValue(), MirrorConfig.directAccess());
+                partitionHostMappingResponse.size(),
+                (int) partitionHostMappingResponse.values().stream().distinct().count());
+        for (final Map.Entry<Integer, String> entry : partitionHostMappingResponse.entrySet()) {
+            final MirrorHost host = new MirrorHost(entry.getValue(), MirrorConfig.directAccess());
             // partition -> host
             partitionToHost.put(entry.getKey(), host);
         }

@@ -25,7 +25,6 @@ import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.kafka.common.serialization.Serde;
-
 import java.util.List;
 
 
@@ -44,13 +43,15 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
      * @param wrapper a wrapper of the key serde and value resolver
      */
     public MirrorDataFetcherClient(final String host, final HttpClient client,
-                                   final MirrorConfig mirrorConfig, final Lazy<KeySerdeValResolverWrapper<String, V>> wrapper) {
+                                   final MirrorConfig mirrorConfig,
+                                   final Lazy<KeySerdeValResolverWrapper<String, V>> wrapper) {
         this.mirrorClient = new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client,
                 wrapper.get().getKeySerde(), wrapper.get().getValueTypeResolver()));
     }
 
     public MirrorDataFetcherClient(final String host, final HttpClient client,
-                                   final MirrorConfig mirrorConfig, final KeySerdeValResolverWrapper<String, V> wrapper) {
+                                   final MirrorConfig mirrorConfig,
+                                   final KeySerdeValResolverWrapper<String, V> wrapper) {
         this(host, client, mirrorConfig, new Lazy<>(() -> wrapper));
     }
 
@@ -73,7 +74,8 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     }
 
     private DefaultMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
-                                                              final HttpClient client, final Serde<String> keySerde, TypeResolver<V> valueResolver) {
+                                                              final HttpClient client, final Serde<String> keySerde,
+                                                              final TypeResolver<V> valueResolver) {
         return new DefaultMirrorClient<>(host, client, mirrorConfig, keySerde, valueResolver);
     }
 }

@@ -47,7 +47,6 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
-
 import javax.inject.Singleton;
 import java.time.Duration;
 import java.util.Arrays;

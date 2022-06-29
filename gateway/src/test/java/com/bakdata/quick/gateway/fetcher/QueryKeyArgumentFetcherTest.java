@@ -148,7 +148,7 @@ class QueryKeyArgumentFetcherTest {
     }
 
     private <V> MirrorDataFetcherClient<V> createClient(final TypeResolver<V> typeResolver) {
-        KeySerdeValResolverWrapper<String, V> wrapper = new KeySerdeValResolverWrapper<>(this.keySerde, typeResolver);
+        final KeySerdeValResolverWrapper<String, V> wrapper = new KeySerdeValResolverWrapper<>(this.keySerde, typeResolver);
         return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, wrapper);
     }
 

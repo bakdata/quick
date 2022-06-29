@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2022 bakdata GmbH
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.bakdata.quick.common.api.client;
 
 import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
@@ -15,7 +31,7 @@ public class StreamsStateHost {
     private final MirrorConfig config;
 
     /**
-     * Private constructor for creating StreamsStateHost
+     * Private constructor for creating StreamsStateHost.
      *
      * @param host the host of the mirror. This can be a service name or an IP.
      * @param config mirror config to use. This can set the service prefix and REST path.
@@ -26,13 +42,14 @@ public class StreamsStateHost {
     }
 
     /**
-     * Static factory method that constructs StreamsStateHost from an instance of the MirrorHost
+     * Static factory method that constructs StreamsStateHost from an instance of the MirrorHost.
+     *
      * @param mirrorHost mirror host
      * @return an instance of StreamsStateHost
      */
-    public static StreamsStateHost fromMirrorHost(MirrorHost mirrorHost) {
-        String host = mirrorHost.getHost();
-        MirrorConfig mirrorConfig = MirrorConfig.directAccessToStreamsState();
+    public static StreamsStateHost fromMirrorHost(final MirrorHost mirrorHost) {
+        final String host = mirrorHost.getHost();
+        final MirrorConfig mirrorConfig = MirrorConfig.directAccessToStreamsState();
         return new StreamsStateHost(host, mirrorConfig);
     }
 
@@ -45,7 +62,8 @@ public class StreamsStateHost {
     }
 
     /**
-     * Provides a default strategy for calculating partitions
+     * Provides a default strategy for calculating partitions.
+     *
      * @return default partitioner
      */
     public static PartitionFinder getDefaultPartitionFinder() {

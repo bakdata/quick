@@ -19,7 +19,6 @@ package com.bakdata.quick.common.config;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import lombok.Getter;
-
 import java.util.Optional;
 
 /**

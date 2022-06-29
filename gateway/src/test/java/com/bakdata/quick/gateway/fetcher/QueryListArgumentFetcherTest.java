@@ -16,30 +16,33 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 
 class QueryListArgumentFetcherTest {
 
@@ -168,7 +171,9 @@ class QueryListArgumentFetcherTest {
     @NotNull
     private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
         final TypeResolver<T> resolver = new KnownTypeResolver<>(clazz, this.mapper);
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, resolver);
+        final Serde<String> keySerde = Serdes.String();
+        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig,
+                new KeySerdeValResolverWrapper<>(keySerde, resolver));
     }
 
     @Data

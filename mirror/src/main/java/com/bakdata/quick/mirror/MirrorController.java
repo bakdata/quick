@@ -24,7 +24,6 @@ import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.QueryValue;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
-
 import javax.inject.Inject;
 import java.util.List;
 
