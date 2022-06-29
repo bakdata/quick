@@ -5,7 +5,7 @@ The generated profiles include user metrics,
 charts of the most-streamed albums, artists and tracks,
 and recommendations based on the user's playlist.
 
-You can use then use Quick to visualize the real-time profiles in a front-end. 
+You can then use Quick to visualize the real-time profiles in a front-end. 
 To see an example, you can [view the demo website](https://profile-store.d9p.io/dashboard/).
 
 You can find the complete code in [Quick's example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store).
@@ -259,7 +259,7 @@ Further, you can see the `@rest` of Quick directive.
 It lets you include any type of REST service in your GraphQL schema.
 In this example,
 the recommendation service returns the result for a particular user id as a list of ids via REST.
-Since you want to recommend artist names,
+Since the idea is to recommend artist names,
 you can resolve the ids from the REST service with the name from the `artistis` topic in the type `Recommendation`.
 
 You can deploy the recommendation service via Quick as well:

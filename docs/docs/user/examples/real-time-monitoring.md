@@ -1,12 +1,12 @@
 # Real-time monitoring and analytics
 
-With this use case, we demonstrate how Quick can be used to process data streams
+This use case demonstrates how Quick can be used to process data streams
 and consume the results to build live dashboards.
 For that, we consider the example of a car-sharing company.
 Their fleet of cars drives around the city.
 All of them emit statuses that, among others, include the trip’s and vehicle’s ids
 as well as the current position and car’s battery level.
-Our [dashboard](https://carsharing.d9p.io/) provides insights into the current status of all cars
+A [dashboard](https://carsharing.d9p.io/) provides insights into the current status of all cars
 as well as details for single trips.
 
 [![carsharing-app](../../assets/images/carsharing.png)](https://carsharing.d9p.io/)
@@ -25,11 +25,10 @@ as well as details for single trips.
 
 Quick is based on Apache Kafka.
 It organizes and stores event streams in topics.
-In our case, we have a `vehicle` topic containing the vehicle name and range
-as well as a `status` topic for the emitted status events.
-We can process such event streams with the help of Kafka Streams.
-For example, we can accumulate status events with the same trip id into a trip.
-We simply group the incoming status events by their trip id and append them to a list.
+In the car-sharing scenario, a `vehicle` topic contains the vehicle name and range and a `status` topic holds the emitted status events.
+Such event streams can be processed with the help of Kafka Streams.
+For example, an application can accumulate status events with the same trip id into a trip.
+It simply groups the incoming status events by their trip id and appends them to a list.
 The result is written into the trip topic.
 
 ```java
@@ -69,13 +68,13 @@ One could for example build a predictive maintenance service with it.
 
 ## GraphQL schema
 
-Having our topics defined, we start by modeling the data required in the dashboard.
+Having the topics defined, we start by modeling the data required in the dashboard.
 Quick’s querying logic is built upon the data query language GraphQL.
 It allows us to create a global schema of our data and the supported operations.
 Subscriptions are one type of such operations, allowing us to consume real-time data updates of the data through
 WebSocket connections.
 This is an exemplary GraphQL schema for live updates of the emitted status events.
-With that, we have a subscription operation called `statusUpdates` that we can use to get live updates of `Status`
+It contains a subscription operation called `statusUpdates` that is gets live updates of `Status`
 events.
 ```graphql
 type Subscription {
@@ -100,11 +99,11 @@ type Position {
 }
 ```
 
-Besides the live updates, we also require access to a single trip.
+Besides the live updates, single trips should also be accessible.
 A trip is the accumulation of all statuses with the same trip id.
-As we want to query this information on demand, subscriptions do not work in this case.
+As this information should be queried on demand, subscriptions do not work in this case.
 GraphQL offers the `Query` operation instead.
-Our query is called `trip` and allows us to pass an id as an argument and returns the
+The query is called `trip` and allows to pass an id as an argument and returns the
 corresponding `Trip`.
 
 ```graphql
@@ -123,21 +122,21 @@ type Trip {
 
 Quick introduces a custom GraphQL directive called `@topic`.
 It allows you to annotate fields and connect them to a topic.
-With that, we can define the relationship between our GraphQL schema and Kafka.
+With that, you can define the relationship between our GraphQL schema and Kafka.
 
-We first connect the `statusUpdates` subscription to the status topic.
-It ensures that each event written to the Kafka topic is pushed into the GraphQL WebSocket connection.
+First connect the `statusUpdates` subscription to the status topic.
+This ensures that each event written to the Kafka topic is pushed into the GraphQL WebSocket connection.
 ```graphql
 type Subscription {
     statusUpdates: Status @topic(name: "status")
 }
 ```
 Second, we want to display information about a vehicle when querying a trip.
-Instead of creating a separate operation, we can add this information to `Trip` itself:
+Instead of creating a separate operation, you can add this information to `Trip` itself:
 `Trip` has a new field `vehicle`.
 It is populated with the `vehicle` topic data based on the trip’s `vehicleId` value.
 One major advantage of GraphQL is its flexibility.
-When querying a trip, the user can decide if they indeed require the vehicle information.
+When querying a trip, you can decide if you indeed require the vehicle information.
 If this is not the case, the corresponding data is never loaded, and thus no overhead occurs.
 
 ```graphql
@@ -161,7 +160,7 @@ type Vehicle {
 
 ## Quick
 
-We are ready to process and query our data with Quick.
+Now you are ready to process and query our data with Quick.
 To start a Quick instance, you can refer to the [getting started guide](../../getting-started/setup-quick).
 If you haven't done so already, you need to create a Quick context with the CLI.
 ```shell
@@ -169,7 +168,7 @@ quick context create --host $HOST --key $KEY
 ```
 
 #### Gateway
-Now we create a new gateway and apply our GraphQL schema.
+Create a new gateway and apply the GraphQL schema.
 
 ??? "Final GraphQL schema (`schema.gql`)"
     ```graphl
@@ -217,9 +216,9 @@ quick gateway apply car-sharing -f ./schema.gql
 ```
 
 #### Topics
-Next, we create all required topics.
+Next, create all required topics.
 The command expects the topic name as well as the type or schema of key and value.
-Since we have complex values, we reference the GraphQL types.
+Since the values are complex, you need to reference the GraphQL types.
 
 ```shell
 quick topic create vehicle -k string -v schema --schema car-sharing.Vehicle
@@ -228,7 +227,7 @@ quick topic create trip -k string -v schema --schema car-sharing.Trip
 ```
 
 #### Application
-Then, we can start our Kafka Streams application.
+Then, start the Kafka Streams application.
 Quick supports running dockerized applications.
 
 ```shell
@@ -244,7 +243,7 @@ or [see reference](../reference/cli-commands.md#quick-app-deploy).
 
 ## Go live
 
-When all resources are up, we can start to ingest data into our system.
+When all resources are up, you can start to ingest data into our system.
 Quick supports the ingest through a REST-API.
 For example, the following snippet shows a command ingesting new vehicles into the `vehicle` topic.
 
@@ -265,7 +264,7 @@ and the [python requirements](https://github.com/bakdata/quick-examples/tree/mai
 python -m car_sharing_simulator.simulator
 ```
 
-Now we can start to use our query and subscribe operations.
+Now you can start to use the query and subscribe operations.
 
 Subscriptions target the url `ws://${QUICK_HOST}/gatway/car-sharing/graphql-ws`.
 If you are using Altair, you can follow [this setup](../getting-started/working-with-quick/subscriptions.md#altair-setup).
@@ -287,7 +286,7 @@ subscription {
 }
 ```
 
-For example, we can run a subscription with these results:
+For example, you can run a subscription with these results:
 
 | statusId           | tripId | vehicleId | position.lat | position.lon | batteryLevel | distance |  timestamp |
 |:-------------------|:-------|:----------|-------------:|-------------:|-------------:|---------:|-----------:| 
