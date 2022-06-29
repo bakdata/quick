@@ -1,5 +1,6 @@
 package com.bakdata.quick.common.testutils;
 
+import com.bakdata.quick.common.api.client.routing.PartitionFinder;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -30,5 +31,9 @@ public class TestUtils {
 
     public static String generateBodyForRouterWith(Map<Integer, String> elements) throws JsonProcessingException {
         return MAPPER.writeValueAsString(elements);
+    }
+
+    public static PartitionFinder getMockPartitionFinder() {
+        return (serializedKey, numPartitions) -> 1;
     }
 }

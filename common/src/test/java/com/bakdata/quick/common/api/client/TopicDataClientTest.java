@@ -16,9 +16,6 @@
 
 package com.bakdata.quick.common.api.client;
 
-import com.bakdata.quick.common.api.client.routing.PartitionFinder;
-import com.bakdata.quick.common.api.client.routing.PartitionRouter;
-import com.bakdata.quick.common.api.client.routing.Router;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
@@ -38,7 +35,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,14 +43,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @MicronautTest
 class TopicDataClientTest {
+
+    private static final String DEFAULT_TOPIC = "dummy";
     private final MockWebServer server = new MockWebServer();
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
     private final String host = String.format("%s:%d", this.server.getHostName(), this.server.getPort());
     private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
-    private final TopicData topicData = createTopicData("dummy");
-    private final Map<String, String> props = new HashMap<>();
+    private final TopicData topicData = createTopicData(DEFAULT_TOPIC);
     private MirrorClient<String, TopicData> topicDataClient;
 
     private static TopicData createTopicData(final String name) {
@@ -65,9 +62,8 @@ class TopicDataClientTest {
     void initRouterAndMirror() throws JsonProcessingException {
         final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
-        Router<String> partitionRouter = new PartitionRouter<>(this.client, StreamsStateHost.fromMirrorHost(this.mirrorHost),
-                Serdes.String(), topicData.getName(), getMockPartitionFinder());
-        this.topicDataClient = new DefaultMirrorClient<>(client, new KnownTypeResolver<>(TopicData.class, this.mapper), partitionRouter);
+        this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, mirrorHost, client,
+                Serdes.String(), new KnownTypeResolver<>(TopicData.class, this.mapper), TestUtils.getMockPartitionFinder());
     }
 
     @Test
@@ -126,10 +122,4 @@ class TopicDataClientTest {
         final Boolean exists = this.topicDataClient.exists("dummy");
         assertThat(exists).isFalse();
     }
-
-    private static PartitionFinder getMockPartitionFinder() {
-        return (serializedKey, numPartitions) -> 1;
-    }
-
-
 }

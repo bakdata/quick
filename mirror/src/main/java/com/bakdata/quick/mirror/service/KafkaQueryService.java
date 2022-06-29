@@ -56,7 +56,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private final HostInfo hostInfo;
     private final String storeName;
     private final String topicName;
-    private final Serde<K> keySerde;
     private final Serializer<K> keySerializer;
     private final TypeResolver<K> keyResolver;
     private final TypeResolver<V> valueResolver;
@@ -75,8 +74,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.streams = context.getStreams();
         this.hostInfo = context.getHostInfo();
         this.storeName = context.getStoreName();
-        this.keySerde = topicData.getKeyData().getSerde();
-        this.keySerializer = this.keySerde.serializer();
+        Serde<K> keySerde = topicData.getKeyData().getSerde();
+        this.keySerializer = keySerde.serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
         this.valueResolver = topicData.getValueData().getResolver();
         this.topicName = topicData.getName();
@@ -150,7 +149,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
         final DefaultMirrorClient<K, V> client =
-            new DefaultMirrorClient<>(this.topicName, mirrorHost, this.client, this.keySerde, this.valueResolver);
+            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver);
         // TODO: don't bother deserializing
         final V value = client.fetchValue(key);
 

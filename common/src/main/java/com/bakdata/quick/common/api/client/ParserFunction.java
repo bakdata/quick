@@ -25,7 +25,7 @@ import java.io.InputStream;
  *
  * @param <T> type of the returned value
  */
-interface ParserFunction<T> {
+public interface ParserFunction<T> {
     /**
      * Parses an input stream of data into a deserialized value.
      *
