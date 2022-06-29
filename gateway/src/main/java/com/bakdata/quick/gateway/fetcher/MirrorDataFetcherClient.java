@@ -16,15 +16,17 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import com.bakdata.quick.common.api.client.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.client.BaseMirrorClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
+import com.bakdata.quick.common.api.client.PartitionedMirrorClient;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.kafka.common.serialization.Serde;
+
 import java.util.List;
 
 
@@ -73,9 +75,8 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
         return this.mirrorClient.get().fetchAll();
     }
 
-    private DefaultMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
-                                                              final HttpClient client, final Serde<String> keySerde,
-                                                              final TypeResolver<V> valueResolver) {
-        return new DefaultMirrorClient<>(host, client, mirrorConfig, keySerde, valueResolver);
+    private BaseMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
+                                                           final HttpClient client, Serde<String> keySerde, final TypeResolver<V> valueResolver) {
+        return new PartitionedMirrorClient<>(host, client, mirrorConfig, keySerde, valueResolver);
     }
 }
