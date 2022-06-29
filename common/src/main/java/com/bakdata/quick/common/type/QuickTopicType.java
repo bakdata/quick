@@ -20,11 +20,15 @@ import com.bakdata.quick.common.resolver.DoubleResolver;
 import com.bakdata.quick.common.resolver.GenericAvroResolver;
 import com.bakdata.quick.common.resolver.IntegerResolver;
 import com.bakdata.quick.common.resolver.LongResolver;
+import com.bakdata.quick.common.resolver.ProtobufResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import com.google.protobuf.Descriptors;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
+import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import java.util.Map;
 import java.util.Objects;
 import org.apache.avro.Schema;
@@ -36,7 +40,23 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Represents possible types for Quick topics.
  */
 public enum QuickTopicType {
+    /**
+     * Deprecated: {@link #AVRO} should be used instead.
+     */
+    @Deprecated
     SCHEMA {
+        @Override
+        public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
+            return QuickTopicType.AVRO.getTypeResolver(parsedSchema);
+        }
+
+        @Override
+        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+            return QuickTopicType.AVRO.getSerde(configs, isKey);
+        }
+    },
+
+    AVRO {
         @Override
         public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
             Objects.requireNonNull(parsedSchema, "Schema must not be null for Avro types");
@@ -51,6 +71,24 @@ public enum QuickTopicType {
         @Override
         public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(new GenericAvroSerde(), configs, isKey);
+        }
+    },
+
+    PROTOBUF {
+        @Override
+        public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
+            Objects.requireNonNull(parsedSchema, "Schema must not be null for Protobuf types");
+            if (!(parsedSchema instanceof ProtobufSchema)) {
+                throw new IllegalArgumentException(
+                    "Expected Protobuf schema, but got " + parsedSchema.getClass().getName());
+            }
+            final Descriptors.Descriptor descriptor = ((ProtobufSchema) parsedSchema).toDescriptor();
+            return configuredTypeResolve(new ProtobufResolver(descriptor));
+        }
+
+        @Override
+        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+            return configuredSerde(new KafkaProtobufSerde<>(), configs, isKey);
         }
     },
     DOUBLE {

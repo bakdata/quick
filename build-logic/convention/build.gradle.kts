@@ -18,6 +18,7 @@ dependencies {
     implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3")
     implementation("com.adarshr:gradle-test-logger-plugin:3.0.0")
     implementation("net.ltgt.gradle:gradle-errorprone-plugin:2.0.2")
+    implementation("gradle.plugin.com.google.protobuf:protobuf-gradle-plugin:0.8.18")
 }
 
 gradlePlugin {
@@ -30,6 +31,11 @@ gradlePlugin {
         create("basePlugin") {
             id = "quick.base"
             implementationClass = "buildlogic.convention.BasePlugin"
+        }
+
+        create("protobufPlugin") {
+            id = "quick.protobuf.generator"
+            implementationClass = "buildlogic.convention.ProtobufGeneratorPlugin"
         }
     }
 }
