@@ -109,10 +109,6 @@ For that, you use topics containing the mapping from id to names and then refere
 
 You are now ready to process and query our data with Quick.
 To start a Quick instance, you can refer to the [getting started guide](../../getting-started/setup-quick).
-If you haven't done so already, you need to create a Quick context with the CLI.
-```shell
-quick context create --host $HOST --key $KEY
-```
 
 To avoid redundancy, we show the setup of the integral parts.
 You find the steps for a complete deployment in the `justfile` in the [example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store/deployment/justfile). 

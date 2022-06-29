@@ -5,9 +5,8 @@ and consume the results to build live dashboards.
 For that, we consider the example of a car-sharing company.
 Their fleet of cars drives around the city.
 All of them emit statuses that, among others, include the trip’s and vehicle’s ids
-as well as the current position and car’s battery level.
-A [dashboard](https://carsharing.d9p.io/) provides insights into the current status of all cars
-as well as details for single trips.
+as well as the car's current position and battery level.
+A [dashboard](https://carsharing.d9p.io/) displays this information on an interactive map.
 
 [![carsharing-app](../../assets/images/carsharing.png)](https://carsharing.d9p.io/)
 
@@ -25,7 +24,8 @@ as well as details for single trips.
 
 Quick is based on Apache Kafka.
 It organizes and stores event streams in topics.
-In the car-sharing scenario, a `vehicle` topic contains the vehicle name and range and a `status` topic holds the emitted status events.
+In the car-sharing scenario, a `vehicle` topic contains the vehicle name and range.
+The `status` topic contains the emitted status events (e.g. battery level).
 Such event streams can be processed with the help of Kafka Streams.
 For example, an application can accumulate status events with the same trip id into a trip.
 It simply groups the incoming status events by their trip id and appends them to a list.
@@ -62,16 +62,13 @@ You can find the full code in our [example repository](https://github.com/bakdat
 The Kafka Streams application is written with
 our [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap),
 which, among others, offers sensible defaults and reduces the required boilerplate code.
-Of course, you are not limited to simple aggregation.
-With Kafka Streams you can also build more advanced applications.
-One could for example build a predictive maintenance service with it.
 
 ## GraphQL schema
 
-Having the topics defined, we start by modeling the data required in the dashboard.
+After defining the topics, it is time to model the data required in the dashboard.
 Quick’s querying logic is built upon the data query language GraphQL.
-It allows us to create a global schema of our data and the supported operations.
-Subscriptions are one type of such operations, allowing us to consume real-time data updates of the data through
+It allows you to create a global schema of our data and the supported operations.
+Subscriptions are one type of such operations, allowing you to consume real-time data updates of the data through
 WebSocket connections.
 This is an exemplary GraphQL schema for live updates of the emitted status events.
 It contains a subscription operation called `statusUpdates` that is gets live updates of `Status`
@@ -81,7 +78,7 @@ type Subscription {
     statusUpdates: Status @topic(name: "status")
 }
 ```
-The events have the following schema.
+The status events have the following schema.
 ```graphql
 type Status {
     statusId: String
@@ -162,10 +159,6 @@ type Vehicle {
 
 Now you are ready to process and query our data with Quick.
 To start a Quick instance, you can refer to the [getting started guide](../../getting-started/setup-quick).
-If you haven't done so already, you need to create a Quick context with the CLI.
-```shell
-quick context create --host $HOST --key $KEY
-```
 
 #### Gateway
 Create a new gateway and apply the GraphQL schema.
@@ -264,7 +257,7 @@ and the [python requirements](https://github.com/bakdata/quick-examples/tree/mai
 python -m car_sharing_simulator.simulator
 ```
 
-Now you can start to use the query and subscribe operations.
+With the simulation running, you can use queries and subscriptions.
 
 Subscriptions target the url `ws://${QUICK_HOST}/gatway/car-sharing/graphql-ws`.
 If you are using Altair, you can follow [this setup](../getting-started/working-with-quick/subscriptions.md#altair-setup).
