@@ -16,12 +16,11 @@
 
 package com.bakdata.quick.common.config;
 
-import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
-import com.bakdata.quick.common.api.client.routing.PartitionFinder;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
-import java.util.Optional;
 import lombok.Getter;
+
+import java.util.Optional;
 
 /**
  * Configuration for setting common mirror attributes based on deployment.
@@ -77,7 +76,5 @@ public class MirrorConfig {
         return new MirrorConfig(Optional.of(""), Optional.of(DEFAULT_STREAMS_STATE_PATH));
     }
 
-    public static PartitionFinder getDefaultPartitionFinder() {
-        return new DefaultPartitionFinder();
-    }
+
 }

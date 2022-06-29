@@ -37,6 +37,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,7 @@ class TopicRegistryMirrorClientTest {
 
     @BeforeEach
     void initRouterAndMirror() throws JsonProcessingException {
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, "2"));
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
         Router<String> partitionRouter = new PartitionRouter<>(this.client, StreamsStateHost.fromMirrorHost(this.mirrorHost),
                 Serdes.String(), topicData.getName(), getMockPartitionFinder());
@@ -85,8 +86,10 @@ class TopicRegistryMirrorClientTest {
         final TopicData topicData = createTopicData("dummy");
         final TopicData topicData2 = createTopicData("dummy2");
 
-        final String body = TestUtils.generateBody(List.of(topicData, topicData2));
-        this.server.enqueue(new MockResponse().setBody(body));
+        final String body1 = TestUtils.generateBody(topicData);
+        this.server.enqueue(new MockResponse().setBody(body1));
+        final String body2 = TestUtils.generateBody(topicData2);
+        this.server.enqueue(new MockResponse().setBody(body2));
 
         final List<TopicData> topic = this.topicDataClient.fetchValues(List.of("dummy", "dummy2"));
         assertThat(topic).hasSize(2).extracting(TopicData::getName).containsExactly("dummy", "dummy2");
@@ -99,6 +102,8 @@ class TopicRegistryMirrorClientTest {
 
         final String body = TestUtils.generateBody(List.of(topicData, topicData2));
         this.server.enqueue(new MockResponse().setBody(body));
+        final String body2 = TestUtils.generateBody(Collections.emptyList());
+        this.server.enqueue(new MockResponse().setBody(body2));
 
         final List<TopicData> topic = this.topicDataClient.fetchAll();
         assertThat(topic).hasSize(2).extracting(TopicData::getName).containsExactly("dummy", "dummy2");

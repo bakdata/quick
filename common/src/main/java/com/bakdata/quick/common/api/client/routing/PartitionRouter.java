@@ -36,7 +36,7 @@ public class PartitionRouter<K> implements Router<K> {
     private final Map<Integer, MirrorHost> partitionToHost = new HashMap<>();
 
     /**
-     *
+     * A constructor with the default partitioner that is retrieved from a static method
      * @param client http client
      * @param streamsStateHost info about the streams state host
      * @param keySerde serializer for the key
@@ -48,10 +48,18 @@ public class PartitionRouter<K> implements Router<K> {
         this.streamsStateHost = streamsStateHost;
         this.keySerde = keySerde;
         this.topic = topic;
-        this.partitionFinder = MirrorConfig.getDefaultPartitionFinder();
+        this.partitionFinder = StreamsStateHost.getDefaultPartitionFinder();
         init();
     }
 
+    /**
+     * A constructor with injectable PartitionFinder
+     * @param client http client
+     * @param streamsStateHost info about the streams state host
+     * @param keySerde serializer for the key
+     * @param topic the name of the corresponding topic
+     * @param partitionFinder partition finder
+     */
     public PartitionRouter(final HttpClient client, final StreamsStateHost streamsStateHost,
                            final Serde<K> keySerde, final String topic, PartitionFinder partitionFinder) {
         this.client = client;
