@@ -1,5 +1,7 @@
 package com.bakdata.quick.common.api.client;
 
+import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
+import com.bakdata.quick.common.api.client.routing.PartitionFinder;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 
@@ -40,5 +42,13 @@ public class StreamsStateHost {
     public String getPartitionToHostUrl() {
         return String.format("http://%s/%s/%s",
                 this.host, this.config.getPath(), MirrorConfig.DEFAULT_PARTITION_INFO_PATH);
+    }
+
+    /**
+     * Provides a default strategy for calculating partitions
+     * @return default partitioner
+     */
+    public static PartitionFinder getDefaultPartitionFinder() {
+        return new DefaultPartitionFinder();
     }
 }
