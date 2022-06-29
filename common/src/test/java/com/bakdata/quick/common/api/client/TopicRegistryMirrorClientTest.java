@@ -23,6 +23,7 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
+import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +37,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
-class TopicDataClientTest {
+class TopicRegistryMirrorClientTest {
     private final MockWebServer server = new MockWebServer();
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -44,7 +45,7 @@ class TopicDataClientTest {
     private final String host = String.format("%s:%d", this.server.getHostName(), this.server.getPort());
     private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
     private final MirrorClient<String, TopicData> topicDataClient =
-        new DefaultMirrorClient<>(this.mirrorHost, this.client, this.mapper.constructType(TopicData.class));
+        new DefaultMirrorClient<>(this.mirrorHost, this.client, new KnownTypeResolver<>(TopicData.class, this.mapper));
 
     private static TopicData createTopicData(final String name) {
         return new TopicData(name, TopicWriteType.IMMUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);

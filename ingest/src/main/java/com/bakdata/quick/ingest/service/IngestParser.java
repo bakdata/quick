@@ -18,7 +18,6 @@ package com.bakdata.quick.ingest.service;
 
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.exception.BadArgumentException;
-import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonParser;
@@ -58,18 +57,18 @@ public class IngestParser {
      * @throws IOException Jackson JSON error
      */
     public <K> List<K> parseKeyData(final String payload, final QuickTopicData<K, ?> topicData) throws IOException {
-        final TypeResolver<K> resolver = topicData.getKeyData().getResolver();
+        final QuickTopicData.QuickData<K> keyData = topicData.getKeyData();
         try (final JsonParser parser = this.objectMapper.getFactory().createParser(payload)) {
             final JsonNode jsonNode = parser.readValueAsTree();
             if (jsonNode.isArray()) {
                 final List<K> pairs = new ArrayList<>();
                 final Iterator<JsonNode> elements = jsonNode.elements();
                 while (elements.hasNext()) {
-                    pairs.add(parse(resolver, elements.next()));
+                    pairs.add(parse(keyData, elements.next()));
                 }
                 return pairs;
             }
-            return List.of(parse(resolver, jsonNode));
+            return List.of(parse(keyData, jsonNode));
         }
     }
 
@@ -121,29 +120,29 @@ public class IngestParser {
         if (key == null || value == null) {
             throw new BadArgumentException(String.format("Could not find 'key' or 'value' fields in: %s", jsonNode));
         }
-        final TypeResolver<K> keyResolver = data.getKeyData().getResolver();
-        final TypeResolver<V> valueResolver = data.getValueData().getResolver();
-        return new KeyValuePair<>(parse(keyResolver, key), parse(valueResolver, value));
+        final K parsedKey = parse(data.getKeyData(), key);
+        final V parsedValue = parse(data.getValueData(), value);
+        return new KeyValuePair<>(parsedKey, parsedValue);
     }
 
-    private static <T> T parse(final TypeResolver<T> typeResolver, final JsonNode node) {
+    private static <T> T parse(final QuickTopicData.QuickData<T> data, final JsonNode node) {
         // the type resolver doesn't check for the JSON node type but we can always create string
         // thus, in case of string type in the topic, we manually check that the node type isn't numeric
-        if (node.isNumber() && typeResolver.getType() == QuickTopicType.STRING) {
+        if (node.isNumber() && data.getType() == QuickTopicType.STRING) {
             final String message = String.format("Data must be of type string. Got: %s (%s)",
                 node.getNodeType().toString().toLowerCase(), node);
             throw new BadArgumentException(message);
         }
 
         try {
-            return typeResolver.fromString(node.toString());
+            return data.getResolver().fromString(node.toString());
         } catch (final AvroConversionException exception) {
             final String errorMessage =
                 String.format("Data does not conform to schema: %s", exception.getCause().getMessage());
             throw new BadArgumentException(errorMessage);
         } catch (final RuntimeException exception) {
             final String errorMessage = String.format("Data must be of type %s. Got: %s (%s)",
-                typeResolver.getType().toString().toLowerCase(), node.getNodeType().toString().toLowerCase(), node);
+                data.getType().toString().toLowerCase(), node.getNodeType().toString().toLowerCase(), node);
             throw new BadArgumentException(errorMessage);
         }
     }

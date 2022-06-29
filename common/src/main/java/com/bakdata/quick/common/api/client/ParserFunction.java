@@ -14,28 +14,24 @@
  *    limitations under the License.
  */
 
+package com.bakdata.quick.common.api.client;
 
-package com.bakdata.quick.mirror.service;
+import com.bakdata.quick.common.api.model.mirror.MirrorValue;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Imitates the functionality of the javax's Provider
- * and extends it with an additional method to set a context.
+ * Custom parser for values returned by a mirror application.
+ *
+ * @param <T> type of the returned value
  */
-public interface QueryContextProvider {
-
+interface ParserFunction<T> {
     /**
-     * Provides a fully-constructed and injected instance of QueryServiceContext.
+     * Parses an input stream of data into a deserialized value.
      *
-     * @return An instance of the QueryServiceContext
+     * @param inputStream the raw response body
+     * @return the deserialized mirror value
+     * @throws IOException if an error reading the input stream occurs
      */
-    QueryServiceContext get();
-
-    /**
-     * Sets a context. The idea behind this method is to
-     * circumvent the need to a bean through the ApplicationContext
-     *
-     * @param context an instance of QueryServiceContext
-     */
-    void setQueryContext(QueryServiceContext context);
-
+    MirrorValue<T> parse(InputStream inputStream) throws IOException;
 }

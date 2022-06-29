@@ -25,6 +25,7 @@ import com.bakdata.quick.common.TestTopicTypeService;
 import com.bakdata.quick.common.TestTypeUtils;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.json.AvroJacksonConfiguration;
 import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
@@ -33,6 +34,7 @@ import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.ingest.KafkaIngestService;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -63,11 +65,14 @@ class MutationFetcherTest {
     private static EmbeddedKafkaCluster kafkaCluster = null;
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @BeforeAll
     static void setup() {
         schemaRegistry.start();
         kafkaCluster = provisionWith(defaultClusterConfig());
         kafkaCluster.start();
+        new AvroJacksonConfiguration().configureObjectMapper(objectMapper);
     }
 
     @AfterAll
@@ -120,7 +125,7 @@ class MutationFetcherTest {
                 TestParameterBuilder.<String, GenericRecord, GenericRecord>builder()
                     .topic("schema-test-value-test")
                     .keyValue(new KeyValue<>(RandomStringUtils.random(1), inputRecord()))
-                    .infoType(TestTypeUtils.newAvroData())
+                    .infoType(TestTypeUtils.newAvroData(ChartRecord.getClassSchema()))
                     .build()
             )
         );
@@ -204,7 +209,9 @@ class MutationFetcherTest {
             new MutationFetcher<>(topic,
                 "id",
                 "name", new Lazy<>(() -> info),
-                kafkaIngestService);
+                kafkaIngestService,
+                objectMapper
+            );
 
         final KeyValue<String, V> keyValue = testParameter.getKeyValue();
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
@@ -255,7 +262,9 @@ class MutationFetcherTest {
             new MutationFetcher<>(topic,
                 "id",
                 "name", new Lazy<>(() -> info),
-                kafkaIngestService);
+                kafkaIngestService,
+                objectMapper
+            );
 
         final KeyValue<K, String> keyValue = testParameter.getKeyValue();
 

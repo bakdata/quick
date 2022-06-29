@@ -30,7 +30,6 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -106,44 +105,40 @@ public class QuickTopicTypeService implements TopicTypeService {
             .as(single -> singleToFuture(executor, single));
     }
 
-    private Completable configureResolver(final QuickTopicType type, final String subject,
-        final TypeResolver<?> resolver) {
+    private <K> Single<TypeResolver<K>> createResolver(final QuickTopicType type, final String subject) {
         // no need for configuration if we handle non-avro types
         if (type != QuickTopicType.SCHEMA) {
-            return Completable.complete();
+            return Single.just(type.getTypeResolver(null));
         }
         // get schema and configure the resolver with it
         return this.registryFetcher.getSchema(subject)
             .doOnError(e -> log.error("No schema found for subject {}", subject, e))
-            .doOnSuccess(resolver::configure)
-            .ignoreElement();
+            .map(type::getTypeResolver);
     }
 
     private <K, V> Single<QuickTopicData<K, V>> fromTopicData(final TopicData topicData) {
         final QuickTopicType keyType = topicData.getKeyType();
         final QuickTopicType valueType = topicData.getValueType();
 
-        final Serde<K> keySerde = keyType.getSerde();
-        final Serde<V> valueSerde = valueType.getSerde();
-        final TypeResolver<K> keyResolver = keyType.getTypeResolver();
-        final TypeResolver<V> valueResolver = valueType.getTypeResolver();
 
         final Map<String, String> configs = Map.of("schema.registry.url", this.schemaRegistryUrl);
-        keySerde.configure(configs, true);
-        valueSerde.configure(configs, false);
+        final Serde<K> keySerde = keyType.getSerde(configs, true);
+        final Serde<V> valueSerde = valueType.getSerde(configs, false);
 
         final String topic = topicData.getName();
-        // configure key and value resolver - only required if we handle avro
-        final Completable configureResolver = Completable.mergeArray(
-            this.configureResolver(keyType, KEY.asSubject(topic), keyResolver),
-            this.configureResolver(valueType, VALUE.asSubject(topic), valueResolver)
-        );
+        // create key data
+        final Single<TypeResolver<K>> keyResolver = this.createResolver(keyType, KEY.asSubject(topic));
+        final Single<QuickData<K>> keyData = keyResolver.map(resolver -> new QuickData<>(keyType, keySerde, resolver));
 
-        final QuickData<K> keyInfo = new QuickData<>(keyType, keySerde, keyResolver);
-        final QuickData<V> valueInfo = new QuickData<>(valueType, valueSerde, valueResolver);
-        final QuickTopicData<K, V> info = new QuickTopicData<>(topic, topicData.getWriteType(), keyInfo, valueInfo);
-        // first we need to configure the resolver, then we can publish the info
-        return configureResolver.andThen(Single.just(info));
+        // create value data
+        final Single<TypeResolver<V>> valueResolver = this.createResolver(valueType, VALUE.asSubject(topic));
+        final Single<QuickData<V>> valueData =
+            valueResolver.map(resolver -> new QuickData<>(valueType, valueSerde, resolver));
+
+        // combine key and value data when both are ready
+        return keyData.zipWith(valueData,
+            (key, value) -> new QuickTopicData<>(topic, topicData.getWriteType(), key, value)
+        );
     }
 
 }

@@ -19,10 +19,8 @@ package com.bakdata.quick.common.api.client;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.exception.QuickException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.bakdata.quick.common.exception.MirrorException;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
@@ -45,47 +43,45 @@ import okhttp3.ResponseBody;
 public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     private final MirrorHost host;
     private final HttpClient client;
-    private final JavaType valueType;
-    private final JavaType listType;
+    private final MirrorValueParser<V> parser;
 
     /**
-     * Constructor for client.
+     * Constructor for the client.
      *
-     * @param topicName name of the topic the mirror is deployed
-     * @param client    http client
-     * @param valueType value type
+     * @param topicName    name of the topic for which the mirror is deployed
+     * @param client       http client
+     * @param mirrorConfig configuration of the mirror host
+     * @param typeResolver the value's {@link TypeResolver}
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-        final JavaType valueType) {
-        this.host = new MirrorHost(topicName, mirrorConfig);
-        this.client = client;
-        this.valueType = this.getValueType(valueType);
-        this.listType = this.getListType(valueType);
+                               final TypeResolver<V> typeResolver) {
+        this(new MirrorHost(topicName, mirrorConfig), client, typeResolver);
     }
 
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
      *
-     * @param mirrorHost host to use
-     * @param client     http client
-     * @param valueType  value type
+     * @param mirrorHost   host to use
+     * @param client       http client
+     * @param typeResolver the value's {@link TypeResolver}
      */
-    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final JavaType valueType) {
+    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
+                               final TypeResolver<V> typeResolver) {
         this.host = mirrorHost;
         this.client = client;
-        this.valueType = this.getValueType(valueType);
-        this.listType = this.getListType(valueType);
+        this.parser = new MirrorValueParser<>(typeResolver, client.objectMapper());
     }
 
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        return this.sendRequest(this.host.forKey(key.toString()), this.valueType);
+        return this.sendRequest(this.host.forKey(key.toString()), this.parser::deserialize);
     }
 
     @Override
     public List<V> fetchAll() {
-        return Objects.requireNonNullElse(this.sendRequest(this.host.forAll(), this.listType), Collections.emptyList());
+        return Objects.requireNonNullElse(this.sendRequest(this.host.forAll(), this.parser::deserializeList),
+            Collections.emptyList());
     }
 
     @Override
@@ -97,13 +93,11 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
         final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
-        return this.sendRequest(this.host.forKeys(collect), this.listType);
+        return this.sendRequest(this.host.forKeys(collect), this.parser::deserializeList);
     }
 
-
-    @SuppressWarnings("TypeParameterUnusedInFormals")
     @Nullable
-    private <T> T sendRequest(final String url, final JavaType typeReference) {
+    private <T> T sendRequest(final String url, final ParserFunction<T> parser) {
         final Request request = new Request.Builder().url(url).get().build();
 
         try (final Response response = this.client.newCall(request).execute()) {
@@ -125,42 +119,10 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
                 throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            final MirrorValue<T> mirrorValue = this.client.objectMapper().readValue(body.byteStream(), typeReference);
+            final MirrorValue<T> mirrorValue = parser.parse(body.byteStream());
             return mirrorValue.getValue();
         } catch (final IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
-        }
-    }
-
-    private JavaType getValueType(final JavaType valueType) {
-        return this.client.typeFactory().constructParametricType(MirrorValue.class, valueType);
-    }
-
-    private JavaType getListType(final JavaType elementType) {
-        final TypeFactory typeFactory = this.client.typeFactory();
-        final CollectionType collectionType = typeFactory.constructCollectionType(List.class, elementType);
-        return typeFactory.constructParametricType(MirrorValue.class, collectionType);
-    }
-
-    /**
-     * An exception that can be thrown when working with a Quick mirror.
-     */
-    public static final class MirrorException extends QuickException {
-        private final HttpStatus status;
-
-        private MirrorException(@Nullable final String message, final HttpStatus status) {
-            super(message);
-            this.status = status;
-        }
-
-        private MirrorException(final String message, final HttpStatus status, final Throwable cause) {
-            super(message, cause);
-            this.status = status;
-        }
-
-        @Override
-        protected HttpStatus getStatus() {
-            return this.status;
         }
     }
 }

@@ -14,28 +14,18 @@
  *    limitations under the License.
  */
 
+package com.bakdata.quick.common.json;
 
-package com.bakdata.quick.mirror.service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Imitates the functionality of the javax's Provider
- * and extends it with an additional method to set a context.
+ * Configuration for Jackson's {@link ObjectMapper}.
  */
-public interface QueryContextProvider {
-
+public interface ObjectMapperConfiguration {
     /**
-     * Provides a fully-constructed and injected instance of QueryServiceContext.
+     * Configures the object mapper.
      *
-     * @return An instance of the QueryServiceContext
+     * @param objectMapper object to configure
      */
-    QueryServiceContext get();
-
-    /**
-     * Sets a context. The idea behind this method is to
-     * circumvent the need to a bean through the ApplicationContext
-     *
-     * @param context an instance of QueryServiceContext
-     */
-    void setQueryContext(QueryServiceContext context);
-
+    void configureObjectMapper(ObjectMapper objectMapper);
 }

@@ -46,7 +46,6 @@ import com.bakdata.quick.ingest.service.IngestService;
 import com.bakdata.quick.ingest.service.KafkaIngestService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
@@ -178,8 +177,7 @@ class IngestControllerTest {
     }
 
     private static QuickData<GenericRecord> getAvroInfo() {
-        final QuickData<GenericRecord> avroInfo = newAvroData();
-        avroInfo.getResolver().configure(new AvroSchema(ChartRecord.getClassSchema()));
+        final QuickData<GenericRecord> avroInfo = newAvroData(ChartRecord.getClassSchema());
         return avroInfo;
     }
 
@@ -229,10 +227,11 @@ class IngestControllerTest {
 
     @ParameterizedTest(name = "[{index}] shouldDeleteKeyInPath for type {0}")
     @MethodSource("deleteFromPathProvider")
-    <K, V, E> void shouldDeleteKeyInPath(final QuickTopicType type, final TestKeyArgument<K, V, E> argument) {
+    <K, V, E> void shouldDeleteKeyInPath(final QuickTopicType type, final TestKeyArgument<K, V, E> argument)
+        throws JsonProcessingException {
         when(this.ingestService.deleteData(eq(TOPIC), any())).thenReturn(Completable.complete());
         doReturn(Single.just(argument.getData())).when(this.typeService).getTopicData(TOPIC);
-        final String keyString = argument.getData().getKeyData().getResolver().toString(argument.getKey());
+        final String keyString = argument.getKey().toString();
         final HttpResponse<?> response = this.client.toBlocking().exchange(HttpRequest.DELETE("/topic/" + keyString));
 
         assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.OK);
@@ -307,8 +306,8 @@ class IngestControllerTest {
 
         doReturn(Single.just(argument.getData())).when(this.typeService).getTopicData(TOPIC);
 
-        final String expectedErrorMessage = String.format("Data must be of type %s. Got:",
-            type.getTypeResolver().getType().toString().toLowerCase());
+        final String expectedErrorMessage =
+            String.format("Data must be of type %s. Got:", type.toString().toLowerCase());
 
         assertThatExceptionOfType(HttpClientResponseException.class)
             .isThrownBy(() -> this.client.retrieve(creatIngestRequest(pair)).blockingFirst())

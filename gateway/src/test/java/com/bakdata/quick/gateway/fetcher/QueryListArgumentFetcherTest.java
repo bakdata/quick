@@ -22,7 +22,8 @@ import static org.mockito.ArgumentMatchers.any;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.type.QuickTopicType;
+import com.bakdata.quick.common.resolver.KnownTypeResolver;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
@@ -68,7 +69,7 @@ class QueryListArgumentFetcherTest {
             new MockResponse().setBody(
                 this.mapper.writeValueAsString(new MirrorValue<>(List.of(purchase1, purchase2)))));
 
-        final DataFetcherClient<Map<String, Object>> fetcherClient = this.createClient();
+        final DataFetcherClient<Purchase> fetcherClient = this.createClient(Purchase.class);
 
         final ListArgumentFetcher<?> listArgumentFetcher =
             new ListArgumentFetcher<>("purchaseId", fetcherClient, isNullable, hasNullableElements);
@@ -79,10 +80,7 @@ class QueryListArgumentFetcherTest {
             .localContext(arguments).build();
 
         final List<?> actual = listArgumentFetcher.get(env);
-        final List<?> expected =
-            this.mapper.convertValue(List.of(purchase1, purchase2), DataFetcherClient.LIST_TYPE_REFERENCE);
-
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual).isEqualTo(List.of(purchase1, purchase2));
     }
 
     @Test
@@ -100,7 +98,7 @@ class QueryListArgumentFetcherTest {
         this.server.enqueue(
             new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
 
-        final DataFetcherClient<Map<String, Object>> fetcherClient = this.createClient();
+        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
 
         final ListArgumentFetcher<?> listArgumentFetcher =
             new ListArgumentFetcher<>("productId", fetcherClient, isNullable, hasNullableElements);
@@ -111,10 +109,7 @@ class QueryListArgumentFetcherTest {
             .localContext(arguments).build();
 
         final List<?> actual = listArgumentFetcher.get(env);
-        final List<?> expected =
-            this.mapper.convertValue(List.of(product1, product2), DataFetcherClient.LIST_TYPE_REFERENCE);
-
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual).isEqualTo(List.of(product1, product2));
     }
 
     @Test
@@ -171,8 +166,9 @@ class QueryListArgumentFetcherTest {
     }
 
     @NotNull
-    private MirrorDataFetcherClient<Map<String, Object>> createClient() {
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, QuickTopicType.SCHEMA);
+    private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
+        final TypeResolver<T> resolver = new KnownTypeResolver<>(clazz, this.mapper);
+        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, resolver);
     }
 
     @Data
