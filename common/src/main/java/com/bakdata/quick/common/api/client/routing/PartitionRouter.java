@@ -33,7 +33,6 @@ import java.util.Map;
  *
  * @param <K> the type of key
  */
-@Slf4j
 public class PartitionRouter<K> implements Router<K> {
 
     private final String topic;

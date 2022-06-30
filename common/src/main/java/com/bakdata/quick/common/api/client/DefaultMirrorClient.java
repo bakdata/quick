@@ -20,7 +20,6 @@ import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import edu.umd.cs.findbugs.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -32,14 +31,6 @@ import java.util.stream.Collectors;
  * @param <K> key type
  * @param <V> value type
  */
-@Slf4j
-public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
-
-    private final HttpClient client;
-    private final MirrorValueParser<V> parser;
-
-    private final List<MirrorHost> knownHosts;
-
 public class DefaultMirrorClient<K, V> extends BaseMirrorClient<K, V> {
 
     /**
@@ -92,33 +83,4 @@ public class DefaultMirrorClient<K, V> extends BaseMirrorClient<K, V> {
         return this.sendRequest(this.host.forKeys(collect), this.parser::deserializeList);
     }
 
-    @Nullable
-    private <T> T sendRequest(final String url, final ParserFunction<T> parser) {
-        final Request request = new Request.Builder().url(url).get().build();
-
-        try (final Response response = this.client.newCall(request).execute()) {
-            if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
-                return null;
-            }
-
-            final ResponseBody body = response.body();
-            if (response.code() != HttpStatus.OK.getCode()) {
-                log.error("Got error response from mirror: {}", body);
-                final String errorMessage = String.format(
-                    "Error while fetching data. Requested resource responded with status code %d", response.code()
-                );
-                throw new MirrorException(errorMessage, HttpStatus.valueOf(response.code()));
-            }
-
-            // Code 200 and empty body indicates an error
-            if (body == null) {
-                throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
-            final MirrorValue<T> mirrorValue = parser.parse(body.byteStream());
-            return mirrorValue.getValue();
-        } catch (final IOException exception) {
-            throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
-        }
-    }
 }
