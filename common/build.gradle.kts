@@ -28,6 +28,7 @@ dependencies {
     testFixturesImplementation(libs.INJECT_JAVA)
     testFixturesImplementation(libs.RX_JAVA)
     testFixturesImplementation(libs.JUNIT_API)
+    testFixturesImplementation(libs.KAFKA_PROTO_SERDE)
     testFixturesImplementation(libs.PROTOBUF)
 
     testFixturesAnnotationProcessor(libs.INJECT_JAVA)

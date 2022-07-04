@@ -10,4 +10,5 @@ dependencies {
     implementation(libs.JSON2AVRO_CONVERTER)
 
     testImplementation(libs.SCHEMA_REGISTRY_MOCK)
+    testImplementation(libs.KAFKA_PROTO_SERDE)
 }

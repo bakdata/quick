@@ -16,49 +16,29 @@
 
 package com.bakdata.quick.common.json;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
+import com.bakdata.quick.common.condition.ProtobufSchemaFormatCondition;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.protobuf.Message;
-import com.google.protobuf.util.JsonFormat;
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.event.BeanCreatedEvent;
 import io.micronaut.context.event.BeanCreatedEventListener;
-import java.io.IOException;
-import org.apache.avro.generic.GenericRecord;
+import javax.inject.Singleton;
 
+/**
+ * Configures deserialization of Protobuf objects with Jackson.
+ */
+@Singleton
+@Requires(condition = ProtobufSchemaFormatCondition.class)
 public class ProtobufJacksonConfiguration implements BeanCreatedEventListener<ObjectMapper> {
 
     @Override
     public ObjectMapper onCreated(final BeanCreatedEvent<ObjectMapper> event) {
         final ObjectMapper objectMapper = event.getBean();
         final SimpleModule protoModule = new SimpleModule();
-        protoModule.addSerializer(Message.class, new ProtobufJacksonConfiguration.ProtobufMessageSerializer());
+        protoModule.addSerializer(Message.class, new ProtobufMessageSerializer());
         objectMapper.registerModule(protoModule);
         return objectMapper;
     }
 
-
-    /**
-     * JSON serializer for Avro records.
-     *
-     * <p>
-     * Since {@code SpecificRecord} implements {@link GenericRecord}, this class is used for both types.
-     */
-    private static final class ProtobufMessageSerializer extends JsonSerializer<Message> {
-        private final JsonFormat.Printer jsonProtoPrinter;
-
-        private ProtobufMessageSerializer() {
-            this.jsonProtoPrinter = JsonFormat.printer()
-                .includingDefaultValueFields();
-        }
-
-        @Override
-        public void serialize(final Message message, final JsonGenerator jsonGenerator,
-                              final SerializerProvider serializerProvider) throws IOException {
-            final String json = this.jsonProtoPrinter.print(message);
-            jsonGenerator.writeRawValue(json);
-        }
-    }
 }

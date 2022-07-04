@@ -20,6 +20,7 @@ import static com.bakdata.quick.common.TestTypeUtils.newAvroData;
 import static com.bakdata.quick.common.TestTypeUtils.newDoubleData;
 import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
 import static com.bakdata.quick.common.TestTypeUtils.newLongData;
+import static com.bakdata.quick.common.TestTypeUtils.newProtobufData;
 import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -44,14 +45,18 @@ import com.bakdata.quick.ingest.service.IngestFilter;
 import com.bakdata.quick.ingest.service.IngestFilter.IngestLists;
 import com.bakdata.quick.ingest.service.IngestService;
 import com.bakdata.quick.ingest.service.KafkaIngestService;
+import com.bakdata.quick.testutil.ProtoTestRecord;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Message;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
+import io.micronaut.http.MutableHttpRequest;
+import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -74,9 +79,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @MicronautTest
 @Property(name = "micronaut.security.enabled", value = "false")
+@Property(name = "quick.schema.enable.all", value = "true") // Required so that JSON support for all types is enabled
 class IngestControllerTest {
 
     private static final String TOPIC = "topic";
+    private static final List<QuickTopicType> SCHEMA_TYPES = List.of(QuickTopicType.PROTOBUF, QuickTopicType.AVRO);
     @Inject
     private IngestService ingestService;
 
@@ -93,20 +100,23 @@ class IngestControllerTest {
     @Client("/")
     private RxHttpClient client;
 
+
     private static Stream<Arguments> valueParsingProvider() {
         final QuickData<String> stringInfo = newStringData();
-        final ChartRecord record = inputRecord();
+        final ChartRecord record = newAvroInputRecord();
         return Stream.of(
-            new TestValueArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, stringInfo),
-                "value", "value"),
-            new TestValueArgument<>(
-                new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, newIntegerData()), 5, 5),
-            new TestValueArgument<>(
-                new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, newDoubleData()), 5.0, 5.0),
-            new TestValueArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, getAvroInfo()),
-                record, outputRecord()),
-            new TestValueArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, newLongData()),
-                5L, 5L))
+                new TestValueArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, stringInfo),
+                    "value", "value"),
+                new TestValueArgument<>(
+                    new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, newIntegerData()), 5, 5),
+                new TestValueArgument<>(
+                    new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, newDoubleData()), 5.0, 5.0),
+                new TestValueArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, getAvroInfo()),
+                    record, newAvroOutputRecord()),
+                new TestValueArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, protoData()),
+                    newProtoRecord(), newProtoRecord()),
+                new TestValueArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, newLongData()),
+                    5L, 5L))
             .map(arg -> Arguments.of(arg.getData().getValueData().getType(), arg));
     }
 
@@ -116,13 +126,13 @@ class IngestControllerTest {
 
     private static Stream<Arguments> deleteFromBodyProvider() {
         return keyArguments()
-            .filter(argument -> argument.getData().getKeyData().getType() == QuickTopicType.SCHEMA)
+            .filter(argument -> SCHEMA_TYPES.contains(argument.getData().getKeyData().getType()))
             .map(arg -> Arguments.of(arg.getData().getKeyData().getType(), arg));
     }
 
     private static Stream<Arguments> deleteFromPathProvider() {
         return keyArguments()
-            .filter(argument -> argument.getData().getKeyData().getType() != QuickTopicType.SCHEMA)
+            .filter(argument -> !SCHEMA_TYPES.contains(argument.getData().getKeyData().getType()))
             .map(arg -> Arguments.of(arg.getData().getKeyData().getType(), arg));
     }
 
@@ -132,7 +142,7 @@ class IngestControllerTest {
 
     private static Stream<TestKeyArgument<?, ?, ?>> keyArguments() {
         final QuickData<String> stringInfo = newStringData();
-        final ChartRecord record = inputRecord();
+        final ChartRecord record = newAvroInputRecord();
         return Stream.of(
             new TestKeyArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, stringInfo, stringInfo),
                 "value", "value"),
@@ -141,7 +151,9 @@ class IngestControllerTest {
             new TestKeyArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, newDoubleData(), stringInfo),
                 5.0, 5.0),
             new TestKeyArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, getAvroInfo(), stringInfo),
-                record, outputRecord()),
+                record, newAvroOutputRecord()),
+            new TestKeyArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, protoData(), stringInfo),
+                newProtoRecord(), newProtoRecord()),
             new TestKeyArgument<>(new QuickTopicData<>(TOPIC, TopicWriteType.MUTABLE, newLongData(), stringInfo),
                 5L, 5L)
         );
@@ -165,20 +177,27 @@ class IngestControllerTest {
         );
     }
 
-    private static ChartRecord inputRecord() {
+    private static ChartRecord newAvroInputRecord() {
         return ChartRecord.newBuilder().setFieldId(5L).setCountPlays(5L).build();
     }
 
-    private static Record outputRecord() {
+    private static Record newAvroOutputRecord() {
         final Record record = new Record(ChartRecord.getClassSchema());
         record.put(0, 5L);
         record.put(1, 5L);
         return record;
     }
 
+    private static Message newProtoRecord() {
+        return ProtoTestRecord.newBuilder().setId("test").setValue(59).build();
+    }
+
     private static QuickData<GenericRecord> getAvroInfo() {
-        final QuickData<GenericRecord> avroInfo = newAvroData(ChartRecord.getClassSchema());
-        return avroInfo;
+        return newAvroData(ChartRecord.getClassSchema());
+    }
+
+    private static QuickData<Message> protoData() {
+        return newProtobufData(ProtoTestRecord.getDescriptor());
     }
 
     private static <T> HttpRequest<?> creatIngestRequest(final T body) {
@@ -261,9 +280,11 @@ class IngestControllerTest {
         final String expectedErrorMessage =
             String.format("Could not find 'key' or 'value' fields in: %s", jsonWithNoKeyValueField);
 
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final HttpRequest<?> request = creatIngestRequest(jsonWithNoKeyValueField);
+
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(
-                () -> this.client.retrieve(creatIngestRequest(jsonWithNoKeyValueField)).blockingFirst())
+            .isThrownBy(() -> httpClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class,
                 ex -> assertThat(this.extractErrorMessage(ex))
                     .isPresent()
@@ -283,8 +304,11 @@ class IngestControllerTest {
         final String expectedErrorMessage =
             "Data does not conform to schema: Field fieldId type:LONG pos:0 not set and has no default value";
 
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final HttpRequest<?> request = creatIngestRequest(invalidJsonRecord);
+
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.client.retrieve(creatIngestRequest(invalidJsonRecord)).blockingFirst())
+            .isThrownBy(() -> httpClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class,
                 ex -> assertThat(this.extractErrorMessage(ex))
                     .isPresent()
@@ -309,8 +333,11 @@ class IngestControllerTest {
         final String expectedErrorMessage =
             String.format("Data must be of type %s. Got:", type.toString().toLowerCase());
 
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final HttpRequest<?> request = creatIngestRequest(pair);
+
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.client.retrieve(creatIngestRequest(pair)).blockingFirst())
+            .isThrownBy(() -> httpClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class,
                 ex -> assertThat(this.extractErrorMessage(ex))
                     .isPresent()
@@ -323,8 +350,10 @@ class IngestControllerTest {
 
     @Test
     void testMethodNotAllowed() {
+        final BlockingHttpClient blockingHttpClient = this.client.toBlocking();
+        final MutableHttpRequest<?> request = HttpRequest.GET("/topic/");
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.client.toBlocking().exchange(HttpRequest.GET("/topic/")))
+            .isThrownBy(() -> blockingHttpClient.exchange(request))
             .withMessage("Method Not Allowed")
             .satisfies(ex -> assertThat((CharSequence) ex.getStatus()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED));
     }
