@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Utility class for common GraphQL operations.
@@ -89,15 +91,18 @@ public final class GraphQLUtils {
      * @return name of the type
      */
     public static String getRootType(final QuickTopicType type, final TypeDefinitionRegistry registry) {
-        if (type != QuickTopicType.SCHEMA) {
+        if (type != QuickTopicType.AVRO && type != QuickTopicType.PROTOBUF) {
             return Objects.requireNonNull(TYPE_TO_GQL_SCALAR_NAME_MAP.get(type));
         }
 
         final Map<String, Integer> objectFiledCount = new HashMap<>();
         final List<String> skippableTypes = new ArrayList<>();
-        for (final Entry<String, TypeDefinition> next : registry.types().entrySet()) {
+        final Map<String, TypeDefinition> types = registry.types();
+        final Predicate<String> containsKey = types::containsKey;
+        final Function<String, Boolean> add = skippableTypes::add;
+        for (final Entry<String, TypeDefinition> next : types.entrySet()) {
             final String typeName = next.getKey();
-            final TypeDefinition typeDefinition = next.getValue();
+            final TypeDefinition<?> typeDefinition = next.getValue();
             if (typeName.equals(QUERY_TYPE) || skippableTypes.contains(typeName)) {
                 // we can skip the query type and type we've already seen
                 continue;
@@ -108,8 +113,8 @@ public final class GraphQLUtils {
                 final int objectTypesAsFieldsCount = (int) fieldDefinitions.stream()
                     .map(FieldDefinition::getType)
                     .map(GraphQLUtils::getNameOfType)
-                    .filter(name -> registry.types().containsKey(name))
-                    .peek(skippableTypes::add) // seen as field => can not be root object
+                    .filter(containsKey)
+                    .map(add) // seen as field => can not be root object
                     .count();
                 objectFiledCount.put(typeName, objectTypesAsFieldsCount);
             } else {

@@ -96,10 +96,7 @@ public class QuickTopicTypeService implements TopicTypeService {
     }
 
     private CompletableFuture<QuickTopicData<?, ?>> loadTopicData(final String key, final Executor executor) {
-        log.info("No cached entry for topic {}", key);
-        this.cache.asMap().forEach((k, v) -> {
-            log.info("{}", k);
-        });
+        log.debug("No cached entry for topic {}", key);
         return this.topicRegistryClient.getTopicData(key)
             .flatMap(this::fromTopicData)
             .as(single -> singleToFuture(executor, single));
@@ -107,7 +104,7 @@ public class QuickTopicTypeService implements TopicTypeService {
 
     private <K> Single<TypeResolver<K>> createResolver(final QuickTopicType type, final String subject) {
         // no need for configuration if we handle non-avro types
-        if (type != QuickTopicType.SCHEMA) {
+        if (type != QuickTopicType.AVRO && type != QuickTopicType.PROTOBUF) {
             return Single.just(type.getTypeResolver(null));
         }
         // get schema and configure the resolver with it
@@ -119,7 +116,6 @@ public class QuickTopicTypeService implements TopicTypeService {
     private <K, V> Single<QuickTopicData<K, V>> fromTopicData(final TopicData topicData) {
         final QuickTopicType keyType = topicData.getKeyType();
         final QuickTopicType valueType = topicData.getValueType();
-
 
         final Map<String, String> configs = Map.of("schema.registry.url", this.schemaRegistryUrl);
         final Serde<K> keySerde = keyType.getSerde(configs, true);

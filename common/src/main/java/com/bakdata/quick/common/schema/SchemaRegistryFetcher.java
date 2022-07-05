@@ -29,6 +29,7 @@ import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.client.rest.entities.Schema;
 import io.micronaut.http.HttpStatus;
 import io.reactivex.Single;
+import java.io.IOException;
 import javax.inject.Singleton;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -45,10 +46,11 @@ public class SchemaRegistryFetcher implements SchemaFetcher {
     /**
      * Default constructor.
      */
-    public SchemaRegistryFetcher(final HttpClient client, final KafkaConfig kafkaConfig) {
+    public SchemaRegistryFetcher(final HttpClient client, final KafkaConfig kafkaConfig,
+                                 final SchemaProvider schemaProvider) {
         this.client = client;
         this.schemaRegistryUrl = kafkaConfig.getSchemaRegistryUrl();
-        this.schemaProvider = new AvroSchemaProvider();
+        this.schemaProvider = schemaProvider;
     }
 
     @Override
@@ -68,15 +70,17 @@ public class SchemaRegistryFetcher implements SchemaFetcher {
             .header("Content-Type", "application/vnd.schemaregistry.v1+json")
             .build();
 
-        return Single.fromCallable(() -> {
-            try (final Response response = this.client.newCall(build).execute()) {
-                if (response.code() != HttpStatus.OK.getCode()) {
-                    throw new HttpClientException(HttpStatus.valueOf(response.code()));
-                }
-                final Schema schema = this.client.objectMapper().readValue(response.body().byteStream(), Schema.class);
-                return this.schemaProvider.parseSchema(schema.getSchema(), schema.getReferences())
-                    .orElseThrow(() -> new SchemaNotFoundException(subject));
+        return Single.fromCallable(() -> this.parseSchema(subject, build));
+    }
+
+    private ParsedSchema parseSchema(final String subject, final Request build) throws IOException {
+        try (final Response response = this.client.newCall(build).execute()) {
+            if (response.code() != HttpStatus.OK.getCode()) {
+                throw new HttpClientException(HttpStatus.valueOf(response.code()));
             }
-        });
+            final Schema schema = this.client.objectMapper().readValue(response.body().byteStream(), Schema.class);
+            return this.schemaProvider.parseSchema(schema.getSchema(), schema.getReferences())
+                .orElseThrow(() -> new SchemaNotFoundException(subject));
+        }
     }
 }

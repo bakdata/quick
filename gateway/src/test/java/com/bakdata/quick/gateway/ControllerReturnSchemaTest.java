@@ -30,6 +30,7 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
+import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -60,13 +61,13 @@ class ControllerReturnSchemaTest {
     void setUp() throws IOException {
         this.registryClient.register(
             "purchase-topic",
-            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA,
+            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO,
                 "")
         ).blockingAwait();
 
         this.registryClient.register(
             "product-topic",
-            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA, "")
+            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
         ).blockingAwait();
 
         final Path schemaPath = workingDirectory.resolve("schema.graphql");
@@ -99,14 +100,14 @@ class ControllerReturnSchemaTest {
             .isNotNull()
             .extracting(SchemaData::getSchema).asString()
             .isEqualToIgnoringWhitespace(expectedPurchase);
-
     }
 
     @Test
     void shouldThrowErrorIfTypeDoesNotExist() {
         final HttpRequest<?> request = HttpRequest.create(HttpMethod.GET, "/schema/nope");
+        final BlockingHttpClient blockingHttpClient = this.httpClient.toBlocking();
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.httpClient.retrieve(request).blockingFirst())
+            .isThrownBy(() -> blockingHttpClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class, ex ->
                 assertThat(extractErrorMessage(ex))
                     .isPresent()

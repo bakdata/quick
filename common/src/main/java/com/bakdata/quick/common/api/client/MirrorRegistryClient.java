@@ -59,7 +59,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
         this.ingestClient = ingestClient;
         this.topicDataClient = createMirrorClient(topicRegistryConfig, client);
         this.registryData = new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING,
-            QuickTopicType.SCHEMA, null);
+            QuickTopicType.AVRO, null);
     }
 
     @Override
