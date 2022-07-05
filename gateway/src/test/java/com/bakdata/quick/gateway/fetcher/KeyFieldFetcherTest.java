@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.List;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import okhttp3.OkHttpClient;

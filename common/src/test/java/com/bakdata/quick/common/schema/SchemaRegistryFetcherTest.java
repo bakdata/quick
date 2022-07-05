@@ -19,7 +19,6 @@ package com.bakdata.quick.common.schema;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.avro.Person;
-import com.bakdata.quick.common.ConfigUtils;
 import com.bakdata.quick.common.exception.HttpClientException;
 import com.bakdata.schemaregistrymock.junit5.SchemaRegistryMockExtension;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
@@ -28,7 +27,6 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Single;
 import java.util.Map;
 import javax.inject.Inject;
-import org.apache.avro.Schema;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 

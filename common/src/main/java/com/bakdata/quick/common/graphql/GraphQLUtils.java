@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Utility class for common GraphQL operations.
@@ -98,8 +96,6 @@ public final class GraphQLUtils {
         final Map<String, Integer> objectFiledCount = new HashMap<>();
         final List<String> skippableTypes = new ArrayList<>();
         final Map<String, TypeDefinition> types = registry.types();
-        final Predicate<String> containsKey = types::containsKey;
-        final Function<String, Boolean> add = skippableTypes::add;
         for (final Entry<String, TypeDefinition> next : types.entrySet()) {
             final String typeName = next.getKey();
             final TypeDefinition<?> typeDefinition = next.getValue();
@@ -113,8 +109,8 @@ public final class GraphQLUtils {
                 final int objectTypesAsFieldsCount = (int) fieldDefinitions.stream()
                     .map(FieldDefinition::getType)
                     .map(GraphQLUtils::getNameOfType)
-                    .filter(containsKey)
-                    .map(add) // seen as field => can not be root object
+                    .filter(types::containsKey)
+                    .map(skippableTypes::add) // seen as field => can not be root object
                     .count();
                 objectFiledCount.put(typeName, objectTypesAsFieldsCount);
             } else {

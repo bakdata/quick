@@ -36,7 +36,6 @@ import io.reactivex.Single;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Factory for instantiating the different {@link DataFetcher} used in Quick.

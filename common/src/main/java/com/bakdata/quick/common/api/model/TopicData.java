@@ -16,8 +16,6 @@
 
 package com.bakdata.quick.common.api.model;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.Value;

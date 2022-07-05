@@ -19,7 +19,6 @@ package com.bakdata.quick.gateway.fetcher;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 

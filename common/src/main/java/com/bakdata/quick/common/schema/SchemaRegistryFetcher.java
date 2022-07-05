@@ -25,7 +25,6 @@ import com.bakdata.quick.common.exception.HttpClientException;
 import com.bakdata.quick.common.exception.schema.SchemaNotFoundException;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.SchemaProvider;
-import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.client.rest.entities.Schema;
 import io.micronaut.http.HttpStatus;
 import io.reactivex.Single;

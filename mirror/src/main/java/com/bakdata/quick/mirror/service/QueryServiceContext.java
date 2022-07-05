@@ -16,8 +16,6 @@
 
 package com.bakdata.quick.mirror.service;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import lombok.Data;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;

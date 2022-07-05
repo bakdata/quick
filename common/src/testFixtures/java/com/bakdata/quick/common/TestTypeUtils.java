@@ -26,7 +26,6 @@ import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
-import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import org.apache.avro.Schema;

@@ -17,10 +17,8 @@
 package com.bakdata.quick.common.resolver;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import com.bakdata.quick.avro.ChartRecord;
-import java.nio.file.Path;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Test;
 
