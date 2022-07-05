@@ -290,7 +290,7 @@ class KafkaTopicServiceTest {
 
         final SchemaRegistryClient schemaRegistryClient = this.schemaRegistry.getSchemaRegistryClient();
         final String subject = topicName + "-value";
-        final ParsedSchema expectedSchema = this.graphQLToProtobufConverter.convert(SCHEMA);
+        final ParsedSchema expectedSchema = this.graphQLToAvroConverter.convert(SCHEMA);
 
         assertThat(schemaRegistryClient.getAllSubjects()).containsExactly(subject);
         assertThat(schemaRegistryClient.getSchemaById(1)).isEqualTo(expectedSchema);

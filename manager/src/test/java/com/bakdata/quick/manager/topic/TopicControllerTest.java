@@ -96,7 +96,7 @@ class TopicControllerTest {
             new TopicCreationData(TopicWriteType.MUTABLE, null, new GatewaySchema("test", "test"), null);
         this.client.toBlocking().exchange(POST(baseUri, creationData));
 
-        verify(this.service).createTopic(NAME, QuickTopicType.LONG, QuickTopicType.AVRO, creationData);
+        verify(this.service).createTopic(NAME, QuickTopicType.LONG, QuickTopicType.SCHEMA, creationData);
     }
 
     @Test
