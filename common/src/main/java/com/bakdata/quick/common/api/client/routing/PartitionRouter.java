@@ -45,6 +45,8 @@ public class PartitionRouter<K> implements Router<K> {
      *
      * @param keySerde serializer for the key
      * @param topic the name of the corresponding topic
+     * @param partitionFinder strategy for finding partitions
+     * @param partitionToHost partition to host mapping
      */
     public PartitionRouter(final Serde<K> keySerde, final String topic,
                            final PartitionFinder partitionFinder, final Map<Integer, String> partitionToHost) {

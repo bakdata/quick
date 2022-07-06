@@ -95,6 +95,7 @@ public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
      * @param client       http client
      * @param keySerde the serde for the key
      * @param valueResolver the value's {@link TypeResolver}
+     * @param partitionFinder strategy for finding partitions
      */
     public PartitionedMirrorClient(final String topicName, final MirrorHost mirrorHost,
                                    final HttpClient client, final Serde<K> keySerde,

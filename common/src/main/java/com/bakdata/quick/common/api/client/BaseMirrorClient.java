@@ -18,7 +18,6 @@ package com.bakdata.quick.common.api.client;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -27,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+
 import java.io.IOException;
 
 /**
@@ -41,19 +41,6 @@ public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
     protected final MirrorHost host;
     protected final HttpClient client;
     protected final MirrorValueParser<V> parser;
-
-    /**
-     * Constructor for the client.
-     *
-     * @param topicName    name of the topic for which the mirror is deployed
-     * @param client       http client
-     * @param mirrorConfig configuration of the mirror host
-     * @param typeResolver the value's {@link TypeResolver}
-     */
-    public BaseMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-                               final TypeResolver<V> typeResolver) {
-        this(new MirrorHost(topicName, mirrorConfig), client, typeResolver);
-    }
 
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
@@ -74,6 +61,13 @@ public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
         return this.fetchValue(key) != null;
     }
 
+    /**
+     * Responsible for making a request to a specific url and processing the result.
+     * @param url a url for which a request is made
+     * @param parser parser
+     * @param <T> type
+     * @return the value from a mirror value wrapper
+     */
     @Nullable
     protected <T> T sendRequest(final String url, final ParserFunction<T> parser) {
         try  {
@@ -89,6 +83,11 @@ public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
         }
     }
 
+    /**
+     * Submits a request and processes the response. Throws an exception in case of various errors.
+     * @param url a url for which a request is made
+     * @return response body if successful; null if resource has not been found
+     */
     @Nullable
     protected ResponseBody makeRequest(final String url) {
         final Request request = new Request.Builder().url(url).get().build();
