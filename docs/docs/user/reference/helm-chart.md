@@ -10,11 +10,6 @@ image:
   # The image pull policy of manager and ingest service
   pullPolicy: "Always"
 
-avro:
-  # The namespace used for created avro namespaces
-  # see https://avro.apache.org/docs/current/spec.html
-  namespace: ""
-
 # These configurations apply to both the helm chart ingresses and the gateway ingresses
 ingress:
   # Whether the ingress uses ssl
@@ -60,4 +55,7 @@ quickConfig:
   QUICK_TOPIC_REGISTRY_PARTITIONS: "3"
   QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR: "1"
   QUICK_SCHEMA_FORMAT: "Avro"
+  # The namespace used for created avro namespaces
+  # see https://avro.apache.org/docs/current/spec.html
+  QUICK_SCHEMA_AVRO_FORMAT: ""
 ```
