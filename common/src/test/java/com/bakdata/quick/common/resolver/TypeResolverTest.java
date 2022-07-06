@@ -16,28 +16,24 @@
 
 package com.bakdata.quick.common.resolver;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.bakdata.quick.avro.ChartRecord;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.confluent.kafka.schemaregistry.avro.AvroSchema;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.parsing.Parser;
 import org.junit.jupiter.api.Test;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class TypeResolverTest {
     private static final Path workingDirectory = Path.of("src", "test", "resources");
     private static final long EXPECTED_FIELD_ID = 5L;
     private static final long EXPECTED_COUNT_PLAYS = 10L;
     private static final String JSON_RECORD = "{\"fieldId\":5,\"countPlays\":10}";
-    private static final Map<String, Long> MAP_RECORD = Map.of("fieldId", 5L, "countPlays", 10L);
     private final ChartRecord chartRecord = ChartRecord.newBuilder().setFieldId(5L).setCountPlays(10L).build();
 
     @Test

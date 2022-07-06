@@ -18,9 +18,7 @@ package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +31,6 @@ import java.util.Map;
  *
  * @param <K> the type of key
  */
-@Slf4j
 public class PartitionRouter<K> implements Router<K> {
 
     private final String topic;

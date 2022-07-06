@@ -20,7 +20,6 @@ import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import edu.umd.cs.findbugs.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;

@@ -27,9 +27,14 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-
 import java.io.IOException;
 
+/**
+ * An abstract BaseMirrorClient that provides basic properties and functionalities for Mirror Clients.
+ *
+ * @param <K> key type
+ * @param <V> value type
+ */
 @Slf4j
 public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
 
@@ -71,17 +76,19 @@ public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
 
     @Nullable
     protected <T> T sendRequest(final String url, final ParserFunction<T> parser) {
-        try (final ResponseBody body = makeRequest(url)) {
+        try  {
+            final ResponseBody body = makeRequest(url);
             final MirrorValue<T> mirrorValue = parser.parse(body.byteStream());
             return mirrorValue.getValue();
-        } catch (IOException exception) {
+        } catch (final IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }
     }
 
     protected ResponseBody makeRequest(final String url) {
         final Request request = new Request.Builder().url(url).get().build();
-        try (final Response response = this.client.newCall(request).execute()) {
+        try  {
+            final Response response = this.client.newCall(request).execute();
             if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
                 throw new MirrorException("Resource not found", HttpStatus.NOT_FOUND);
             }
@@ -94,16 +101,11 @@ public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
                 );
                 throw new MirrorException(errorMessage, HttpStatus.valueOf(response.code()));
             }
-
             // Code 200 and empty body indicates an error
             if (body == null) {
                 throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
             return body;
-
-
-
         } catch (final IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }

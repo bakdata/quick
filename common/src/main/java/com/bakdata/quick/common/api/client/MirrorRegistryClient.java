@@ -27,7 +27,6 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
-
 import javax.inject.Singleton;
 import java.util.Comparator;
 import java.util.List;

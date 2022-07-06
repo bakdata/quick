@@ -28,7 +28,6 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,6 +36,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * MirrorClient that has access to information about partition-host mapping. This enables it to efficiently
+ * route requests in case when there is more than one mirror replica.
+ *
+ * @param <K> key type
+ * @param <V> value type
+ */
 @Slf4j
 public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
 
@@ -91,7 +97,8 @@ public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
      * @param valueResolver the value's {@link TypeResolver}
      */
     public PartitionedMirrorClient(final String topicName, final MirrorHost mirrorHost,
-                                   final HttpClient client, final Serde<K> keySerde, final TypeResolver<V> valueResolver,
+                                   final HttpClient client, final Serde<K> keySerde,
+                                   final TypeResolver<V> valueResolver,
                                    final PartitionFinder partitionFinder) {
         super(mirrorHost, client, valueResolver);
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
@@ -128,26 +135,31 @@ public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
 
     private void initRouter() {
         log.info("Initializing partition router...");
-        Map<Integer, String> response = makeRequestForPartitonHostMapping();
-        this.router = new PartitionRouter<>(this.keySerde, this.topicName,
-                this.partitionFinder, response);
+        final Map<Integer, String> response = makeRequestForPartitionHostMapping();
+        this.router = new PartitionRouter<>(this.keySerde, this.topicName, this.partitionFinder, response);
         this.knownHosts = this.router.getAllHosts();
     }
 
-    private Map<Integer, String> makeRequestForPartitonHostMapping() {
+    private Map<Integer, String> makeRequestForPartitionHostMapping() {
         final String url = this.streamsStateHost.getPartitionToHostUrl();
-        ResponseBody responseBody = makeRequest(url);
+        final ResponseBody responseBody = makeRequest(url);
         try {
             final TypeReference<Map<Integer, String>> typeRef = new TypeReference<>() {};
-            final Map<Integer, String> partitionHostMappingResponse;
-            partitionHostMappingResponse = this.client.objectMapper().readValue(
-                    responseBody.byteStream(), typeRef);
-            log.info("Collected information about the partitions and hosts. There are {} partitions and {} distinct hosts",
-                    partitionHostMappingResponse.size(),
+            final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper().readValue(
+                    Objects.requireNonNull(responseBody).byteStream(), typeRef);
+            log.info("Collected information about the partitions and hosts."
+                            + " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
                     (int) partitionHostMappingResponse.values().stream().distinct().count());
             return partitionHostMappingResponse;
-        } catch (IOException e) {
-            throw new InternalErrorException("P");
+        } catch (final IOException e) {
+            throw new InternalErrorException("There was a problem handling the response: " + e.getMessage());
+        } finally {
+            try {
+                Objects.requireNonNull(responseBody).byteStream().close();
+            } catch (final IOException e) {
+                // TODO: remove this code smell
+                throw new InternalErrorException("There was a problem closing the InputStream" + e.getMessage());
+            }
         }
     }
 }

@@ -7,9 +7,11 @@ import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.Map;
 
+/**
+ * A handful of utility methods for testing.
+ */
 public class TestUtils {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -25,11 +27,11 @@ public class TestUtils {
     }
 
     public static String generateBodyForRouter() throws JsonProcessingException {
-        Map<Integer, String> elements = Map.of(1, "1", 2, "2");
+        final Map<Integer, String> elements = Map.of(1, "1", 2, "2");
         return generateBodyForRouterWith(elements);
     }
 
-    public static String generateBodyForRouterWith(Map<Integer, String> elements) throws JsonProcessingException {
+    public static String generateBodyForRouterWith(final Map<Integer, String> elements) throws JsonProcessingException {
         return MAPPER.writeValueAsString(elements);
     }
 
