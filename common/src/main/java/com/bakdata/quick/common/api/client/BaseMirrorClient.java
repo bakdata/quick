@@ -78,19 +78,24 @@ public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
     protected <T> T sendRequest(final String url, final ParserFunction<T> parser) {
         try  {
             final ResponseBody body = makeRequest(url);
-            final MirrorValue<T> mirrorValue = parser.parse(body.byteStream());
-            return mirrorValue.getValue();
+            MirrorValue<T> mirrorValue;
+            if (body != null) {
+                mirrorValue = parser.parse(body.byteStream());
+                return mirrorValue.getValue();
+            }
+            return null;
         } catch (final IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }
     }
 
+    @Nullable
     protected ResponseBody makeRequest(final String url) {
         final Request request = new Request.Builder().url(url).get().build();
         try  {
             final Response response = this.client.newCall(request).execute();
             if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
-                throw new MirrorException("Resource not found", HttpStatus.NOT_FOUND);
+                return null;
             }
 
             final ResponseBody body = response.body();

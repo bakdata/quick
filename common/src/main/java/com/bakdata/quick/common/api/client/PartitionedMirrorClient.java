@@ -142,8 +142,7 @@ public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
 
     private Map<Integer, String> makeRequestForPartitionHostMapping() {
         final String url = this.streamsStateHost.getPartitionToHostUrl();
-        final ResponseBody responseBody = makeRequest(url);
-        try {
+        try (final ResponseBody responseBody = makeRequest(url)) {
             final TypeReference<Map<Integer, String>> typeRef = new TypeReference<>() {};
             final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper().readValue(
                     Objects.requireNonNull(responseBody).byteStream(), typeRef);
@@ -153,13 +152,6 @@ public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
             return partitionHostMappingResponse;
         } catch (final IOException e) {
             throw new InternalErrorException("There was a problem handling the response: " + e.getMessage());
-        } finally {
-            try {
-                Objects.requireNonNull(responseBody).byteStream().close();
-            } catch (final IOException e) {
-                // TODO: remove this code smell
-                throw new InternalErrorException("There was a problem closing the InputStream" + e.getMessage());
-            }
         }
     }
 }

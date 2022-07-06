@@ -25,6 +25,7 @@ import com.bakdata.quick.common.testutils.TestUtils;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
@@ -32,6 +33,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -115,11 +117,11 @@ class TopicRegistryMirrorClientTest {
         assertThat(exists).isTrue();
     }
 
-    // Doesn't work atm
-    //    @Test
-    //    void shouldReturnFalseIfTopicDoesNotExist() {
-    //        this.server.enqueue(new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.getCode()));
-    //        final Throwable invalidDeployment = this.topicDataClient.exists("dummy");
-    //
-    //    }
+
+    @Test
+    void shouldReturnFalseIfTopicDoesNotExist() {
+        this.server.enqueue(new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.getCode()));
+        final Boolean exists = this.topicDataClient.exists("dummy");
+        assertThat(exists).isFalse();
+    }
 }
