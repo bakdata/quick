@@ -34,7 +34,6 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
-import java.util.*
 
 class QuickCodeQualityPlugin : Plugin<Project> {
     companion object {
@@ -73,7 +72,7 @@ class QuickCodeQualityPlugin : Plugin<Project> {
 
                 // nullaway only for non-tests
                 val nullAwaySeverity =
-                        if (name.toLowerCase(Locale.ROOT).contains("test")) CheckSeverity.OFF else CheckSeverity.ERROR
+                        if (name.toLowerCase().contains("test")) CheckSeverity.OFF else CheckSeverity.ERROR
                 check("NullAway", nullAwaySeverity)
                 option("NullAway:AnnotatedPackages", "com.bakdata.quick")
             }
