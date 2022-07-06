@@ -21,6 +21,7 @@ import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.config.TopicRegistryConfig;
+import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.type.QuickTopicType;
 import io.reactivex.Completable;
@@ -70,7 +71,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
 
     @Override
     public Completable delete(final String name) {
-        log.debug("Delete topic {} in registry", name);
+        log.debug("Delete topic {} in topic registry", name);
         return this.ingestClient.deleteData(this.registryTopic, List.of(name));
     }
 
@@ -79,8 +80,16 @@ public class MirrorRegistryClient implements TopicRegistryClient {
         if (name.equals(this.registryTopic)) {
             return this.getSelf();
         }
-        log.debug("Request topic data for topic {}", name);
-        return Single.fromCallable(() -> this.topicDataClient.fetchValue(name));
+        return Single.fromCallable(() -> this.fetchTopicData(name));
+    }
+
+    private TopicData fetchTopicData(final String name) {
+        log.debug("Request topic data from topic registry for topic {}", name);
+        final TopicData topicData = this.topicDataClient.fetchValue(name);
+        if (topicData != null) {
+            return topicData;
+        }
+        throw new NotFoundException(String.format("Topic %s not found in topic registry", name));
     }
 
     @Override

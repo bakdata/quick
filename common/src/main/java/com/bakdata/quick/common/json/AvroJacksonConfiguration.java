@@ -16,21 +16,21 @@
 
 package com.bakdata.quick.common.json;
 
-import com.bakdata.quick.common.condition.AvroSchemaFormatCondition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.micronaut.context.annotation.Requires;
 import javax.inject.Singleton;
 import org.apache.avro.generic.GenericRecord;
 
 
 /**
  * Configures deserialization of Avro objects with Jackson.
+ *
+ * <p>
+ * This configuration is always enabled, as Quick uses Avro for internal services.
  */
 @Singleton
-@Requires(condition = AvroSchemaFormatCondition.class)
 public class AvroJacksonConfiguration implements ObjectMapperConfiguration {
 
     @Override
