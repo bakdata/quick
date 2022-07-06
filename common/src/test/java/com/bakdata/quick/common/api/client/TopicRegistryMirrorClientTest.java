@@ -42,9 +42,7 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @MicronautTest
-class TopicDataClientTest {
-
-    private static final String DEFAULT_TOPIC = "dummy";
+class TopicRegistryMirrorClientTest {
     private final MockWebServer server = new MockWebServer();
 
     private final ObjectMapper mapper = new ObjectMapper();

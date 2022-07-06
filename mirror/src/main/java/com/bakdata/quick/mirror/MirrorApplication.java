@@ -39,6 +39,11 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.runtime.Micronaut;
 import io.micronaut.runtime.server.EmbeddedServer;
 import io.reactivex.Single;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
@@ -47,11 +52,6 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
-import javax.inject.Singleton;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
 
 /**
  * Kafka Streams application and REST service for mirror applications.

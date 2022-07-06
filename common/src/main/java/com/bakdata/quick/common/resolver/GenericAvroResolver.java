@@ -29,8 +29,7 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 public class GenericAvroResolver implements TypeResolver<GenericRecord> {
 
     private final JsonAvroConverter converter;
-    @Nullable
-    private Schema schema = null;
+    private final Schema schema;
 
     public GenericAvroResolver(final Schema schema) {
         this.schema = schema;
