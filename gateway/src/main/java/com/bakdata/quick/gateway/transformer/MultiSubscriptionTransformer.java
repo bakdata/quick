@@ -63,9 +63,9 @@ public class MultiSubscriptionTransformer implements SchemaGeneratorPostProcessi
                 .map(this::buildDataFetcher)
                 .collect(Collectors.toList());
 
-        final GraphQLCodeRegistry codeRegistry = originalSchema.getCodeRegistry().transform(builder -> {
-            fetchers.forEach(spec -> builder.dataFetcher(spec.getCoordinates(), spec.getDataFetcher()));
-        });
+        final GraphQLCodeRegistry codeRegistry = originalSchema.getCodeRegistry().transform(builder ->
+            fetchers.forEach(spec -> builder.dataFetcher(spec.getCoordinates(), spec.getDataFetcher()))
+        );
 
         return originalSchema.transform(builder -> builder.codeRegistry(codeRegistry));
     }

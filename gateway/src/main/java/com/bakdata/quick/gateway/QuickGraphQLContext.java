@@ -70,8 +70,7 @@ public class QuickGraphQLContext {
      * Creates a new GraphQLSchema from a schema string and updates it.
      */
     public void updateFromSchemaString(final String schemaString) {
-        final GraphQLSchema graphQLSchema = this.schemaGenerator.create(schemaString);
-        this.update(graphQLSchema);
+        this.update(this.schemaGenerator.create(schemaString));
     }
 
     public GraphQL getGraphQL() {

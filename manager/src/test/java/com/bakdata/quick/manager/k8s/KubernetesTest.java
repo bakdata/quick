@@ -40,7 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
  * Provides k8s integration for tests.
  */
 @Getter
-public class KubernetesTest {
+public abstract class KubernetesTest {
     public static final String NAMESPACE = "test";
     public static final String DOCKER_REGISTRY = "registry.hub.docker.com";
     public static final String DEFAULT_IMAGE_TAG = "latest";

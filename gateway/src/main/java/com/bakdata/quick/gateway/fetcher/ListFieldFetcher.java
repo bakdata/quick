@@ -55,8 +55,8 @@ public class ListFieldFetcher<T, V> implements DataFetcher<List<V>> {
         // in case of a subscription, we get a generic record directly from the Kafka Consumer
         final List<T> keys;
         if (environment.getSource() instanceof GenericRecord) {
-            final GenericRecord record = environment.getSource();
-            keys = (List<T>) record.get(this.idFieldName);
+            final GenericRecord genericRecord = environment.getSource();
+            keys = (List<T>) genericRecord.get(this.idFieldName);
         } else {
             // otherwise, it's a from a request to a mirror and therefore json, i.e. a map
             final Map<String, Object> source = environment.getSource();

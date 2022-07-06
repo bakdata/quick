@@ -14,20 +14,11 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.exception.schema;
-
-import com.bakdata.quick.common.exception.QuickException;
-import edu.umd.cs.findbugs.annotations.Nullable;
+package com.bakdata.quick.gateway.fetcher;
 
 /**
- * Exceptions that are thrown when working with schemas.
+ * Supplier for creating a new data fetcher client for a topic.
  */
-public abstract class SchemaException extends QuickException {
-    protected SchemaException(@Nullable final String message) {
-        super(message);
-    }
-
-    public SchemaException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
+public interface ClientSupplier {
+    <T> DataFetcherClient<T> createClient(final String topic);
 }

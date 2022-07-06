@@ -18,7 +18,6 @@ package com.bakdata.quick.common.schema;
 
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.reactivex.Single;
-import org.apache.avro.Schema;
 
 /**
  * Client for interacting with the Avro Schema Registry.

@@ -25,7 +25,7 @@ import java.util.Map;
 public class TestEnvironmentPropertySource extends MapPropertySource {
     public static final String NAME = "test";
 
-    public TestEnvironmentPropertySource(final Map map) {
+    public TestEnvironmentPropertySource(final Map<?, ?> map) {
         super(NAME, map);
     }
 

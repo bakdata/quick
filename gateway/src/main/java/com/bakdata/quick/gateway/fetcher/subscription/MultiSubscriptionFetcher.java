@@ -19,14 +19,10 @@ package com.bakdata.quick.gateway.fetcher.subscription;
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.annotations.VisibleForTesting;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.SelectedField;
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Single;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +94,7 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
         final List<String> selectedFields = this.fieldSelector.selectFields(environment);
         final Flux<? extends NamedRecord<?, ?>> combinedElementsStream =
             this.combineElementStreams(selectedFields, environment);
-        return combinedElementsStream.flatMap(record -> this.createComplexType(record, selectedFields));
+        return combinedElementsStream.flatMap(namedRecord -> this.createComplexType(namedRecord, selectedFields));
     }
 
     /**
@@ -132,24 +128,24 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      *     We can also cache it since we get all updates.</il>
      * </ol>
      *
-     * @param record         the record we got from Kafka
+     * @param namedRecord         the record we got from Kafka
      * @param selectedFields the fields selected by this query
      * @return a map representing the selected object
      */
-    private Mono<Map<String, Object>> createComplexType(final NamedRecord<?, ?> record,
+    private Mono<Map<String, Object>> createComplexType(final NamedRecord<?, ?> namedRecord,
                                                         final List<String> selectedFields) {
         // map holding the data for current key
         final Map<String, Object> complexType = new HashMap<>();
-        complexType.put(record.getFieldName(), record.getRecord().value());
+        complexType.put(namedRecord.getFieldName(), namedRecord.getConsumerRecord().value());
 
-        final FieldKey<?> key = new FieldKey<>(record.getFieldName(), record.getRecord().key());
-        final CompletableFuture<?> recordValue = CompletableFuture.completedFuture(record.getRecord().value());
-        log.info("Update {} with {}", key, record.getRecord().value());
+        final FieldKey<?> key = new FieldKey<>(namedRecord.getFieldName(), namedRecord.getConsumerRecord().key());
+        final CompletableFuture<?> recordValue = CompletableFuture.completedFuture(namedRecord.getConsumerRecord().value());
+        log.info("Update {} with {}", key, namedRecord.getConsumerRecord().value());
         this.fieldCache.put(key, recordValue);
 
         final Flux<? extends FieldKey<?>> fieldKeysToPopulate = Flux.fromIterable(selectedFields)
-            .filter(fieldName -> !fieldName.equals(record.getFieldName()))
-            .map(fieldName -> new FieldKey<>(fieldName, record.getRecord().key()));
+            .filter(fieldName -> !fieldName.equals(namedRecord.getFieldName()))
+            .map(fieldName -> new FieldKey<>(fieldName, namedRecord.getConsumerRecord().key()));
 
         final Flux<FieldValue<Object>> fieldValues = fieldKeysToPopulate.flatMap(fieldKey -> {
                 log.info("Get key {}", fieldKey);
@@ -196,7 +192,7 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
     @Value
     private static class NamedRecord<K, V> {
         String fieldName;
-        ConsumerRecord<K, V> record;
+        ConsumerRecord<K, V> consumerRecord;
     }
 
     @Value

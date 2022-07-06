@@ -125,7 +125,7 @@ public class KafkaSubscriptionProvider<K, V> implements SubscriptionProvider<K, 
             final Object requestedKeyValue = Optional.ofNullable(environment.getArgument(this.key))
                 .orElseThrow(() -> new IllegalArgumentException("Could not get argument"));
 
-            recordFlux = recordFlux.filter(record -> record.key().equals(requestedKeyValue));
+            recordFlux = recordFlux.filter(consumerRecord -> consumerRecord.key().equals(requestedKeyValue));
         }
         // Do NOT cache the results of the publisher
         // this may lead to sending elements downstream multiple times if a subscriber renews the subscription
