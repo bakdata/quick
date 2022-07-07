@@ -20,14 +20,17 @@ import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import edu.umd.cs.findbugs.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * An abstract BaseMirrorClient that provides basic properties and functionalities for Mirror Clients.
@@ -36,7 +39,7 @@ import java.io.IOException;
  * @param <V> value type
  */
 @Slf4j
-public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
+public class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
 
     protected final MirrorHost host;
     protected final HttpClient client;
@@ -57,22 +60,35 @@ public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
     }
 
     @Override
+    @Nullable
+    public V fetchValue(final K key) {
+        return this.sendRequest(this.host.forKey(key.toString()), this.parser::deserialize);
+    }
+
+    @Override
+    public List<V> fetchAll() {
+        return Objects.requireNonNullElse(this.sendRequest(this.host.forAll(), this.parser::deserializeList),
+                Collections.emptyList());
+    }
+
+    @Override
+    @Nullable
+    public List<V> fetchValues(final List<K> keys) {
+        final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
+        return this.sendRequest(this.host.forKeys(collect), this.parser::deserializeList);
+    }
+
+    @Override
     public boolean exists(final K key) {
         return this.fetchValue(key) != null;
     }
 
-    /**
-     * Responsible for making a request to a specific url and processing the result.
-     * @param url a url for which a request is made
-     * @param parser parser
-     * @param <T> type
-     * @return the value from a mirror value wrapper
-     */
+    @Override
     @Nullable
-    protected <T> T sendRequest(final String url, final ParserFunction<T> parser) {
+    public <T> T sendRequest(final String url, final ParserFunction<T> parser) {
         try  {
             final ResponseBody body = makeRequest(url);
-            MirrorValue<T> mirrorValue;
+            final MirrorValue<T> mirrorValue;
             if (body != null) {
                 mirrorValue = parser.parse(body.byteStream());
                 return mirrorValue.getValue();
@@ -83,13 +99,9 @@ public abstract class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
         }
     }
 
-    /**
-     * Submits a request and processes the response. Throws an exception in case of various errors.
-     * @param url a url for which a request is made
-     * @return response body if successful; null if resource has not been found
-     */
+    @Override
     @Nullable
-    protected ResponseBody makeRequest(final String url) {
+    public ResponseBody makeRequest(final String url) {
         final Request request = new Request.Builder().url(url).get().build();
         try  {
             final Response response = this.client.newCall(request).execute();

@@ -19,11 +19,9 @@ package com.bakdata.quick.common.api.client;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import edu.umd.cs.findbugs.annotations.Nullable;
-import java.util.Collections;
+import org.jetbrains.annotations.Nullable;
+import okhttp3.ResponseBody;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Default HTTP client for working with Quick mirrors.
@@ -32,7 +30,9 @@ import java.util.stream.Collectors;
  * @param <V> value type
  */
 
-public class DefaultMirrorClient<K, V> extends BaseMirrorClient<K, V> {
+public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
+
+    private final MirrorClient<K, V> delegate;
 
     /**
      * Constructor for the client.
@@ -56,26 +56,40 @@ public class DefaultMirrorClient<K, V> extends BaseMirrorClient<K, V> {
      */
     public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
                                final TypeResolver<V> valueResolver) {
-        super(mirrorHost, client, valueResolver);
-
+        this.delegate = new BaseMirrorClient<>(mirrorHost, client, valueResolver);
     }
 
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        return this.sendRequest(this.host.forKey(key.toString()), this.parser::deserialize);
+        return this.delegate.fetchValue(key);
     }
 
     @Override
     public List<V> fetchAll() {
-        return Objects.requireNonNullElse(this.sendRequest(this.host.forAll(), this.parser::deserializeList),
-                Collections.emptyList());
+        return this.delegate.fetchAll();
     }
 
     @Override
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
-        final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
-        return this.sendRequest(this.host.forKeys(collect), this.parser::deserializeList);
+        return this.delegate.fetchValues(keys);
+    }
+
+    @Override
+    public boolean exists(final K key) {
+        return this.delegate.exists(key);
+    }
+
+    @Nullable
+    @Override
+    public <T> T sendRequest(final String url, final ParserFunction<T> parser) {
+        return this.delegate.sendRequest(url, parser);
+    }
+
+    @Nullable
+    @Override
+    public ResponseBody makeRequest(final String url) {
+        return this.delegate.makeRequest(url);
     }
 }

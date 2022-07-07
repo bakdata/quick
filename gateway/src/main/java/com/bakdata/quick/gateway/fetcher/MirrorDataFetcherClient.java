@@ -16,7 +16,6 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import com.bakdata.quick.common.api.client.BaseMirrorClient;
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
@@ -73,7 +72,7 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
         return this.mirrorClient.get().fetchAll();
     }
 
-    private BaseMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
+    private DefaultMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
                                                            final HttpClient client, final TypeResolver<V> valueResolver) {
         return new DefaultMirrorClient<>(host, client, mirrorConfig, valueResolver);
     }

@@ -24,7 +24,7 @@ import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.fasterxml.jackson.core.type.TypeReference;
-import edu.umd.cs.findbugs.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
@@ -44,12 +44,15 @@ import java.util.stream.Collectors;
  * @param <V> value type
  */
 @Slf4j
-public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
+public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
 
     private final StreamsStateHost streamsStateHost;
+    private final HttpClient client;
     private final Serde<K> keySerde;
     private final String topicName;
     private final PartitionFinder partitionFinder;
+    private final MirrorValueParser<V> parser;
+    private final MirrorClient<K, V> delegate;
 
     private Router<K> router;
     private List<MirrorHost> knownHosts;
@@ -79,11 +82,14 @@ public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
      */
     public PartitionedMirrorClient(final String topicName, final MirrorHost mirrorHost,
                                final HttpClient client, final Serde<K> keySerde, final TypeResolver<V> valueResolver) {
-        super(mirrorHost, client, valueResolver);
+
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
+        this.client = client;
         this.keySerde = keySerde;
         this.topicName = topicName;
         this.partitionFinder = StreamsStateHost.getDefaultPartitionFinder();
+        this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
+        this.delegate = new BaseMirrorClient<>(mirrorHost, client, valueResolver);
         initRouter();
     }
 
@@ -101,11 +107,13 @@ public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
                                    final HttpClient client, final Serde<K> keySerde,
                                    final TypeResolver<V> valueResolver,
                                    final PartitionFinder partitionFinder) {
-        super(mirrorHost, client, valueResolver);
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
+        this.client = client;
         this.keySerde = keySerde;
         this.topicName = topicName;
         this.partitionFinder = partitionFinder;
+        this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
+        this.delegate = new BaseMirrorClient<>(mirrorHost, client, valueResolver);
         initRouter();
     }
 
@@ -114,7 +122,7 @@ public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
     public V fetchValue(final K key) {
         final MirrorHost currentKeyHost = router.getHost(key);
         return this.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()),
-                super.parser::deserialize);
+                this.parser::deserialize);
     }
 
     @Override
@@ -132,6 +140,23 @@ public class PartitionedMirrorClient<K, V> extends BaseMirrorClient<K, V> {
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
         return keys.stream().map(this::fetchValue).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean exists(final K key) {
+        return this.fetchValue(key) != null;
+    }
+
+    @Nullable
+    @Override
+    public <T> T sendRequest(final String url, final ParserFunction<T> parser) {
+        return this.delegate.sendRequest(url, parser);
+    }
+
+    @Nullable
+    @Override
+    public ResponseBody makeRequest(final String url) {
+        return this.delegate.makeRequest(url);
     }
 
     private void initRouter() {
