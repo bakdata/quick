@@ -20,9 +20,9 @@ import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.NotFoundException;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.TopicTypeService;
-import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.fetcher.subscription.KafkaSubscriptionProvider;
 import com.bakdata.quick.gateway.fetcher.subscription.SubscriptionFetcher;
@@ -34,6 +34,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import io.reactivex.Single;
 import lombok.extern.slf4j.Slf4j;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -173,26 +174,24 @@ public class FetcherFactory {
             return this.doCreateClient(topic);
         }
 
-        private  <V> DataFetcherClient<V> doCreateClient(final String topic) {
-            final Lazy<KeySerdeValResolverWrapper<String, V>> wrapper = this.getKeySerdeValResolverWrapperLazy(topic);
+        private  <T> DataFetcherClient<T> doCreateClient(final String topic) {
+            final Lazy<TypeResolver<T>> quickTopicTypeLazy = this.getQuickTopicTypeLazy(topic);
             return new MirrorDataFetcherClient<>(
                     topic,
                     this.client,
                     this.mirrorConfig,
-                    wrapper
+                    quickTopicTypeLazy
             );
         }
 
-        private <V> Lazy<KeySerdeValResolverWrapper<String, V>> getKeySerdeValResolverWrapperLazy(final String topic) {
+        private <T> Lazy<TypeResolver<T>> getQuickTopicTypeLazy(final String topic) {
             return new Lazy<>(() -> {
-                final Single<QuickTopicData<String, V>> data = this.topicTypeService.getTopicData(topic);
-                final QuickTopicData<String, V> topicData = data.blockingGet();
+                final Single<QuickTopicData<Object, T>> data = this.topicTypeService.getTopicData(topic);
+                final QuickTopicData<?, T> topicData = data.blockingGet();
                 if (topicData == null) {
                     throw new NotFoundException("Could not find topic " + topic);
                 }
-                return new KeySerdeValResolverWrapper<>(
-                        topicData.getKeyData().getSerde(), topicData.getValueData().getResolver()
-                );
+                return topicData.getValueData().getResolver();
             });
         }
     }

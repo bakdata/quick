@@ -16,16 +16,14 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.BaseMirrorClient;
+import com.bakdata.quick.common.api.client.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
-import com.bakdata.quick.common.api.client.PartitionedMirrorClient;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import org.apache.kafka.common.serialization.Serde;
 
 import java.util.List;
 
@@ -42,19 +40,19 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
      * @param host   host url of the mirror
      * @param client http client
      * @param mirrorConfig configuration for the mirror
-     * @param wrapper a wrapper of the key serde and value resolver
+     * @param typeResolverLazy a lazy for the value resolver
      */
     public MirrorDataFetcherClient(final String host, final HttpClient client,
                                    final MirrorConfig mirrorConfig,
-                                   final Lazy<KeySerdeValResolverWrapper<String, V>> wrapper) {
+                                   final Lazy<TypeResolver<V>> typeResolverLazy) {
         this.mirrorClient = new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client,
-                wrapper.get().getKeySerde(), wrapper.get().getValueTypeResolver()));
+                typeResolverLazy.get()));
     }
 
     public MirrorDataFetcherClient(final String host, final HttpClient client,
                                    final MirrorConfig mirrorConfig,
-                                   final KeySerdeValResolverWrapper<String, V> wrapper) {
-        this(host, client, mirrorConfig, new Lazy<>(() -> wrapper));
+                                   final TypeResolver<V> valueResolver) {
+        this(host, client, mirrorConfig, new Lazy<>(() -> valueResolver));
     }
 
     @Override
@@ -76,7 +74,7 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     }
 
     private BaseMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
-                                                           final HttpClient client, Serde<String> keySerde, final TypeResolver<V> valueResolver) {
-        return new PartitionedMirrorClient<>(host, client, mirrorConfig, keySerde, valueResolver);
+                                                           final HttpClient client, final TypeResolver<V> valueResolver) {
+        return new DefaultMirrorClient<>(host, client, mirrorConfig, valueResolver);
     }
 }

@@ -25,7 +25,6 @@ import com.bakdata.quick.common.resolver.IntegerResolver;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
@@ -34,8 +33,8 @@ import lombok.Data;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.kafka.common.serialization.Serdes;
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
 import java.util.Map;
 
@@ -129,8 +128,7 @@ class QueryListFetcherTest {
     }
 
     private <T> MirrorDataFetcherClient<T> createClient(final TypeResolver<T> type) {
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig,
-                new KeySerdeValResolverWrapper<>(Serdes.String(), type));
+        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, type);
     }
 
     @Data

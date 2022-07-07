@@ -20,7 +20,6 @@ import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
-import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
@@ -30,8 +29,8 @@ import lombok.Data;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.kafka.common.serialization.Serdes;
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -140,7 +139,7 @@ class KeyFieldFetcherTest {
 
     private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
         return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig,
-            new KeySerdeValResolverWrapper<>(Serdes.String(), new KnownTypeResolver<>(clazz, this.mapper)));
+                new KnownTypeResolver<>(clazz, this.mapper));
     }
 
     @Data

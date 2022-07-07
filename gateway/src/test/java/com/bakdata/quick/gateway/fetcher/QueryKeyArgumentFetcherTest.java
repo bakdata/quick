@@ -25,7 +25,6 @@ import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.LongResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.util.KeySerdeValResolverWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
@@ -147,9 +146,8 @@ class QueryKeyArgumentFetcherTest {
         assertThat(fetcherResult).isEqualTo(value);
     }
 
-    private <V> MirrorDataFetcherClient<V> createClient(final TypeResolver<V> typeResolver) {
-        final KeySerdeValResolverWrapper<String, V> wrapper = new KeySerdeValResolverWrapper<>(this.keySerde, typeResolver);
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, wrapper);
+    private <T> MirrorDataFetcherClient<T> createClient(final TypeResolver<T> type) {
+        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, type);
     }
 
 
