@@ -34,8 +34,6 @@ import lombok.Data;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -51,7 +49,6 @@ class QueryKeyArgumentFetcherTest {
     private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
     private final MirrorConfig mirrorConfig = MirrorConfig.directAccess();
     private final String host = String.format("localhost:%s", this.server.getPort());
-    private final Serde<String> keySerde = Serdes.String();
 
     @Test
     void shouldFetchObjectValue() throws IOException {

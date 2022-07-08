@@ -32,5 +32,4 @@ public class PartitionRouterTest {
                 TestUtils.getMockPartitionFinder(), elements);
         assertThat(partitionRouter.getHost("abc").getHost()).isEqualTo("1");
     }
-
 }
