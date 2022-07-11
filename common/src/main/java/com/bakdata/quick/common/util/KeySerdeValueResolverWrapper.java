@@ -17,7 +17,7 @@
 package com.bakdata.quick.common.util;
 
 import com.bakdata.quick.common.resolver.TypeResolver;
-import lombok.Getter;
+import lombok.Value;
 import org.apache.kafka.common.serialization.Serde;
 
 /**
@@ -27,21 +27,9 @@ import org.apache.kafka.common.serialization.Serde;
  * @param <K> key type
  * @param <V> value type
  */
-@Getter
-public class KeySerdeValResolverWrapper<K, V> {
+@Value
+public class KeySerdeValueResolverWrapper<K, V> {
 
-    private final Serde<K> keySerde;
-    private final TypeResolver<V> valueTypeResolver;
-
-    /**
-     * Basic constructor.
-     *
-     * @param keySerde serde for a key
-     * @param valueTypeResolver type resolver for a value
-     */
-    public KeySerdeValResolverWrapper(final Serde<K> keySerde,
-                                      final TypeResolver<V> valueTypeResolver) {
-        this.keySerde = keySerde;
-        this.valueTypeResolver = valueTypeResolver;
-    }
+    Serde<K> keySerde;
+    TypeResolver<V> valueTypeResolver;
 }

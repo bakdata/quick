@@ -17,16 +17,8 @@
 package com.bakdata.quick.common.api.client;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import org.jetbrains.annotations.Nullable;
-import io.micronaut.http.HttpStatus;
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import java.io.IOException;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -38,12 +30,12 @@ import java.util.stream.Collectors;
  * @param <K> key type
  * @param <V> value type
  */
-@Slf4j
 public class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
 
     protected final MirrorHost host;
     protected final HttpClient client;
     protected final MirrorValueParser<V> parser;
+    protected final MirrorRequestManager mirrorRequestManager;
 
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
@@ -52,78 +44,35 @@ public class BaseMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param client       http client
      * @param typeResolver the value's {@link TypeResolver}
      */
-    public BaseMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
-                               final TypeResolver<V> typeResolver) {
+    public BaseMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final TypeResolver<V> typeResolver) {
         this.host = mirrorHost;
         this.client = client;
         this.parser = new MirrorValueParser<>(typeResolver, client.objectMapper());
+        this.mirrorRequestManager = new DefaultMirrorRequestManager(client);
     }
 
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        return this.sendRequest(this.host.forKey(key.toString()), this.parser::deserialize);
+        return this.mirrorRequestManager.sendRequest(this.host.forKey(key.toString()), this.parser::deserialize);
     }
 
     @Override
     public List<V> fetchAll() {
-        return Objects.requireNonNullElse(this.sendRequest(this.host.forAll(), this.parser::deserializeList),
-                Collections.emptyList());
+        return Objects.requireNonNullElse(
+            this.mirrorRequestManager.sendRequest(this.host.forAll(), this.parser::deserializeList),
+            Collections.emptyList());
     }
 
     @Override
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
         final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
-        return this.sendRequest(this.host.forKeys(collect), this.parser::deserializeList);
+        return this.mirrorRequestManager.sendRequest(this.host.forKeys(collect), this.parser::deserializeList);
     }
 
     @Override
     public boolean exists(final K key) {
         return this.fetchValue(key) != null;
-    }
-
-    @Override
-    @Nullable
-    public <T> T sendRequest(final String url, final ParserFunction<T> parser) {
-        try  {
-            final ResponseBody body = makeRequest(url);
-            final MirrorValue<T> mirrorValue;
-            if (body != null) {
-                mirrorValue = parser.parse(body.byteStream());
-                return mirrorValue.getValue();
-            }
-            return null;
-        } catch (final IOException exception) {
-            throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
-        }
-    }
-
-    @Override
-    @Nullable
-    public ResponseBody makeRequest(final String url) {
-        final Request request = new Request.Builder().url(url).get().build();
-        try  {
-            final Response response = this.client.newCall(request).execute();
-            if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
-                return null;
-            }
-
-            final ResponseBody body = response.body();
-            if (response.code() != HttpStatus.OK.getCode()) {
-                log.error("Got error response from mirror: {}", body);
-                final String errorMessage = String.format(
-                        "Error while fetching data. Requested resource responded with status code %d", response.code()
-                );
-                throw new MirrorException(errorMessage, HttpStatus.valueOf(response.code()));
-            }
-            // Code 200 and empty body indicates an error
-            if (body == null) {
-                throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            return body;
-        } catch (final IOException exception) {
-            throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
-        }
     }
 }

@@ -18,15 +18,16 @@ package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
-import org.apache.kafka.common.serialization.Serde;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import org.apache.kafka.common.serialization.Serde;
 
 /**
- * A router that leverages the fact that a mirror knows which partitions it stores
- * (it has a mapping between a partitions and a host),
+ * A router that leverages the fact that a mirror knows which partitions a specific replica stores
+ * (it has a mapping between partitions and a host replica),
  * and thus can use this information to introduce routing based on the specific partition mapping.
  *
  * @param <K> the type of key
@@ -37,14 +38,13 @@ public class PartitionRouter<K> implements Router<K> {
     private final Serde<K> keySerde;
     private final PartitionFinder partitionFinder;
     private final Map<Integer, String> partitionToHost;
-
-    private final Map<Integer, MirrorHost> partitionToMirrorHost = new HashMap<>();
+    private final Map<Integer, MirrorHost> partitionToMirrorHost;
 
     /**
      * A constructor with the default partitioner that is retrieved from a static method.
      *
-     * @param keySerde serializer for the key
-     * @param topic the name of the corresponding topic
+     * @param keySerde        serializer for the key
+     * @param topic           the name of the corresponding topic
      * @param partitionFinder strategy for finding partitions
      * @param partitionToHost partition to host mapping
      */
@@ -54,15 +54,19 @@ public class PartitionRouter<K> implements Router<K> {
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
         this.partitionToHost = partitionToHost;
+        this.partitionToMirrorHost = new HashMap<>();
         convertHostStringToMirrorHost();
     }
 
     private void convertHostStringToMirrorHost() {
-        for (final Map.Entry<Integer, String> entry : this.partitionToHost.entrySet()) {
-            final MirrorHost host = new MirrorHost(entry.getValue(), MirrorConfig.directAccess());
-            // partition -> host
-            partitionToMirrorHost.put(entry.getKey(), host);
-        }
+        this.partitionToMirrorHost.putAll(
+            this.partitionToHost
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> new MirrorHost(e.getValue(), MirrorConfig.directAccess())
+        )));
     }
 
     @Override

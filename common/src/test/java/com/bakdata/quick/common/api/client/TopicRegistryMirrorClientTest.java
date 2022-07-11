@@ -16,6 +16,8 @@
 
 package com.bakdata.quick.common.api.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
@@ -27,19 +29,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @MicronautTest
 class TopicRegistryMirrorClientTest {
@@ -62,9 +61,8 @@ class TopicRegistryMirrorClientTest {
     void initRouterAndMirror() throws JsonProcessingException {
         final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
-        this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, mirrorHost, client,
-                Serdes.String(), new KnownTypeResolver<>(TopicData.class, this.mapper),
-                TestUtils.getMockPartitionFinder());
+        this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, mirrorHost, client, Serdes.String(),
+            new KnownTypeResolver<>(TopicData.class, this.mapper), TestUtils.getMockPartitionFinder());
     }
 
     @Test

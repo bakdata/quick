@@ -37,8 +37,7 @@ import okhttp3.ResponseBody;
  */
 @Singleton
 public class DefaultGatewayClient implements GatewayClient {
-    private static final MediaType JSON
-        = MediaType.get("application/json; charset=utf-8");
+    private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String PREFIX = "quick-gateway";
 
     private final HttpClient client;
@@ -50,49 +49,6 @@ public class DefaultGatewayClient implements GatewayClient {
         this.config = config;
     }
 
-    @Override
-    public Completable updateSchema(final String gateway, final SchemaData graphQLSchema) {
-        return Single.fromCallable(() -> this.client.objectMapper().writeValueAsString(graphQLSchema))
-            .map(json -> {
-                final Request request = new Request.Builder()
-                    .post(RequestBody.create(json, JSON))
-                    .url(String.format("http://%s-%s/control/schema", PREFIX, gateway))
-                    .header("X-API-Key", this.config.getApiKey())
-                    .build();
-
-                return this.client.newCall(request).execute();
-            })
-            .flatMapCompletable(response -> {
-                if (response.isSuccessful()) {
-                    return Completable.complete();
-                }
-                return Completable.error(handleError(response));
-            });
-    }
-
-
-    @Override
-    public Single<SchemaData> getWriteSchema(final String gateway, final String type) {
-        return Single.fromCallable(() -> String.format("http://%s-%s/schema/%s", PREFIX, gateway, type))
-            .map(url -> {
-                final Request request = new Request.Builder()
-                    .get()
-                    .url(url)
-                    .header("X-API-Key", this.config.getApiKey())
-                    .build();
-
-                return this.client.newCall(request).execute();
-            })
-            .flatMap(response -> {
-                if (response.isSuccessful()) {
-                    final ResponseBody body = Objects.requireNonNull(response.body());
-                    return Single.fromCallable(
-                        () -> this.client.objectMapper().readValue(body.byteStream(), SchemaData.class));
-                }
-                return Single.error(handleError(response));
-            });
-    }
-
     private static Throwable handleError(final Response response) {
         final HttpStatus httpStatus = HttpStatus.valueOf(response.code());
         try {
@@ -101,6 +57,39 @@ public class DefaultGatewayClient implements GatewayClient {
         } catch (final RuntimeException | IOException exception) {
             return new HttpClientException(httpStatus);
         }
+    }
+
+    @Override
+    public Completable updateSchema(final String gateway, final SchemaData graphQLSchema) {
+        return Single.fromCallable(() -> this.client.objectMapper().writeValueAsString(graphQLSchema)).map(json -> {
+            final Request request = new Request.Builder().post(RequestBody.create(json, JSON))
+                .url(String.format("http://%s-%s/control/schema", PREFIX, gateway))
+                .header("X-API-Key", this.config.getApiKey()).build();
+
+            return this.client.newCall(request).execute();
+        }).flatMapCompletable(response -> {
+            if (response.isSuccessful()) {
+                return Completable.complete();
+            }
+            return Completable.error(handleError(response));
+        });
+    }
+
+    @Override
+    public Single<SchemaData> getWriteSchema(final String gateway, final String type) {
+        return Single.fromCallable(() -> String.format("http://%s-%s/schema/%s", PREFIX, gateway, type)).map(url -> {
+            final Request request =
+                new Request.Builder().get().url(url).header("X-API-Key", this.config.getApiKey()).build();
+
+            return this.client.newCall(request).execute();
+        }).flatMap(response -> {
+            if (response.isSuccessful()) {
+                final ResponseBody body = Objects.requireNonNull(response.body());
+                return Single.fromCallable(
+                    () -> this.client.objectMapper().readValue(body.byteStream(), SchemaData.class));
+            }
+            return Single.error(handleError(response));
+        });
     }
 
 }

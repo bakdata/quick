@@ -25,12 +25,12 @@ import com.bakdata.quick.common.resolver.TypeResolver;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
+import java.util.Map;
+import java.util.Objects;
 import org.apache.avro.Schema;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Represents possible types for Quick topics.
@@ -98,25 +98,6 @@ public enum QuickTopicType {
         }
     };
 
-    /**
-     * Returns a type resolver for this type.
-     *
-     * @param parsedSchema schema for type resolver that is required for complex types.
-     * @param <K>          inner type of the type resolver
-     * @return type resolver for conversion from strings
-     */
-    public abstract <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema);
-
-    /**
-     * Returns a configured serde for this type.
-     *
-     * @param configs serde configuration
-     * @param isKey   true if serde is used for keys
-     * @param <K>     type to be serialized from and deserialized to
-     * @return configured serde
-     */
-    public abstract <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey);
-
     @SuppressWarnings("unchecked")
     static <K> TypeResolver<K> configuredTypeResolve(final TypeResolver<?> typeResolver) {
         return (TypeResolver<K>) typeResolver;
@@ -127,5 +108,26 @@ public enum QuickTopicType {
         serde.configure(config, isKey);
         return (Serde<K>) serde;
     }
+
+    /**
+     * Returns a type resolver for this type.
+     *
+     * @param parsedSchema schema for type resolver that is required for complex types.
+     * @param <K>          inner type of the type resolver
+     *
+     * @return type resolver for conversion from strings
+     */
+    public abstract <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema);
+
+    /**
+     * Returns a configured serde for this type.
+     *
+     * @param configs serde configuration
+     * @param isKey   true if serde is used for keys
+     * @param <K>     type to be serialized from and deserialized to
+     *
+     * @return configured serde
+     */
+    public abstract <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey);
 
 }

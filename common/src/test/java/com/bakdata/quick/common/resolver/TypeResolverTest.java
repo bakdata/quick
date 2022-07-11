@@ -16,18 +16,18 @@
 
 package com.bakdata.quick.common.resolver;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.bakdata.quick.avro.ChartRecord;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Test;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class TypeResolverTest {
     private static final Path workingDirectory = Path.of("src", "test", "resources");

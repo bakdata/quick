@@ -18,8 +18,8 @@ package com.bakdata.quick.common.config;
 
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
-import lombok.Getter;
 import java.util.Optional;
+import lombok.Getter;
 
 /**
  * Configuration for setting common mirror attributes based on deployment.
@@ -52,9 +52,9 @@ public class MirrorConfig {
      * The parameters are optional. If not set, their defaults are used.
      *
      * @param prefix prefix of mirror, e.g. "quick-mirror" in http://quick-mirror-topic/. Defaults to {@link
-     * MirrorConfig#DEFAULT_MIRROR_HOST_PREFIX} for empty optionals.
-     * @param path rest api path, e.g. "mirror" in http://quick-mirror-topic/mirror/key. Defaults to {@link
-     * MirrorConfig#DEFAULT_MIRROR_HOST_PATH} for empty optionals.
+     *               MirrorConfig#DEFAULT_MIRROR_HOST_PREFIX} for empty optionals.
+     * @param path   rest api path, e.g. "mirror" in http://quick-mirror-topic/mirror/key. Defaults to {@link
+     *               MirrorConfig#DEFAULT_MIRROR_HOST_PATH} for empty optionals.
      */
     @ConfigurationInject
     public MirrorConfig(final Optional<String> prefix, final Optional<String> path) {

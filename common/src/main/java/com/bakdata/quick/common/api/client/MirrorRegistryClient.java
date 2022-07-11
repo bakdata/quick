@@ -26,10 +26,10 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
-import lombok.extern.slf4j.Slf4j;
-import javax.inject.Singleton;
 import java.util.Comparator;
 import java.util.List;
+import javax.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A client for interacting backed by a topic.
@@ -55,14 +55,22 @@ public class MirrorRegistryClient implements TopicRegistryClient {
      * @param client              http client
      */
     public MirrorRegistryClient(final TopicRegistryConfig topicRegistryConfig, final IngestClient ingestClient,
-        final HttpClient client) {
+                                final HttpClient client) {
         this.registryTopic = topicRegistryConfig.getTopicName();
         this.ingestClient = ingestClient;
         this.registryData = new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING,
-                QuickTopicType.SCHEMA, null);
+            QuickTopicType.SCHEMA, null);
         this.topicDataClient = createMirrorClient(topicRegistryConfig, client);
 
 
+    }
+
+    private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
+                                                                      final HttpClient client) {
+        final KnownTypeResolver<TopicData> typeResolver =
+            new KnownTypeResolver<>(TopicData.class, client.objectMapper());
+        final String serviceName = topicRegistryConfig.getServiceName();
+        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), typeResolver);
     }
 
     @Override
@@ -95,14 +103,6 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     public Single<List<TopicData>> getAllTopics() {
         return Flowable.defer(() -> Flowable.fromIterable(this.topicDataClient.fetchAll()))
             .toSortedList(Comparator.comparing(TopicData::getName));
-    }
-
-    private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
-        final HttpClient client) {
-        final KnownTypeResolver<TopicData> typeResolver =
-            new KnownTypeResolver<>(TopicData.class, client.objectMapper());
-        final String serviceName = topicRegistryConfig.getServiceName();
-        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), typeResolver);
     }
 
     private Single<TopicData> getSelf() {

@@ -19,8 +19,7 @@ package com.bakdata.quick.common.api.client;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import org.jetbrains.annotations.Nullable;
-import okhttp3.ResponseBody;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
 
 /**
@@ -37,9 +36,9 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     /**
      * Constructor for the client.
      *
-     * @param topicName    name of the topic the mirror is deployed
-     * @param client       http client
-     * @param mirrorConfig configuration of the mirror host
+     * @param topicName     name of the topic the mirror is deployed
+     * @param client        http client
+     * @param mirrorConfig  configuration of the mirror host
      * @param valueResolver the value's {@link TypeResolver}
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
@@ -50,8 +49,8 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
      *
-     * @param mirrorHost   host to use
-     * @param client       http client
+     * @param mirrorHost    host to use
+     * @param client        http client
      * @param valueResolver the value's {@link TypeResolver}
      */
     public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
@@ -79,17 +78,5 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     public boolean exists(final K key) {
         return this.delegate.exists(key);
-    }
-
-    @Nullable
-    @Override
-    public <T> T sendRequest(final String url, final ParserFunction<T> parser) {
-        return this.delegate.sendRequest(url, parser);
-    }
-
-    @Nullable
-    @Override
-    public ResponseBody makeRequest(final String url) {
-        return this.delegate.makeRequest(url);
     }
 }

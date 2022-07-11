@@ -16,9 +16,9 @@
 
 package com.bakdata.quick.common.api.client;
 
-import org.jetbrains.annotations.Nullable;
-import okhttp3.ResponseBody;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
+
 
 /**
  * Client for interacting with the REST API of mirror applications.
@@ -32,6 +32,7 @@ public interface MirrorClient<K, V> {
      * fetches the value of the given key from the mirror topic.
      *
      * @param key a key to be fetched
+     *
      * @return a list of values. If the requested mirror responds with a NOT_FOUND code the function returns null.
      */
     @Nullable
@@ -48,6 +49,7 @@ public interface MirrorClient<K, V> {
      * fetches the values of a list of keys from the mirror topic.
      *
      * @param keys list of keys to be fetched
+     *
      * @return a list of values. If the requested mirror responds with a NOT_FOUND code the function returns null.
      */
     @Nullable
@@ -59,24 +61,4 @@ public interface MirrorClient<K, V> {
      * @return True/False if key exists in mirror topic
      */
     boolean exists(final K key);
-
-    /**
-     * Responsible for making a request to a specific url and processing the result.
-     *
-     * @param url a url for which a request is made
-     * @param parser parser
-     * @param <T> type
-     * @return the value from a mirror value wrapper
-     */
-    @Nullable
-    <T> T sendRequest(final String url, final ParserFunction<T> parser);
-
-    /**
-     * Submits a request and processes the response. Throws an exception in case of various errors.
-     *
-     * @param url a url for which a request is made
-     * @return response body if successful; null if resource has not been found
-     */
-    @Nullable
-    ResponseBody makeRequest(final String url);
 }
