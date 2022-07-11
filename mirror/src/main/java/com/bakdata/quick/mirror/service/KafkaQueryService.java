@@ -30,6 +30,8 @@ import io.micronaut.http.exceptions.HttpStatusException;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
+import java.util.List;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -39,8 +41,6 @@ import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import javax.inject.Inject;
-import java.util.List;
 
 /**
  * Service for querying a kafka state store.

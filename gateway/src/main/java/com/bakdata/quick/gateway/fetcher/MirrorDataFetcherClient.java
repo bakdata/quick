@@ -23,7 +23,6 @@ import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
-
 import java.util.List;
 
 
@@ -73,7 +72,7 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     }
 
     private DefaultMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
-                                                           final HttpClient client, final TypeResolver<V> valueResolver) {
+                                                              final HttpClient client, final TypeResolver<V> valueResolver) {
         return new DefaultMirrorClient<>(host, client, mirrorConfig, valueResolver);
     }
 }

@@ -20,18 +20,23 @@ import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
- * Default HTTP client for working with Quick mirrors.
+ * An abstract BaseMirrorClient that provides basic properties and functionalities for Mirror Clients.
  *
  * @param <K> key type
  * @param <V> value type
  */
-
 public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
 
-    private final MirrorClient<K, V> delegate;
+    protected final MirrorHost host;
+    protected final HttpClient client;
+    protected final MirrorValueParser<V> parser;
+    protected final MirrorRequestManager mirrorRequestManager;
 
     /**
      * Constructor for the client.
@@ -49,34 +54,39 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
      *
-     * @param mirrorHost    host to use
-     * @param client        http client
-     * @param valueResolver the value's {@link TypeResolver}
+     * @param mirrorHost   host to use
+     * @param client       http client
+     * @param typeResolver the value's {@link TypeResolver}
      */
-    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
-                               final TypeResolver<V> valueResolver) {
-        this.delegate = new BaseMirrorClient<>(mirrorHost, client, valueResolver);
+    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final TypeResolver<V> typeResolver) {
+        this.host = mirrorHost;
+        this.client = client;
+        this.parser = new MirrorValueParser<>(typeResolver, client.objectMapper());
+        this.mirrorRequestManager = new DefaultMirrorRequestManager(client);
     }
 
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        return this.delegate.fetchValue(key);
+        return this.mirrorRequestManager.sendRequest(this.host.forKey(key.toString()), this.parser::deserialize);
     }
 
     @Override
     public List<V> fetchAll() {
-        return this.delegate.fetchAll();
+        return Objects.requireNonNullElse(
+            this.mirrorRequestManager.sendRequest(this.host.forAll(), this.parser::deserializeList),
+            Collections.emptyList());
     }
 
     @Override
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
-        return this.delegate.fetchValues(keys);
+        final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
+        return this.mirrorRequestManager.sendRequest(this.host.forKeys(collect), this.parser::deserializeList);
     }
 
     @Override
     public boolean exists(final K key) {
-        return this.delegate.exists(key);
+        return this.fetchValue(key) != null;
     }
 }
