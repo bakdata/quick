@@ -1,6 +1,6 @@
 # GraphQL support
 
-This section provides information about the supported and unsupported GraphQL types that in Quick.
+This section provides information about the supported and unsupported GraphQL types in Quick.
 Furthermore, it describes the GraphQL extensions that are introduced in Quick.
 
 ## GraphQL supported types
