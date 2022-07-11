@@ -1,4 +1,25 @@
-# GraphQL extensions
+# GraphQL support
+
+This section provides information about the supported and unsupported GraphQL types that in Quick.
+Furthermore, it describes the GraphQL extensions that are introduced in Quick.
+
+## GraphQL supported types
+
+Currently, Quick supports the following GraphQL types:
+
+1. The mandatory `Query` type and the optional `Mutation` type (and the corresponding `Input` type),
+2. Basic Types with field declarations as well as type modifiers, for example: `Type Character {name:String!, appearsIn:[Episode!]}`,
+3. All scalar types: `Int`, `String`, `Float`, `Boolean`, `ID` together with field's arguments, for example: `total(moreThan: Int = 50): Float`,
+4. Enumerations (`enum`),
+5. Subscriptions (`subscription`).
+
+Thus, the following types are **not** supported:  
+ 
+1. Interfaces (`interface`),  
+2. Unions (`union`),  
+3. Custom scalars, for example: `scalar MyCustomScalar`.  
+
+## GraphQL extensions
 
 ## Enums
 
