@@ -8,14 +8,14 @@
       
       
       
-        <link rel="canonical" href="https://d9p.io/dev/user/reference/graphql-extensions/">
+        <link rel="canonical" href="https://d9p.io/dev/user/reference/graphql-support/">
       
       <link rel="icon" href="../../../assets/images/favicon.webp">
       <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-8.2.5">
     
     
       
-        <title>GraphQL extensions - Quick</title>
+        <title>GraphQL support - Quick</title>
       
     
     
@@ -65,7 +65,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#graphql-extensions" class="md-skip">
+        <a href="#graphql-support" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              GraphQL extensions
+              GraphQL support
             
           </span>
         </div>
@@ -743,12 +743,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          GraphQL extensions
+          GraphQL support
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        GraphQL extensions
+        GraphQL support
       </a>
       
         
@@ -765,6 +765,20 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#graphql-supported-types" class="md-nav__link">
+    GraphQL supported types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graphql-extensions" class="md-nav__link">
+    GraphQL extensions
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#enums" class="md-nav__link">
@@ -1080,6 +1094,20 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#graphql-supported-types" class="md-nav__link">
+    GraphQL supported types
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graphql-extensions" class="md-nav__link">
+    GraphQL extensions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#enums" class="md-nav__link">
     Enums
   </a>
@@ -1138,13 +1166,32 @@
             <article class="md-content__inner md-typeset">
               
                 
-<a href="https://github.com/bakdata/quick/edit/master/docs/user/reference/graphql-extensions.md" title="Edit this page" class="md-content__button md-icon">
+<a href="https://github.com/bakdata/quick/edit/master/docs/user/reference/graphql-support.md" title="Edit this page" class="md-content__button md-icon">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
 </a>
 
 
 
-<h1 id="graphql-extensions">GraphQL extensions<a class="headerlink" href="#graphql-extensions" title="Permanent link">&para;</a></h1>
+<h1 id="graphql-support">GraphQL support<a class="headerlink" href="#graphql-support" title="Permanent link">&para;</a></h1>
+<p>This section provides information about the supported and unsupported GraphQL types in Quick.
+Furthermore, it describes the GraphQL extensions that are introduced in Quick.</p>
+<h2 id="graphql-supported-types">GraphQL supported types<a class="headerlink" href="#graphql-supported-types" title="Permanent link">&para;</a></h2>
+<p>Currently, Quick supports the following GraphQL types:</p>
+<ol>
+<li>The mandatory <code>Query</code> type,</li>
+<li>The optional <code>Mutation</code> type and the corresponding <code>Input</code> type,</li>
+<li>Basic Types with field declarations as well as type modifiers, for example: <code>type Character { name:String!, appearsIn: [Episode!] }</code>,</li>
+<li>All scalar types: <code>Int</code>, <code>String</code>, <code>Float</code>, <code>Boolean</code>, <code>ID</code> together with field's arguments, for example: <code>total(moreThan: Int = 50): Float</code>,</li>
+<li>Enumerations (<code>enum</code>),</li>
+<li>Subscriptions (<code>subscription</code>).</li>
+</ol>
+<p>Thus, the following types are <strong>not</strong> supported:  </p>
+<ol>
+<li>Interfaces (<code>interface</code>),  </li>
+<li>Unions (<code>union</code>),  </li>
+<li>Custom scalars, for example: <code>scalar MyCustomScalar</code>.  </li>
+</ol>
+<h2 id="graphql-extensions">GraphQL extensions<a class="headerlink" href="#graphql-extensions" title="Permanent link">&para;</a></h2>
 <h2 id="enums">Enums<a class="headerlink" href="#enums" title="Permanent link">&para;</a></h2>
 <h3 id="restdirectivemethod"><code>RestDirectiveMethod</code><a class="headerlink" href="#restdirectivemethod" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="k">enum</span> <span class="err">RestDirectiveMethod</span> <span class="p">{</span>

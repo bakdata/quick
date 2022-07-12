@@ -733,8 +733,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../graphql-extensions/" class="md-nav__link">
-        GraphQL extensions
+      <a href="../graphql-support/" class="md-nav__link">
+        GraphQL support
       </a>
     </li>
   
@@ -1019,7 +1019,7 @@
 
 
 <h1 id="quick-helm-chart">Quick Helm chart<a class="headerlink" href="#quick-helm-chart" title="Permanent link">&para;</a></h1>
-<p>Below you can find the default <code>value.yaml</code> of Quick's Helm chart.
+<p>Below you can find the default <code>value.yaml</code> of Quick's Helm chart.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">image</span><span class="p">:</span><span class="w"></span>
 <span class="w">  </span><span class="c1"># The base repository of the images</span><span class="w"></span>
 <span class="w">  </span><span class="nt">repository</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bakdata</span><span class="w"></span>
@@ -1027,11 +1027,6 @@
 <span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.7.0-dev&quot;</span><span class="w"></span>
 <span class="w">  </span><span class="c1"># The image pull policy of manager and ingest service</span><span class="w"></span>
 <span class="w">  </span><span class="nt">pullPolicy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Always&quot;</span><span class="w"></span>
-
-<span class="nt">avro</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="c1"># The namespace used for created avro namespaces</span><span class="w"></span>
-<span class="w">  </span><span class="c1"># see https://avro.apache.org/docs/current/spec.html</span><span class="w"></span>
-<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"></span>
 
 <span class="c1"># These configurations apply to both the helm chart ingresses and the gateway ingresses</span><span class="w"></span>
 <span class="nt">ingress</span><span class="p">:</span><span class="w"></span>
@@ -1078,7 +1073,13 @@
 <span class="w">  </span><span class="nt">QUICK_TOPIC_REGISTRY_PARTITIONS</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3&quot;</span><span class="w"></span>
 <span class="w">  </span><span class="nt">QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
 <span class="w">  </span><span class="nt">QUICK_SCHEMA_FORMAT</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Avro&quot;</span><span class="w"></span>
-</code></pre></div></p>
+<span class="w">  </span><span class="c1"># The namespace used for created avro namespaces</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># see https://avro.apache.org/docs/current/spec.html</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_SCHEMA_AVRO_NAMESPACE</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># For Protobuf</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># QUICK_SCHEMA_FORMAT: &quot;Protobuf&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># QUICK_SCHEMA_PROTOBUF_PACKAGE: &quot;&quot;</span><span class="w"></span>
+</code></pre></div>
 
               
             </article>
