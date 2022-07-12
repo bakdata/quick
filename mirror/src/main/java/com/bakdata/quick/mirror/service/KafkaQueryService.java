@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -79,10 +80,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.keyResolver = topicData.getKeyData().getResolver();
         this.valueResolver = topicData.getValueData().getResolver();
         this.topicName = topicData.getName();
-        this.storeQueryParameters = StoreQueryParameters.fromNameAndType(
-            this.storeName,
-            QueryableStoreTypes.keyValueStore()
-        );
+        this.storeQueryParameters =
+            StoreQueryParameters.fromNameAndType(this.storeName, QueryableStoreTypes.keyValueStore());
     }
 
     @Override
@@ -106,8 +105,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
             log.info("Forward request to {}", metadata.activeHost());
-            return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key))
-                .map(MirrorValue::new)
+            return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).map(MirrorValue::new)
                 .subscribeOn(Schedulers.io());
         }
 
@@ -128,10 +126,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     @Override
     public Single<MirrorValue<List<V>>> getValues(final List<String> keys) {
-        return Flowable.fromIterable(keys)
-            .flatMapSingle(this::get)
-            .map(MirrorValue::getValue)
-            .toList()
+        return Flowable.fromIterable(keys).flatMapSingle(this::get).map(MirrorValue::getValue).toList()
             .map(MirrorValue::new);
     }
 
@@ -139,17 +134,14 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     public Single<MirrorValue<List<V>>> getAll() {
         // For now, we only consider the local state!
         final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
-        return Flowable.fromIterable(store::all)
-            .map(keyValue -> keyValue.value)
-            .toList()
-            .map(MirrorValue::new);
+        return Flowable.fromIterable(store::all).map(keyValue -> keyValue.value).toList().map(MirrorValue::new);
     }
 
     private V fetch(final HostInfo replicaHostInfo, final K key) {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
-        final DefaultMirrorClient<K, V> client =
-            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver);
+        final DefaultMirrorClient<K, V> client = new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
+            new DefaultMirrorRequestManager(this.client));
         // TODO: don't bother deserializing
         final V value = client.fetchValue(key);
 

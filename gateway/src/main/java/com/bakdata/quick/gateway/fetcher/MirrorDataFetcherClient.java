@@ -17,6 +17,7 @@
 package com.bakdata.quick.gateway.fetcher;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
 import com.bakdata.quick.common.config.MirrorConfig;
@@ -35,20 +36,18 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     /**
      * Constructor for client.
      *
-     * @param host   host url of the mirror
-     * @param client http client
-     * @param mirrorConfig configuration for the mirror
+     * @param host             host url of the mirror
+     * @param client           http client
+     * @param mirrorConfig     configuration for the mirror
      * @param typeResolverLazy a lazy for the value resolver
      */
-    public MirrorDataFetcherClient(final String host, final HttpClient client,
-                                   final MirrorConfig mirrorConfig,
+    public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
                                    final Lazy<TypeResolver<V>> typeResolverLazy) {
-        this.mirrorClient = new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client,
-                typeResolverLazy.get()));
+        this.mirrorClient =
+            new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, typeResolverLazy.get()));
     }
 
-    public MirrorDataFetcherClient(final String host, final HttpClient client,
-                                   final MirrorConfig mirrorConfig,
+    public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
                                    final TypeResolver<V> valueResolver) {
         this(host, client, mirrorConfig, new Lazy<>(() -> valueResolver));
     }
@@ -72,7 +71,9 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     }
 
     private DefaultMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
-                                                              final HttpClient client, final TypeResolver<V> valueResolver) {
-        return new DefaultMirrorClient<>(host, client, mirrorConfig, valueResolver);
+                                                              final HttpClient client,
+                                                              final TypeResolver<V> valueResolver) {
+        return new DefaultMirrorClient<>(host, client, mirrorConfig, valueResolver,
+            new DefaultMirrorRequestManager(client));
     }
 }

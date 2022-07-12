@@ -26,17 +26,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * An abstract BaseMirrorClient that provides basic properties and functionalities for Mirror Clients.
+ * Default HTTP client for working with Quick mirrors.
  *
  * @param <K> key type
  * @param <V> value type
  */
 public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
 
-    protected final MirrorHost host;
-    protected final HttpClient client;
-    protected final MirrorValueParser<V> parser;
-    protected final MirrorRequestManager mirrorRequestManager;
+    private final MirrorHost host;
+    private final MirrorValueParser<V> parser;
+    private final MirrorRequestManager mirrorRequestManager;
 
     /**
      * Constructor for the client.
@@ -47,8 +46,8 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param valueResolver the value's {@link TypeResolver}
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-                               final TypeResolver<V> valueResolver) {
-        this(new MirrorHost(topicName, mirrorConfig), client, valueResolver);
+                               final TypeResolver<V> valueResolver, final MirrorRequestManager requestManager) {
+        this(new MirrorHost(topicName, mirrorConfig), client, valueResolver, requestManager);
     }
 
     /**
@@ -58,11 +57,11 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param client       http client
      * @param typeResolver the value's {@link TypeResolver}
      */
-    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final TypeResolver<V> typeResolver) {
+    public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final TypeResolver<V> typeResolver,
+                               final MirrorRequestManager requestManager) {
         this.host = mirrorHost;
-        this.client = client;
         this.parser = new MirrorValueParser<>(typeResolver, client.objectMapper());
-        this.mirrorRequestManager = new DefaultMirrorRequestManager(client);
+        this.mirrorRequestManager = requestManager;
     }
 
     @Override

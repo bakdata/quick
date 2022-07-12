@@ -17,6 +17,7 @@
 package com.bakdata.quick.ingest.service;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
 import com.bakdata.quick.common.api.model.KeyValuePair;
@@ -46,7 +47,7 @@ public class IngestFilter {
     /**
      * Default constructor.
      *
-     * @param client http client
+     * @param client       http client
      * @param mirrorConfig config for Quick mirror
      */
     public IngestFilter(final HttpClient client, final MirrorConfig mirrorConfig) {
@@ -65,10 +66,11 @@ public class IngestFilter {
      * @param pairs     list of kv pairs to ingest
      * @param <K>       key type
      * @param <V>       value type
+     *
      * @return two new lists: one with keys to ingest and one with keys that cannot be overriden.
      */
     public <K, V> Single<IngestLists<K, V>> prepareIngest(final QuickTopicData<K, V> topicData,
-        final List<KeyValuePair<K, V>> pairs) {
+                                                          final List<KeyValuePair<K, V>> pairs) {
         log.debug("Prepare ingest for topic {}", topicData.getName());
         if (topicData.getWriteType() == TopicWriteType.MUTABLE) {
             return Single.just(new IngestLists<>(pairs, Collections.emptyList()));
@@ -77,25 +79,19 @@ public class IngestFilter {
     }
 
     private <K, V> Single<IngestLists<K, V>> getExistingKeys(final QuickTopicData<K, V> topicData,
-        final List<KeyValuePair<K, V>> pairs) {
-        final MirrorClient<K, V> client =
-            new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig,
-                    topicData.getValueData().getResolver());
+                                                             final List<KeyValuePair<K, V>> pairs) {
+        final MirrorClient<K, V> client = new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig,
+            topicData.getValueData().getResolver(), new DefaultMirrorRequestManager(this.client));
 
-        return Flowable.fromIterable(pairs)
-            .map(pair -> {
-                    // add info whether the key already exists
-                    final boolean keyExists = client.exists(pair.getKey());
-                    return IngestPair.from(pair, keyExists);
-                }
-            )
-            .toList()
-            .map(IngestLists::fromPairs);
+        return Flowable.fromIterable(pairs).map(pair -> {
+            // add info whether the key already exists
+            final boolean keyExists = client.exists(pair.getKey());
+            return IngestPair.from(pair, keyExists);
+        }).toList().map(IngestLists::fromPairs);
     }
 
     private enum IngestType {
-        NOT_EXISTING,
-        EXISTING;
+        NOT_EXISTING, EXISTING;
 
         public static IngestType forPair(final IngestPair<?, ?> pair) {
             return pair.exists() ? EXISTING : NOT_EXISTING;
@@ -111,11 +107,9 @@ public class IngestFilter {
         List<KeyValuePair<K, V>> existingData;
 
         private static <K, V> IngestLists<K, V> fromPairs(final Collection<IngestPair<K, V>> pairs) {
-            final Map<IngestType, List<KeyValuePair<K, V>>> partitions = pairs.stream()
-                .collect(Collectors.groupingBy(
-                    IngestType::forPair,
-                    Collectors.mapping(IngestPair::getPair, Collectors.toList())
-                ));
+            final Map<IngestType, List<KeyValuePair<K, V>>> partitions = pairs.stream().collect(
+                Collectors.groupingBy(IngestType::forPair,
+                    Collectors.mapping(IngestPair::getPair, Collectors.toList())));
 
             final List<KeyValuePair<K, V>> existing =
                 partitions.getOrDefault(IngestType.EXISTING, Collections.emptyList());

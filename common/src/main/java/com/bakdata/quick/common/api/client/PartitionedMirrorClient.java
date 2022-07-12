@@ -28,7 +28,6 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,6 +45,9 @@ import org.apache.kafka.common.serialization.Serde;
  */
 @Slf4j
 public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
+
+    private static final TypeReference<Map<Integer, String>> MAP_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     private final StreamsStateHost streamsStateHost;
     private final HttpClient client;
@@ -148,8 +150,10 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         return this.fetchValue(key) != null;
     }
 
+
     private void initRouter() {
-        log.info("Initializing partition router...");
+        log.info("Initializing partition router for the mirror at: {} and the topic: {}.",
+            this.streamsStateHost.getHost(), this.topicName);
         final Map<Integer, String> response = makeRequestForPartitionHostMapping();
         this.router = new PartitionRouter<>(this.keySerde, this.topicName, this.partitionFinder, response);
         this.knownHosts = this.router.getAllHosts();
@@ -157,19 +161,20 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
 
     private Map<Integer, String> makeRequestForPartitionHostMapping() {
         final String url = this.streamsStateHost.getPartitionToHostUrl();
-        Map<Integer, String> partitionHostMappingResponse = new HashMap<>();
         try (final ResponseBody responseBody = requestManager.makeRequest(url)) {
             if (responseBody != null) {
-                final TypeReference<Map<Integer, String>> typeRef = new TypeReference<>() {};
-                partitionHostMappingResponse = this.client.objectMapper()
-                    .readValue(Objects.requireNonNull(responseBody).byteStream(), typeRef);
-                log.info("Collected information about the partitions and hosts."
-                        + " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
-                    (int) partitionHostMappingResponse.values().stream().distinct().count());
+                final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper()
+                    .readValue(Objects.requireNonNull(responseBody).byteStream(), MAP_TYPE_REFERENCE);
+                if (log.isInfoEnabled()) {
+                    log.info("Collected information about the partitions and hosts." +
+                            " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
+                        (int) partitionHostMappingResponse.values().stream().distinct().count());
+                }
+                return partitionHostMappingResponse;
             } else {
-                log.info("Response body was null. Returning an empty mapping.");
+                throw new InternalErrorException("Response body was null.");
+
             }
-            return partitionHostMappingResponse;
         } catch (final IOException e) {
             throw new InternalErrorException("There was a problem handling the response: " + e.getMessage());
         }

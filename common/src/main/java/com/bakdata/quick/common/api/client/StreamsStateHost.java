@@ -33,7 +33,7 @@ public class StreamsStateHost {
     /**
      * Private constructor for creating StreamsStateHost.
      *
-     * @param host the host of the mirror. This can be a service name or an IP.
+     * @param host   the host of the mirror. This can be a service name or an IP.
      * @param config mirror config to use. This can set the service prefix and REST path.
      */
     private StreamsStateHost(final String host, final MirrorConfig config) {
@@ -45,6 +45,7 @@ public class StreamsStateHost {
      * Static factory method that constructs StreamsStateHost from an instance of the MirrorHost.
      *
      * @param mirrorHost mirror host
+     *
      * @return an instance of StreamsStateHost
      */
     public static StreamsStateHost fromMirrorHost(final MirrorHost mirrorHost) {
@@ -54,19 +55,28 @@ public class StreamsStateHost {
     }
 
     /**
-     * Generates a URL for fetching partition info.
-     */
-    public String getPartitionToHostUrl() {
-        return String.format("http://%s/%s/%s",
-                this.host, this.config.getPath(), MirrorConfig.DEFAULT_PARTITION_INFO_PATH);
-    }
-
-    /**
      * Provides a default strategy for calculating partitions.
      *
      * @return default partitioner
      */
     public static PartitionFinder getDefaultPartitionFinder() {
         return new DefaultPartitionFinder();
+    }
+
+    /**
+     * Generates a URL for fetching partition info.
+     */
+    public String getPartitionToHostUrl() {
+        return String.format("http://%s/%s/%s", this.host, this.config.getPath(),
+            MirrorConfig.DEFAULT_PARTITION_INFO_PATH);
+    }
+
+    /**
+     * Returns host-info.
+     *
+     * @return a string containing host info
+     */
+    public String getHost() {
+        return host;
     }
 }

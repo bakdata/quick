@@ -25,11 +25,12 @@ import java.io.InputStream;
  *
  * @param <T> type of the returned value
  */
-public interface ParserFunction<T> {
+interface ParserFunction<T> {
     /**
      * Parses an input stream of data into a deserialized value.
      *
      * @param inputStream the raw response body
+     *
      * @return the deserialized mirror value
      * @throws IOException if an error reading the input stream occurs
      */

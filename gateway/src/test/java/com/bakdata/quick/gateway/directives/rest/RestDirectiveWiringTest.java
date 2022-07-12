@@ -16,6 +16,10 @@
 
 package com.bakdata.quick.gateway.directives.rest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.gateway.GraphQLTestUtil;
 import com.bakdata.quick.gateway.custom.type.RestDirectiveMethod;
@@ -28,18 +32,13 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 class RestDirectiveWiringTest {
 
@@ -54,9 +53,8 @@ class RestDirectiveWiringTest {
     void setUp() {
         this.schemaParser = new SchemaParser();
         this.schemaGenerator = new SchemaGenerator();
-        this.wiring = RuntimeWiring.newRuntimeWiring()
-            .directive("rest", new RestDirectiveWiring(this.httpClient))
-            .build();
+        this.wiring =
+            RuntimeWiring.newRuntimeWiring().directive("rest", new RestDirectiveWiring(this.httpClient)).build();
     }
 
     @Test
@@ -66,13 +64,10 @@ class RestDirectiveWiringTest {
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
 
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
             .satisfies(fetcher -> {
-                assertThat(fetcher.getPathArguments()).containsExactly(
-                    new RestParameter("userId", true),
-                    new RestParameter("recommendationType", true)
-                );
+                assertThat(fetcher.getPathArguments()).containsExactly(new RestParameter("userId", true),
+                    new RestParameter("recommendationType", true));
                 assertThat(fetcher.getQueryArguments()).isEmpty();
             });
     }
@@ -84,14 +79,11 @@ class RestDirectiveWiringTest {
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
 
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
             .satisfies(fetcher -> {
                 assertThat(fetcher.getPathArguments()).isEmpty();
-                assertThat(fetcher.getQueryArguments()).containsExactlyInAnyOrder(
-                    new RestParameter("limit", true),
-                    new RestParameter("userId", true)
-                );
+                assertThat(fetcher.getQueryArguments()).containsExactlyInAnyOrder(new RestParameter("limit", true),
+                    new RestParameter("userId", true));
             });
     }
 
@@ -102,17 +94,12 @@ class RestDirectiveWiringTest {
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
 
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
             .satisfies(fetcher -> {
-                assertThat(fetcher.getPathArguments()).containsExactly(
-                    new RestParameter("userId", true),
-                    new RestParameter("recommendationType", true)
-                );
-                assertThat(fetcher.getQueryArguments()).containsExactlyInAnyOrder(
-                    new RestParameter("limit", true),
-                    new RestParameter("walks", true)
-                );
+                assertThat(fetcher.getPathArguments()).containsExactly(new RestParameter("userId", true),
+                    new RestParameter("recommendationType", true));
+                assertThat(fetcher.getQueryArguments()).containsExactlyInAnyOrder(new RestParameter("limit", true),
+                    new RestParameter("walks", true));
             });
     }
 
@@ -123,17 +110,12 @@ class RestDirectiveWiringTest {
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
 
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
             .satisfies(fetcher -> {
-                assertThat(fetcher.getPathArguments()).containsExactly(
-                    new RestParameter("userId", true),
-                    new RestParameter("limit", true)
-                );
+                assertThat(fetcher.getPathArguments()).containsExactly(new RestParameter("userId", true),
+                    new RestParameter("limit", true));
                 assertThat(fetcher.getQueryArguments()).containsExactlyInAnyOrder(
-                    new RestParameter("recommendationType", true),
-                    new RestParameter("walks", true)
-                );
+                    new RestParameter("recommendationType", true), new RestParameter("walks", true));
             });
     }
 
@@ -144,13 +126,10 @@ class RestDirectiveWiringTest {
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
 
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
             .satisfies(fetcher -> {
-                assertThat(fetcher.getPathArguments()).containsExactly(
-                    new RestParameter("limit", true),
-                    new RestParameter("userId", true)
-                );
+                assertThat(fetcher.getPathArguments()).containsExactly(new RestParameter("limit", true),
+                    new RestParameter("userId", true));
             });
     }
 
@@ -161,16 +140,11 @@ class RestDirectiveWiringTest {
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
 
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
             .satisfies(fetcher -> {
-                assertThat(fetcher.getPathArguments()).containsExactly(
-                    new RestParameter("recommendationType", true)
-                );
-                assertThat(fetcher.getQueryArguments()).containsExactly(
-                    new RestParameter("limit", true),
-                    new RestParameter("walks", true)
-                );
+                assertThat(fetcher.getPathArguments()).containsExactly(new RestParameter("recommendationType", true));
+                assertThat(fetcher.getQueryArguments()).containsExactly(new RestParameter("limit", true),
+                    new RestParameter("walks", true));
             });
     }
 
@@ -181,11 +155,8 @@ class RestDirectiveWiringTest {
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
 
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
-            .satisfies(fetcher -> assertThat(fetcher.getPathArguments()).contains(
-                new RestParameter("recommendationType", true)
-            ));
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class)).satisfies(
+            fetcher -> assertThat(fetcher.getPathArguments()).contains(new RestParameter("recommendationType", true)));
     }
 
     @Test
@@ -193,10 +164,8 @@ class RestDirectiveWiringTest {
         final GraphQLSchema graphQLSchema = this.getGraphQLSchema(testInfo);
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
-            .extracting(RestDataFetcher::getMethodType)
-            .isEqualTo(RestDirectiveMethod.GET);
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
+            .extracting(RestDataFetcher::getMethodType).isEqualTo(RestDirectiveMethod.GET);
     }
 
     @Test
@@ -204,10 +173,8 @@ class RestDirectiveWiringTest {
         final GraphQLSchema graphQLSchema = this.getGraphQLSchema(testInfo);
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
-            .extracting(RestDataFetcher::getMethodType)
-            .isEqualTo(RestDirectiveMethod.POST);
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
+            .extracting(RestDataFetcher::getMethodType).isEqualTo(RestDirectiveMethod.POST);
     }
 
 
@@ -216,11 +183,9 @@ class RestDirectiveWiringTest {
         final GraphQLSchema graphQLSchema = this.getGraphQLSchema(testInfo);
         final DataFetcher<?> restDataFetcher =
             GraphQLTestUtil.getFieldDataFetcher("Query", "recommendation", graphQLSchema);
-        assertThat(restDataFetcher)
-            .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
+        assertThat(restDataFetcher).asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
             .satisfies(fetcher -> {
-                assertThat(fetcher.getBodyParameter()).isNotNull()
-                   .isEqualTo(new RestParameter("inputs", false));
+                assertThat(fetcher.getBodyParameter()).isNotNull().isEqualTo(new RestParameter("inputs", false));
                 assertThat(fetcher.getPathArguments()).isEmpty();
                 assertThat(fetcher.getQueryArguments()).isEmpty();
             });
@@ -228,22 +193,19 @@ class RestDirectiveWiringTest {
 
     @Test
     void shouldNotAllowSameArgumentTwice(final TestInfo testInfo) {
-        assertThatExceptionOfType(QuickDirectiveException.class)
-            .isThrownBy(() -> this.getGraphQLSchema(testInfo))
+        assertThatExceptionOfType(QuickDirectiveException.class).isThrownBy(() -> this.getGraphQLSchema(testInfo))
             .withMessageStartingWith("The argument(s) limit can't be used in multiple parameters");
     }
 
     @Test
     void shouldNotParseNonExistingPathArgument(final TestInfo testInfo) {
-        assertThatNullPointerException()
-            .isThrownBy(() -> this.getGraphQLSchema(testInfo))
+        assertThatNullPointerException().isThrownBy(() -> this.getGraphQLSchema(testInfo))
             .withMessageStartingWith("Argument nonExisting specified as parameter");
     }
 
     @Test
     void shouldNotParseNonExistingQueryArgument(final TestInfo testInfo) {
-        assertThatNullPointerException()
-            .isThrownBy(() -> this.getGraphQLSchema(testInfo))
+        assertThatNullPointerException().isThrownBy(() -> this.getGraphQLSchema(testInfo))
             .withMessageStartingWith("Argument nonExisting specified as parameter");
     }
 

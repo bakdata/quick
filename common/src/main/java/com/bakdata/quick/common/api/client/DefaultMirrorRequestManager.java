@@ -32,7 +32,7 @@ import okhttp3.ResponseBody;
 @Slf4j
 public class DefaultMirrorRequestManager implements MirrorRequestManager {
 
-    protected final HttpClient client;
+    private final HttpClient client;
 
     public DefaultMirrorRequestManager(final HttpClient client) {
         this.client = client;

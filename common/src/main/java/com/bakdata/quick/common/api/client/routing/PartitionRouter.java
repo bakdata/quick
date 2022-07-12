@@ -19,7 +19,6 @@ package com.bakdata.quick.common.api.client.routing;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,25 +47,18 @@ public class PartitionRouter<K> implements Router<K> {
      * @param partitionFinder strategy for finding partitions
      * @param partitionToHost partition to host mapping
      */
-    public PartitionRouter(final Serde<K> keySerde, final String topic,
-                           final PartitionFinder partitionFinder, final Map<Integer, String> partitionToHost) {
+    public PartitionRouter(final Serde<K> keySerde, final String topic, final PartitionFinder partitionFinder,
+                           final Map<Integer, String> partitionToHost) {
         this.topic = topic;
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
         this.partitionToHost = partitionToHost;
-        this.partitionToMirrorHost = new HashMap<>();
-        convertHostStringToMirrorHost();
+        this.partitionToMirrorHost = convertHostStringToMirrorHost();
     }
 
-    private void convertHostStringToMirrorHost() {
-        this.partitionToMirrorHost.putAll(
-            this.partitionToHost
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    e -> new MirrorHost(e.getValue(), MirrorConfig.directAccess())
-        )));
+    private Map<Integer, MirrorHost> convertHostStringToMirrorHost() {
+        return this.partitionToHost.entrySet().stream().collect(
+            Collectors.toMap(Map.Entry::getKey, e -> new MirrorHost(e.getValue(), MirrorConfig.directAccess())));
     }
 
     @Override
