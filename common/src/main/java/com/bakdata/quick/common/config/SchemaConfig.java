@@ -41,13 +41,21 @@ public class SchemaConfig {
      * <p>
      * This is a global configuration that is set when deploying Quick. Quick will convert GraphQL schemas to this
      * format when users create a new topic, and register them with the Schema Registry.
-     * </p>
      */
     private final SchemaFormat format;
 
+    /**
+     * Enables support for all schema types.
+     *
+     * <p>
+     * This can be set for testing purposes.
+     */
+    private final boolean enableAll;
+
     @ConfigurationInject
-    public SchemaConfig(final Optional<SchemaFormat> format) {
+    public SchemaConfig(final Optional<SchemaFormat> format, final Optional<Boolean> enableAll) {
         this.format = format.orElse(DEFAULT_FORMAT);
+        this.enableAll = enableAll.orElse(false);
     }
 
 }

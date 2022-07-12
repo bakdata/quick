@@ -38,7 +38,7 @@ import lombok.Getter;
 @Getter
 public class AvroConfig {
     static final String PREFIX = SchemaConfig.PREFIX + ".avro";
-    private static final Pattern NAMESPACE_PATTERN = Pattern.compile("^[A-z_](\\.?\\w)*$");
+    private static final Pattern NAMESPACE_PATTERN = Pattern.compile("^[A-Za-z_]\\w+(\\.[A-Za-z_]\\w+)*+$");
 
     private final String namespace;
 

@@ -16,16 +16,16 @@
 
 package com.bakdata.quick.common.exception.schema;
 
+import com.bakdata.quick.common.exception.QuickException;
 import io.micronaut.http.HttpStatus;
 
 /**
  * Exception when subject doesn't exist.
  */
-public class SchemaNotFoundException extends SchemaException {
-    private static final String MESSAGE = "Subject \"%s\" not found in schema registry";
+public class SchemaNotFoundException extends QuickException {
 
     public SchemaNotFoundException(final String subject) {
-        super(String.format(MESSAGE, subject));
+        super(String.format("Subject \"%s\" not found in schema registry", subject));
     }
 
     @Override

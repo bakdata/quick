@@ -20,11 +20,15 @@ import com.bakdata.quick.common.resolver.DoubleResolver;
 import com.bakdata.quick.common.resolver.GenericAvroResolver;
 import com.bakdata.quick.common.resolver.IntegerResolver;
 import com.bakdata.quick.common.resolver.LongResolver;
+import com.bakdata.quick.common.resolver.ProtobufResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import com.google.protobuf.Descriptors;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
+import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import java.util.Map;
 import java.util.Objects;
 import org.apache.avro.Schema;
@@ -36,70 +40,137 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Represents possible types for Quick topics.
  */
 public enum QuickTopicType {
-    SCHEMA {
+    /**
+     * General schema type resolved at runtime to specific implementation.
+     *
+     * @see #AVRO
+     * @see #PROTOBUF
+     */
+    SCHEMA(true) {
         @Override
-        public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
+        <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
+            throw new UnsupportedOperationException("Schema's type resolver should be resolved to active format");
+        }
+
+        @Override
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+            throw new UnsupportedOperationException("Schema's serde should be resolved to active format");
+        }
+    },
+
+    AVRO(true) {
+        @Override
+        <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
             Objects.requireNonNull(parsedSchema, "Schema must not be null for Avro types");
             if (!(parsedSchema instanceof AvroSchema)) {
                 throw new IllegalArgumentException(
                     "Expected Avro schema, but got " + parsedSchema.getClass().getName());
             }
             final Schema schema = (Schema) parsedSchema.rawSchema();
-            return configuredTypeResolve(new GenericAvroResolver(schema));
+            return configuredTypeResolver(new GenericAvroResolver(schema));
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(new GenericAvroSerde(), configs, isKey);
         }
     },
-    DOUBLE {
+
+    PROTOBUF(true) {
         @Override
-        public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
-            return configuredTypeResolve(new DoubleResolver());
+        <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
+            Objects.requireNonNull(parsedSchema, "Schema must not be null for Protobuf types");
+            if (!(parsedSchema instanceof ProtobufSchema)) {
+                throw new IllegalArgumentException(
+                    "Expected Protobuf schema, but got " + parsedSchema.getClass().getName());
+            }
+            final Descriptors.Descriptor descriptor = ((ProtobufSchema) parsedSchema).toDescriptor();
+            return configuredTypeResolver(new ProtobufResolver(descriptor));
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+            return configuredSerde(new KafkaProtobufSerde<>(), configs, isKey);
+        }
+    },
+    DOUBLE(false) {
+        @Override
+        <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
+            return configuredTypeResolver(new DoubleResolver());
+        }
+
+        @Override
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(Serdes.Double(), configs, isKey);
         }
     },
-    INTEGER {
+    INTEGER(false) {
         @Override
-        public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
-            return configuredTypeResolve(new IntegerResolver());
+        <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
+            return configuredTypeResolver(new IntegerResolver());
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(Serdes.Integer(), configs, isKey);
         }
     },
-    LONG {
+    LONG(false) {
         @Override
-        public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
-            return configuredTypeResolve(new LongResolver());
+        <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
+            return configuredTypeResolver(new LongResolver());
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(Serdes.Long(), configs, isKey);
         }
     },
-    STRING {
+    STRING(false) {
         @Override
-        public <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
-            return configuredTypeResolve(new StringResolver());
+        <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema) {
+            return configuredTypeResolver(new StringResolver());
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(Serdes.String(), configs, isKey);
         }
     };
 
+    private final boolean isSchema;
+
+    QuickTopicType(final boolean isSchema) {
+        this.isSchema = isSchema;
+    }
+
+    public boolean isSchema() {
+        return this.isSchema;
+    }
+
+
+    /**
+     * Returns a type resolver for this type.
+     *
+     * @param parsedSchema schema for type resolver that is required for complex types.
+     * @param <K>          inner type of the type resolver
+     * @return type resolver for conversion from strings
+     */
+    abstract <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema);
+
+    /**
+     * Returns a configured serde for this type.
+     *
+     * @param configs serde configuration
+     * @param isKey   true if serde is used for keys
+     * @param <K>     type to be serialized from and deserialized to
+     * @return configured serde
+     */
+    abstract <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey);
+
+
     @SuppressWarnings("unchecked")
-    static <K> TypeResolver<K> configuredTypeResolve(final TypeResolver<?> typeResolver) {
+    static <K> TypeResolver<K> configuredTypeResolver(final TypeResolver<?> typeResolver) {
         return (TypeResolver<K>) typeResolver;
     }
 
@@ -108,26 +179,5 @@ public enum QuickTopicType {
         serde.configure(config, isKey);
         return (Serde<K>) serde;
     }
-
-    /**
-     * Returns a type resolver for this type.
-     *
-     * @param parsedSchema schema for type resolver that is required for complex types.
-     * @param <K>          inner type of the type resolver
-     *
-     * @return type resolver for conversion from strings
-     */
-    public abstract <K> TypeResolver<K> getTypeResolver(@Nullable final ParsedSchema parsedSchema);
-
-    /**
-     * Returns a configured serde for this type.
-     *
-     * @param configs serde configuration
-     * @param isKey   true if serde is used for keys
-     * @param <K>     type to be serialized from and deserialized to
-     *
-     * @return configured serde
-     */
-    public abstract <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey);
 
 }

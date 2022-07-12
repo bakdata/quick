@@ -21,6 +21,7 @@ import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.config.TopicRegistryConfig;
+import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.type.QuickTopicType;
 import io.reactivex.Completable;
@@ -46,7 +47,6 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     private final MirrorClient<String, TopicData> topicDataClient;
     private final TopicData registryData;
 
-
     /**
      * Injectable constructor.
      *
@@ -55,24 +55,12 @@ public class MirrorRegistryClient implements TopicRegistryClient {
      * @param client              http client
      */
     public MirrorRegistryClient(final TopicRegistryConfig topicRegistryConfig, final IngestClient ingestClient,
-                                final HttpClient client) {
+        final HttpClient client) {
         this.registryTopic = topicRegistryConfig.getTopicName();
         this.ingestClient = ingestClient;
-        this.registryData =
-            new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING, QuickTopicType.SCHEMA,
-                null);
         this.topicDataClient = createMirrorClient(topicRegistryConfig, client);
-
-
-    }
-
-    private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
-                                                                      final HttpClient client) {
-        final KnownTypeResolver<TopicData> typeResolver =
-            new KnownTypeResolver<>(TopicData.class, client.objectMapper());
-        final String serviceName = topicRegistryConfig.getServiceName();
-        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), typeResolver,
-            new DefaultMirrorRequestManager(client));
+        this.registryData = new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING,
+            QuickTopicType.AVRO, null);
     }
 
     @Override
@@ -83,7 +71,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
 
     @Override
     public Completable delete(final String name) {
-        log.debug("Delete topic {} in registry", name);
+        log.debug("Delete topic {} in topic registry", name);
         return this.ingestClient.deleteData(this.registryTopic, List.of(name));
     }
 
@@ -92,8 +80,16 @@ public class MirrorRegistryClient implements TopicRegistryClient {
         if (name.equals(this.registryTopic)) {
             return this.getSelf();
         }
-        log.debug("Request topic data for topic {}", name);
-        return Single.fromCallable(() -> this.topicDataClient.fetchValue(name));
+        return Single.fromCallable(() -> this.fetchTopicData(name));
+    }
+
+    private TopicData fetchTopicData(final String name) {
+        log.debug("Request topic data from topic registry for topic {}", name);
+        final TopicData topicData = this.topicDataClient.fetchValue(name);
+        if (topicData != null) {
+            return topicData;
+        }
+        throw new NotFoundException(String.format("Topic %s not found in topic registry", name));
     }
 
     @Override
@@ -105,6 +101,15 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     public Single<List<TopicData>> getAllTopics() {
         return Flowable.defer(() -> Flowable.fromIterable(this.topicDataClient.fetchAll()))
             .toSortedList(Comparator.comparing(TopicData::getName));
+    }
+
+    private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
+        final HttpClient client) {
+        final KnownTypeResolver<TopicData> typeResolver =
+            new KnownTypeResolver<>(TopicData.class, client.objectMapper());
+        final String serviceName = topicRegistryConfig.getServiceName();
+        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), typeResolver,
+            new DefaultMirrorRequestManager(client));
     }
 
     private Single<TopicData> getSelf() {

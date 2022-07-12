@@ -20,11 +20,14 @@ import com.bakdata.quick.common.resolver.DoubleResolver;
 import com.bakdata.quick.common.resolver.GenericAvroResolver;
 import com.bakdata.quick.common.resolver.IntegerResolver;
 import com.bakdata.quick.common.resolver.LongResolver;
+import com.bakdata.quick.common.resolver.ProtobufResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
-import io.confluent.kafka.schemaregistry.ParsedSchema;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.Message;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
+import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.common.serialization.Serdes;
@@ -37,7 +40,7 @@ public final class TestTypeUtils {
     }
 
     public static QuickData<GenericRecord> newAvroData(final Schema schema) {
-        return new QuickData<>(QuickTopicType.SCHEMA, new GenericAvroSerde(), new GenericAvroResolver(schema));
+        return new QuickData<>(QuickTopicType.AVRO, new GenericAvroSerde(), new GenericAvroResolver(schema));
     }
 
     public static QuickData<String> newStringData() {
@@ -54,6 +57,10 @@ public final class TestTypeUtils {
 
     public static QuickData<Integer> newIntegerData() {
         return new QuickData<>(QuickTopicType.INTEGER, Serdes.Integer(), new IntegerResolver());
+    }
+
+    public static QuickData<Message> newProtobufData(final Descriptors.Descriptor descriptor) {
+        return new QuickData<>(QuickTopicType.PROTOBUF, new KafkaProtobufSerde<>(), new ProtobufResolver(descriptor));
     }
 
 }

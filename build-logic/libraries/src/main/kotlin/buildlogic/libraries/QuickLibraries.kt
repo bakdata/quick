@@ -68,6 +68,7 @@ abstract class QuickLibraries {
     val AVRO = "org.apache.avro:avro:$AVRO_VERSION"
     val PROTOBUF = "com.google.protobuf:protobuf-java:$PROTOBUF_VERSION"
     val KAFKA_STREAMS_SERDE = "io.confluent:kafka-streams-avro-serde:$CONFLUENT_VERSION"
+    val KAFKA_PROTO_SERDE = "io.confluent:kafka-streams-protobuf-serde:$CONFLUENT_VERSION"
     val SCHEMA_REGISTRY_CLIENT = "io.confluent:kafka-schema-registry-client:$CONFLUENT_VERSION"
     val KAFKA_PROTOBUF_PROVIDER = "io.confluent:kafka-protobuf-provider:$CONFLUENT_VERSION"
 

@@ -18,7 +18,6 @@ package com.bakdata.quick.manager.mirror;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
 import com.bakdata.quick.common.exception.BadArgumentException;

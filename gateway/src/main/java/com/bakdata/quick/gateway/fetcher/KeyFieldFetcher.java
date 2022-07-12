@@ -19,9 +19,13 @@ package com.bakdata.quick.gateway.fetcher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.util.JsonFormat;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
@@ -72,8 +76,7 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
      * @param argument     name of the argument to extract key from
      * @param client       underlying HTTP mirror client
      */
-    public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument,
-        final DataFetcherClient<T> client) {
+    public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument, final DataFetcherClient<T> client) {
         this.objectMapper = objectMapper;
         this.argument = argument;
         this.client = client;
@@ -95,7 +98,12 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
     }
 
     private Stream<String> findKeyArgument(final DataFetchingEnvironment environment) {
-        final String parentJson = this.extractJson(environment);
+        final String parentJson;
+        try {
+            parentJson = this.extractJson(environment);
+        } catch (final IOException e) {
+            throw new UncheckedIOException("Could not convert source for extracting key", e);
+        }
         // parse json and try to find the value for our argument
         // if it is an array, we need to resolve each one
         try {
@@ -114,32 +122,33 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
                 return Stream.of(this.valueAsString(node));
             }
         } catch (final JsonProcessingException e) {
-            throw new RuntimeException("Could not process json: " + parentJson, e);
+            throw new UncheckedIOException("Could not process json: " + parentJson, e);
         }
     }
 
-    private String extractJson(final DataFetchingEnvironment environment) {
-        // this is only needed for subscriptions because we use the data directly.
+    private String extractJson(final DataFetchingEnvironment environment) throws IOException {
+        // TODO work on JSON everywhere:
+        //  1. Do not convert back to real types in MirrorDataFetcherClient
+        //  2. Immediately convert to JSON in SubscriptionFetcher
         if (environment.getSource() instanceof GenericRecord) {
             final GenericRecord record = environment.getSource();
-            // TODO this is pretty expensive for a frequent operation. Thus, we should operate on the record directly.
             return new String(this.converter.convertToJson(record), StandardCharsets.UTF_8);
         }
 
-        final Map<String, Object> value = environment.getSource();
-        try {
-            return this.objectMapper.writeValueAsString(value);
-        } catch (final JsonProcessingException e) {
-            throw new RuntimeException(e);
+        if (environment.getSource() instanceof DynamicMessage) {
+            final DynamicMessage source = environment.getSource();
+            return JsonFormat.printer().includingDefaultValueFields().print(source);
         }
+
+        final Map<String, Object> value = environment.getSource();
+        return this.objectMapper.writeValueAsString(value);
     }
 
     private String valueAsString(final JsonNode node) {
         try {
-            // strings are written as "value". therefore we strip the ".
-            return this.objectMapper.writeValueAsString(node).replace("\"", "");
+            return node.isTextual() ? node.textValue() : this.objectMapper.writeValueAsString(node);
         } catch (final JsonProcessingException e) {
-            throw new RuntimeException("Could not process json: " + node, e);
+            throw new UncheckedIOException("Could not process json: " + node, e);
         }
     }
 }

@@ -33,6 +33,7 @@ import io.micronaut.core.util.StringUtils;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.MediaType;
+import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -72,8 +73,9 @@ class GraphQLSecurityTest {
             .header("X-API-Key", "no")
             .body("{test(id: 123)}");
 
+        final BlockingHttpClient httpClient = this.client.toBlocking();
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.client.toBlocking().exchange(request))
+            .isThrownBy(() -> httpClient.exchange(request))
             .withMessage("Unauthorized");
     }
 

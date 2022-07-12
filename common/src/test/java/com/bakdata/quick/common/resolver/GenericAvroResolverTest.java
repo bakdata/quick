@@ -19,58 +19,22 @@ package com.bakdata.quick.common.resolver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.avro.ChartRecord;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import lombok.Builder;
-import lombok.Value;
-import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Test;
 
-class TypeResolverTest {
-    private static final Path workingDirectory = Path.of("src", "test", "resources");
+class GenericAvroResolverTest {
+
     private static final long EXPECTED_FIELD_ID = 5L;
     private static final long EXPECTED_COUNT_PLAYS = 10L;
     private static final String JSON_RECORD = "{\"fieldId\":5,\"countPlays\":10}";
     private final ChartRecord chartRecord = ChartRecord.newBuilder().setFieldId(5L).setCountPlays(10L).build();
 
     @Test
-    void testValueFromString() {
+    void shouldReadAvroFromString() {
         final GenericAvroResolver resolver = new GenericAvroResolver(ChartRecord.getClassSchema());
         final GenericRecord genericRecord = resolver.fromString(JSON_RECORD);
         assertThat(genericRecord.getSchema()).isEqualTo(this.chartRecord.getSchema());
         assertThat(genericRecord.get("fieldId")).isEqualTo(EXPECTED_FIELD_ID);
         assertThat(genericRecord.get("countPlays")).isEqualTo(EXPECTED_COUNT_PLAYS);
-    }
-
-    @Test
-    void testKnownTypeFromString() {
-        final KnownTypeRecord exepected = KnownTypeRecord.builder().fieldId(5L).countPlays(10L).build();
-        final TypeResolver<KnownTypeRecord> typeResolver =
-            new KnownTypeResolver<>(KnownTypeRecord.class, new ObjectMapper());
-        final KnownTypeRecord knownTypeRecord = typeResolver.fromString(JSON_RECORD);
-        assertThat(knownTypeRecord).isEqualTo(exepected);
-    }
-
-
-    @Test
-    void checkNullable() throws IOException {
-        final String schema = Files.readString(workingDirectory.resolve("product-schema.avsc"));
-        final Schema parsedSchema = new Schema.Parser().parse(schema);
-        final GenericAvroResolver resolver = new GenericAvroResolver(parsedSchema);
-
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final String data = Files.readString(workingDirectory.resolve("product.json"));
-        final GenericRecord record = resolver.fromString(data);
-        assertThat(objectMapper.readTree(record.toString())).isEqualTo(objectMapper.readTree(data));
-    }
-
-    @Value
-    @Builder
-    static class KnownTypeRecord {
-        long fieldId;
-        long countPlays;
     }
 }

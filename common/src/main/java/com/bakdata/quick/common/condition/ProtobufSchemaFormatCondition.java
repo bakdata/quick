@@ -30,6 +30,7 @@ import io.micronaut.context.condition.ConditionContext;
 public class ProtobufSchemaFormatCondition implements Condition {
     @Override
     public boolean matches(final ConditionContext context) {
-        return context.getBean(SchemaConfig.class).getFormat() == SchemaFormat.PROTOBUF;
+        final SchemaConfig schemaConfig = context.getBean(SchemaConfig.class);
+        return schemaConfig.isEnableAll() || schemaConfig.getFormat() == SchemaFormat.PROTOBUF;
     }
 }

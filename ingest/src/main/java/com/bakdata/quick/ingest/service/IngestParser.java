@@ -18,6 +18,7 @@ package com.bakdata.quick.ingest.service;
 
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.exception.BadArgumentException;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonParser;
@@ -29,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 import tech.allegro.schema.json2avro.converter.AvroConversionException;
 
 /**
@@ -39,6 +41,7 @@ import tech.allegro.schema.json2avro.converter.AvroConversionException;
  * well as an array.
  */
 @Singleton
+@Slf4j
 public class IngestParser {
     private final ObjectMapper objectMapper;
 
@@ -135,15 +138,22 @@ public class IngestParser {
         }
 
         try {
-            return data.getResolver().fromString(node.toString());
+            return parseValue(data.getResolver(), node);
         } catch (final AvroConversionException exception) {
             final String errorMessage =
                 String.format("Data does not conform to schema: %s", exception.getCause().getMessage());
             throw new BadArgumentException(errorMessage);
         } catch (final RuntimeException exception) {
+            log.error("Could not convert data", exception);
             final String errorMessage = String.format("Data must be of type %s. Got: %s (%s)",
                 data.getType().toString().toLowerCase(), node.getNodeType().toString().toLowerCase(), node);
             throw new BadArgumentException(errorMessage);
         }
+    }
+
+    private static <T> T parseValue(final TypeResolver<T> resolver, final JsonNode element) {
+        // If this is a textualValue, `toString()` returns a string with unwanted quotes
+        final String stringValue = element.isTextual() ? element.textValue() : element.toString();
+        return resolver.fromString(stringValue);
     }
 }

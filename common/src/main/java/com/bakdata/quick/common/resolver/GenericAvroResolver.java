@@ -16,7 +16,6 @@
 
 package com.bakdata.quick.common.resolver;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import org.apache.avro.Schema;

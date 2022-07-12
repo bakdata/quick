@@ -25,6 +25,8 @@ import static org.mockito.Mockito.when;
 import com.bakdata.quick.manager.topic.TopicService;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MutableHttpRequest;
+import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -48,12 +50,9 @@ class ApiKeyTest {
 
     @Test
     void shouldUnauthorizedWhenApiKeyNotSetInHeader() {
-        final Throwable exception = assertThrows(
-            HttpClientResponseException.class,
-            () -> this.client
-                .toBlocking()
-                .exchange(DELETE(SECURE_PATH))
-        );
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final MutableHttpRequest<?> request = DELETE(SECURE_PATH);
+        final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
         assertThat(exception.getMessage()).isEqualTo("Unauthorized");
     }
 
@@ -83,23 +82,17 @@ class ApiKeyTest {
 
     @Test
     void shouldUnauthorizedWhenApiKeyIsNotValid() {
-        final Throwable exception = assertThrows(
-            HttpClientResponseException.class,
-            () -> this.client
-                .toBlocking()
-                .exchange(DELETE(SECURE_PATH).header("X-API-Key", "wrong_key"))
-        );
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("X-API-Key", "wrong_key");
+        final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
         assertThat(exception.getMessage()).isEqualTo("Unauthorized");
     }
 
     @Test
     void shouldUnauthorizedWhenApiKeyHeaderKeyIsWrong() {
-        final Throwable exception = assertThrows(
-            HttpClientResponseException.class,
-            () -> this.client
-                .toBlocking()
-                .exchange(DELETE(SECURE_PATH).header("WRONG-API-Key", "test_key"))
-        );
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("WRONG-API-Key", "test_key");
+        final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
         assertThat(exception.getMessage()).isEqualTo("Unauthorized");
     }
 

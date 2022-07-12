@@ -64,7 +64,6 @@ class SubscriptionFetcherTest {
         kafkaCluster.stop();
     }
 
-    @SuppressWarnings("unused")
     private static Stream<Arguments> provideValueArguments() {
         return Stream.of(
             // integer
@@ -98,7 +97,6 @@ class SubscriptionFetcherTest {
         );
     }
 
-    @SuppressWarnings("unused")
     private static Stream<Arguments> provideValueArgumentsForKey() {
         return Stream.of(
             // integer

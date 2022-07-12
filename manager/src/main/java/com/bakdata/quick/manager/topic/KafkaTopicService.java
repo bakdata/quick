@@ -33,9 +33,8 @@ import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.manager.gateway.GatewayService;
 import com.bakdata.quick.manager.graphql.GraphQLConverter;
-import com.bakdata.quick.manager.graphql.GraphQLToAvroConverter;
 import com.bakdata.quick.manager.mirror.MirrorService;
-import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.reactivex.Completable;
@@ -49,7 +48,6 @@ import java.util.function.Supplier;
 import javax.inject.Singleton;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.Schema;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 
@@ -75,20 +73,20 @@ public class KafkaTopicService implements TopicService {
      *
      * @param topicRegistryClient client for interacting with Quick's topic registry
      * @param gatewayClient       client for interacting with Quick's gateways
+     * @param graphQLConverter    converter from GraphQL schema to Kafka schema
      * @param mirrorService       service for creating mirrors
      * @param gatewayService      service for interacting with deployed gateway
      * @param topicConfig         configuration for Kafka topics
      * @param kafkaConfig         configuration for Kafka
      */
 
-    //TODO: Inject GraphQLConverter instead of GraphQLToAvroConverter
     public KafkaTopicService(final TopicRegistryClient topicRegistryClient, final GatewayClient gatewayClient,
-        final GraphQLToAvroConverter graphQLToAvroConverter, final MirrorService mirrorService,
-        final GatewayService gatewayService, final QuickTopicConfig topicConfig, final KafkaConfig kafkaConfig) {
-
+                             final GraphQLConverter graphQLConverter, final MirrorService mirrorService,
+                             final GatewayService gatewayService, final QuickTopicConfig topicConfig,
+                             final KafkaConfig kafkaConfig) {
         this.topicRegistryClient = topicRegistryClient;
         this.gatewayClient = gatewayClient;
-        this.graphQLConverter = graphQLToAvroConverter;
+        this.graphQLConverter = graphQLConverter;
         this.mirrorService = mirrorService;
         this.gatewayService = gatewayService;
         this.topicConfig = topicConfig;
@@ -215,13 +213,12 @@ public class KafkaTopicService implements TopicService {
             return Completable.complete();
         }
 
-        return Single.fromCallable(() -> {
-            // if subject exists, we have to check compatibility
-            // TODO: Replacer this with ParsedSchema
-            return this.schemaRegistryClient.getAllSubjects().contains(subject)
-                && this.schemaRegistryClient.testCompatibility(subject, schema.get().getAvroSchema());
-        })
-            .retry(3, throwable -> throwable instanceof IOException)
+        return Single.fromCallable(() ->
+                // if subject exists, we have to check compatibility
+                this.schemaRegistryClient.getAllSubjects().contains(subject)
+                    && this.schemaRegistryClient.testCompatibility(subject, schema.get().getParsedSchema())
+            )
+            .retry(3, IOException.class::isInstance)
             .flatMapCompletable(incompatibleSchema ->
                 checkExistence(incompatibleSchema,
                     () -> String.format("Subject \"%s\" already exists", subject))
@@ -253,18 +250,17 @@ public class KafkaTopicService implements TopicService {
             .mergeWith(this.mirrorService.deleteMirror(topicName));
     }
 
-    private Completable registerSchema(final String topic, final Optional<QuickSchemas> avroSchema,
-        final KeyValueEnum keyValue) {
+    private Completable registerSchema(final String topic, final Optional<QuickSchemas> schemas,
+                                       final KeyValueEnum keyValue) {
         // if there is no schema, we can just return
-        if (avroSchema.isEmpty()) {
+        if (schemas.isEmpty()) {
             return Completable.complete();
         }
         // otherwise parse the string as schema and send it to the schema registry
         return Completable.fromAction(() -> {
-            final String subject = keyValue.asSubject(topic);
-            log.debug("Register subject '{}' with schema registry", subject);
-            // TODO: Replace with ParsedSchema
-            this.schemaRegistryClient.register(subject, avroSchema.get().getAvroSchema());
+                final String subject = keyValue.asSubject(topic);
+                log.debug("Register subject '{}' with schema registry", subject);
+                this.schemaRegistryClient.register(subject, schemas.get().getParsedSchema());
             }
         );
     }
@@ -279,16 +275,14 @@ public class KafkaTopicService implements TopicService {
             .flatMap(ignored -> this.gatewayClient.getWriteSchema(gatewaySchema.getGateway(), gatewaySchema.getType()))
             .map(schemaResponse -> {
                 final String graphQLSchema = schemaResponse.getSchema();
-                //TODO: We are sure that we are converting GraphQL schema to Avro schema.
-                // This needs to be changed after the protobuf conversion is also used!
-                final AvroSchema avroSchema = (AvroSchema) graphQLConverter.convert(graphQLSchema);
-                return Optional.of(new QuickSchemas(graphQLSchema, avroSchema.rawSchema()));
+                final ParsedSchema parsedSchema = this.graphQLConverter.convert(graphQLSchema);
+                return Optional.of(new QuickSchemas(graphQLSchema, parsedSchema));
             });
     }
 
     @Value
-    static class QuickSchemas {
+    private static class QuickSchemas {
         String graphQLSchema;
-        Schema avroSchema;
+        ParsedSchema parsedSchema;
     }
 }

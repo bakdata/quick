@@ -35,7 +35,6 @@ import com.bakdata.quick.manager.mirror.resources.MirrorResourceLoader;
 import com.google.common.collect.Iterables;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.reactivex.Completable;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

@@ -61,7 +61,7 @@ class GraphQLToAvroConverterTest {
             .satisfies(enumType -> assertThat(enumType.getName()).isEqualTo("Status"))
             .extracting(Schema::getEnumSymbols)
             .satisfies(symbols -> {
-                assertThat(symbols.size()).isEqualTo(2);
+                assertThat(symbols).hasSize(2);
                 assertThat(symbols).containsExactly("SOLD", "AVAILABLE");
             });
     }

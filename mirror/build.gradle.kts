@@ -13,6 +13,7 @@ httpService {
 
 dependencies {
     implementation(libs.STREAMS_BOOTSTRAP)
+    implementation(libs.KAFKA_PROTO_SERDE)
     implementation(libs.PICO_CLI)
     implementation(libs.MICRONAUT_PICO_CLI)
 

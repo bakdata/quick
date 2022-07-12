@@ -28,12 +28,10 @@ import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.exception.InternalErrorException;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.DescriptorProtos.DescriptorProto;
-import com.google.protobuf.DescriptorProtos.DescriptorProto.Builder;
 import com.google.protobuf.DescriptorProtos.EnumDescriptorProto;
 import com.google.protobuf.DescriptorProtos.EnumValueDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label;
-import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -69,7 +67,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     @Getter
     private final String protobufPackage;
 
-    private static final Map<GraphQLScalarType, Type> SCALAR_MAPPING = scalarTypeMap();
+    private static final Map<GraphQLScalarType, FieldDescriptorProto.Type> SCALAR_MAPPING = scalarTypeMap();
 
     @Inject
     public GraphQLToProtobufConverter(final ProtobufConfig protobufConfig) {
@@ -119,7 +117,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         final List<GraphQLFieldDefinition> fieldDefinitions,
         final FileDescriptorProto.Builder fileBuilder) {
 
-        final Builder currentMessage = DescriptorProto.newBuilder().setName(messageName);
+        final DescriptorProto.Builder currentMessage = fileBuilder.addMessageTypeBuilder().setName(messageName);
 
         for (int index = 0; index < fieldDefinitions.size(); index++) {
 
@@ -136,8 +134,6 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
                 index + 1,
                 label);
         }
-
-        fileBuilder.addMessageType(currentMessage);
     }
 
     private static void createMessage(
@@ -183,7 +179,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         final GraphQLObjectType graphQLObjectType) {
         currentMessage.addField(createFieldWithType(graphQLFieldDefinition.getName(),
             fieldNumber,
-            Type.TYPE_MESSAGE,
+            FieldDescriptorProto.Type.TYPE_MESSAGE,
             graphQLObjectType.getName(),
             label));
 
@@ -207,7 +203,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     private static FieldDescriptorProto createFieldWithType(
         final String fieldName,
         final int fieldNumber,
-        final Type type,
+        final FieldDescriptorProto.Type type,
         final String typeName,
         final Label label) {
 
@@ -221,7 +217,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     }
 
     /**
-     * Creates a {@link FieldDescriptorProto} object from a scalar GraphQL type.
+     * Creates a {@link FieldDescriptorProto} object from a scalar GraphQL FieldDescriptorProto.Type.
      */
     private static FieldDescriptorProto createFieldDescriptorForScalarType(
         final GraphQLScalarType graphQLScalarType,
@@ -229,7 +225,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         final int fieldNumber,
         final Label label) {
 
-        final Type protoType = SCALAR_MAPPING.get(graphQLScalarType);
+        final FieldDescriptorProto.Type protoType = SCALAR_MAPPING.get(graphQLScalarType);
         if (protoType == null) {
             final String message =
                 String.format("Scalar %s not supported", GraphQLTypeUtil.simplePrint(graphQLScalarType));
@@ -257,7 +253,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
 
         currentMessage.addField(createFieldWithType(graphQLFieldDefinition.getName(),
             fieldNumber,
-            Type.TYPE_ENUM,
+            FieldDescriptorProto.Type.TYPE_ENUM,
             graphQLEnumType.getName(),
             label));
 
@@ -268,7 +264,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     }
 
     /**
-     * Creates a {@link EnumDescriptorProto} object from a scalar GraphQL type. For example the GraphQL * enum with
+     * Creates a {@link EnumDescriptorProto} object from a scalar GraphQL type. For example the GraphQL enum with
      * these fields:
      * <pre>
      * enum Foo {
@@ -335,16 +331,16 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
             Label.LABEL_REPEATED);
     }
 
-    private static Map<GraphQLScalarType, Type> scalarTypeMap() {
+    private static Map<GraphQLScalarType, FieldDescriptorProto.Type> scalarTypeMap() {
         return Map.of(
-            Scalars.GraphQLInt, Type.TYPE_INT32,
-            Scalars.GraphQLFloat, Type.TYPE_FLOAT,
-            Scalars.GraphQLString, Type.TYPE_STRING,
-            Scalars.GraphQLBoolean, Type.TYPE_BOOL,
-            Scalars.GraphQLID, Type.TYPE_STRING,
-            Scalars.GraphQLLong, Type.TYPE_INT64,
-            Scalars.GraphQLShort, Type.TYPE_INT32,
-            Scalars.GraphQLChar, Type.TYPE_STRING
+            Scalars.GraphQLInt, FieldDescriptorProto.Type.TYPE_INT32,
+            Scalars.GraphQLFloat, FieldDescriptorProto.Type.TYPE_FLOAT,
+            Scalars.GraphQLString, FieldDescriptorProto.Type.TYPE_STRING,
+            Scalars.GraphQLBoolean, FieldDescriptorProto.Type.TYPE_BOOL,
+            Scalars.GraphQLID, FieldDescriptorProto.Type.TYPE_STRING,
+            Scalars.GraphQLLong, FieldDescriptorProto.Type.TYPE_INT64,
+            Scalars.GraphQLShort, FieldDescriptorProto.Type.TYPE_INT32,
+            Scalars.GraphQLChar, FieldDescriptorProto.Type.TYPE_STRING
         );
     }
 }

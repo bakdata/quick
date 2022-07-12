@@ -72,24 +72,22 @@ class GraphQLSchemaGeneratorTest {
     void setUp() {
         this.registryClient.register(
             "purchase-topic",
-            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA,
-                "")
+            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO, "")
         ).blockingAwait();
 
         this.registryClient.register(
             "product-topic",
-            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA, "")
+            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
         ).blockingAwait();
 
         this.registryClient.register(
             "contract-topic",
-            new TopicData("contract-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA,
-                "")
+            new TopicData("contract-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO, "")
         ).blockingAwait();
 
         this.registryClient.register(
             "person-topic",
-            new TopicData("person-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA, "")
+            new TopicData("person-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
         ).blockingAwait();
 
         this.registryClient.register(
@@ -472,44 +470,49 @@ class GraphQLSchemaGeneratorTest {
     }
 
     @Test
-    void shouldNotConvertIfMissingKeyInfoInQueryType(final TestInfo testInfo) {
+    void shouldNotConvertIfMissingKeyInfoInQueryType(final TestInfo testInfo) throws IOException {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        String schema = Files.readString(schemaPath);
         assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .isThrownBy(() -> this.generator.create(schema))
                 .withMessage("When the return type is not a list for a non-mutation and non-subscription type,"
                         + " key information (keyArgument or keyField) is needed.");
     }
 
     @Test
-    void shouldNotConvertIfMissingKeyInfoInBasicType(final TestInfo testInfo) {
+    void shouldNotConvertIfMissingKeyInfoInBasicType(final TestInfo testInfo) throws IOException {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        final String schema = Files.readString(schemaPath);
         assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .isThrownBy(() -> this.generator.create(schema))
                 .withMessage("When the return type is not a list for a non-mutation and non-subscription type,"
                         + " key information (keyArgument or keyField) is needed.");
     }
 
     @Test
-    void shouldNotConvertIfMutationDoesNotHaveTwoArgs(final TestInfo testInfo) {
+    void shouldNotConvertIfMutationDoesNotHaveTwoArgs(final TestInfo testInfo) throws IOException {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        final String schema = Files.readString(schemaPath);
         assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .isThrownBy(() -> this.generator.create(schema))
                 .withMessage("Mutation requires two input arguments");
     }
 
     @Test
-    void shouldNotConvertIfKeyArgAndInputNameDifferentInQueryType(final TestInfo testInfo) {
+    void shouldNotConvertIfKeyArgAndInputNameDifferentInQueryType(final TestInfo testInfo) throws IOException {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        final String schema = Files.readString(schemaPath);
         assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .isThrownBy(() -> this.generator.create(schema))
                 .withMessage("Key argument has to be identical to the input name.");
     }
 
     @Test
-    void shouldNotConvertIfKeyArgAndInputNameDifferentInNonQueryType(final TestInfo testInfo) {
+    void shouldNotConvertIfKeyArgAndInputNameDifferentInNonQueryType(final TestInfo testInfo) throws IOException {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        final String schema = Files.readString(schemaPath);
         assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(Files.readString(schemaPath)))
+                .isThrownBy(() -> this.generator.create(schema))
                 .withMessage("Key argument has to be identical to the input name.");
     }
 

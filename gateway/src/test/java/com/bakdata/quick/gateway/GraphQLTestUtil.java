@@ -19,7 +19,7 @@ package com.bakdata.quick.gateway;
 import static org.mockito.Mockito.mock;
 
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
-import com.bakdata.quick.gateway.fetcher.FetcherFactory.ClientSupplier;
+import com.bakdata.quick.gateway.fetcher.ClientSupplier;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLFieldDefinition;

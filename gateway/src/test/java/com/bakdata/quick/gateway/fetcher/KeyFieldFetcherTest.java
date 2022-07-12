@@ -16,6 +16,8 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
@@ -24,16 +26,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class KeyFieldFetcherTest {
     private final ObjectMapper mapper = new ObjectMapper();
@@ -139,7 +138,7 @@ class KeyFieldFetcherTest {
 
     private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
         return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig,
-                new KnownTypeResolver<>(clazz, this.mapper));
+            new KnownTypeResolver<>(clazz, this.mapper));
     }
 
     @Data

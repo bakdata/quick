@@ -18,7 +18,6 @@ package com.bakdata.quick.common.schema;
 
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.reactivex.Single;
-import org.apache.avro.Schema;
 
 /**
  * Client for interacting with the Avro Schema Registry.
@@ -40,7 +39,7 @@ public interface SchemaFetcher {
      * Retrieves the schema for a given subject.
      *
      * <p>
-     * Generally, a subject conforms to the following naming convetion: {@code <TOPIC_NAME>-<KEY|VALUE>},
+     * Generally, a subject conforms to the following naming convention: {@code <TOPIC_NAME>-<KEY|VALUE>},
      * e.g., topic1-key.
      */
     Single<ParsedSchema> getSchema(final String subject);
