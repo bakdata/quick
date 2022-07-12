@@ -17,49 +17,69 @@
 package com.bakdata.quick.common.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 
 import com.bakdata.quick.avro.Person;
+import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.exception.HttpClientException;
+import com.bakdata.quick.testutil.ProtoTestRecord;
 import com.bakdata.schemaregistrymock.junit5.SchemaRegistryMockExtension;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
-import io.micronaut.context.ApplicationContext;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.confluent.kafka.schemaregistry.SchemaProvider;
+import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
 import io.reactivex.Single;
 import java.util.Map;
-import javax.inject.Inject;
-import org.apache.avro.Schema;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 
-@MicronautTest(rebuildContext = true)
 class SchemaRegistryFetcherTest {
 
     public static final String TOPIC = "test-topic";
     @RegisterExtension
     final SchemaRegistryMockExtension srMock = new SchemaRegistryMockExtension();
-    @Inject
-    ApplicationContext applicationContext;
 
     @Test
-    void retrieveExistingSchema() {
-        this.applicationContext.environment(env -> env.addPropertySource("quick-test",
-            Map.of("quick.kafka.schema-registry-url", this.srMock.getUrl())));
-
-        final SchemaFetcher schemaFetcher = this.applicationContext.createBean(SchemaRegistryFetcher.class);
+    void retrieveExistingAvroSchema() {
+        final SchemaFetcher schemaFetcher = this.createSchemaFetcher(new AvroSchemaProvider());
         this.srMock.registerValueSchema(TOPIC, Person.getClassSchema());
         final ParsedSchema schema = schemaFetcher.getValueSchema(TOPIC).blockingGet();
         assertThat(schema.rawSchema()).isEqualTo(Person.getClassSchema());
     }
 
     @Test
+    void retrieveExistingProtobufSchema() {
+        final SchemaFetcher schemaFetcher = this.createSchemaFetcher(new ProtobufSchemaProvider());
+        final ProtobufSchema protobufSchema = new ProtobufSchema(ProtoTestRecord.getDescriptor());
+        this.srMock.registerValueSchema(TOPIC, protobufSchema);
+        final ParsedSchema schema = schemaFetcher.getValueSchema(TOPIC).blockingGet();
+        assertThat(schema).isEqualTo(protobufSchema);
+    }
+
+    @Test
+    void retrieveExistingAvroSchemaForInternalTopic() {
+        final SchemaFetcher schemaFetcher = this.createSchemaFetcher(new ProtobufSchemaProvider());
+        final String internalTopic = "__" + TOPIC;
+        this.srMock.registerValueSchema(internalTopic, Person.getClassSchema());
+        final ParsedSchema schema = schemaFetcher.getValueSchema(internalTopic).blockingGet();
+        assertThat(schema.rawSchema()).isEqualTo(Person.getClassSchema());
+    }
+
+    @Test
     void shouldReturnErrorIfSchemaDoesNotExist() throws InterruptedException {
-        this.applicationContext.environment(env -> env.addPropertySource("quick-test",
-            Map.of("quick.kafka.schema-registry-url", this.srMock.getUrl())));
-        final SchemaFetcher schemaFetcher = this.applicationContext.createBean(SchemaRegistryFetcher.class);
+        final SchemaFetcher schemaFetcher = this.createSchemaFetcher(new AvroSchemaProvider());
         final Single<ParsedSchema> valueSchema = schemaFetcher.getValueSchema(TOPIC);
         valueSchema.test().await()
             .assertError(HttpClientException.class)
             .assertErrorMessage("Not Found");
+    }
+
+    private SchemaFetcher createSchemaFetcher(final SchemaProvider schemaProvider) {
+        return new SchemaRegistryFetcher(new HttpClient(), new KafkaConfig("dummy:123", this.srMock.getUrl()),
+            schemaProvider);
     }
 }

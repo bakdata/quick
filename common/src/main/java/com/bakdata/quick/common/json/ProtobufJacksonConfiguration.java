@@ -16,32 +16,26 @@
 
 package com.bakdata.quick.common.json;
 
+import com.bakdata.quick.common.condition.ProtobufSchemaFormatCondition;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.Message;
+import io.micronaut.context.annotation.Requires;
 import javax.inject.Singleton;
-import org.apache.avro.generic.GenericRecord;
-
 
 /**
- * Configures deserialization of Avro objects with Jackson.
- *
- * <p>
- * This configuration is always enabled, as Quick uses Avro for internal services.
+ * Configures deserialization of Protobuf objects with Jackson.
  */
 @Singleton
-public class AvroJacksonConfiguration implements ObjectMapperConfiguration {
-
+@Requires(condition = ProtobufSchemaFormatCondition.class)
+public class ProtobufJacksonConfiguration implements ObjectMapperConfiguration {
     @Override
     public void configureObjectMapper(final ObjectMapper objectMapper) {
-        // necessary to correctly (de)serialize timestamp in avro classes
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
-        // add avro module
-        final SimpleModule avroModule = new SimpleModule();
-        avroModule.addSerializer(GenericRecord.class, new AvroRecordSerializer());
-        objectMapper.registerModule(avroModule);
+        final SimpleModule protoModule = new SimpleModule();
+        protoModule.addSerializer(Message.class, new ProtobufMessageSerializer());
+        protoModule.addSerializer(DynamicMessage.class, new ProtobufMessageSerializer());
+        objectMapper.registerModule(protoModule);
     }
+
 }

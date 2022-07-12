@@ -1,5 +1,10 @@
 package com.bakdata.quick.mirror;
 
+import static io.restassured.RestAssured.when;
+import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
+
 import com.bakdata.quick.common.TestConfigUtils;
 import com.bakdata.quick.common.TestTopicTypeService;
 import com.bakdata.quick.common.tags.IntegrationTest;
@@ -11,6 +16,9 @@ import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import java.time.Duration;
+import java.util.List;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig;
@@ -21,15 +29,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import javax.inject.Inject;
-import java.time.Duration;
-import java.util.List;
-
-import static io.restassured.RestAssured.when;
-import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
-import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.equalTo;
 
 @IntegrationTest
 @Slf4j

@@ -28,8 +28,10 @@ import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.service.KafkaQueryService;
 import com.bakdata.quick.mirror.service.QueryService;
+import com.bakdata.quick.testutil.ProtoTestRecord;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Message;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.test.annotation.MockBean;
@@ -37,7 +39,6 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Single;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import lombok.Value;
@@ -48,6 +49,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
+@Property(name = "quick.schema.enable.all", value = "true") // Required so that JSON support for all types is enabled
 class MirrorControllerTest {
 
     @Inject
@@ -134,7 +136,7 @@ class MirrorControllerTest {
     }
 
     private static Stream<Argument<?>> values() {
-        return Stream.of("value", 5, 5.0, outputRecord(), 5L).map(Argument::new);
+        return Stream.of("value", 5, 5.0, outputRecord(), newProtoRecord(), 5L).map(Argument::new);
     }
 
     private static Record outputRecord() {
@@ -142,6 +144,10 @@ class MirrorControllerTest {
         record.put(0, 5L);
         record.put(1, 5L);
         return record;
+    }
+
+    private static Message newProtoRecord() {
+        return ProtoTestRecord.newBuilder().setId("test").setValue(59).build();
     }
 
     @Value

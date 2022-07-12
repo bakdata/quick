@@ -61,8 +61,7 @@ class GraphQLQueryExecutionTest {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy", "dummy");
         final TopicTypeService topicTypeService = mock(TopicTypeService.class);
         final FetcherFactory fetcherFactory =
-            new FetcherFactory(kafkaConfig, this.objectMapper, this.supplier,
-                topicTypeService);
+            new FetcherFactory(kafkaConfig, this.objectMapper, this.supplier, topicTypeService);
         final QuickDirectiveWiring topicDirectiveWiring = new TopicDirectiveWiring(fetcherFactory);
         this.generator = new GraphQLSchemaGenerator(List.of(topicDirectiveWiring), Collections.emptyList(),
             Collections.emptyList());
@@ -268,29 +267,28 @@ class GraphQLQueryExecutionTest {
     private void registerTopics() {
         this.registryClient.register(
             "purchase-topic",
-            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA,
+            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO,
                 "")
         ).blockingAwait();
 
         this.registryClient.register(
             "product-topic",
-            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA, "")
+            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
         ).blockingAwait();
 
         this.registryClient.register(
             "contract-topic",
-            new TopicData("contract-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA,
-                "")
+            new TopicData("contract-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO, "")
         ).blockingAwait();
 
         this.registryClient.register(
             "person-topic",
-            new TopicData("person-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA, "")
+            new TopicData("person-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
         ).blockingAwait();
 
         this.registryClient.register(
             "url-topic",
-            new TopicData("url-topic", TopicWriteType.MUTABLE, QuickTopicType.STRING, QuickTopicType.STRING, "")
+            new TopicData("url-topic", TopicWriteType.MUTABLE, QuickTopicType.STRING, QuickTopicType.AVRO, "")
         ).blockingAwait();
     }
 

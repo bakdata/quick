@@ -23,7 +23,6 @@ import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.gateway.custom.type.RestDirectiveMethod;
 import com.bakdata.quick.gateway.directives.rest.RestParameter;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.GraphqlErrorException;
 import graphql.Scalars;

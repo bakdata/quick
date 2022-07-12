@@ -99,7 +99,8 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     private <T> T sendRequest(final String url, final ParserFunction<T> parser) {
         final Request request = new Request.Builder().url(url).get().build();
-
+        log.debug("Send request: {}", request);
+        
         try (final Response response = this.client.newCall(request).execute()) {
             if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
                 return null;

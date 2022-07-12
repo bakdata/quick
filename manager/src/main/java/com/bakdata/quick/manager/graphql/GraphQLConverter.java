@@ -46,7 +46,7 @@ public interface GraphQLConverter {
         // extending the schema with an empty query type is necessary because parsing fails otherwise
         final String extendedSchema = schema + "type Query{}";
         final TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(extendedSchema);
-        final String rootTypeName = GraphQLUtils.getRootType(QuickTopicType.SCHEMA, typeDefinitionRegistry);
+        final String rootTypeName = GraphQLUtils.getRootType(QuickTopicType.AVRO, typeDefinitionRegistry);
 
         final RuntimeWiring runtimeWiring = RuntimeWiring.newRuntimeWiring().build();
         final SchemaGenerator schemaGenerator = new SchemaGenerator();

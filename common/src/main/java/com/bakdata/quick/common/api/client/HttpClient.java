@@ -19,6 +19,7 @@ package com.bakdata.quick.common.api.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.micronaut.context.annotation.Factory;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -40,6 +41,7 @@ public class HttpClient {
      * @param objectMapper json mapper
      * @param httpClient   underlying client
      */
+    @Inject
     public HttpClient(final ObjectMapper objectMapper, final OkHttpClient httpClient) {
         this.objectMapper = objectMapper;
         this.delegate = httpClient;

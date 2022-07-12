@@ -232,7 +232,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         final Single<QuickTopicData<K, V>> topicDataFuture = this.topicTypeService.getTopicData(inputTopic);
         final QuickTopicData<K, V> topicData = topicDataFuture
             .onErrorResumeNext(e -> {
-                final String message = String.format("Could not find %s in registry.", inputTopic);
+                final String message = String.format("Could not find %s in registry: %s", inputTopic, e.getMessage());
                 return Single.error(new BadArgumentException(message));
             })
             .blockingGet();

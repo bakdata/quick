@@ -61,13 +61,13 @@ class ControllerReturnSchemaTest {
     void setUp() throws IOException {
         this.registryClient.register(
             "purchase-topic",
-            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA,
+            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO,
                 "")
         ).blockingAwait();
 
         this.registryClient.register(
             "product-topic",
-            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA, "")
+            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
         ).blockingAwait();
 
         final Path schemaPath = workingDirectory.resolve("schema.graphql");
@@ -100,15 +100,14 @@ class ControllerReturnSchemaTest {
             .isNotNull()
             .extracting(SchemaData::getSchema).asString()
             .isEqualToIgnoringWhitespace(expectedPurchase);
-
     }
 
     @Test
     void shouldThrowErrorIfTypeDoesNotExist() {
         final HttpRequest<?> request = HttpRequest.create(HttpMethod.GET, "/schema/nope");
-        final BlockingHttpClient blockingClient = this.httpClient.toBlocking();
+        final BlockingHttpClient blockingHttpClient = this.httpClient.toBlocking();
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> blockingClient.retrieve(request))
+            .isThrownBy(() -> blockingHttpClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class, ex ->
                 assertThat(extractErrorMessage(ex))
                     .isPresent()

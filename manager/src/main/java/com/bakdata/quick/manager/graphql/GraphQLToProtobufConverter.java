@@ -117,7 +117,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         final List<GraphQLFieldDefinition> fieldDefinitions,
         final FileDescriptorProto.Builder fileBuilder) {
 
-        final DescriptorProto.Builder currentMessage = DescriptorProto.newBuilder().setName(messageName);
+        final DescriptorProto.Builder currentMessage = fileBuilder.addMessageTypeBuilder().setName(messageName);
 
         for (int index = 0; index < fieldDefinitions.size(); index++) {
 
@@ -134,8 +134,6 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
                 index + 1,
                 label);
         }
-
-        fileBuilder.addMessageType(currentMessage);
     }
 
     private static void createMessage(

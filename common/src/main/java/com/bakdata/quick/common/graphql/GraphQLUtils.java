@@ -89,7 +89,7 @@ public final class GraphQLUtils {
      * @return name of the type
      */
     public static String getRootType(final QuickTopicType type, final TypeDefinitionRegistry registry) {
-        if (type != QuickTopicType.SCHEMA) {
+        if (type != QuickTopicType.AVRO && type != QuickTopicType.PROTOBUF) {
             return Objects.requireNonNull(TYPE_TO_GQL_SCALAR_NAME_MAP.get(type));
         }
 

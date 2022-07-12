@@ -72,24 +72,22 @@ class GraphQLSchemaGeneratorTest {
     void setUp() {
         this.registryClient.register(
             "purchase-topic",
-            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA,
-                "")
+            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO, "")
         ).blockingAwait();
 
         this.registryClient.register(
             "product-topic",
-            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA, "")
+            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
         ).blockingAwait();
 
         this.registryClient.register(
             "contract-topic",
-            new TopicData("contract-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA,
-                "")
+            new TopicData("contract-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO, "")
         ).blockingAwait();
 
         this.registryClient.register(
             "person-topic",
-            new TopicData("person-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.SCHEMA, "")
+            new TopicData("person-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
         ).blockingAwait();
 
         this.registryClient.register(
