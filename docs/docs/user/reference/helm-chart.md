@@ -1,6 +1,7 @@
 # Quick Helm chart
 
 Below you can find the default `value.yaml` of Quick's Helm chart.
+
 ```yaml
 image:
   # The base repository of the images
@@ -57,5 +58,8 @@ quickConfig:
   QUICK_SCHEMA_FORMAT: "Avro"
   # The namespace used for created avro namespaces
   # see https://avro.apache.org/docs/current/spec.html
-  QUICK_SCHEMA_AVRO_FORMAT: ""
+  QUICK_SCHEMA_AVRO_NAMESPACE: ""
+  # For Protobuf
+  # QUICK_SCHEMA_FORMAT: "Protobuf"
+  # QUICK_SCHEMA_PROTOBUF_PACKAGE: ""
 ```
