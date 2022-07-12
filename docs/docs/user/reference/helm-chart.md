@@ -1,6 +1,7 @@
 # Quick Helm chart
 
 Below you can find the default `value.yaml` of Quick's Helm chart.
+
 ```yaml
 image:
   # The base repository of the images
@@ -9,11 +10,6 @@ image:
   tag: "{{ quick_version }}"
   # The image pull policy of manager and ingest service
   pullPolicy: "Always"
-
-avro:
-  # The namespace used for created avro namespaces
-  # see https://avro.apache.org/docs/current/spec.html
-  namespace: ""
 
 # These configurations apply to both the helm chart ingresses and the gateway ingresses
 ingress:
@@ -60,4 +56,10 @@ quickConfig:
   QUICK_TOPIC_REGISTRY_PARTITIONS: "3"
   QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR: "1"
   QUICK_SCHEMA_FORMAT: "Avro"
+  # The namespace used for created avro namespaces
+  # see https://avro.apache.org/docs/current/spec.html
+  QUICK_SCHEMA_AVRO_NAMESPACE: ""
+  # For Protobuf
+  # QUICK_SCHEMA_FORMAT: "Protobuf"
+  # QUICK_SCHEMA_PROTOBUF_PACKAGE: ""
 ```
