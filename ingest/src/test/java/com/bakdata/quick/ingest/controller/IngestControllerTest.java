@@ -350,10 +350,10 @@ class IngestControllerTest {
 
     @Test
     void testMethodNotAllowed() {
-        final BlockingHttpClient blockingHttpClient = this.client.toBlocking();
-        final MutableHttpRequest<?> request = HttpRequest.GET("/topic/");
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final HttpRequest<?> request = HttpRequest.GET("/topic/");
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> blockingHttpClient.exchange(request))
+            .isThrownBy(() -> httpClient.retrieve(request))
             .withMessage("Method Not Allowed")
             .satisfies(ex -> assertThat((CharSequence) ex.getStatus()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED));
     }

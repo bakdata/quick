@@ -28,6 +28,8 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponseProvider;
+import io.micronaut.http.MutableHttpRequest;
+import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -50,20 +52,21 @@ class ApiKeyTest {
 
     @Test
     void shouldUnauthorizedWhenAnonymousClient() {
-        final Throwable exception = assertThrows(
-            HttpClientResponseException.class,
-            () -> this.client.toBlocking().exchange(POST(SECURE_PATH, ""))
-        );
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final MutableHttpRequest<String> request = POST(SECURE_PATH, "");
+        final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
         assertThat(exception.getMessage()).isEqualTo("Unauthorized");
     }
 
     @Test
     void shouldAuthenticateWithClientCredentialsFlow() {
+
+        final BlockingHttpClient httpClient = this.client.toBlocking();
         final HttpRequest<?> request = HttpRequest.create(HttpMethod.POST, "/control/schema")
             .header("X-API-Key", "test_key");
 
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.client.retrieve(request).blockingFirst())
+            .isThrownBy(() -> httpClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class, ex ->
                 assertThat(this.extractErrorMessage(ex))
                     .isPresent()

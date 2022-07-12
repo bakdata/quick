@@ -72,7 +72,7 @@ nav:
           - user/examples/real-time-monitoring.md
           - user/examples/real-time-customer-profiles.md
       - Reference:
-          - user/reference/graphql-extensions.md
+          - user/reference/graphql-support.md
           - user/reference/cli-commands.md
           - user/reference/helm-chart.md
           - user/reference/configuration.md

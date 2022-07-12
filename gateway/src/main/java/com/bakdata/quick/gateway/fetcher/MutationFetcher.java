@@ -22,6 +22,7 @@ import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.ingest.KafkaIngestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import graphql.GraphQLException;
 import graphql.GraphqlErrorException;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -99,7 +100,7 @@ public class MutationFetcher<K, V> implements DataFetcher<V> {
         final Throwable throwable = this.kafkaIngestService.sendData(this.topic, List.of(keyValuePair)).blockingGet();
 
         if (throwable != null) {
-            throw new RuntimeException(throwable);
+            throw new GraphQLException(throwable);
         }
 
         return resolvedValue;

@@ -252,9 +252,9 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
         assertThat(hasMetadata)
             .isPresent()
             .get(InstanceOfAssertFactories.type(Deployment.class))
-            .satisfies(
-                deployment -> assertThat(deployment.getMetadata().getAnnotations().get("d9p.io/has-service")).isEqualTo(
-                    "true"));
+            .satisfies(deployment ->
+                assertThat(deployment.getMetadata().getAnnotations()).containsEntry("d9p.io/has-service", "true")
+            );
     }
 
     @Test

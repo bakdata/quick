@@ -95,8 +95,11 @@ public final class GraphQLUtils {
 
         final Map<String, Integer> objectFiledCount = new HashMap<>();
         final List<String> skippableTypes = new ArrayList<>();
-        final Map<String, TypeDefinition> types = registry.types();
-        for (final Entry<String, TypeDefinition> next : types.entrySet()) {
+
+        // graphql-java returns a raw type of TypeDefintion
+        @SuppressWarnings("unchecked") final Map<String, TypeDefinition<?>> types =
+            (Map<String, TypeDefinition<?>>) (Map<String, ?>) registry.types();
+        for (final Entry<String, ? extends TypeDefinition<?>> next : types.entrySet()) {
             final String typeName = next.getKey();
             final TypeDefinition<?> typeDefinition = next.getValue();
             if (typeName.equals(QUERY_TYPE) || skippableTypes.contains(typeName)) {

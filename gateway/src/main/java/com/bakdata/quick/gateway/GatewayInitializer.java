@@ -19,6 +19,7 @@ package com.bakdata.quick.gateway;
 import io.micronaut.context.event.ApplicationEventListener;
 import io.micronaut.context.event.StartupEvent;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.inject.Inject;
@@ -59,7 +60,7 @@ public class GatewayInitializer implements ApplicationEventListener<StartupEvent
             }
         } catch (final IOException e) {
             // something went seriously wrong, shut down
-            throw new RuntimeException("Something went wrong while reading the schema", e);
+            throw new UncheckedIOException("Something went wrong while reading the schema", e);
         }
     }
 }

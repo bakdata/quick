@@ -33,7 +33,7 @@ import okhttp3.Request;
 public class HttpClient {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private final ObjectMapper objectMapper;
-    private final OkHttpClient httpClient;
+    private final OkHttpClient delegate;
 
     /**
      * Default constructor.
@@ -44,16 +44,16 @@ public class HttpClient {
     @Inject
     public HttpClient(final ObjectMapper objectMapper, final OkHttpClient httpClient) {
         this.objectMapper = objectMapper;
-        this.httpClient = httpClient;
+        this.delegate = httpClient;
     }
 
     public HttpClient() {
         this.objectMapper = new ObjectMapper();
-        this.httpClient = new OkHttpClient();
+        this.delegate = new OkHttpClient();
     }
 
     public Call newCall(final Request request) {
-        return this.httpClient.newCall(request);
+        return this.delegate.newCall(request);
     }
 
     public TypeFactory typeFactory() {
@@ -65,7 +65,7 @@ public class HttpClient {
     }
 
     public OkHttpClient okHttpClient() {
-        return this.httpClient;
+        return this.delegate;
     }
 
     /**

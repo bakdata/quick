@@ -70,7 +70,7 @@ public class DeferFetcher implements DataFetcher<DataFetcherResult<Object>> {
         if (environment.containsArgument(argument)) {
             return Optional.ofNullable(environment.getArguments().get(argument));
 
-        } else if (environment.getLocalContext() != null && environment.getLocalContext() instanceof Map) {
+        } else if (environment.getLocalContext() instanceof Map) {
             final Map<String, Object> localContext = environment.getLocalContext();
             return Optional.ofNullable(localContext.get(argument));
         }

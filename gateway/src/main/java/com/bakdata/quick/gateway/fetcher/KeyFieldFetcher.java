@@ -122,7 +122,7 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
                 return Stream.of(this.valueAsString(node));
             }
         } catch (final JsonProcessingException e) {
-            throw new RuntimeException("Could not process json: " + parentJson, e);
+            throw new UncheckedIOException("Could not process json: " + parentJson, e);
         }
     }
 
@@ -148,7 +148,7 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
         try {
             return node.isTextual() ? node.textValue() : this.objectMapper.writeValueAsString(node);
         } catch (final JsonProcessingException e) {
-            throw new RuntimeException("Could not process json: " + node, e);
+            throw new UncheckedIOException("Could not process json: " + node, e);
         }
     }
 }

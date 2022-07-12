@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
+import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -57,8 +58,9 @@ class ControllerUpdateSchemaTest {
         final HttpRequest<?> httpRequest =
             HttpRequest.create(HttpMethod.POST, "/control/schema");
 
+        final BlockingHttpClient blockingHttpClient = this.httpClient.toBlocking();
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.httpClient.retrieve(httpRequest).blockingFirst())
+            .isThrownBy(() -> blockingHttpClient.retrieve(httpRequest))
             .isInstanceOfSatisfying(HttpClientResponseException.class, ex ->
                 assertThat(extractErrorMessage(ex))
                     .isPresent()
@@ -75,8 +77,9 @@ class ControllerUpdateSchemaTest {
         final HttpRequest<?> httpRequest = HttpRequest.create(HttpMethod.POST, "/control/schema")
             .body(new SchemaData("test"));
 
+        final BlockingHttpClient blockingHttpClient = this.httpClient.toBlocking();
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.httpClient.retrieve(httpRequest).blockingFirst())
+            .isThrownBy(() -> blockingHttpClient.retrieve(httpRequest))
             .isInstanceOfSatisfying(HttpClientResponseException.class,
                 ex -> assertThat(extractErrorMessage(ex))
                     .isPresent()

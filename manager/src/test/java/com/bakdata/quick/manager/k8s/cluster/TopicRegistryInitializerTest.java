@@ -181,9 +181,10 @@ class TopicRegistryInitializerTest {
         final TopicRegistryInitializer
             topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
 
-        assertThatExceptionOfType(InternalErrorException.class).isThrownBy(() -> {
-            topicRegistryInitializer.onStartUp(new StartupEvent(this.applicationContext));
-        });
+        final StartupEvent event = new StartupEvent(this.applicationContext);
+        assertThatExceptionOfType(InternalErrorException.class).isThrownBy(() ->
+            topicRegistryInitializer.onStartUp(event)
+        );
     }
 
     @Test
@@ -197,9 +198,10 @@ class TopicRegistryInitializerTest {
         final TopicRegistryInitializer
             topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
 
-        assertThatExceptionOfType(InternalErrorException.class).isThrownBy(() -> {
-            topicRegistryInitializer.onStartUp(new StartupEvent(this.applicationContext));
-        });
+        final StartupEvent startupEvent = new StartupEvent(this.applicationContext);
+        assertThatExceptionOfType(InternalErrorException.class).isThrownBy(() ->
+            topicRegistryInitializer.onStartUp(startupEvent)
+        );
     }
 
     private void successfulMock() {

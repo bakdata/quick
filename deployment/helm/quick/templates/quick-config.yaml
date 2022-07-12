@@ -8,7 +8,6 @@ metadata:
 data:
   QUICK_DOCKER_REGISTRY: {{ .Values.image.repository }}
   QUICK_SERVICE_INGEST: {{ .Values.ingest.name }}
-  QUICK_AVRO_NAMESPACE: {{ .Values.avro.namespace}}
   {{- if .Values.ingress.host }}
   QUICK_INGRESS_HOST: {{ .Values.ingress.host }}
   {{- end }}

@@ -32,7 +32,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
-public class GraphQLToProtobufConverterTest {
+class GraphQLToProtobufConverterTest {
     private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "graphql");
 
     private final GraphQLToProtobufConverter graphQLToProtobufConverter =
