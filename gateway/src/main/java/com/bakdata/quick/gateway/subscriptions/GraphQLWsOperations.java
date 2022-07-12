@@ -92,7 +92,7 @@ class GraphQLWsOperations {
     boolean operationExists(final GraphQLWsRequest request) {
         return Optional.ofNullable(request)
             .map(GraphQLWsRequest::getId)
-            .map(id -> this.activeOperations.containsKey(id))
+            .map(this.activeOperations::containsKey)
             .orElse(false);
     }
 }

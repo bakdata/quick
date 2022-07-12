@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
@@ -114,23 +115,23 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
                 return Stream.of(this.valueAsString(node));
             }
         } catch (final JsonProcessingException e) {
-            throw new RuntimeException("Could not process json: " + parentJson, e);
+            throw new UncheckedIOException("Could not process json: " + parentJson, e);
         }
     }
 
     private String extractJson(final DataFetchingEnvironment environment) {
         // this is only needed for subscriptions because we use the data directly.
         if (environment.getSource() instanceof GenericRecord) {
-            final GenericRecord record = environment.getSource();
+            final GenericRecord genericRecord = environment.getSource();
             // TODO this is pretty expensive for a frequent operation. Thus, we should operate on the record directly.
-            return new String(this.converter.convertToJson(record), StandardCharsets.UTF_8);
+            return new String(this.converter.convertToJson(genericRecord), StandardCharsets.UTF_8);
         }
 
         final Map<String, Object> value = environment.getSource();
         try {
             return this.objectMapper.writeValueAsString(value);
         } catch (final JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -139,7 +140,7 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
             // strings are written as "value". therefore we strip the ".
             return this.objectMapper.writeValueAsString(node).replace("\"", "");
         } catch (final JsonProcessingException e) {
-            throw new RuntimeException("Could not process json: " + node, e);
+            throw new UncheckedIOException("Could not process json: " + node, e);
         }
     }
 }

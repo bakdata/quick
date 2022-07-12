@@ -24,6 +24,8 @@ import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.TopicRegistryConfig;
 import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.manager.mirror.MirrorService;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
@@ -95,7 +97,7 @@ public class TopicRegistryInitializer {
         // register the avro schema of the topic data class with the schema registry
         try {
             final String subject = VALUE.asSubject(this.topicRegistryConfig.getTopicName());
-            final Schema topicDataSchema = AvroTopicData.getClassSchema();
+            final ParsedSchema topicDataSchema = new AvroSchema(AvroTopicData.getClassSchema());
             this.schemaRegistryClient.register(subject, topicDataSchema);
         } catch (final IOException | RestClientException exception) {
             if (!registryExists) {

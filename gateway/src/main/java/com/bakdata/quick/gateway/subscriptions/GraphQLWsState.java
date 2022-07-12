@@ -98,9 +98,7 @@ class GraphQLWsState {
     void saveOperation(final String operationId, final WebSocketSession session,
         final Function<String, Subscription> starter) {
         Optional.ofNullable(session)
-            .map(session1 -> {
-                return session1.getId();
-            })
+            .map(WebSocketSession::getId)
             .map(this.activeOperations::get)
             .ifPresent(graphQLWsOperations -> graphQLWsOperations.addSubscription(operationId, starter));
     }

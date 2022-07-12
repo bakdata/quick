@@ -62,8 +62,8 @@ public final class CliArgHandler {
      */
     public static List<String> convertArgs(final Map<String, String> args, final KafkaConfig kafkaConfig) {
         final List<String> listArgs = new ArrayList<>();
-        listArgs.add(String.format("%s=%s", "--brokers", kafkaConfig.getBootstrapServer()));
-        listArgs.add(String.format("%s=%s", "--schema-registry-url", kafkaConfig.getSchemaRegistryUrl()));
+        listArgs.add(formatCliArgument("--brokers", kafkaConfig.getBootstrapServer()));
+        listArgs.add(formatCliArgument("--schema-registry-url", kafkaConfig.getSchemaRegistryUrl()));
         args.entrySet().stream().map(CliArgHandler::toCliParameter).forEach(listArgs::add);
         return listArgs;
     }
@@ -73,6 +73,10 @@ public final class CliArgHandler {
         if (!key.startsWith("--")) {
             key = "--" + key;
         }
-        return String.format("%s=%s", key, argument.getValue());
+        return formatCliArgument(key, argument.getValue());
+    }
+
+    private static String formatCliArgument(final String key, final String value) {
+        return String.format("%s=%s", key, value);
     }
 }

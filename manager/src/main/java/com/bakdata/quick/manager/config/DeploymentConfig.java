@@ -20,7 +20,6 @@ import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import java.util.Optional;
 import lombok.Getter;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Configuration regarding deployments executed by the manager.

@@ -78,7 +78,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         final List<GatewayDescription> gatewayDescriptionList =
             this.gatewayService.getGatewayList().blockingGet();
 
-        assertThat(gatewayDescriptionList.size()).isEqualTo(2);
+        assertThat(gatewayDescriptionList).hasSize(2);
         assertThat(gatewayDescriptionList)
             .extracting(GatewayDescription::getName)
             .containsExactlyInAnyOrder(GATEWAY_NAME, GATEWAY_NAME + "-2");
@@ -235,7 +235,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
             .first()
             .satisfies(configMap -> assertThat(configMap.getMetadata().getName())
                 .isEqualTo(DEPLOYMENT_NAME + "-config"))
-            .satisfies(configMap -> assertThat(configMap.getData().get("schema.graphql")).isEqualTo(graphQLSchema));
+            .satisfies(configMap -> assertThat(configMap.getData()).containsEntry("schema.graphql", graphQLSchema));
     }
 
     @Test
