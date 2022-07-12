@@ -18,14 +18,9 @@ package com.bakdata.quick.manager.k8s;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import io.micronaut.core.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 import javax.inject.Singleton;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;

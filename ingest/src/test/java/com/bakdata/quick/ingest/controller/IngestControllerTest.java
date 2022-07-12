@@ -52,6 +52,7 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
+import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -261,9 +262,10 @@ class IngestControllerTest {
         final String expectedErrorMessage =
             String.format("Could not find 'key' or 'value' fields in: %s", jsonWithNoKeyValueField);
 
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final HttpRequest<?> request = creatIngestRequest(jsonWithNoKeyValueField);
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(
-                () -> this.client.retrieve(creatIngestRequest(jsonWithNoKeyValueField)).blockingFirst())
+            .isThrownBy(() -> httpClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class,
                 ex -> assertThat(this.extractErrorMessage(ex))
                     .isPresent()
@@ -283,8 +285,10 @@ class IngestControllerTest {
         final String expectedErrorMessage =
             "Data does not conform to schema: Field fieldId type:LONG pos:0 not set and has no default value";
 
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final HttpRequest<?> request = creatIngestRequest(invalidJsonRecord);
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.client.retrieve(creatIngestRequest(invalidJsonRecord)).blockingFirst())
+            .isThrownBy(() -> httpClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class,
                 ex -> assertThat(this.extractErrorMessage(ex))
                     .isPresent()
@@ -309,8 +313,10 @@ class IngestControllerTest {
         final String expectedErrorMessage =
             String.format("Data must be of type %s. Got:", type.toString().toLowerCase());
 
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final HttpRequest<?> request = creatIngestRequest(pair);
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.client.retrieve(creatIngestRequest(pair)).blockingFirst())
+            .isThrownBy(() -> httpClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class,
                 ex -> assertThat(this.extractErrorMessage(ex))
                     .isPresent()
@@ -323,8 +329,10 @@ class IngestControllerTest {
 
     @Test
     void testMethodNotAllowed() {
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final HttpRequest<?> request = HttpRequest.GET("/topic/");
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.client.toBlocking().exchange(HttpRequest.GET("/topic/")))
+            .isThrownBy(() -> httpClient.retrieve(request))
             .withMessage("Method Not Allowed")
             .satisfies(ex -> assertThat((CharSequence) ex.getStatus()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED));
     }

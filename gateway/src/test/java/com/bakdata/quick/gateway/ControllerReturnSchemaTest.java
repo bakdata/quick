@@ -30,6 +30,7 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
+import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -105,8 +106,9 @@ class ControllerReturnSchemaTest {
     @Test
     void shouldThrowErrorIfTypeDoesNotExist() {
         final HttpRequest<?> request = HttpRequest.create(HttpMethod.GET, "/schema/nope");
+        final BlockingHttpClient blockingClient = this.httpClient.toBlocking();
         assertThatExceptionOfType(HttpClientResponseException.class)
-            .isThrownBy(() -> this.httpClient.retrieve(request).blockingFirst())
+            .isThrownBy(() -> blockingClient.retrieve(request))
             .isInstanceOfSatisfying(HttpClientResponseException.class, ex ->
                 assertThat(extractErrorMessage(ex))
                     .isPresent()

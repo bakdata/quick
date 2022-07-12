@@ -57,5 +57,6 @@ public class MirrorProcessor<K, V> implements Processor<K, V> {
 
     @Override
     public void close() {
+        // No resources to close
     }
 }

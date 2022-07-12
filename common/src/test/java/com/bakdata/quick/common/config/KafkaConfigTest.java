@@ -66,6 +66,6 @@ class KafkaConfigTest {
 
         assertThat(config.getBootstrapServer()).isEqualTo("localhost:9092");
         assertThat(config.getSchemaRegistryUrl()).isEqualTo("https://localhost:8081");
-        assertThat(config.getApplicationId()).isEqualTo(Optional.empty());
+        assertThat(config.getApplicationId()).isNotPresent();
     }
 }

@@ -26,10 +26,10 @@ import java.util.Optional;
  * Validates that a {@link com.bakdata.quick.gateway.directives.topic.TopicDirective} is used correctly.
  */
 public class ValidationRules implements TopicDirectiveRules {
-    private static final List<ValidationRule> validationRules;
+    private static final List<ValidationRule> VALIDATION_RULES;
 
     static {
-        validationRules = List.of(
+        VALIDATION_RULES = List.of(
                 new SubscriptionList(),
                 new ExclusiveArguments(),
                 new KeyInformation(),
@@ -39,7 +39,7 @@ public class ValidationRules implements TopicDirectiveRules {
 
     @Override
     public void apply(final TopicDirectiveContext context) {
-        final Optional<String> error = validationRules.stream()
+        final Optional<String> error = VALIDATION_RULES.stream()
             .map(rule -> rule.validate(context))
             .filter(Optional::isPresent)
             .map(Optional::get)

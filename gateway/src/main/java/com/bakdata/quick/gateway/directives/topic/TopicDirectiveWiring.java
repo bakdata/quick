@@ -24,7 +24,6 @@ import com.bakdata.quick.gateway.fetcher.FetcherFactory;
 import graphql.language.DirectiveDefinition;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.idl.SchemaDirectiveWiringEnvironment;
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /**
