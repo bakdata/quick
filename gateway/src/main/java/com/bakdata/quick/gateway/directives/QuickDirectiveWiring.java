@@ -32,7 +32,7 @@ public interface QuickDirectiveWiring extends SchemaDirectiveWiring {
      * Returns name of the directive.
      *
      * <p>
-     * Example: @deprecated(reason: "something") --> Name in this case would be 'deprecated'
+     * Example: {@code @skip(if: Boolean!)} --> Name in this case would be 'skip'
      */
     String getName();
 }

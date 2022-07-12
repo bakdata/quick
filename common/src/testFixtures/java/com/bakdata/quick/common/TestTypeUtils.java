@@ -23,7 +23,6 @@ import com.bakdata.quick.common.resolver.LongResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
-import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;

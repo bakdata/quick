@@ -37,6 +37,8 @@ import com.bakdata.quick.ingest.service.IngestService;
 import com.bakdata.quick.ingest.service.KafkaIngestService;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MutableHttpRequest;
+import io.micronaut.http.client.BlockingHttpClient;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -67,10 +69,10 @@ class ApiKeyTest {
 
     @Test
     void shouldUnauthorizedWhenAnonymousClient() {
-        final Throwable exception = assertThrows(
-            HttpClientResponseException.class,
-            () -> this.client.toBlocking().exchange(DELETE(SECURE_PATH))
-        );
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final MutableHttpRequest<Object> request = DELETE(SECURE_PATH);
+        final Throwable exception = assertThrows(HttpClientResponseException.class,
+            () -> httpClient.exchange(request));
         assertThat(exception.getMessage()).isEqualTo("Unauthorized");
     }
 
@@ -84,31 +86,24 @@ class ApiKeyTest {
 
     @Test
     void shouldNotAuthenticateWithInvalidApiKey() {
-        final Throwable exception = assertThrows(
-            HttpClientResponseException.class,
-            () -> this.client
-                .toBlocking()
-                .exchange(DELETE(SECURE_PATH).header("X-API-Key", "wrong_key"))
-        );
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("X-API-Key", "wrong_key");
+        final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
         assertThat(exception.getMessage()).isEqualTo("Unauthorized");
     }
 
     @Test
     void shouldAuthorizedWhenApiKeyExistsAndHeaderKeyCaseInsensitive() {
-        final HttpStatus httpStatus =
-            this.callAuthenticatedController("x-api-key", "test_key");
+        final HttpStatus httpStatus = this.callAuthenticatedController("x-api-key", "test_key");
 
         assertThat((CharSequence) httpStatus).isEqualTo(HttpStatus.OK);
     }
 
     @Test
     void shouldUnauthorizedWhenApiKeyHeaderKeyIsWrong() {
-        final Throwable exception = assertThrows(
-            HttpClientResponseException.class,
-            () -> this.client
-                .toBlocking()
-                .exchange(DELETE(SECURE_PATH).header("WRONG-API-Key", "test_key"))
-        );
+        final BlockingHttpClient httpClient = this.client.toBlocking();
+        final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("WRONG-API-Key", "test_key");
+        final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
         assertThat(exception.getMessage()).isEqualTo("Unauthorized");
     }
 

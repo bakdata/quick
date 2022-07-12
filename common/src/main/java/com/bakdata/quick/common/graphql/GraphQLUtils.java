@@ -95,9 +95,13 @@ public final class GraphQLUtils {
 
         final Map<String, Integer> objectFiledCount = new HashMap<>();
         final List<String> skippableTypes = new ArrayList<>();
-        for (final Entry<String, TypeDefinition> next : registry.types().entrySet()) {
+
+        // graphql-java returns a raw type of TypeDefintion
+        @SuppressWarnings("unchecked") final Map<String, TypeDefinition<?>> types =
+            (Map<String, TypeDefinition<?>>) (Map<String, ?>) registry.types();
+        for (final Entry<String, ? extends TypeDefinition<?>> next : types.entrySet()) {
             final String typeName = next.getKey();
-            final TypeDefinition typeDefinition = next.getValue();
+            final TypeDefinition<?> typeDefinition = next.getValue();
             if (typeName.equals(QUERY_TYPE) || skippableTypes.contains(typeName)) {
                 // we can skip the query type and type we've already seen
                 continue;
@@ -108,8 +112,8 @@ public final class GraphQLUtils {
                 final int objectTypesAsFieldsCount = (int) fieldDefinitions.stream()
                     .map(FieldDefinition::getType)
                     .map(GraphQLUtils::getNameOfType)
-                    .filter(name -> registry.types().containsKey(name))
-                    .peek(skippableTypes::add) // seen as field => can not be root object
+                    .filter(types::containsKey)
+                    .map(skippableTypes::add) // seen as field => can not be root object
                     .count();
                 objectFiledCount.put(typeName, objectTypesAsFieldsCount);
             } else {

@@ -147,10 +147,10 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private V fetch(final HostInfo replicaHostInfo, final K key) {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
-        final DefaultMirrorClient<K, V> client =
+        final DefaultMirrorClient<K, V> mirrorClient =
             new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver);
         // TODO: don't bother deserializing
-        final V value = client.fetchValue(key);
+        final V value = mirrorClient.fetchValue(key);
 
         if (value == null) {
             throw new NotFoundException("Key not found");

@@ -22,26 +22,15 @@ import com.bakdata.quick.common.ConfigUtils;
 import com.bakdata.quick.common.schema.SchemaFormat;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class SchemaConfigTest {
 
-    @Test
-    void shouldCreateConfigWithProtobuf() {
-        final Map<String, Object> properties = Map.of("quick.schema.format", "protobuf");
-        final SchemaConfig schemaConfig = ConfigUtils.createWithProperties(properties, SchemaConfig.class);
-        assertThat(schemaConfig.getFormat()).isEqualTo(SchemaFormat.PROTOBUF);
-    }
-
-    @Test
-    void shouldReadFormatCaseInsensitive() {
-        final Map<String, Object> properties = Map.of("quick.schema.format", "Protobuf");
-        final SchemaConfig schemaConfig = ConfigUtils.createWithProperties(properties, SchemaConfig.class);
-        assertThat(schemaConfig.getFormat()).isEqualTo(SchemaFormat.PROTOBUF);
-    }
-
-    @Test
-    void shouldCreateConfigFromCaps() {
-        final Map<String, Object> properties = Map.of("quick.schema.format", "PROTOBUF");
+    @ParameterizedTest
+    @CsvSource({"protobuf", "Protobuf", "PROTOBUF"})
+    void shouldCreateConfigWithProtobuf(final String protobufConfig) {
+        final Map<String, Object> properties = Map.of("quick.schema.format", protobufConfig);
         final SchemaConfig schemaConfig = ConfigUtils.createWithProperties(properties, SchemaConfig.class);
         assertThat(schemaConfig.getFormat()).isEqualTo(SchemaFormat.PROTOBUF);
     }

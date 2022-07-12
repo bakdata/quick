@@ -17,7 +17,6 @@
 package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import io.reactivex.Flowable;
 import io.reactivex.Single;
 import java.util.List;
 

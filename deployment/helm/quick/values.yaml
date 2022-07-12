@@ -3,9 +3,6 @@ image:
   tag: ""
   pullPolicy: "Always"
 
-avro:
-  namespace: ""
-
 ingress:
   ssl: true
   entrypoint: "websecure"
@@ -35,3 +32,4 @@ quickConfig:
   QUICK_TOPIC_REGISTRY_PARTITIONS: "3"
   QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR: "1"
   QUICK_SCHEMA_FORMAT: "Avro"
+  QUICK_SCHEMA_AVRO_NAMESPACE: ""

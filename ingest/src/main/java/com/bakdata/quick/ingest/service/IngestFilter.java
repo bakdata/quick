@@ -78,14 +78,14 @@ public class IngestFilter {
 
     private <K, V> Single<IngestLists<K, V>> getExistingKeys(final QuickTopicData<K, V> topicData,
         final List<KeyValuePair<K, V>> pairs) {
-        final MirrorClient<K, V> client =
+        final MirrorClient<K, V> mirrorClient =
             new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig,
                 topicData.getValueData().getResolver());
 
         return Flowable.fromIterable(pairs)
             .map(pair -> {
                     // add info whether the key already exists
-                    final boolean keyExists = client.exists(pair.getKey());
+                    final boolean keyExists = mirrorClient.exists(pair.getKey());
                     return IngestPair.from(pair, keyExists);
                 }
             )
