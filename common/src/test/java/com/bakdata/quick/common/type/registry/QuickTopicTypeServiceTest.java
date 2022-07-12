@@ -25,8 +25,11 @@ import com.bakdata.quick.common.api.client.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.schema.SchemaFetcher;
+import com.bakdata.quick.common.schema.SchemaFormat;
 import com.bakdata.quick.common.schema.SchemaRegistryFetcher;
+import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
@@ -40,6 +43,7 @@ import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
 import io.reactivex.Single;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -129,7 +133,9 @@ class QuickTopicTypeServiceTest {
     private TopicTypeService createTopicTypeService(final SchemaProvider schemaProvider) {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy:123", this.schemaRegistryMock.getUrl());
         final SchemaFetcher schemaFetcher = new SchemaRegistryFetcher(new HttpClient(), kafkaConfig, schemaProvider);
-        return new QuickTopicTypeService(schemaFetcher, this.topicRegistryClient, kafkaConfig);
+        final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
+        final DefaultConversionProvider conversionProvider = new DefaultConversionProvider(schemaConfig);
+        return new QuickTopicTypeService(schemaFetcher, this.topicRegistryClient, kafkaConfig, conversionProvider);
     }
 
 }

@@ -25,7 +25,7 @@ import org.gradle.kotlin.dsl.configure
 
 class QuickJibPlugin : Plugin<Project> {
     companion object {
-        const val IMAGE_REPO = "bakdata/"
+        const val IMAGE_REPO = "0.0.0.0:39305/"
         const val TAG_ENV_NAME = "QUICK_DEFAULT_IMAGE_TAG"
     }
 
@@ -34,6 +34,7 @@ class QuickJibPlugin : Plugin<Project> {
 
         project.afterEvaluate {
             project.configure<JibExtension> {
+                setAllowInsecureRegistries(true)
                 to {
                     image = IMAGE_REPO + "quick-" + name
                     tags = setOf(version.toString())

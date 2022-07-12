@@ -29,5 +29,4 @@ public class QueryServiceContext {
     KafkaStreams streams;
     HostInfo hostInfo;
     String storeName;
-    
 }

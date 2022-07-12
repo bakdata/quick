@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.REACTIVE_KAFKA)
     implementation(libs.JSON2AVRO_CONVERTER)
     implementation(libs.GUAVA)
+    implementation(libs.KAFKA_PROTO_SERDE)
 
     testImplementation(libs.AVRO)
     testImplementation(libs.SCHEMA_REGISTRY_MOCK)

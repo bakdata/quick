@@ -24,6 +24,7 @@ import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.schema.SchemaFetcher;
+import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
@@ -51,6 +52,7 @@ public class QuickTopicTypeService implements TopicTypeService {
     private final TopicRegistryClient topicRegistryClient;
     private final String schemaRegistryUrl;
     private final AsyncLoadingCache<String, QuickTopicData<?, ?>> cache;
+    private final ConversionProvider conversionProvider;
 
     /**
      * Default constructor.
@@ -58,12 +60,15 @@ public class QuickTopicTypeService implements TopicTypeService {
      * @param registryFetcher     http client for schema registry
      * @param topicRegistryClient http client for topic registry
      * @param kafkaConfig         configuration for kafka
+     * @param conversionProvider  provider for conversion operations
      */
     public QuickTopicTypeService(final SchemaFetcher registryFetcher,
-        final TopicRegistryClient topicRegistryClient, final KafkaConfig kafkaConfig) {
+                                 final TopicRegistryClient topicRegistryClient, final KafkaConfig kafkaConfig,
+                                 final ConversionProvider conversionProvider) {
         this.registryFetcher = registryFetcher;
         this.topicRegistryClient = topicRegistryClient;
         this.schemaRegistryUrl = kafkaConfig.getSchemaRegistryUrl();
+        this.conversionProvider = conversionProvider;
         this.cache = Caffeine.newBuilder()
             .maximumSize(1_000)
             .expireAfterAccess(Duration.ofSeconds(5))
@@ -103,14 +108,14 @@ public class QuickTopicTypeService implements TopicTypeService {
     }
 
     private <K> Single<TypeResolver<K>> createResolver(final QuickTopicType type, final String subject) {
-        // no need for configuration if we handle non-avro types
-        if (type != QuickTopicType.AVRO && type != QuickTopicType.PROTOBUF) {
-            return Single.just(type.getTypeResolver(null));
+        // no need for configuration if handle non-schema types
+        if (!type.isSchema()) {
+            return Single.just(this.conversionProvider.getTypeResolver(type, null));
         }
         // get schema and configure the resolver with it
         return this.registryFetcher.getSchema(subject)
             .doOnError(e -> log.error("No schema found for subject {}", subject, e))
-            .map(type::getTypeResolver);
+            .map(schema -> this.conversionProvider.getTypeResolver(type, schema));
     }
 
     private <K, V> Single<QuickTopicData<K, V>> fromTopicData(final TopicData topicData) {
@@ -118,8 +123,8 @@ public class QuickTopicTypeService implements TopicTypeService {
         final QuickTopicType valueType = topicData.getValueType();
 
         final Map<String, String> configs = Map.of("schema.registry.url", this.schemaRegistryUrl);
-        final Serde<K> keySerde = keyType.getSerde(configs, true);
-        final Serde<V> valueSerde = valueType.getSerde(configs, false);
+        final Serde<K> keySerde = this.conversionProvider.getSerde(keyType, configs, true);
+        final Serde<V> valueSerde = this.conversionProvider.getSerde(valueType, configs, false);
 
         final String topic = topicData.getName();
         // create key data

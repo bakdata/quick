@@ -19,10 +19,9 @@ package com.bakdata.quick.common.json;
 import com.bakdata.quick.common.condition.ProtobufSchemaFormatCondition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import io.micronaut.context.annotation.Requires;
-import io.micronaut.context.event.BeanCreatedEvent;
-import io.micronaut.context.event.BeanCreatedEventListener;
 import javax.inject.Singleton;
 
 /**
@@ -30,15 +29,13 @@ import javax.inject.Singleton;
  */
 @Singleton
 @Requires(condition = ProtobufSchemaFormatCondition.class)
-public class ProtobufJacksonConfiguration implements BeanCreatedEventListener<ObjectMapper> {
-
+public class ProtobufJacksonConfiguration implements ObjectMapperConfiguration {
     @Override
-    public ObjectMapper onCreated(final BeanCreatedEvent<ObjectMapper> event) {
-        final ObjectMapper objectMapper = event.getBean();
+    public void configureObjectMapper(final ObjectMapper objectMapper) {
         final SimpleModule protoModule = new SimpleModule();
         protoModule.addSerializer(Message.class, new ProtobufMessageSerializer());
+        protoModule.addSerializer(DynamicMessage.class, new ProtobufMessageSerializer());
         objectMapper.registerModule(protoModule);
-        return objectMapper;
     }
 
 }
