@@ -16,7 +16,7 @@ Development: Q3 2022
 ### Further ideas
 
 * Kafka-Streams library for custom REST APIs in Quick
-* More complex query arguments, like ranges and filter
+* More complex query arguments, like ranges and filters
 * Support for custom authorization
 * Support different ingress controllers like nginx
 
