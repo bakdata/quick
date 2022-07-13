@@ -10,7 +10,7 @@ and [project boards](https://github.com/bakdata/quick/projects).
 
 Development: Q3 2022
 
-* Improved gateway performance: Pre-computation of key's location
+* Improved gateway performance: Pre-computation of a key's location
 * Kafka 3.0 support
 
 ### Further ideas
