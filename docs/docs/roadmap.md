@@ -6,22 +6,17 @@ and [project boards](https://github.com/bakdata/quick/projects).
 
 ## Upcoming releases
 
-### 0.7
-
-Development: Q2 2022
-
-* Protobuf support
-* Kafka 3.0 support
-
 ### 0.8
 
 Development: Q3 2022
 
-* Improved gateway performance: Pre-computation of key's location
-* Kafka-Streams library for custom REST APIs in Quick
+* Improved gateway performance: Pre-computation of a key's location
+* Kafka 3.0 support
 
 ### Further ideas
 
+* Kafka-Streams library for custom REST APIs in Quick
+* More complex query arguments, like ranges and filters
 * Support for custom authorization
 * Support different ingress controllers like nginx
 
@@ -29,6 +24,10 @@ Development: Q3 2022
 ## Completed releases
 
 The [changelog](../changelog) has a detailed list of releases.
+
+### 0.7
+
+* Protobuf support
 
 ### 0.6
 
