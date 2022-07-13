@@ -782,6 +782,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_2_4">
@@ -860,6 +862,20 @@
     <li class="md-nav__item">
       <a href="../../reference/dependency-versions/" class="md-nav__link">
         Dependency versions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/breaking-changes/" class="md-nav__link">
+        Breaking changes
       </a>
     </li>
   
@@ -1371,9 +1387,6 @@ For more information about Quick's Helm Chart configuration, please see <a href=
 <span class="w">  </span><span class="nt">ssl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"></span>
 <span class="w">  </span><span class="nt">entrypoint</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;web&quot;</span><span class="w"></span>
 
-<span class="nt">avro</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quick&quot;</span><span class="w"></span>
-
 <span class="nt">manager</span><span class="p">:</span><span class="w"></span>
 <span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quick-manager&quot;</span><span class="w"></span>
 <span class="w">  </span><span class="nt">replicaCount</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"></span>
@@ -1392,6 +1405,8 @@ For more information about Quick's Helm Chart configuration, please see <a href=
 <span class="w">  </span><span class="nt">QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
 <span class="w">  </span><span class="nt">QUICK_TOPIC_REGISTRY_SERVICE_NAME</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">internal-topic-registry</span><span class="w"></span>
 <span class="w">  </span><span class="nt">QUICK_TOPIC_REGISTRY_TOPIC_NAME</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">__topic-registry</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_SCHEMA_FORMAT</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Avro&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">QUICK_SCHEMA_AVRO_NAMESPACE</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quick&quot;</span><span class="w"></span>
 </code></pre></div></p>
 </details>
 <p>You can check the status of Quick by running <code>kubectl get pods -n quick</code>.
