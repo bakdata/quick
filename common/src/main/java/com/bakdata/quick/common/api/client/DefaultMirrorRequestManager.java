@@ -16,7 +16,6 @@
 
 package com.bakdata.quick.common.api.client;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.exception.MirrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
@@ -43,10 +42,8 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     public <T> T sendRequest(final String url, final ParserFunction<T> parser) {
         try {
             final ResponseBody body = makeRequest(url);
-            final MirrorValue<T> mirrorValue;
             if (body != null) {
-                mirrorValue = parser.parse(body.byteStream());
-                return mirrorValue.getValue();
+                return parser.parse(body.byteStream()).getValue();
             }
             return null;
         } catch (final IOException exception) {

@@ -36,7 +36,6 @@ public class PartitionRouter<K> implements Router<K> {
     private final String topic;
     private final Serde<K> keySerde;
     private final PartitionFinder partitionFinder;
-    private final Map<Integer, String> partitionToHost;
     private final Map<Integer, MirrorHost> partitionToMirrorHost;
 
     /**
@@ -52,12 +51,11 @@ public class PartitionRouter<K> implements Router<K> {
         this.topic = topic;
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
-        this.partitionToHost = partitionToHost;
-        this.partitionToMirrorHost = convertHostStringToMirrorHost();
+        this.partitionToMirrorHost = this.convertHostStringToMirrorHost(partitionToHost);
     }
 
-    private Map<Integer, MirrorHost> convertHostStringToMirrorHost() {
-        return this.partitionToHost.entrySet().stream().collect(
+    private Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
+        return partitionToHost.entrySet().stream().collect(
             Collectors.toMap(Map.Entry::getKey, e -> new MirrorHost(e.getValue(), MirrorConfig.directAccess())));
     }
 
@@ -65,7 +63,7 @@ public class PartitionRouter<K> implements Router<K> {
     public MirrorHost getHost(final K key) {
         final byte[] serializedKey = this.keySerde.serializer().serialize(topic, key);
         final int partition = partitionFinder.getForSerializedKey(serializedKey, this.partitionToMirrorHost.size());
-        if (partitionToMirrorHost.isEmpty() || !partitionToMirrorHost.containsKey(partition)) {
+        if (!partitionToMirrorHost.containsKey(partition)) {
             throw new IllegalStateException("Router has not been initialized properly.");
         }
         return this.partitionToMirrorHost.get(partition);

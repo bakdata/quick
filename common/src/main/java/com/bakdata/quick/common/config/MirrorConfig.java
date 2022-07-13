@@ -74,6 +74,4 @@ public class MirrorConfig {
     public static MirrorConfig directAccessToStreamsState() {
         return new MirrorConfig(Optional.of(""), Optional.of(DEFAULT_STREAMS_STATE_PATH));
     }
-
-
 }

@@ -28,9 +28,8 @@ public interface MirrorRequestManager {
      * Responsible for making a request to a specific url and processing the result.
      *
      * @param url    a url for which a request is made
-     * @param parser parser
-     * @param <T>    type
-     *
+     * @param parser a parser which is used to parse the byte stream of a received response body
+     * @param <T>    the type of the response
      * @return the value from a mirror value wrapper
      */
     @Nullable
@@ -40,7 +39,6 @@ public interface MirrorRequestManager {
      * Submits a request and processes the response. Throws an exception in case of various errors.
      *
      * @param url a url for which a request is made
-     *
      * @return response body if successful; null if resource has not been found
      */
     @Nullable
