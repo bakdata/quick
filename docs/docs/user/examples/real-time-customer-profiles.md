@@ -1,17 +1,18 @@
 # Real-time customer profiles
 
 This example uses Quick to create real-time customer profiles for a music streaming service.
-These profiles will include user metrics, charts of the most-streamed albums, artists and tracks, and recommendations based on the user's playlist.
+These profiles will include user metrics, charts of the most-streamed albums, artists and tracks, and recommendations
+based on the user's playlist.
 
 ## What this will demonstrate
+
 - the use of topics, of course
 - analytics on an incoming stream
 - integration of a recommendation service
 - a global GraphQL schema forming the customer profile
 
 Visit the [demo website](https://profile-store.d9p.io/dashboard/) to see the example up and running.
-This visualizes the real-time profiles in a front-end. 
-
+This visualizes the real-time profiles in a front-end.
 
 The code can be found in [Quick's example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store).
 The example uses the real world data set [LFM-1b](http://www.cp.jku.at/datasets/LFM-1b/).
@@ -43,7 +44,7 @@ Later, a Kafka Streams application processes it for the customer profile creatio
 
 ## The Quick Configuration
 
-### The Globel GraphQL Schema
+### The Global GraphQL Schema
 
 We first define the global schema with GraphQL.
 The query called `getUserProfile` combines six metrics of the customer profile:
@@ -53,7 +54,7 @@ The query called `getUserProfile` combines six metrics of the customer profile:
 - charts with user's most listened albums, artists and tracks
 
 We retrieve all that data from different topics via the `@topic` directive.
-Still, the charts, contain solely ids and not the names of the corresponding music data.
+Still, the charts contain solely ids and not the names of the corresponding music data.
 You can let Quick resolve those ids transparently.
 For that, we use the topics (artists, albums, tracks) containing the mapping from ids to names and reference them in the GraphQL schema.
 The creation of the metrics topics (counts, firstlisten, lastlisten) is described below.
@@ -110,8 +111,7 @@ The creation of the metrics topics (counts, firstlisten, lastlisten) is describe
     ...
     ```
 
-
-This is all we need to do to ingetrage data with Quick.
+This is all we need to do to integrate data with Quick.
 
 For the Quick setup, please refer to the [getting started guide](../../getting-started/setup-quick).
 To avoid redundancy, we only show the setup for integral parts here.
@@ -124,13 +124,14 @@ Create a new gateway and apply the GraphQL schema.
 ```shell
 quick gateway create profiles
 ```
+
 ```shell
 quick gateway apply profiles -f schema-user-profile.gql
 ```
 
 ### Topics
 
-Then, we create the input topics for the artist, album and track data.  
+Then, we create the input topics for the artist, album and track data.
 
 ```shell
 quick topic create albums  --key long --value schema -s profiles.Item
@@ -156,7 +157,7 @@ The user profile has the following metrics:
 
 - first listening event
 - last listening event
-- number of listening events 
+- number of listening events
 
 1. Create topics that later store the corresponding data:
 
@@ -165,7 +166,7 @@ The user profile has the following metrics:
     quick topic create lastlisten --key long --value long
     quick topic create counts --key long --value long
     ```
-  
+
 2. Deploy the applications:
 
     ```shell
@@ -204,7 +205,6 @@ Similar to the metrics, we now add support for a user's charts in the profile.
     --tag "1.0.0" \
     --args input-topics=listeningevents output-topic=topartists productive=false
     ```
-
 
 ### Recommendations
 
@@ -260,6 +260,7 @@ In this example, the recommendation service returns the result for a particular 
 We resolve these ids with the names from the `artistis` topic in the type `recommendation`.
 
 You can deploy the recommendation service via Quick as well:
+
 ```shell
 quick app deploy recommender \
   --registry bakdata \
@@ -268,7 +269,6 @@ quick app deploy recommender \
   --port 8080 \
   --args input-topics=listeningevents productive=false 
 ```
-
 
 Finally, everything is in place to query the artist recommendation.
 
