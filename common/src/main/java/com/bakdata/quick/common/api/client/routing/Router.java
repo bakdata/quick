@@ -32,7 +32,7 @@ public interface Router<K> {
      * @param key key
      * @return a replica-host where partitions for a given key are stored.
      */
-    MirrorHost getHost(K key);
+    MirrorHost findHost(K key);
 
     /**
      * Retrieves all mirror hosts in a specific app.

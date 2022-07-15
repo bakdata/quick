@@ -60,10 +60,10 @@ public class PartitionRouter<K> implements Router<K> {
     }
 
     @Override
-    public MirrorHost getHost(final K key) {
-        final byte[] serializedKey = this.keySerde.serializer().serialize(topic, key);
-        final int partition = partitionFinder.getForSerializedKey(serializedKey, this.partitionToMirrorHost.size());
-        if (!partitionToMirrorHost.containsKey(partition)) {
+    public MirrorHost findHost(final K key) {
+        final byte[] serializedKey = this.keySerde.serializer().serialize(this.topic, key);
+        final int partition = this.partitionFinder.getForSerializedKey(serializedKey, this.partitionToMirrorHost.size());
+        if (!this.partitionToMirrorHost.containsKey(partition)) {
             throw new IllegalStateException("Router has not been initialized properly.");
         }
         return this.partitionToMirrorHost.get(partition);
@@ -71,9 +71,9 @@ public class PartitionRouter<K> implements Router<K> {
 
     @Override
     public List<MirrorHost> getAllHosts() {
-        if (partitionToMirrorHost.isEmpty()) {
+        if (this.partitionToMirrorHost.isEmpty()) {
             throw new IllegalStateException("Router has not been initialized properly.");
         }
-        return new ArrayList<>(partitionToMirrorHost.values());
+        return new ArrayList<>(this.partitionToMirrorHost.values());
     }
 }

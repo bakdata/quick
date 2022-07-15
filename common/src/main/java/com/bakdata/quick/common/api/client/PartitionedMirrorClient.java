@@ -73,7 +73,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         this.requestManager = new DefaultMirrorRequestManager(client);
         log.info("Initializing partition router for the mirror at: {} and the topic: {}.",
             this.streamsStateHost.getHost(), topicName);
-        final Map<Integer, String> response = makeRequestForPartitionHostMapping();
+        final Map<Integer, String> response = this.makeRequestForPartitionHostMapping();
         this.router = new PartitionRouter<>(keySerde, topicName, partitionFinder, response);
         this.knownHosts = this.router.getAllHosts();
     }
@@ -81,7 +81,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        final MirrorHost currentKeyHost = router.getHost(key);
+        final MirrorHost currentKeyHost = router.findHost(key);
         return this.requestManager.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()),
             this.parser::deserialize);
     }
@@ -111,13 +111,13 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
 
     private Map<Integer, String> makeRequestForPartitionHostMapping() {
         final String url = this.streamsStateHost.getPartitionToHostUrl();
-        try (final ResponseBody responseBody = requestManager.makeRequest(url)) {
+        try (final ResponseBody responseBody = this.requestManager.makeRequest(url)) {
             if (responseBody == null) {
                 throw new InternalErrorException("Response body was null.");
             }
             final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper()
                 .readValue(responseBody.byteStream(), MAP_TYPE_REFERENCE);
-            logPartitionHostInfoIfLoggingEnabled(partitionHostMappingResponse);
+            this.logPartitionHostInfoIfLoggingEnabled(partitionHostMappingResponse);
             return partitionHostMappingResponse;
         } catch (final IOException e) {
             throw new InternalErrorException("There was a problem handling the response: " + e.getMessage());

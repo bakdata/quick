@@ -45,6 +45,6 @@ public class PartitionRouterTest {
         final Map<Integer, String> elements = Map.of(1, "host1", 2, "host2");
         final Router<String> partitionRouter =
             new PartitionRouter<>(Serdes.String(), "dummy", TestUtils.getMockPartitionFinder(), elements);
-        assertThat(partitionRouter.getHost("abc").getHost()).isEqualTo("host1");
+        assertThat(partitionRouter.findHost("abc").getHost()).isEqualTo("host1");
     }
 }

@@ -33,7 +33,7 @@ import java.util.stream.StreamSupport;
  *
  * @param <V> type of the value
  */
-public class MirrorValueParser<V> {
+class MirrorValueParser<V> {
     /**
      * Name of the field in {@link MirrorValue} containing the value.
      */

@@ -41,7 +41,7 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     @Nullable
     public <T> T sendRequest(final String url, final ParserFunction<T> parser) {
         try {
-            final ResponseBody body = makeRequest(url);
+            final ResponseBody body = this.makeRequest(url);
             if (body != null) {
                 return parser.parse(body.byteStream()).getValue();
             }
