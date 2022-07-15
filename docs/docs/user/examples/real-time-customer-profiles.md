@@ -46,17 +46,17 @@ Later, a Kafka Streams application processes it for the customer profile creatio
 
 ### The Global GraphQL Schema
 
-We first define the global schema with GraphQL.
+First, define the global schema with GraphQL.
 The query called `getUserProfile` combines six metrics of the customer profile:
 
 - total listening events
 - the first and last time a user listened to a song
 - charts with user's most listened albums, artists and tracks
 
-We retrieve all that data from different topics via the `@topic` directive.
+Quick retrieves all that data from different topics via the `@topic` directive.
 Still, the charts contain solely ids and not the names of the corresponding music data.
 You can let Quick resolve those ids transparently.
-For that, we use the topics (artists, albums, tracks) containing the mapping from ids to names and reference them in the GraphQL schema.
+For that, use the topics (artists, albums, tracks) containing the mapping from ids to names and reference them in the GraphQL schema.
 The creation of the metrics topics (counts, firstlisten, lastlisten) is described below.
 
 ??? "The GraphQL user profile schema (`schema-user-profile.gql`)" 
@@ -111,7 +111,7 @@ The creation of the metrics topics (counts, firstlisten, lastlisten) is describe
     ...
     ```
 
-This is all we need to do to integrate data with Quick.
+This is all you need to do to integrate data with Quick.
 
 For the Quick setup, please refer to the [getting started guide](../../getting-started/setup-quick).
 To avoid redundancy, we only show the setup for integral parts here.
@@ -131,7 +131,7 @@ quick gateway apply profiles -f schema-user-profile.gql
 
 ### Topics
 
-Then, we create the input topics for the artist, album and track data.
+Then, create the input topics for the artist, album and track data.
 
 ```shell
 quick topic create albums  --key long --value schema -s profiles.Item
@@ -143,12 +143,12 @@ quick topic create listeningevents --key long --value schema \
 ```
 
 The command expects the topic name and the type or schema of key and value.
-Since the topics contain complex values, we reference them via `<gateway name>.<type name>`.
-This uses the definition in the global GraphQL schema we previously applied to the gateway.
+Since the topics contain complex values, they are referenced via `<gateway name>.<type name>`.
+This uses the definition in the global GraphQL schema you previously applied to the gateway.
 
 ## Analytics
 
-With gateway and input topics in place, we can now take care of the analytics.
+With gateway and input topics in place, you can now take care of the analytics.
 Kafka Streams apps will process the data and compute the respective parts of the profiles.
 
 ### Metrics
@@ -178,13 +178,13 @@ The user profile has the following metrics:
     ```
 
 Quick supports running dockerized applications.
-We deploy those applications with the command `quick app deploy [...]`.
+You can deploy those applications with the command `quick app deploy [...]`.
 For details, call `quick app deploy -h` or see the [reference](../reference/cli-commands.md#quick-app-deploy).
 The bakdata image registry can be found [here](https://hub.docker.com/u/bakdata).
 
 ### Charts
 
-Similar to the metrics, we now add support for a user's charts in the profile.
+Similar to the metrics, you can add support for a user's charts in the profile.
 
 1. Create the topics:
     ```shell
@@ -209,8 +209,8 @@ Similar to the metrics, we now add support for a user's charts in the profile.
 
 ### Recommendations
 
-Finally, we integrate recommendations into the profiles.
-Therefore, we add the `getArtistRecommendations` query backed by an external service to the schema.
+Finally, the recommendations are integrated into the profiles.
+Therefore, add the `getArtistRecommendations` query, which is backed by an external service, to the schema.
 
 ??? "Schema extension with `getArtistRecommendations`"
     ```graphql
@@ -255,10 +255,10 @@ Therefore, we add the `getArtistRecommendations` query backed by an external ser
 - The remaining parameters come from the underlying recommendation algorithm [SALSA](https://github.com/twitter/GraphJet) 
   and have sensible default values.
 
-To leverage the external service, we use the `@rest` directive.
+To leverage the external service, you can use the `@rest` directive.
 This directive integrates a REST services into your global schema.
 In this example, the recommendation service returns the result for a particular user id as a list of ids.
-We resolve these ids with the names from the `artistis` topic in the type `recommendation`.
+Quick resolves these ids with the names from the `artistis` topic in the type `recommendation`.
 
 You can deploy the recommendation service via Quick as well:
 
