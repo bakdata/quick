@@ -157,7 +157,7 @@ The user profile has the following metrics:
 
 - first listening event
 - last listening event
-- number of listening events
+- total number of listening events
 
 1. Create topics that later store the corresponding data:
 
