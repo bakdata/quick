@@ -55,4 +55,8 @@ public class TestUtils {
     public static PartitionFinder getMockPartitionFinder() {
         return (serializedKey, numPartitions) -> 1;
     }
+
+    public static PartitionFinder getPartitionFinderForMappingUpdateTest() {
+        return new PartitionFinderForUpdateMappingTest();
+    }
 }

@@ -14,23 +14,19 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.testutils;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
+import com.bakdata.quick.common.api.client.routing.PartitionFinder;
 
 /**
- * Responsible for managing requests send to the Mirror.
+ * A custom PartitionFinder for testing the update mechanism of the PartitionRouter.
  */
-public interface MirrorRequestManager {
+public class PartitionFinderForUpdateMappingTest implements PartitionFinder {
 
-    /**
-     * Submits a request and processes the response. Throws an exception in case of various errors.
-     *
-     * @param url a url for which a request is made
-     * @return response body if successful; null if resource has not been found
-     */
-    ResponseWrapper makeRequest(final String url);
+    private int partitionHook = 2;
 
-    @Nullable
-    <T> T processResponse(final ResponseWrapper responseWrapper, final ParserFunction<T> parser);
+    @Override
+    public int getForSerializedKey(final byte[] serializedKey, final int numPartitions) {
+        return partitionHook++ == 2 ? 2 : 3;
+    }
 }

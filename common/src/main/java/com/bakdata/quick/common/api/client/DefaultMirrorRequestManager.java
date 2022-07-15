@@ -17,9 +17,11 @@
 package com.bakdata.quick.common.api.client;
 
 import com.bakdata.quick.common.exception.MirrorException;
+import com.bakdata.quick.common.util.QuickConstants;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -38,22 +40,8 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     }
 
     @Override
-    @Nullable
-    public <T> T sendRequest(final String url, final ParserFunction<T> parser) {
-        try {
-            final ResponseBody body = this.makeRequest(url);
-            if (body != null) {
-                return parser.parse(body.byteStream()).getValue();
-            }
-            return null;
-        } catch (final IOException exception) {
-            throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
-        }
-    }
-
-    @Override
-    @Nullable
-    public ResponseBody makeRequest(final String url) {
+    public ResponseWrapper makeRequest(final String url) {
+        final ResponseWrapper responseWrapper = new ResponseWrapper();
         final Request request = new Request.Builder().url(url).get().build();
         /*
         The reason why the classic try-catch statement and not the try-with-resources is used here,
@@ -65,9 +53,9 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
         try {
             final Response response = this.client.newCall(request).execute();
             if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
-                return null;
+                responseWrapper.setResponseBody(null);
+                return responseWrapper;
             }
-
             final ResponseBody body = response.body();
             if (response.code() != HttpStatus.OK.getCode()) {
                 log.error("Got error response from mirror: {}", body);
@@ -79,7 +67,25 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
             if (body == null) {
                 throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            return body;
+            responseWrapper.setResponseBody(body);
+            if (response.header(QuickConstants.getUpdateMappingHeader()) != null) {
+                responseWrapper.setUpdateCacheHeader(Optional.ofNullable(
+                    response.header(QuickConstants.getUpdateMappingHeader())));
+            }
+            return responseWrapper;
+        } catch (final IOException exception) {
+            throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
+        }
+    }
+
+    @Nullable
+    @Override
+    public <T> T processResponse(final ResponseWrapper responseWrapper, final ParserFunction<T> parser) {
+        try {
+            if (responseWrapper.getResponseBody() != null) {
+                return parser.parse(responseWrapper.getResponseBody().byteStream()).getValue();
+            }
+            return null;
         } catch (final IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }

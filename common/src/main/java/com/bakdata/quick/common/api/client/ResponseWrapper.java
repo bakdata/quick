@@ -16,21 +16,29 @@
 
 package com.bakdata.quick.common.api.client;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import java.util.Optional;
+import lombok.Getter;
+import lombok.Setter;
+import okhttp3.ResponseBody;
 
 /**
- * Responsible for managing requests send to the Mirror.
+ * A wrapper for a response from a call to made with the HttpClient.
+ * It consists of a response body extracted from the response and an optional field
+ * for keeping the information about the custom X-Cache-Update header. This header is used to
+ * signal the need for an update of the mapping between partitions and mirror hosts.
  */
-public interface MirrorRequestManager {
-
-    /**
-     * Submits a request and processes the response. Throws an exception in case of various errors.
-     *
-     * @param url a url for which a request is made
-     * @return response body if successful; null if resource has not been found
-     */
-    ResponseWrapper makeRequest(final String url);
+@Getter
+@Setter
+public class ResponseWrapper {
 
     @Nullable
-    <T> T processResponse(final ResponseWrapper responseWrapper, final ParserFunction<T> parser);
+    private ResponseBody responseBody;
+    @NonNull
+    private Optional<String> updateCacheHeader;
+
+    public ResponseWrapper() {
+        this.updateCacheHeader = Optional.empty();
+    }
 }

@@ -69,13 +69,15 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        return this.mirrorRequestManager.sendRequest(this.host.forKey(key.toString()), this.parser::deserialize);
+        final ResponseWrapper response = this.mirrorRequestManager.makeRequest(this.host.forKey(key.toString()));
+        return this.mirrorRequestManager.processResponse(response, this.parser::deserialize);
     }
 
     @Override
     public List<V> fetchAll() {
+        final ResponseWrapper response = this.mirrorRequestManager.makeRequest(this.host.forAll());
         return Objects.requireNonNullElse(
-            this.mirrorRequestManager.sendRequest(this.host.forAll(), this.parser::deserializeList),
+            this.mirrorRequestManager.processResponse(response, this.parser::deserializeList),
             Collections.emptyList());
     }
 
@@ -83,7 +85,8 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
         final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
-        return this.mirrorRequestManager.sendRequest(this.host.forKeys(collect), this.parser::deserializeList);
+        final ResponseWrapper response = this.mirrorRequestManager.makeRequest(this.host.forKeys(collect));
+        return this.mirrorRequestManager.processResponse(response, this.parser::deserializeList);
     }
 
     @Override

@@ -34,6 +34,7 @@ import io.reactivex.schedulers.Schedulers;
 import jakarta.inject.Inject;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Request;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
@@ -78,10 +79,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.keyResolver = topicData.getKeyData().getResolver();
         this.valueResolver = topicData.getValueData().getResolver();
         this.topicName = topicData.getName();
-        this.storeQueryParameters = StoreQueryParameters.fromNameAndType(
-            this.storeName,
-            QueryableStoreTypes.keyValueStore()
-        );
+        this.storeQueryParameters =
+            StoreQueryParameters.fromNameAndType(this.storeName, QueryableStoreTypes.keyValueStore());
     }
 
     @Override
@@ -105,8 +104,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
             log.info("Forward request to {}", metadata.activeHost());
-            return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key))
-                .map(MirrorValue::new)
+            return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).map(MirrorValue::new)
                 .subscribeOn(Schedulers.io());
         }
 
@@ -127,10 +125,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     @Override
     public Single<MirrorValue<List<V>>> getValues(final List<String> keys) {
-        return Flowable.fromIterable(keys)
-            .flatMapSingle(this::get)
-            .map(MirrorValue::getValue)
-            .toList()
+        return Flowable.fromIterable(keys).flatMapSingle(this::get).map(MirrorValue::getValue).toList()
             .map(MirrorValue::new);
     }
 
@@ -138,10 +133,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     public Single<MirrorValue<List<V>>> getAll() {
         // For now, we only consider the local state!
         final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
-        return Flowable.fromIterable(store::all)
-            .map(keyValue -> keyValue.value)
-            .toList()
-            .map(MirrorValue::new);
+        return Flowable.fromIterable(store::all).map(keyValue -> keyValue.value).toList().map(MirrorValue::new);
     }
 
     private V fetch(final HostInfo replicaHostInfo, final K key) {
@@ -156,6 +148,16 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         if (value == null) {
             throw new NotFoundException("Key not found");
         }
+
+        this.client.okHttpClient().interceptors().add(chain -> {
+                final Request original = chain.request();
+                final Request withHeader = original.newBuilder()
+                    .header("Cache-Miss", "There was a cache miss. Please update mapping")
+                    .method(original.method(), original.body()).build();
+                return chain.proceed(withHeader);
+            }
+
+        );
 
         return value;
     }
