@@ -180,6 +180,7 @@ The user profile has the following metrics:
 Quick supports running dockerized applications.
 We deploy those applications with the command `quick app deploy [...]`.
 For details, call `quick app deploy -h` or see the [reference](../reference/cli-commands.md#quick-app-deploy).
+The bakdata image registry can be found [here](https://hub.docker.com/u/bakdata).
 
 ### Charts
 
