@@ -14,23 +14,20 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
-
-import edu.umd.cs.findbugs.annotations.Nullable;
+package com.bakdata.quick.common.util;
 
 /**
- * Responsible for managing requests send to the Mirror.
+ * A utility class that contains various constants used in Quick.
  */
-public interface MirrorRequestManager {
+public class QuickConstants {
 
-    /**
-     * Submits a request and processes the response. Throws an exception in case of various errors.
-     *
-     * @param url a url for which a request is made
-     * @return response body if successful; null if resource has not been found
-     */
-    ResponseWrapper makeRequest(final String url);
+    private QuickConstants() {}
 
-    @Nullable
-    <T> T processResponse(final ResponseWrapper responseWrapper, final ParserFunction<T> parser);
+    private static final String UPDATE_PARTITION_HOST_MAPPING_HEADER = "X-Cache-Update";
+
+    public static String getUpdateMappingHeader() {
+        return UPDATE_PARTITION_HOST_MAPPING_HEADER;
+    }
+
+
 }

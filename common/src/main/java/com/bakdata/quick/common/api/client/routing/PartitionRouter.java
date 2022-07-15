@@ -36,7 +36,7 @@ public class PartitionRouter<K> implements Router<K> {
     private final String topic;
     private final Serde<K> keySerde;
     private final PartitionFinder partitionFinder;
-    private final Map<Integer, MirrorHost> partitionToMirrorHost;
+    private Map<Integer, MirrorHost> partitionToMirrorHost;
 
     /**
      * A constructor with the default partitioner that is retrieved from a static method.
@@ -76,5 +76,10 @@ public class PartitionRouter<K> implements Router<K> {
             throw new IllegalStateException("Router has not been initialized properly.");
         }
         return new ArrayList<>(this.partitionToMirrorHost.values());
+    }
+
+    @Override
+    public void update(final Map<Integer, String> updatedRoutingInfo) {
+        this.partitionToMirrorHost = this.convertHostStringToMirrorHost(updatedRoutingInfo);
     }
 }
