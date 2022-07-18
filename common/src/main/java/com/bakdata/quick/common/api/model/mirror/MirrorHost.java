@@ -30,7 +30,7 @@ public class MirrorHost {
     /**
      * Default constructor.
      *
-     * @param host the host of the mirror. This can be a service name or an IP.
+     * @param host   the host of the mirror. This can be a service name or an IP.
      * @param config mirror config to use. This can set the service prefix and REST path.
      */
     public MirrorHost(final String host, final MirrorConfig config) {

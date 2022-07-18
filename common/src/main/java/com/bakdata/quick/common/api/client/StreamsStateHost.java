@@ -43,7 +43,6 @@ public class StreamsStateHost {
      * Static factory method that constructs StreamsStateHost from an instance of the MirrorHost.
      *
      * @param mirrorHost mirror host
-     *
      * @return an instance of StreamsStateHost
      */
     public static StreamsStateHost fromMirrorHost(final MirrorHost mirrorHost) {

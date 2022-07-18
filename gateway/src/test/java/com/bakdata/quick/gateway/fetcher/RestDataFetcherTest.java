@@ -16,6 +16,9 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.gateway.custom.type.RestDirectiveMethod;
 import com.bakdata.quick.gateway.directives.rest.RestParameter;
@@ -28,18 +31,14 @@ import graphql.language.SourceLocation;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import graphql.schema.GraphQLFieldDefinition;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 class RestDataFetcherTest {
     private final MockWebServer mockWebServer = new MockWebServer();

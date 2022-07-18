@@ -47,7 +47,7 @@ public class IngestFilter {
     /**
      * Default constructor.
      *
-     * @param client http client
+     * @param client       http client
      * @param mirrorConfig config for Quick mirror
      */
     public IngestFilter(final HttpClient client, final MirrorConfig mirrorConfig) {
@@ -69,7 +69,7 @@ public class IngestFilter {
      * @return two new lists: one with keys to ingest and one with keys that cannot be overriden.
      */
     public <K, V> Single<IngestLists<K, V>> prepareIngest(final QuickTopicData<K, V> topicData,
-        final List<KeyValuePair<K, V>> pairs) {
+                                                          final List<KeyValuePair<K, V>> pairs) {
         log.debug("Prepare ingest for topic {}", topicData.getName());
         if (topicData.getWriteType() == TopicWriteType.MUTABLE) {
             return Single.just(new IngestLists<>(pairs, Collections.emptyList()));
@@ -78,7 +78,7 @@ public class IngestFilter {
     }
 
     private <K, V> Single<IngestLists<K, V>> getExistingKeys(final QuickTopicData<K, V> topicData,
-        final List<KeyValuePair<K, V>> pairs) {
+                                                             final List<KeyValuePair<K, V>> pairs) {
         final MirrorClient<K, V> mirrorClient =
             new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig,
                 topicData.getValueData().getResolver(), new DefaultMirrorRequestManager(this.client));

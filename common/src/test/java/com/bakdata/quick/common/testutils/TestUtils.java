@@ -32,7 +32,8 @@ public class TestUtils {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private TestUtils() {}
+    private TestUtils() {
+    }
 
     public static TopicData createTopicData(final String name) {
         return new TopicData(name, TopicWriteType.IMMUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);

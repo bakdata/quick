@@ -32,7 +32,6 @@ public interface MirrorClient<K, V> {
      * fetches the value of the given key from the mirror topic.
      *
      * @param key a key to be fetched
-     *
      * @return a list of values. If the requested mirror responds with a NOT_FOUND code the function returns null.
      */
     @Nullable
@@ -49,7 +48,6 @@ public interface MirrorClient<K, V> {
      * fetches the values of a list of keys from the mirror topic.
      *
      * @param keys list of keys to be fetched
-     *
      * @return a list of values. If the requested mirror responds with a NOT_FOUND code the function returns null.
      */
     @Nullable

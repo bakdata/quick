@@ -45,7 +45,8 @@ import org.apache.kafka.common.serialization.Serde;
 @Slf4j
 public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
 
-    private static final TypeReference<Map<Integer, String>> MAP_TYPE_REFERENCE = new TypeReference<>() {};
+    private static final TypeReference<Map<Integer, String>> MAP_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     private final StreamsStateHost streamsStateHost;
     private final HttpClient client;

@@ -55,7 +55,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
      * @param client              http client
      */
     public MirrorRegistryClient(final TopicRegistryConfig topicRegistryConfig, final IngestClient ingestClient,
-        final HttpClient client) {
+                                final HttpClient client) {
         this.registryTopic = topicRegistryConfig.getTopicName();
         this.ingestClient = ingestClient;
         this.topicDataClient = createMirrorClient(topicRegistryConfig, client);
@@ -104,7 +104,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     }
 
     private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
-        final HttpClient client) {
+                                                                      final HttpClient client) {
         final KnownTypeResolver<TopicData> typeResolver =
             new KnownTypeResolver<>(TopicData.class, client.objectMapper());
         final String serviceName = topicRegistryConfig.getServiceName();
