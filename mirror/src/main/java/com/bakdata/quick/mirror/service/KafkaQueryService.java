@@ -26,15 +26,16 @@ import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.util.QuickConstants;
+import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
-import io.reactivex.Flowable;
 import io.reactivex.Single;
-import io.reactivex.schedulers.Schedulers;
-import jakarta.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Request;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
@@ -62,19 +63,21 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private final TypeResolver<K> keyResolver;
     private final StoreQueryParameters<ReadOnlyKeyValueStore<K, V>> storeQueryParameters;
 
+    private boolean updateCache = false;
+
     /**
      * Injectable constructor.
      *
      * @param contextProvider query service data
      */
     @Inject
-    public KafkaQueryService(final QueryContextProvider contextProvider, final HttpClient client) {
+    public KafkaQueryService(final QueryContextProvider contextProvider, final QuickTopicData<K, V> topicData,
+                             final HttpClient client) {
         final QueryServiceContext context = contextProvider.get();
         this.client = client;
         this.streams = context.getStreams();
         this.hostInfo = context.getHostInfo();
         this.storeName = context.getStoreName();
-        final QuickTopicData<K, V> topicData = context.getTopicData();
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
         this.valueResolver = topicData.getValueData().getResolver();
@@ -84,7 +87,21 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     }
 
     @Override
-    public Single<MirrorValue<V>> get(final String rawKey) {
+    public Single<HttpResponse<MirrorValue<V>>> get(final String rawKey) {
+        V value = internalGet(rawKey);
+        HttpResponse<MirrorValue<V>> response;
+        if (updateCache) {
+            response = HttpResponse.created(new MirrorValue<>(value)).header(
+                QuickConstants.getUpdateMappingHeader(), QuickConstants.getCacheUpdateMessage()
+            );
+            updateCache = false;
+        } else {
+            response = HttpResponse.created(new MirrorValue<>(value));
+        }
+        return Single.just(response);
+    }
+
+    private V internalGet(final String rawKey) {
         final K key = this.keyResolver.fromString(rawKey);
         final KeyQueryMetadata metadata;
         try {
@@ -104,8 +121,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
             log.info("Forward request to {}", metadata.activeHost());
-            return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).map(MirrorValue::new)
-                .subscribeOn(Schedulers.io());
+            updateCache = true;
+            return this.fetch(metadata.activeHost(), key);
         }
 
         final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
@@ -119,21 +136,30 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         if (value == null) {
             throw new NotFoundException(String.format("Key %s does not exist in %s", rawKey, this.topicName));
         }
-
-        return Single.just(new MirrorValue<>(value));
+        return value;
     }
 
     @Override
-    public Single<MirrorValue<List<V>>> getValues(final List<String> keys) {
-        return Flowable.fromIterable(keys).flatMapSingle(this::get).map(MirrorValue::getValue).toList()
-            .map(MirrorValue::new);
+    public Single<HttpResponse<MirrorValue<List<V>>>> getValues(final List<String> keys) {
+
+        MirrorValue<List<V>> mirrorValue =
+            new MirrorValue<>(keys.stream().map(this::internalGet).collect(Collectors.toList()));
+        if (updateCache) {
+            updateCache = false;
+            return Single.just(HttpResponse.created(mirrorValue).header(
+                QuickConstants.getUpdateMappingHeader(), QuickConstants.getCacheUpdateMessage()));
+        }
+        return Single.just(HttpResponse.created(mirrorValue));
     }
 
     @Override
-    public Single<MirrorValue<List<V>>> getAll() {
+    public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
         // For now, we only consider the local state!
         final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
-        return Flowable.fromIterable(store::all).map(keyValue -> keyValue.value).toList().map(MirrorValue::new);
+        List<V> values = new ArrayList<>();
+        store.all().forEachRemaining(keyValue -> values.add(keyValue.value));
+        MirrorValue<List<V>> mirrorValue = new MirrorValue<>(values);
+        return Single.just(HttpResponse.created(mirrorValue));
     }
 
     private V fetch(final HostInfo replicaHostInfo, final K key) {
@@ -148,17 +174,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         if (value == null) {
             throw new NotFoundException("Key not found");
         }
-
-        this.client.okHttpClient().interceptors().add(chain -> {
-                final Request original = chain.request();
-                final Request withHeader = original.newBuilder()
-                    .header("Cache-Miss", "There was a cache miss. Please update mapping")
-                    .method(original.method(), original.body()).build();
-                return chain.proceed(withHeader);
-            }
-
-        );
-
         return value;
     }
 }
