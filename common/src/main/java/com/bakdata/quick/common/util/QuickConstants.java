@@ -24,9 +24,14 @@ public class QuickConstants {
     private QuickConstants() {}
 
     private static final String UPDATE_PARTITION_HOST_MAPPING_HEADER = "X-Cache-Update";
+    private static final String CACHE_UPDATE_MESSAGE = "There was a cache miss. Please update routing information.";
 
     public static String getUpdateMappingHeader() {
         return UPDATE_PARTITION_HOST_MAPPING_HEADER;
+    }
+
+    public static String getCacheUpdateMessage() {
+        return CACHE_UPDATE_MESSAGE;
     }
 
 
