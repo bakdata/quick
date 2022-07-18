@@ -692,6 +692,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-this-will-demonstrate" class="md-nav__link">
+    What this will demonstrate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#apache-kafka-and-data-processing" class="md-nav__link">
     Apache Kafka and data processing
   </a>
@@ -1111,6 +1118,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-this-will-demonstrate" class="md-nav__link">
+    What this will demonstrate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#apache-kafka-and-data-processing" class="md-nav__link">
     Apache Kafka and data processing
   </a>
@@ -1208,6 +1222,13 @@ A <a href="https://carsharing.d9p.io/">dashboard</a> displays this information o
 </div>
 
 <hr />
+<h2 id="what-this-will-demonstrate">What this will demonstrate<a class="headerlink" href="#what-this-will-demonstrate" title="Permanent link">&para;</a></h2>
+<ul>
+<li>the deployment of an aggregating application</li>
+<li>how to join topic data at query-time</li>
+<li>the usage of subscriptions</li>
+<li>the ingestion of demo data into your system</li>
+</ul>
 <h2 id="apache-kafka-and-data-processing">Apache Kafka and data processing<a class="headerlink" href="#apache-kafka-and-data-processing" title="Permanent link">&para;</a></h2>
 <p>Quick is based on Apache Kafka.
 It organizes and stores event streams in topics.
@@ -1216,7 +1237,7 @@ A <code>status</code> topic contains the emitted status events (e.g. battery lev
 Such event streams can be processed with the help of Kafka Streams.
 For example, an application can accumulate status events with the same trip id into a trip.
 It simply groups the incoming status events by their trip id and appends them to a list.
-The result is written into the trip topic.</p>
+The result is written into the <code>trip</code> topic.</p>
 <div class="highlight"><pre><span></span><code><span class="kt">void</span> <span class="nf">buildTopology</span><span class="p">(</span><span class="n">StreamsBuilder</span> <span class="n">builder</span><span class="p">){</span>
     <span class="n">builder</span><span class="p">.</span><span class="na">stream</span><span class="p">(</span><span class="s">&quot;status&quot;</span><span class="p">)</span>
         <span class="p">.</span><span class="na">groupBy</span><span class="p">((</span><span class="n">key</span><span class="p">,</span><span class="n">status</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">status</span><span class="p">.</span><span class="na">getTripId</span><span class="p">())</span>
@@ -1247,12 +1268,11 @@ which, among others, offers sensible defaults and reduces the required boilerpla
 <p>After defining the topics, it is time to model the data required in the dashboard.
 Quick's querying logic is built upon the data query language GraphQL.
 It allows you to create a global schema of the data and the supported operations.
-Subscriptions are one type of such operations, allowing you to consume real-time data updates of the data through
-WebSocket connections.
+<a href="../../getting-started/working-with-quick/subscriptions/">Subscriptions</a> are one type of such operations,
+allowing you to consume real-time data updates of the data through WebSocket connections.
 This is an exemplary GraphQL schema for live updates of the emitted status events.
-It contains a subscription operation called <code>statusUpdates</code> that is gets live updates of <code>Status</code>
-events.
-<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="err">Subscription</span> <span class="p">{</span>
+It contains a subscription operation called <code>statusUpdates</code> that delivers live updates of <code>Status</code> events.</p>
+<p><div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="err">Subscription</span> <span class="p">{</span>
     <span class="nl">statusUpdates</span><span class="p">:</span> <span class="n">Status</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;status&quot;</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -1275,7 +1295,7 @@ The status events have the following schema.
 <p>Besides the live updates, single trips should also be accessible.
 A trip is the accumulation of all statuses with the same trip id.
 As this information should be queried on demand, subscriptions do not work in this case.
-GraphQL offers the <code>Query</code> operation instead.
+GraphQL offers the <a href="../../getting-started/working-with-quick/query-data/">Query</a> operation instead.
 The query is called <code>trip</code> and allows to pass an id as an argument and returns the
 corresponding <code>Trip</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
@@ -1291,8 +1311,8 @@ corresponding <code>Trip</code>.</p>
 <h2 id="connecting-apache-kafka-graphql">Connecting Apache Kafka &amp; GraphQL<a class="headerlink" href="#connecting-apache-kafka-graphql" title="Permanent link">&para;</a></h2>
 <p>Quick introduces a custom GraphQL directive called <code>@topic</code>.
 It allows you to annotate fields and connect them to a topic.
-With that, you can define the relationship between the GraphQL schema and Kafka.</p>
-<p>First connect the <code>statusUpdates</code> subscription to the status topic.
+With that, you define the relationship between the GraphQL schema and Kafka.</p>
+<p>First, connect the <code>statusUpdates</code> subscription to the status topic.
 This ensures that each event written to the Kafka topic is pushed into the GraphQL WebSocket connection.
 <div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="err">Subscription</span> <span class="p">{</span>
     <span class="nl">statusUpdates</span><span class="p">:</span> <span class="n">Status</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;status&quot;</span><span class="p">)</span>
@@ -1304,7 +1324,8 @@ Instead of creating a separate operation, you can add this information to <code>
 It is populated with the <code>vehicle</code> topic data based on the trip's <code>vehicleId</code> value.
 One major advantage of GraphQL is its flexibility.
 When querying a trip, you can decide if you indeed require the vehicle information.
-If this is not the case, the corresponding data is never loaded, and thus no overhead occurs.</p>
+If this is not the case, the corresponding data is never loaded, and thus no overhead occurs.
+However, if the data is needed, Quick transparently joins the vehicle information into the trip.</p>
 <div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
     <span class="n">trip</span><span class="p">(</span><span class="n">id</span><span class="p">:</span> <span class="no">String</span><span class="p">)</span><span class="err">:</span> <span class="n">Trip</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;trip&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;id&quot;</span><span class="p">)</span>
 <span class="p">}</span>
@@ -1387,17 +1408,19 @@ Quick supports running dockerized applications.</p>
  --args input-topics<span class="o">=</span>status output-topic<span class="o">=</span>trip
 </code></pre></div>
 <p>For more detailed information, call <code>quick app deploy -h</code>
-or <a href="../../reference/cli-commands/#quick-app-deploy">see reference</a>.</p>
+or <a href="../../reference/cli-commands/#quick-app-deploy">see the reference</a>.
+The bakdata image registry can be found <a href="https://hub.docker.com/u/bakdata">here</a>.</p>
 <h2 id="go-live">Go live<a class="headerlink" href="#go-live" title="Permanent link">&para;</a></h2>
 <p>When all resources are up, you can start to ingest data into the system.
-Quick supports the ingest through a REST-API.
+For this, checkout the <a href="https://github.com/bakdata/quick-examples">examples git repository</a>.
+Quick supports the <a href="../../getting-started/working-with-quick/ingest-data/">ingest through a REST-API</a>.
 For example, the following snippet shows a command ingesting new vehicles into the <code>vehicle</code> topic.</p>
 <div class="highlight"><pre><span></span><code>curl -X POST --url <span class="nv">$QUICK_URL</span>/ingest/vehicle <span class="se">\</span>
   --header <span class="s2">&quot;content-type: application/json&quot;</span> <span class="se">\</span>
   --header <span class="s2">&quot;X-API-Key:</span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span> <span class="se">\</span>
   --data <span class="s2">&quot;@./simulator/data/vehicles.json&quot;</span>
 </code></pre></div>
-<p>Exemplary data are contained in the <a href="https://github.com/bakdata/quick-examples/tree/main/carsharing/simulator">simulator subdirectory</a>.
+<p>Example data are contained in <a href="https://github.com/bakdata/quick-examples/tree/main/carsharing/simulator">carsharing/simulator/data</a>.
 You may also follow the steps described there to create your own dataset.</p>
 <p>You can now start the simulation by sending data to the status topic.
 The script requires the environment variables <code>QUICK_URL</code> and <code>QUICK_API_KEY</code> set
@@ -1422,7 +1445,7 @@ If you are using Altair, you can follow <a href="../../getting-started/working-w
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>For example, you can run a subscription with these results:</p>
+<p>For example, a subscription can yield the following results:</p>
 <table>
 <thead>
 <tr>
@@ -1569,7 +1592,7 @@ If you are using Altair, you can follow <a href="../../getting-started/working-w
 </tr>
 </tbody>
 </table>
-<p>Query a single trip:
+<p>Inspect a single trip using the following query:</p>
 <div class="highlight"><pre><span></span><code>{
   trip(id: &quot;jvae2u&quot;) {
     id
@@ -1589,7 +1612,7 @@ If you are using Altair, you can follow <a href="../../getting-started/working-w
     }
   }
 }
-</code></pre></div></p>
+</code></pre></div>
 <div class="highlight"><span class="filename">Exemplary results</span><pre><span></span><code><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="nt">&quot;trip&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
