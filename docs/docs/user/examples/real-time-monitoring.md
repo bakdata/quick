@@ -20,6 +20,13 @@ A [dashboard](https://carsharing.d9p.io/) displays this information on an intera
 
 --- 
 
+## What this will demonstrate
+
+- the deployment of an aggregating application
+- how to join topic data at query-time
+- the usage of subscriptions
+- the ingestion of demo data into your system
+
 ## Apache Kafka and data processing
 
 Quick is based on Apache Kafka.
@@ -29,7 +36,7 @@ A `status` topic contains the emitted status events (e.g. battery level).
 Such event streams can be processed with the help of Kafka Streams.
 For example, an application can accumulate status events with the same trip id into a trip.
 It simply groups the incoming status events by their trip id and appends them to a list.
-The result is written into the trip topic.
+The result is written into the `trip` topic.
 
 ```java
 void buildTopology(StreamsBuilder builder){
@@ -68,11 +75,11 @@ which, among others, offers sensible defaults and reduces the required boilerpla
 After defining the topics, it is time to model the data required in the dashboard.
 Quick's querying logic is built upon the data query language GraphQL.
 It allows you to create a global schema of the data and the supported operations.
-Subscriptions are one type of such operations, allowing you to consume real-time data updates of the data through
-WebSocket connections.
+[Subscriptions](../getting-started/working-with-quick/subscriptions.md) are one type of such operations,
+allowing you to consume real-time data updates of the data through WebSocket connections.
 This is an exemplary GraphQL schema for live updates of the emitted status events.
-It contains a subscription operation called `statusUpdates` that is gets live updates of `Status`
-events.
+It contains a subscription operation called `statusUpdates` that delivers live updates of `Status` events.
+
 ```graphql
 type Subscription {
     statusUpdates: Status @topic(name: "status")
@@ -99,7 +106,7 @@ type Position {
 Besides the live updates, single trips should also be accessible.
 A trip is the accumulation of all statuses with the same trip id.
 As this information should be queried on demand, subscriptions do not work in this case.
-GraphQL offers the `Query` operation instead.
+GraphQL offers the [Query](../getting-started/working-with-quick/query-data.md) operation instead.
 The query is called `trip` and allows to pass an id as an argument and returns the
 corresponding `Trip`.
 
@@ -119,9 +126,9 @@ type Trip {
 
 Quick introduces a custom GraphQL directive called `@topic`.
 It allows you to annotate fields and connect them to a topic.
-With that, you can define the relationship between the GraphQL schema and Kafka.
+With that, you define the relationship between the GraphQL schema and Kafka.
 
-First connect the `statusUpdates` subscription to the status topic.
+First, connect the `statusUpdates` subscription to the status topic.
 This ensures that each event written to the Kafka topic is pushed into the GraphQL WebSocket connection.
 ```graphql
 type Subscription {
@@ -135,6 +142,7 @@ It is populated with the `vehicle` topic data based on the trip's `vehicleId` va
 One major advantage of GraphQL is its flexibility.
 When querying a trip, you can decide if you indeed require the vehicle information.
 If this is not the case, the corresponding data is never loaded, and thus no overhead occurs.
+However, if the data is needed, Quick transparently joins the vehicle information into the trip.
 
 ```graphql
 type Query {
@@ -232,12 +240,14 @@ quick app deploy trip-aggregator \
 ```
 
 For more detailed information, call `quick app deploy -h`
-or [see reference](../reference/cli-commands.md#quick-app-deploy).
+or [see the reference](../reference/cli-commands.md#quick-app-deploy).
+The bakdata image registry can be found [here](https://hub.docker.com/u/bakdata).
 
 ## Go live
 
 When all resources are up, you can start to ingest data into the system.
-Quick supports the ingest through a REST-API.
+For this, checkout the [examples git repository](https://github.com/bakdata/quick-examples).
+Quick supports the [ingest through a REST-API](../getting-started/working-with-quick/ingest-data.md).
 For example, the following snippet shows a command ingesting new vehicles into the `vehicle` topic.
 
 ```shell
@@ -247,7 +257,7 @@ curl -X POST --url $QUICK_URL/ingest/vehicle \
   --data "@./simulator/data/vehicles.json"
 ```
 
-Exemplary data are contained in the [simulator subdirectory](https://github.com/bakdata/quick-examples/tree/main/carsharing/simulator).
+Example data are contained in [carsharing/simulator/data](https://github.com/bakdata/quick-examples/tree/main/carsharing/simulator).
 You may also follow the steps described there to create your own dataset.
 
 You can now start the simulation by sending data to the status topic.
@@ -279,7 +289,7 @@ subscription {
 }
 ```
 
-For example, you can run a subscription with these results:
+For example, a subscription can yield the following results:
 
 | statusId           | tripId | vehicleId | position.lat | position.lon | batteryLevel | distance |  timestamp |
 |:-------------------|:-------|:----------|-------------:|-------------:|-------------:|---------:|-----------:| 
@@ -297,7 +307,8 @@ For example, you can run a subscription with these results:
 | 9rodzbkwqllqqbc3d3 | voxul7 | v6k3ou    |    13.444397 |     52.46356 |           91 |     9592 | 1616808551 |
 | ...                | ...    | ...       |          ... |          ... |          ... |      ... |        ... |
 
-Query a single trip:
+Inspect a single trip using the following query:
+
 ```graphl
 {
   trip(id: "jvae2u") {

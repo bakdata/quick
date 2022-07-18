@@ -1,21 +1,26 @@
 # Real-time customer profiles
 
-This example demonstrates how you can use Quick to create real-time customer profiles for a music streaming service.
-The generated profiles include user metrics,
-charts of the most-streamed albums, artists and tracks,
-and recommendations based on the user's playlist.
+This example uses Quick to create real-time customer profiles for a music streaming service.
+These profiles will include user metrics, charts of the most-streamed albums, artists and tracks, and recommendations
+based on the user's playlist.
 
-You can then use Quick to visualize the real-time profiles in a front-end. 
-To see an example, you can [view the demo website](https://profile-store.d9p.io/dashboard/).
+## What this will demonstrate
 
-You can find the complete code in [Quick's example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store).
+- the use of topics, of course
+- analytics on an incoming stream
+- integration of a recommendation service
+- a global GraphQL schema forming the customer profile
+
+Visit the [demo website](https://profile-store.d9p.io/dashboard/) to see the example up and running.
+This visualizes the real-time profiles in a front-end.
+
+The code can be found in [Quick's example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store).
 The example uses the real world data set [LFM-1b](http://www.cp.jku.at/datasets/LFM-1b/).
-The Kafka Streams application is written with
-our [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap).
+The Kafka Streams application is written based on our open source [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap).
 
 ---
 
-There is also a video, explaining this example:
+Finally, there is a video explaining this example:
 <div class="video-wrapper">
 <iframe allow="accelerometer; autoplay;
                 clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
@@ -23,12 +28,11 @@ There is also a video, explaining this example:
         title="YouTube video player" width="900" height="500" ></iframe>
 </div>
 
-## Listening events
+## The Input: Listening Events
 
-Every time a customer listens to a song, the system emits a listening event containing the ids of album,
-artist and track to an Apache Kafka topic.
-The system further attaches metadata like the timestamp to the event.
-Then, a Kafka Streams application processes it for the customer profile creation.
+Every time a customer listens to a song, the system emits a listening event containing the ids of album, artist and track.
+The system additionally attaches metadata such as the timestamp to the event.
+Later, a Kafka Streams application processes it for the customer profile creation.
 
 ```json title="Exemplary listening events"
 {"userId": 402, "artistId": 7, "albumId": 17147, "trackId": 44975, "timestamp": 1568052379}
@@ -38,20 +42,22 @@ Then, a Kafka Streams application processes it for the customer profile creation
 {"userId": 1335, "artistId": 13866, "albumId": 29007, "trackId": 83201, "timestamp": 1568052385}
 ```
 
-## Set up
+## The Quick Configuration
 
-### Designing the GraphQL schema
+### The Global GraphQL Schema
 
-For modeling and querying data in this example, you first define a schema with GraphQL.
+First, define the global schema with GraphQL.
 The query called `getUserProfile` combines six metrics of the customer profile:
 
 - total listening events
 - the first and last time a user listened to a song
 - charts with user's most listened albums, artists and tracks
 
-Those charts, however, contain only ids and not the names of the corresponding music data.
-You can let Quick resolve those ids with names.
-For that, you use topics containing the mapping from id to names and then reference them in the GraphQL schema.
+Quick retrieves all that data from different topics via the `@topic` directive.
+Still, the charts contain solely ids and not the names of the corresponding music data.
+You can let Quick resolve those ids transparently.
+For that, use the topics (artists, albums, tracks) containing the mapping from ids to names and reference them in the GraphQL schema.
+The creation of the metrics topics (counts, firstlisten, lastlisten) is described below.
 
 ??? "The GraphQL user profile schema (`schema-user-profile.gql`)" 
     ```graphql
@@ -105,28 +111,27 @@ For that, you use topics containing the mapping from id to names and then refere
     ...
     ```
 
-### Quick 
+This is all you need to do to integrate data with Quick.
 
-You are now ready to process and query our data with Quick.
-To start a Quick instance, you can refer to the [getting started guide](../../getting-started/setup-quick).
+For the Quick setup, please refer to the [getting started guide](../../getting-started/setup-quick).
+To avoid redundancy, we only show the setup for integral parts here.
+You find all steps in the [justfile](https://github.com/bakdata/quick-examples/tree/main/profile-store/deployment/justfile). 
 
-To avoid redundancy, we show the setup of the integral parts.
-You find the steps for a complete deployment in the `justfile` in the [example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store/deployment/justfile). 
-
-#### Gateway
+### Gateway
 
 Create a new gateway and apply the GraphQL schema.
 
 ```shell
 quick gateway create profiles
 ```
+
 ```shell
 quick gateway apply profiles -f schema-user-profile.gql
 ```
 
-#### Topics
+### Topics
 
-Then, you create the input topics for the artist, album and track data.  
+Then, create the input topics for the artist, album and track data.
 
 ```shell
 quick topic create albums  --key long --value schema -s profiles.Item
@@ -138,14 +143,13 @@ quick topic create listeningevents --key long --value schema \
 ```
 
 The command expects the topic name and the type or schema of key and value.
-Since the topics contain complex values, you define them in the global GraphQL schema and apply that to the gateway.
-For topic creation, you won't need to specify a file, but reference them with `<gateway name>.<type name>` .
+Since the topics contain complex values, they are referenced via `<gateway name>.<type name>`.
+This uses the definition in the global GraphQL schema you previously applied to the gateway.
 
+## Analytics
 
-## Creating user profiles
-
-With gateway and input topics in place, the next step is the creation of profiles.
-Kafka Streams applications process the data and compute the respective parts of the profiles.
+With gateway and input topics in place, you can now take care of the analytics.
+Kafka Streams apps will process the data and compute the respective parts of the profiles.
 
 ### Metrics
 
@@ -153,7 +157,7 @@ The user profile has the following metrics:
 
 - first listening event
 - last listening event
-- number of listening events 
+- total number of listening events
 
 1. Create topics that later store the corresponding data:
 
@@ -162,7 +166,7 @@ The user profile has the following metrics:
     quick topic create lastlisten --key long --value long
     quick topic create counts --key long --value long
     ```
-  
+
 2. Deploy the applications:
 
     ```shell
@@ -175,12 +179,12 @@ The user profile has the following metrics:
 
 Quick supports running dockerized applications.
 You can deploy those applications with the command `quick app deploy [...]`.
-For more detailed information, call `quick app deploy -h`
-or [see reference](../reference/cli-commands.md#quick-app-deploy).
+For details, call `quick app deploy -h` or see the [reference](../reference/cli-commands.md#quick-app-deploy).
+The bakdata image registry can be found [here](https://hub.docker.com/u/bakdata).
 
 ### Charts
 
-Similar to the metrics, you can now add support for the user charts of the profile.
+Similar to the metrics, you can add support for a user's charts in the profile.
 
 1. Create the topics:
     ```shell
@@ -203,11 +207,10 @@ Similar to the metrics, you can now add support for the user charts of the profi
     --args input-topics=listeningevents output-topic=topartists productive=false
     ```
 
+### Recommendations
 
-## Building recommendations
-
-The user profiles are missing the last part: the recommendations.
-You can add to the GraphQL schema the example query `getArtistRecommendations`.
+Finally, the recommendations are integrated into the profiles.
+Therefore, add the `getArtistRecommendations` query, which is backed by an external service, to the schema.
 
 ??? "Schema extension with `getArtistRecommendations`"
     ```graphql
@@ -242,23 +245,23 @@ You can add to the GraphQL schema the example query `getArtistRecommendations`.
     }
     ```
 
-It takes a couple parameters:
+`getArtistRecommendations` takes several parameters:
 
-- mandatory is only `userId`.
-  It tells the recommendation service for which user it should compute the recommendations.
-- `field` defines which type of recommendation you expect: `ARTIST`, `ALBUM` or `TRACK`.
-  The schema assumes this to be `ARTIST`.
+- `userId` is mandatory:
+  It tells the service for which user it should compute the recommendations.
+- `field` defines which type of recommendation to create:
+  `ARTIST`, `ALBUM` or `TRACK` is possible.
+  The schema sets it to `ARTIST` by default.
 - The remaining parameters come from the underlying recommendation algorithm [SALSA](https://github.com/twitter/GraphJet) 
   and have sensible default values.
 
-Further, you can see the `@rest` of Quick directive.
-It lets you include any type of REST service in your GraphQL schema.
-In this example,
-the recommendation service returns the result for a particular user id as a list of ids via REST.
-Since the idea is to recommend artist names,
-you can resolve the ids from the REST service with the name from the `artistis` topic in the type `Recommendation`.
+To leverage the external service, you can use the `@rest` directive.
+This directive integrates a REST services into your global schema.
+In this example, the recommendation service returns the result for a particular user id as a list of ids.
+Quick resolves these ids with the names from the `artistis` topic in the type `recommendation`.
 
 You can deploy the recommendation service via Quick as well:
+
 ```shell
 quick app deploy recommender \
   --registry bakdata \
@@ -268,12 +271,9 @@ quick app deploy recommender \
   --args input-topics=listeningevents productive=false 
 ```
 
+Finally, everything is in place to query the artist recommendation.
 
-### Querying recommendations
-
-Now everything is in place to query the artist recommendation.
-
-```shell
+```shell title="Example query"
 query{
   getArtistRecommendations(userId: 32226961){
     recommendations{
@@ -284,7 +284,7 @@ query{
 }
 ```
 
-```json title="Exemplary results"
+```json title="Example results"
 {
   "data": {
     "getArtistRecommendations": {
