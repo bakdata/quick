@@ -55,6 +55,13 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     @Nullable
     public ResponseBody makeRequest(final String url) {
         final Request request = new Request.Builder().url(url).get().build();
+        /*
+        The reason why the classic try-catch statement and not the try-with-resources is used here,
+        is the fact that the try-with-resources implicitly closes the processed resource in an automatically
+        added (and not visible) finally block. This means that if we used it here, we wouldn't be able
+        to read from the InputStream in the caller as it would have been already closed by the try-with-resources
+        in the callee.
+         */
         try {
             final Response response = this.client.newCall(request).execute();
             if (response.code() == HttpStatus.NOT_FOUND.getCode()) {

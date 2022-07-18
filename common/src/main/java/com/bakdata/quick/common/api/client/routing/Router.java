@@ -30,6 +30,7 @@ public interface Router<K> {
      * Fetches the host that corresponds to the partition for a given key.
      *
      * @param key key
+     *
      * @return a replica-host where partitions for a given key are stored.
      */
     MirrorHost findHost(K key);
