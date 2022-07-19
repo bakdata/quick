@@ -27,7 +27,7 @@ Finally, there is a video explaining this example:
         title="YouTube video player" width="900" height="500" ></iframe>
 </div>
 
-## Input: Listening Events
+## Input: Listening events
 
 Every time a customer listens to a song, the system emits a listening event containing the ids of album, artist and track.
 The system additionally attaches metadata such as the timestamp to the event.
@@ -41,9 +41,9 @@ Later, a Kafka Streams application processes it for the customer profile creatio
 {"userId": 1335, "artistId": 13866, "albumId": 29007, "trackId": 83201, "timestamp": 1568052385}
 ```
 
-## Quick Configuration
+## Quick configuration
 
-### Global GraphQL Schema
+### Global GraphQL schema
 
 First, define the global schema with GraphQL.
 The query called `getUserProfile` combines six metrics for the customer profile:
