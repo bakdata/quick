@@ -1,16 +1,21 @@
 # Real-time monitoring and analytics
 
-This use case demonstrates how Quick can be used to process data streams
-and consume the results to build live dashboards.
+This use case demonstrates how Quick can be used to process data streams and consume the results to build live dashboards.
 For that, we consider the example of a car-sharing company.
 Their fleet of cars drives around the city.
-All of them emit statuses that, among others, include the trip's and vehicle's ids
-as well as the car's current position and battery level.
+All of them emit statuses that, among others, include the trip's and vehicle's ids as well as the car's current position and battery level.
+
+## What this will demonstrate
+
+- aggregations on an incoming stream
+- how to join topic data at query-time
+- subscriptions in action
+- the ingest REST API used by an example producer
+
 A [dashboard](https://carsharing.d9p.io/) displays this information on an interactive map.
 
 [![carsharing-app](../../assets/images/carsharing.png)](https://carsharing.d9p.io/)
 
----
 <div class="video-wrapper">
 <iframe allow="accelerometer; autoplay;
                 clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
@@ -18,14 +23,6 @@ A [dashboard](https://carsharing.d9p.io/) displays this information on an intera
         title="YouTube video player" width="900" height="500" ></iframe>
 </div>
 
---- 
-
-## What this will demonstrate
-
-- the deployment of an aggregating application
-- how to join topic data at query-time
-- the usage of subscriptions
-- the ingestion of demo data into your system
 
 ## Apache Kafka and data processing
 

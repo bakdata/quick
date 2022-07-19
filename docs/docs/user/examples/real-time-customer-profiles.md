@@ -18,7 +18,6 @@ The code can be found in [Quick's example repository](https://github.com/bakdata
 The example uses the real world data set [LFM-1b](http://www.cp.jku.at/datasets/LFM-1b/).
 The Kafka Streams application is written based on our open source [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap).
 
----
 
 Finally, there is a video explaining this example:
 <div class="video-wrapper">
@@ -28,7 +27,7 @@ Finally, there is a video explaining this example:
         title="YouTube video player" width="900" height="500" ></iframe>
 </div>
 
-## The Input: Listening Events
+## Input: Listening Events
 
 Every time a customer listens to a song, the system emits a listening event containing the ids of album, artist and track.
 The system additionally attaches metadata such as the timestamp to the event.
@@ -42,12 +41,12 @@ Later, a Kafka Streams application processes it for the customer profile creatio
 {"userId": 1335, "artistId": 13866, "albumId": 29007, "trackId": 83201, "timestamp": 1568052385}
 ```
 
-## The Quick Configuration
+## Quick Configuration
 
-### The Global GraphQL Schema
+### Global GraphQL Schema
 
 First, define the global schema with GraphQL.
-The query called `getUserProfile` combines six metrics of the customer profile:
+The query called `getUserProfile` combines six metrics for the customer profile:
 
 - total listening events
 - the first and last time a user listened to a song
@@ -160,7 +159,6 @@ The user profile has the following metrics:
 - total number of listening events
 
 1. Create topics that later store the corresponding data:
-
     ```shell
     quick topic create firstlisten --key long --value long
     quick topic create lastlisten --key long --value long
@@ -168,7 +166,6 @@ The user profile has the following metrics:
     ```
 
 2. Deploy the applications:
-
     ```shell
     quick app deploy firstlisten \
     --registry bakdata \
