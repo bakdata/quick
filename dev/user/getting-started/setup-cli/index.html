@@ -1101,7 +1101,9 @@ Before you can start to work with Quick, you will have to set it up.</p>
 <p>The first step is to install the Quick CLI. 
 You can do this via pip.
 Quick CLI works with Python versions 3.7-3.9:
-<div class="highlight"><pre><span></span><code>pip install quick-cli<span class="o">==</span><span class="s2">&quot;0.7.0&quot;</span>
+<div class="highlight"><pre><span></span><code>pip install --index-url https://test.pypi.org/simple/ <span class="se">\</span>
+     --extra-index-url https://pypi.org/simple/ <span class="se">\</span>
+     quick-cli
 </code></pre></div></p>
 <p>The command <code>quick -v</code> lets you verify that the installation was successful.</p>
 <h2 id="context-configuration">Context configuration<a class="headerlink" href="#context-configuration" title="Permanent link">&para;</a></h2>
