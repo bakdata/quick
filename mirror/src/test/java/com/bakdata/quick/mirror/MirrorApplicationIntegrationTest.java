@@ -89,7 +89,7 @@ class MirrorApplicationIntegrationTest {
                 .atMost(Duration.ofSeconds(12))
                 .untilAsserted(() -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body(equalTo("{\"value\":\"value1\"}")));
         app.close();
         app.getStreams().cleanUp();
