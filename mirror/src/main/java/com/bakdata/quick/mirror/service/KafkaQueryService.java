@@ -30,9 +30,12 @@ import com.bakdata.quick.common.util.QuickConstants;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
-import java.util.ArrayList;
+import io.reactivex.schedulers.Schedulers;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +66,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private final TypeResolver<K> keyResolver;
     private final StoreQueryParameters<ReadOnlyKeyValueStore<K, V>> storeQueryParameters;
 
-    private boolean updateCache = false;
-
     /**
      * Injectable constructor.
      *
@@ -88,20 +89,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     @Override
     public Single<HttpResponse<MirrorValue<V>>> get(final String rawKey) {
-        V value = internalGet(rawKey);
-        HttpResponse<MirrorValue<V>> response;
-        if (updateCache) {
-            response = HttpResponse.created(new MirrorValue<>(value)).header(
-                QuickConstants.getUpdateMappingHeader(), QuickConstants.getCacheUpdateMessage()
-            );
-            updateCache = false;
-        } else {
-            response = HttpResponse.created(new MirrorValue<>(value));
-        }
-        return Single.just(response);
-    }
-
-    private V internalGet(final String rawKey) {
         final K key = this.keyResolver.fromString(rawKey);
         final KeyQueryMetadata metadata;
         try {
@@ -121,8 +108,9 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
             log.info("Forward request to {}", metadata.activeHost());
-            updateCache = true;
-            return this.fetch(metadata.activeHost(), key);
+            // The cast in the second map function is possible because MutableHttpResponse is of the same type
+            // as HttpResponse.
+            return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).subscribeOn(Schedulers.io());
         }
 
         final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
@@ -136,33 +124,40 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         if (value == null) {
             throw new NotFoundException(String.format("Key %s does not exist in %s", rawKey, this.topicName));
         }
-        return value;
+
+        return Single.just(HttpResponse.created(new MirrorValue<>(value)));
     }
 
     @Override
     public Single<HttpResponse<MirrorValue<List<V>>>> getValues(final List<String> keys) {
-
-        MirrorValue<List<V>> mirrorValue =
-            new MirrorValue<>(keys.stream().map(this::internalGet).collect(Collectors.toList()));
-        if (updateCache) {
-            updateCache = false;
-            return Single.just(HttpResponse.created(mirrorValue).header(
-                QuickConstants.getUpdateMappingHeader(), QuickConstants.getCacheUpdateMessage()));
-        }
-        return Single.just(HttpResponse.created(mirrorValue));
+        return Observable.fromIterable(keys)
+            .flatMapSingle(this::get)
+            .toList()
+            .map(listOfResponses -> {
+                final boolean headerSet = listOfResponses.stream()
+                    .anyMatch(response -> response.header(QuickConstants.getUpdateMappingHeader()) != null);
+                final List<V> values = listOfResponses.stream()
+                    .map(response -> Objects.requireNonNull(response.body()).getValue()).collect(Collectors.toList());
+                if (headerSet) {
+                    return HttpResponse.created(new MirrorValue<>(values)).header("x", "y");
+                } else {
+                    return HttpResponse.created(new MirrorValue<>(values));
+                }
+            });
     }
 
     @Override
     public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
         // For now, we only consider the local state!
         final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
-        List<V> values = new ArrayList<>();
-        store.all().forEachRemaining(keyValue -> values.add(keyValue.value));
-        MirrorValue<List<V>> mirrorValue = new MirrorValue<>(values);
-        return Single.just(HttpResponse.created(mirrorValue));
+        return Flowable.fromIterable(store::all)
+            .map(keyValue -> keyValue.value)
+            .toList()
+            .map(e -> HttpResponse.created(new MirrorValue<>(e)));
+
     }
 
-    private V fetch(final HostInfo replicaHostInfo, final K key) {
+    private HttpResponse<MirrorValue<V>> fetch(final HostInfo replicaHostInfo, final K key) {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
         final DefaultMirrorClient<K, V> mirrorClient =
@@ -174,6 +169,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         if (value == null) {
             throw new NotFoundException("Key not found");
         }
-        return value;
+        return HttpResponse.created(new MirrorValue<>(value)).header(
+            QuickConstants.getUpdateMappingHeader(), QuickConstants.getCacheUpdateMessage());
     }
 }
