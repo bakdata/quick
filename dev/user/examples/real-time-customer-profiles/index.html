@@ -713,23 +713,23 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-input-listening-events" class="md-nav__link">
-    The Input: Listening Events
+  <a href="#input-listening-events" class="md-nav__link">
+    Input: Listening events
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-quick-configuration" class="md-nav__link">
-    The Quick Configuration
+  <a href="#quick-configuration" class="md-nav__link">
+    Quick configuration
   </a>
   
-    <nav class="md-nav" aria-label="The Quick Configuration">
+    <nav class="md-nav" aria-label="Quick configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-global-graphql-schema" class="md-nav__link">
-    The Global GraphQL Schema
+  <a href="#global-graphql-schema" class="md-nav__link">
+    Global GraphQL schema
   </a>
   
 </li>
@@ -1138,23 +1138,23 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-input-listening-events" class="md-nav__link">
-    The Input: Listening Events
+  <a href="#input-listening-events" class="md-nav__link">
+    Input: Listening events
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-quick-configuration" class="md-nav__link">
-    The Quick Configuration
+  <a href="#quick-configuration" class="md-nav__link">
+    Quick configuration
   </a>
   
-    <nav class="md-nav" aria-label="The Quick Configuration">
+    <nav class="md-nav" aria-label="Quick configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-global-graphql-schema" class="md-nav__link">
-    The Global GraphQL Schema
+  <a href="#global-graphql-schema" class="md-nav__link">
+    Global GraphQL schema
   </a>
   
 </li>
@@ -1246,7 +1246,6 @@ This visualizes the real-time profiles in a front-end.</p>
 <p>The code can be found in <a href="https://github.com/bakdata/quick-examples/tree/main/profile-store">Quick's example repository</a>.
 The example uses the real world data set <a href="http://www.cp.jku.at/datasets/LFM-1b/">LFM-1b</a>.
 The Kafka Streams application is written based on our open source <a href="https://github.com/bakdata/streams-bootstrap">streams-bootstrap library</a>.</p>
-<hr />
 <p>Finally, there is a video explaining this example:</p>
 <div class="video-wrapper">
 <iframe allow="accelerometer; autoplay;
@@ -1255,7 +1254,7 @@ The Kafka Streams application is written based on our open source <a href="https
         title="YouTube video player" width="900" height="500" ></iframe>
 </div>
 
-<h2 id="the-input-listening-events">The Input: Listening Events<a class="headerlink" href="#the-input-listening-events" title="Permanent link">&para;</a></h2>
+<h2 id="input-listening-events">Input: Listening events<a class="headerlink" href="#input-listening-events" title="Permanent link">&para;</a></h2>
 <p>Every time a customer listens to a song, the system emits a listening event containing the ids of album, artist and track.
 The system additionally attaches metadata such as the timestamp to the event.
 Later, a Kafka Streams application processes it for the customer profile creation.</p>
@@ -1265,10 +1264,10 @@ Later, a Kafka Streams application processes it for the customer profile creatio
 <span class="p">{</span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2843</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;artistId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">71</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;albumId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">315</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;trackId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2425</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1568052383</span><span class="p">}</span><span class="w"></span>
 <span class="p">{</span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1335</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;artistId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">13866</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;albumId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">29007</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;trackId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">83201</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1568052385</span><span class="p">}</span><span class="w"></span>
 </code></pre></div>
-<h2 id="the-quick-configuration">The Quick Configuration<a class="headerlink" href="#the-quick-configuration" title="Permanent link">&para;</a></h2>
-<h3 id="the-global-graphql-schema">The Global GraphQL Schema<a class="headerlink" href="#the-global-graphql-schema" title="Permanent link">&para;</a></h3>
+<h2 id="quick-configuration">Quick configuration<a class="headerlink" href="#quick-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="global-graphql-schema">Global GraphQL schema<a class="headerlink" href="#global-graphql-schema" title="Permanent link">&para;</a></h3>
 <p>First, define the global schema with GraphQL.
-The query called <code>getUserProfile</code> combines six metrics of the customer profile:</p>
+The query called <code>getUserProfile</code> combines six metrics for the customer profile:</p>
 <ul>
 <li>total listening events</li>
 <li>the first and last time a user listened to a song</li>
@@ -1365,20 +1364,20 @@ Kafka Streams apps will process the data and compute the respective parts of the
 <p>total number of listening events</p>
 </li>
 <li>
-<p>Create topics that later store the corresponding data:</p>
-<div class="highlight"><pre><span></span><code>quick topic create firstlisten --key long --value long
+<p>Create topics that later store the corresponding data:
+    <div class="highlight"><pre><span></span><code>quick topic create firstlisten --key long --value long
 quick topic create lastlisten --key long --value long
 quick topic create counts --key long --value long
-</code></pre></div>
+</code></pre></div></p>
 </li>
 <li>
-<p>Deploy the applications:</p>
-<div class="highlight"><pre><span></span><code>quick app deploy firstlisten <span class="se">\</span>
+<p>Deploy the applications:
+    <div class="highlight"><pre><span></span><code>quick app deploy firstlisten <span class="se">\</span>
 --registry bakdata <span class="se">\</span>
 --image quick-demo-profile-listenings-activity <span class="se">\</span>
 --tag <span class="s2">&quot;1.0.0&quot;</span> <span class="se">\</span>
 --args input-topics<span class="o">=</span>listeningevents, output-topic<span class="o">=</span>firstlisten, <span class="nv">kind</span><span class="o">=</span>FIRST, <span class="nv">productive</span><span class="o">=</span><span class="nb">false</span>
-</code></pre></div>
+</code></pre></div></p>
 </li>
 </ul>
 <p>Quick supports running dockerized applications.

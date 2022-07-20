@@ -1205,15 +1205,19 @@
 
 
 <h1 id="real-time-monitoring-and-analytics">Real-time monitoring and analytics<a class="headerlink" href="#real-time-monitoring-and-analytics" title="Permanent link">&para;</a></h1>
-<p>This use case demonstrates how Quick can be used to process data streams
-and consume the results to build live dashboards.
+<p>This use case demonstrates how Quick can be used to process data streams and consume the results to build live dashboards.
 For that, we consider the example of a car-sharing company.
 Their fleet of cars drives around the city.
-All of them emit statuses that, among others, include the trip's and vehicle's ids
-as well as the car's current position and battery level.
-A <a href="https://carsharing.d9p.io/">dashboard</a> displays this information on an interactive map.</p>
+All of them emit statuses that, among others, include the trip's and vehicle's ids as well as the car's current position and battery level.</p>
+<h2 id="what-this-will-demonstrate">What this will demonstrate<a class="headerlink" href="#what-this-will-demonstrate" title="Permanent link">&para;</a></h2>
+<ul>
+<li>aggregations on an incoming stream</li>
+<li>how to join topic data at query-time</li>
+<li>subscriptions in action</li>
+<li>the ingest REST API used by an example producer</li>
+</ul>
+<p>A <a href="https://carsharing.d9p.io/">dashboard</a> displays this information on an interactive map.</p>
 <p><a href="https://carsharing.d9p.io/"><img alt="carsharing-app" src="../../../assets/images/carsharing.png" /></a></p>
-<hr />
 <div class="video-wrapper">
 <iframe allow="accelerometer; autoplay;
                 clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
@@ -1221,14 +1225,6 @@ A <a href="https://carsharing.d9p.io/">dashboard</a> displays this information o
         title="YouTube video player" width="900" height="500" ></iframe>
 </div>
 
-<hr />
-<h2 id="what-this-will-demonstrate">What this will demonstrate<a class="headerlink" href="#what-this-will-demonstrate" title="Permanent link">&para;</a></h2>
-<ul>
-<li>the deployment of an aggregating application</li>
-<li>how to join topic data at query-time</li>
-<li>the usage of subscriptions</li>
-<li>the ingestion of demo data into your system</li>
-</ul>
 <h2 id="apache-kafka-and-data-processing">Apache Kafka and data processing<a class="headerlink" href="#apache-kafka-and-data-processing" title="Permanent link">&para;</a></h2>
 <p>Quick is based on Apache Kafka.
 It organizes and stores event streams in topics.
