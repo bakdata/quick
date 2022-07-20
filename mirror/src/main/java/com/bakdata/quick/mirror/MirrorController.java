@@ -48,7 +48,7 @@ public class MirrorController<K, V> {
      * Fetches values for the given id.
      */
     @Get("/{key}")
-    public Single<HttpResponse<MirrorValue<V>>> get(@PathVariable("key") final String keyString) {
+    public Single<? extends HttpResponse<MirrorValue<V>>> get(@PathVariable("key") final String keyString) {
         log.debug("Request for id {}", keyString);
         return this.queryService.get(keyString);
     }
