@@ -252,9 +252,6 @@ Quick comes with its Helm chart for installing it in Kubernetes clusters.
 	  ssl: False
 	  entrypoint: "web"
 
-	avro:
-	  namespace: "quick"
-
 	manager:
 	  name: "quick-manager"
 	  replicaCount: 1
@@ -273,6 +270,8 @@ Quick comes with its Helm chart for installing it in Kubernetes clusters.
 	  QUICK_TOPIC_REGISTRY_REPLICATION_FACTOR: "1"
 	  QUICK_TOPIC_REGISTRY_SERVICE_NAME: internal-topic-registry
 	  QUICK_TOPIC_REGISTRY_TOPIC_NAME: __topic-registry
+	  QUICK_SCHEMA_FORMAT: "Avro"
+	  QUICK_SCHEMA_AVRO_NAMESPACE: "quick"
 	```
 
 You can check the status of Quick by running `kubectl get pods -n quick`.
