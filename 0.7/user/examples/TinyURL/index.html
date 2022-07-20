@@ -1,0 +1,1407 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://d9p.io/0.7/user/examples/TinyURL/">
+      
+      <link rel="icon" href="../../../assets/images/favicon.webp">
+      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-8.2.5">
+    
+    
+      
+        <title>TinyURL - Quick</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.2d9f7617.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.e6a45f82.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#000000">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="black" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tinyurl" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Quick" class="md-header__button md-logo" aria-label="Quick" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 89">
+  <path d="M3.136,17.387l0,42.932l42.932,21.467l-42.932,-64.399Z" />
+  <path d="M21.91,8l42.933,64.398l-18.775,9.388l-42.932,-64.399l18.774,-9.387Z" style="fill-opacity: 0.5" />
+  <path d="M67.535,17.387l-27.262,18.156l21.878,32.818l5.384,2.691l0,-53.665Z" />
+  <path d="M67.535,17.387l0,53.666l18.774,-9.388l0,-53.665l-18.774,9.387Z" style="fill-opacity: 0.25" />
+</svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Quick
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              TinyURL
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/bakdata/quick/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../.." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link md-tabs__link--active">
+        User guide
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../developer/architecture/" class="md-tabs__link">
+        Developer guide
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../changelog/" class="md-tabs__link">
+      Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../roadmap/" class="md-tabs__link">
+      Roadmap
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Quick" class="md-nav__button md-logo" aria-label="Quick" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 89">
+  <path d="M3.136,17.387l0,42.932l42.932,21.467l-42.932,-64.399Z" />
+  <path d="M21.91,8l42.933,64.398l-18.775,9.388l-42.932,-64.399l18.774,-9.387Z" style="fill-opacity: 0.5" />
+  <path d="M67.535,17.387l-27.262,18.156l21.878,32.818l5.384,2.691l0,-53.665Z" />
+  <path d="M67.535,17.387l0,53.666l18.774,-9.388l0,-53.665l-18.774,9.387Z" style="fill-opacity: 0.25" />
+</svg>
+
+    </a>
+    Quick
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bakdata/quick/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../">User guide</a>
+          
+            <label for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="User guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          User guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_2" type="checkbox" id="__nav_2_2" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../getting-started/">Getting started</a>
+          
+            <label for="__nav_2_2">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Getting started" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          Getting started
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/setup-quick/" class="md-nav__link">
+        Setup Quick
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/setup-cli/" class="md-nav__link">
+        Setup Quick CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_2_4" type="checkbox" id="__nav_2_2_4" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../getting-started/working-with-quick/">Working with Quick</a>
+          
+            <label for="__nav_2_2_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Working with Quick" data-md-level="3">
+        <label class="md-nav__title" for="__nav_2_2_4">
+          <span class="md-nav__icon md-icon"></span>
+          Working with Quick
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/gateway/" class="md-nav__link">
+        Gateway
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/topics/" class="md-nav__link">
+        Topics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/ingest-data/" class="md-nav__link">
+        Ingest data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/query-data/" class="md-nav__link">
+        Query data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/subscriptions/" class="md-nav__link">
+        Subscriptions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/teardown-resources/" class="md-nav__link">
+        Teardown resources
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_3" type="checkbox" id="__nav_2_3" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">Examples</a>
+          
+            <label for="__nav_2_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_3">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          TinyURL
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        TinyURL
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-will-demonstrate" class="md-nav__link">
+    What this will demonstrate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-and-installation" class="md-nav__link">
+    Setup and installation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ingest-and-fetch-tinyurls" class="md-nav__link">
+    Ingest and fetch TinyURLs
+  </a>
+  
+    <nav class="md-nav" aria-label="Ingest and fetch TinyURLs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-user-inputs" class="md-nav__link">
+    Query user inputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-results" class="md-nav__link">
+    Query results
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#teardown-resources" class="md-nav__link">
+    Teardown resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../real-time-monitoring/" class="md-nav__link">
+        Real-time monitoring and analytics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../real-time-customer-profiles/" class="md-nav__link">
+        Real-time customer profiles
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_4" type="checkbox" id="__nav_2_4" >
+      
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_2_4">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_4">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/graphql-support/" class="md-nav__link">
+        GraphQL support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli-commands/" class="md-nav__link">
+        Quick CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/helm-chart/" class="md-nav__link">
+        Quick Helm chart
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        Quick configuration
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/dependency-versions/" class="md-nav__link">
+        Dependency versions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/breaking-changes/" class="md-nav__link">
+        Breaking changes
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Developer guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Developer guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Developer guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/development/" class="md-nav__link">
+        Development
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/operations/" class="md-nav__link">
+        Operations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/cli/" class="md-nav__link">
+        CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/" class="md-nav__link">
+        Roadmap
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-will-demonstrate" class="md-nav__link">
+    What this will demonstrate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-and-installation" class="md-nav__link">
+    Setup and installation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ingest-and-fetch-tinyurls" class="md-nav__link">
+    Ingest and fetch TinyURLs
+  </a>
+  
+    <nav class="md-nav" aria-label="Ingest and fetch TinyURLs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-user-inputs" class="md-nav__link">
+    Query user inputs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-results" class="md-nav__link">
+    Query results
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#teardown-resources" class="md-nav__link">
+    Teardown resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/bakdata/quick/edit/master/docs/user/examples/TinyURL.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+
+<h1 id="tinyurl">TinyURL<a class="headerlink" href="#tinyurl" title="Permanent link">&para;</a></h1>
+<p>TinyURL is an application that shortens any given URL to a tiny one.
+For instance, shortening URLs is helpful for people posting on Twitter.
+This example shows a step-by-step guide on how to run your TinyURL application with Quick.</p>
+<h2 id="what-this-will-demonstrate">What this will demonstrate<a class="headerlink" href="#what-this-will-demonstrate" title="Permanent link">&para;</a></h2>
+<ul>
+<li>the use of topics without duplicates</li>
+<li>the deployment of a simple topology running an analytics app from Docker Hub</li>
+<li>the creation and setup of a gateway</li>
+<li>the retrieval of user input (tiny URLs) and analytics results (token lookup count)</li>
+</ul>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<ul>
+<li>A running Quick instance.
+  See the <a href="../../getting-started/setup-quick/">Setup Quick</a> section.</li>
+<li>You should have <a href="https://github.com/bakdata/quick-cli">quick-cli</a> installed and initialized.
+  See the <a href="../../getting-started/setup-cli/">Setup Quick CLI</a> section.</li>
+</ul>
+<h2 id="setup-and-installation">Setup and installation<a class="headerlink" href="#setup-and-installation" title="Permanent link">&para;</a></h2>
+<p>Create a new gateway called <code>tiny-url-gateway</code>:
+<div class="highlight"><pre><span></span><code>quick gateway create tiny-url-gateway
+</code></pre></div></p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>When you create a gateway, it might take some time until the gateway is running.</p>
+</div>
+<p>Apply the GraphQL schema on the <code>tiny-url-gateway</code> by using the following command:
+<div class="highlight"><pre><span></span><code>quick gateway apply tiny-url-gateway -f schema.gql
+</code></pre></div></p>
+<details>
+<summary>The TinyUrl's gateway schema (<code>schema.gql</code>)</summary>
+<div class="highlight"><span class="filename">schema.gql</span><pre><span></span><code>  <span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
+      <span class="n">fetchCountOfToken</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="no">String</span><span class="p">)</span><span class="err">:</span> <span class="n">TinyUrlCount</span>
+      <span class="nl">fetchAll</span><span class="p">:</span> <span class="err">[</span><span class="n">TinyUrl</span><span class="err">]</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;tiny-url&quot;</span><span class="p">)</span>
+  <span class="p">}</span>
+
+  <span class="k">type</span> <span class="err">TinyUrl</span> <span class="p">{</span>
+      <span class="nl">token</span><span class="p">:</span> <span class="n">String</span><span class="err">!</span>
+      <span class="nl">url</span><span class="p">:</span> <span class="n">String</span><span class="err">!</span>
+  <span class="p">}</span>
+
+  <span class="k">type</span> <span class="err">TinyUrlCount</span> <span class="p">{</span>
+      <span class="nl">tinyUrl</span><span class="p">:</span> <span class="n">TinyUrl</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;tiny-url&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;token&quot;</span><span class="p">)</span>
+      <span class="nl">count</span><span class="p">:</span> <span class="n">Long</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;count-fetch&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;token&quot;</span><span class="p">)</span>
+  <span class="p">}</span>
+</code></pre></div>
+</details>
+<p>Create a new topic called <code>tiny-url</code>.
+This topic stores the tokens as its key along with the URLs as its value.
+<div class="highlight"><pre><span></span><code>quick topic create tiny-url --key string --value schema --schema tiny-url-gateway.TinyUrl --immutable
+</code></pre></div></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code>--immutable</code> flag. This flag determines that the topic is immutable, so there will be no duplicate keys.</p>
+</div>
+<p>We use a simple Kafka streams application that aggregates the keys in the <code>track-fetch</code> topic.
+In other words, the application counts how many times the users fetch the TinyURLs.</p>
+<p>You can find the source code of the counter application <a href="https://github.com/bakdata/quick-examples/tree/main/tiny-url/counter">in our GitHub repository</a>.
+The diagram below shows the topology of the Kafka streams application.</p>
+<p>The topology uses a source topic called <code>track-fetch</code> and a sink topic called <code>count-fetch</code>:
+<img alt="TinyURL Topology" src="../../../assets/images/tinyurl-topology.png" /></p>
+<p>Create the two topics <code>track-fetch</code> and <code>count-fetch</code> with the following commands:
+<div class="highlight"><pre><span></span><code>quick topic create track-fetch --key string --value string <span class="o">&amp;&amp;</span>
+quick topic create count-fetch --key string --value long
+</code></pre></div></p>
+<p>In the last step, you can use Quick to deploy your application:
+<div class="highlight"><pre><span></span><code>quick app deploy tiny-url-counter <span class="se">\</span>
+    --registry bakdata <span class="se">\</span>
+    --image quick-demo-tinyurl <span class="se">\</span>
+    --tag <span class="m">1</span>.0.0 <span class="se">\</span>
+    --args input-topics<span class="o">=</span>track-fetch output-topic<span class="o">=</span>count-fetch <span class="nv">productive</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div></p>
+<h2 id="ingest-and-fetch-tinyurls">Ingest and fetch TinyURLs<a class="headerlink" href="#ingest-and-fetch-tinyurls" title="Permanent link">&para;</a></h2>
+<p>After successfully setting up the application, topics, and gateway, it's time to create a TinyURL, a URL associated with its token.
+To do so, you just ingest a key/value (token as the key and URL as the value) in the <code>tiny-url</code> topic:
+<div class="highlight"><pre><span></span><code>curl --request POST --url <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/ingest/tiny-url/&quot;</span> <span class="se">\</span>
+  --header <span class="s1">&#39;content-type: application/json&#39;</span> <span class="se">\</span>
+  --header <span class="s2">&quot;X-API-Key: </span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span> <span class="se">\</span>
+  --data <span class="s1">&#39;@./tiny-urls.json&#39;</span>
+</code></pre></div></p>
+<details>
+<summary>The TinyUrl's example data (<code>tiny-urls.json</code>)</summary>
+<div class="highlight"><span class="filename">tiny-urls.json</span><pre><span></span><code><span class="w">   </span><span class="p">[</span><span class="w"></span>
+<span class="w">       </span><span class="p">{</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d9p&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">               </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d9p&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">               </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://www.d9p.io&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="p">}</span><span class="w"></span>
+<span class="w">       </span><span class="p">},</span><span class="w"></span>
+<span class="w">       </span><span class="p">{</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bak&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">               </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bak&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">               </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://bakdata.com/&quot;</span><span class="w"></span>
+<span class="w">           </span><span class="p">}</span><span class="w"></span>
+<span class="w">       </span><span class="p">}</span><span class="w"></span>
+<span class="w">   </span><span class="p">]</span><span class="w"></span>
+</code></pre></div>
+</details>
+<p>Now you can simulate the tracking of a user's URL fetch by the URL token. Run the command below:
+<div class="highlight"><pre><span></span><code>curl --request POST --url <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/ingest/track-fetch/&quot;</span> <span class="se">\</span>
+  --header <span class="s1">&#39;content-type: application/json&#39;</span> <span class="se">\</span>
+  --header <span class="s2">&quot;X-API-Key: </span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span> <span class="se">\</span>
+  --data <span class="s1">&#39;{&quot;key&quot;: &quot;d9p&quot;, &quot;value&quot;: &quot;&quot;}&#39;</span>
+</code></pre></div></p>
+<p>Then, the <code>quick-demo-tinyurl</code> app counts how many times the same key was ingested into the topic <code>track-fetch</code>
+and outputs the number as a value in the output topic <code>count-fetch</code>.</p>
+<h3 id="query-user-inputs">Query user inputs<a class="headerlink" href="#query-user-inputs" title="Permanent link">&para;</a></h3>
+<p>You can query the all the ingested TinyUrls using the query below:
+<div class="highlight"><pre><span></span><code><span class="k">query</span> <span class="p">{</span>
+    <span class="n">fetchAll</span> <span class="p">{</span>
+        <span class="n">token</span>
+        <span class="n">url</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<h3 id="query-results">Query results<a class="headerlink" href="#query-results" title="Permanent link">&para;</a></h3>
+<p>Imagine users fetched the token <code>d9p</code> URL twice.
+<a href="../../getting-started/working-with-quick/query-data/">Query</a> the data and see the results:</p>
+<div class="highlight"><pre><span></span><code><span class="k">query</span> <span class="p">{</span>
+    <span class="n">fetchCountOfToken</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="s">&quot;d9p&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">tinyUrl</span> <span class="p">{</span>
+            <span class="n">url</span>
+        <span class="p">}</span>
+        <span class="n">count</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The output should be:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;fetchCountOfToken&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://www.d9p.io&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+<h2 id="teardown-resources">Teardown resources<a class="headerlink" href="#teardown-resources" title="Permanent link">&para;</a></h2>
+<p>To delete all the resources, follow these steps:</p>
+<p>Delete counter application:
+<div class="highlight"><pre><span></span><code>quick app delete tiny-url-counter
+</code></pre></div>
+Delete topics:
+<div class="highlight"><pre><span></span><code>quick topic delete tiny-url <span class="o">&amp;&amp;</span> 
+quick topic delete track-fetch <span class="o">&amp;&amp;</span> 
+quick topic delete count-fetch
+</code></pre></div>
+Delete gateway:
+<div class="highlight"><pre><span></span><code>quick gateway delete tiny-url-gateway
+</code></pre></div></p>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../" class="md-footer__link md-footer__link--prev" aria-label="Previous: Examples" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Examples
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../real-time-monitoring/" class="md-footer__link md-footer__link--next" aria-label="Next: Real-time monitoring and analytics" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Real-time monitoring and analytics
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2022 bakdata
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.tabs", "navigation.indexes", "content.code.annotate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../../assets/javascripts/workers/search.bd0b6b67.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.467223ff.min.js"></script>
+      
+    
+  </body>
+</html>

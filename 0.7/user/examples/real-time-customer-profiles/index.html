@@ -1,0 +1,1582 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://d9p.io/0.7/user/examples/real-time-customer-profiles/">
+      
+      <link rel="icon" href="../../../assets/images/favicon.webp">
+      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-8.2.5">
+    
+    
+      
+        <title>Real-time customer profiles - Quick</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.2d9f7617.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.e6a45f82.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#000000">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="black" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#real-time-customer-profiles" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Quick" class="md-header__button md-logo" aria-label="Quick" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 89">
+  <path d="M3.136,17.387l0,42.932l42.932,21.467l-42.932,-64.399Z" />
+  <path d="M21.91,8l42.933,64.398l-18.775,9.388l-42.932,-64.399l18.774,-9.387Z" style="fill-opacity: 0.5" />
+  <path d="M67.535,17.387l-27.262,18.156l21.878,32.818l5.384,2.691l0,-53.665Z" />
+  <path d="M67.535,17.387l0,53.666l18.774,-9.388l0,-53.665l-18.774,9.387Z" style="fill-opacity: 0.25" />
+</svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Quick
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Real-time customer profiles
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/bakdata/quick/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../.." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link md-tabs__link--active">
+        User guide
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../developer/architecture/" class="md-tabs__link">
+        Developer guide
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../changelog/" class="md-tabs__link">
+      Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../roadmap/" class="md-tabs__link">
+      Roadmap
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Quick" class="md-nav__button md-logo" aria-label="Quick" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 89">
+  <path d="M3.136,17.387l0,42.932l42.932,21.467l-42.932,-64.399Z" />
+  <path d="M21.91,8l42.933,64.398l-18.775,9.388l-42.932,-64.399l18.774,-9.387Z" style="fill-opacity: 0.5" />
+  <path d="M67.535,17.387l-27.262,18.156l21.878,32.818l5.384,2.691l0,-53.665Z" />
+  <path d="M67.535,17.387l0,53.666l18.774,-9.388l0,-53.665l-18.774,9.387Z" style="fill-opacity: 0.25" />
+</svg>
+
+    </a>
+    Quick
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bakdata/quick/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../">User guide</a>
+          
+            <label for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="User guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          User guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_2" type="checkbox" id="__nav_2_2" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../getting-started/">Getting started</a>
+          
+            <label for="__nav_2_2">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Getting started" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          Getting started
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/setup-quick/" class="md-nav__link">
+        Setup Quick
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/setup-cli/" class="md-nav__link">
+        Setup Quick CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_2_4" type="checkbox" id="__nav_2_2_4" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../getting-started/working-with-quick/">Working with Quick</a>
+          
+            <label for="__nav_2_2_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Working with Quick" data-md-level="3">
+        <label class="md-nav__title" for="__nav_2_2_4">
+          <span class="md-nav__icon md-icon"></span>
+          Working with Quick
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/gateway/" class="md-nav__link">
+        Gateway
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/topics/" class="md-nav__link">
+        Topics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/ingest-data/" class="md-nav__link">
+        Ingest data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/query-data/" class="md-nav__link">
+        Query data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/working-with-quick/subscriptions/" class="md-nav__link">
+        Subscriptions
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/teardown-resources/" class="md-nav__link">
+        Teardown resources
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_3" type="checkbox" id="__nav_2_3" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">Examples</a>
+          
+            <label for="__nav_2_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_3">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TinyURL/" class="md-nav__link">
+        TinyURL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../real-time-monitoring/" class="md-nav__link">
+        Real-time monitoring and analytics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Real-time customer profiles
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Real-time customer profiles
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-will-demonstrate" class="md-nav__link">
+    What this will demonstrate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-listening-events" class="md-nav__link">
+    Input: Listening events
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-configuration" class="md-nav__link">
+    Quick configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-graphql-schema" class="md-nav__link">
+    Global GraphQL schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gateway" class="md-nav__link">
+    Gateway
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#topics" class="md-nav__link">
+    Topics
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analytics" class="md-nav__link">
+    Analytics
+  </a>
+  
+    <nav class="md-nav" aria-label="Analytics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    Metrics
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#charts" class="md-nav__link">
+    Charts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommendations" class="md-nav__link">
+    Recommendations
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_4" type="checkbox" id="__nav_2_4" >
+      
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_2_4">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_4">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/graphql-support/" class="md-nav__link">
+        GraphQL support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli-commands/" class="md-nav__link">
+        Quick CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/helm-chart/" class="md-nav__link">
+        Quick Helm chart
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/configuration/" class="md-nav__link">
+        Quick configuration
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/dependency-versions/" class="md-nav__link">
+        Dependency versions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/breaking-changes/" class="md-nav__link">
+        Breaking changes
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Developer guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Developer guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Developer guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/development/" class="md-nav__link">
+        Development
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/operations/" class="md-nav__link">
+        Operations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/cli/" class="md-nav__link">
+        CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developer/notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/" class="md-nav__link">
+        Roadmap
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-will-demonstrate" class="md-nav__link">
+    What this will demonstrate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-listening-events" class="md-nav__link">
+    Input: Listening events
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-configuration" class="md-nav__link">
+    Quick configuration
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-graphql-schema" class="md-nav__link">
+    Global GraphQL schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gateway" class="md-nav__link">
+    Gateway
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#topics" class="md-nav__link">
+    Topics
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analytics" class="md-nav__link">
+    Analytics
+  </a>
+  
+    <nav class="md-nav" aria-label="Analytics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    Metrics
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#charts" class="md-nav__link">
+    Charts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommendations" class="md-nav__link">
+    Recommendations
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/bakdata/quick/edit/master/docs/user/examples/real-time-customer-profiles.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+
+<h1 id="real-time-customer-profiles">Real-time customer profiles<a class="headerlink" href="#real-time-customer-profiles" title="Permanent link">&para;</a></h1>
+<p>This example uses Quick to create real-time customer profiles for a music streaming service.
+These profiles will include user metrics, charts of the most-streamed albums, artists and tracks, and recommendations
+based on the user's playlist.</p>
+<h2 id="what-this-will-demonstrate">What this will demonstrate<a class="headerlink" href="#what-this-will-demonstrate" title="Permanent link">&para;</a></h2>
+<ul>
+<li>the use of topics, of course</li>
+<li>analytics on an incoming stream</li>
+<li>integration of a recommendation service</li>
+<li>a global GraphQL schema forming the customer profile</li>
+</ul>
+<p>Visit the <a href="https://profile-store.d9p.io/dashboard/">demo website</a> to see the example up and running.
+This visualizes the real-time profiles in a front-end.</p>
+<p>The code can be found in <a href="https://github.com/bakdata/quick-examples/tree/main/profile-store">Quick's example repository</a>.
+The example uses the real world data set <a href="http://www.cp.jku.at/datasets/LFM-1b/">LFM-1b</a>.
+The Kafka Streams application is written based on our open source <a href="https://github.com/bakdata/streams-bootstrap">streams-bootstrap library</a>.</p>
+<p>Finally, there is a video explaining this example:</p>
+<div class="video-wrapper">
+<iframe allow="accelerometer; autoplay;
+                clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+        src="https://www.youtube-nocookie.com/embed/aitX3hoS5Xc"
+        title="YouTube video player" width="900" height="500" ></iframe>
+</div>
+
+<h2 id="input-listening-events">Input: Listening events<a class="headerlink" href="#input-listening-events" title="Permanent link">&para;</a></h2>
+<p>Every time a customer listens to a song, the system emits a listening event containing the ids of album, artist and track.
+The system additionally attaches metadata such as the timestamp to the event.
+Later, a Kafka Streams application processes it for the customer profile creation.</p>
+<div class="highlight"><span class="filename">Exemplary listening events</span><pre><span></span><code><span class="p">{</span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">402</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;artistId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;albumId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">17147</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;trackId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">44975</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1568052379</span><span class="p">}</span><span class="w"></span>
+<span class="p">{</span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">703</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;artistId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;albumId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">17148</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;trackId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">44982</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1568052379</span><span class="p">}</span><span class="w"></span>
+<span class="p">{</span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4234</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;artistId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3744</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;albumId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">34424</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;trackId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">105501</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1568052382</span><span class="p">}</span><span class="w"></span>
+<span class="p">{</span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2843</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;artistId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">71</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;albumId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">315</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;trackId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2425</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1568052383</span><span class="p">}</span><span class="w"></span>
+<span class="p">{</span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1335</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;artistId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">13866</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;albumId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">29007</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;trackId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">83201</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1568052385</span><span class="p">}</span><span class="w"></span>
+</code></pre></div>
+<h2 id="quick-configuration">Quick configuration<a class="headerlink" href="#quick-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="global-graphql-schema">Global GraphQL schema<a class="headerlink" href="#global-graphql-schema" title="Permanent link">&para;</a></h3>
+<p>First, define the global schema with GraphQL.
+The query called <code>getUserProfile</code> combines six metrics for the customer profile:</p>
+<ul>
+<li>total listening events</li>
+<li>the first and last time a user listened to a song</li>
+<li>charts with user's most listened albums, artists and tracks</li>
+</ul>
+<p>Quick retrieves all that data from different topics via the <code>@topic</code> directive.
+Still, the charts contain solely ids and not the names of the corresponding music data.
+You can let Quick resolve those ids transparently.
+For that, use the topics (artists, albums, tracks) containing the mapping from ids to names and reference them in the GraphQL schema.
+The creation of the metrics topics (counts, firstlisten, lastlisten) is described below.</p>
+<details>
+<summary>The GraphQL user profile schema (<code>schema-user-profile.gql</code>)</summary>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
+    <span class="n">getUserProfile</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span> <span class="no">Long</span><span class="err">!</span><span class="p">)</span><span class="err">:</span> <span class="n">UserProfile</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">UserProfile</span> <span class="p">{</span>
+    <span class="nl">totalListenCount</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;counts&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;userId&quot;</span><span class="p">)</span>
+    <span class="nl">firstListenEvent</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;firstlisten&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;userId&quot;</span><span class="p">)</span>
+    <span class="nl">lastListenEvent</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;lastlisten&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;userId&quot;</span><span class="p">)</span>
+    <span class="nl">artistCharts</span><span class="p">:</span> <span class="n">NamedArtistCharts</span><span class="err">!</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;topartists&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;userId&quot;</span><span class="p">)</span>
+    <span class="nl">albumCharts</span><span class="p">:</span> <span class="n">NamedAlbumCharts</span><span class="err">!</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;topalbums&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;userId&quot;</span><span class="p">)</span>
+    <span class="nl">trackCharts</span><span class="p">:</span> <span class="n">NamedTrackCharts</span><span class="err">!</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;toptracks&quot;</span><span class="p">,</span> <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;userId&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">NamedArtistCharts</span> <span class="p">{</span>
+    <span class="nl">topK</span><span class="p">:</span> <span class="err">[</span><span class="n">NamedArtistCount</span><span class="err">!]!</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">NamedAlbumCharts</span> <span class="p">{</span>
+    <span class="nl">topK</span><span class="p">:</span> <span class="err">[</span><span class="n">NamedAlbumCount</span><span class="err">!]!</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">NamedTrackCharts</span> <span class="p">{</span>
+    <span class="nl">topK</span><span class="p">:</span> <span class="err">[</span><span class="n">NamedTrackCount</span><span class="err">!]!</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">Item</span> <span class="p">{</span>
+    <span class="nl">id</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span>
+    <span class="nl">name</span><span class="p">:</span> <span class="n">String</span><span class="err">!</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">NamedArtistCount</span> <span class="p">{</span>
+    <span class="nl">id</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span>
+    <span class="nl">artist</span><span class="p">:</span> <span class="n">Item</span><span class="err">!</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;artists&quot;</span><span class="p">,</span> <span class="n">keyField</span><span class="p">:</span> <span class="s">&quot;id&quot;</span><span class="p">)</span>
+    <span class="nl">countPlays</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">NamedAlbumCount</span> <span class="p">{</span>
+    <span class="nl">id</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span>
+    <span class="nl">album</span><span class="p">:</span> <span class="n">Item</span><span class="err">!</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;albums&quot;</span><span class="p">,</span> <span class="n">keyField</span><span class="p">:</span> <span class="s">&quot;id&quot;</span><span class="p">)</span>
+    <span class="nl">countPlays</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">NamedTrackCount</span> <span class="p">{</span>
+    <span class="nl">id</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span>
+    <span class="nl">track</span><span class="p">:</span> <span class="n">Item</span><span class="err">!</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;tracks&quot;</span><span class="p">,</span> <span class="n">keyField</span><span class="p">:</span> <span class="s">&quot;id&quot;</span><span class="p">)</span>
+    <span class="nl">countPlays</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span>
+<span class="p">}</span>
+<span class="err">...</span>
+</code></pre></div>
+</details>
+<p>This is all you need to do to integrate data with Quick.</p>
+<p>For the Quick setup, please refer to the <a href="../../getting-started/setup-quick">getting started guide</a>.
+To avoid redundancy, we only show the setup for integral parts here.
+You find all steps in the <a href="https://github.com/bakdata/quick-examples/tree/main/profile-store/deployment/justfile">justfile</a>. </p>
+<h3 id="gateway">Gateway<a class="headerlink" href="#gateway" title="Permanent link">&para;</a></h3>
+<p>Create a new gateway and apply the GraphQL schema.</p>
+<div class="highlight"><pre><span></span><code>quick gateway create profiles
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>quick gateway apply profiles -f schema-user-profile.gql
+</code></pre></div>
+<h3 id="topics">Topics<a class="headerlink" href="#topics" title="Permanent link">&para;</a></h3>
+<p>Then, create the input topics for the artist, album and track data.</p>
+<div class="highlight"><pre><span></span><code>quick topic create albums  --key long --value schema -s profiles.Item
+quick topic create artists --key long --value schema -s profiles.Item
+quick topic create tracks  --key long --value schema -s profiles.Item
+
+quick topic create listeningevents --key long --value schema <span class="se">\</span>
+  --schema profiles.ListeningEvent
+</code></pre></div>
+<p>The command expects the topic name and the type or schema of key and value.
+Since the topics contain complex values, they are referenced via <code>&lt;gateway name&gt;.&lt;type name&gt;</code>.
+This uses the definition in the global GraphQL schema you previously applied to the gateway.</p>
+<h2 id="analytics">Analytics<a class="headerlink" href="#analytics" title="Permanent link">&para;</a></h2>
+<p>With gateway and input topics in place, you can now take care of the analytics.
+Kafka Streams apps will process the data and compute the respective parts of the profiles.</p>
+<h3 id="metrics">Metrics<a class="headerlink" href="#metrics" title="Permanent link">&para;</a></h3>
+<p>The user profile has the following metrics:</p>
+<ul>
+<li>first listening event</li>
+<li>last listening event</li>
+<li>
+<p>total number of listening events</p>
+</li>
+<li>
+<p>Create topics that later store the corresponding data:
+    <div class="highlight"><pre><span></span><code>quick topic create firstlisten --key long --value long
+quick topic create lastlisten --key long --value long
+quick topic create counts --key long --value long
+</code></pre></div></p>
+</li>
+<li>
+<p>Deploy the applications:
+    <div class="highlight"><pre><span></span><code>quick app deploy firstlisten <span class="se">\</span>
+--registry bakdata <span class="se">\</span>
+--image quick-demo-profile-listenings-activity <span class="se">\</span>
+--tag <span class="s2">&quot;1.0.0&quot;</span> <span class="se">\</span>
+--args input-topics<span class="o">=</span>listeningevents, output-topic<span class="o">=</span>firstlisten, <span class="nv">kind</span><span class="o">=</span>FIRST, <span class="nv">productive</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div></p>
+</li>
+</ul>
+<p>Quick supports running dockerized applications.
+You can deploy those applications with the command <code>quick app deploy [...]</code>.
+For details, call <code>quick app deploy -h</code> or see the <a href="../../reference/cli-commands/#quick-app-deploy">reference</a>.
+The bakdata image registry can be found <a href="https://hub.docker.com/u/bakdata">here</a>.</p>
+<h3 id="charts">Charts<a class="headerlink" href="#charts" title="Permanent link">&para;</a></h3>
+<p>Similar to the metrics, you can add support for a user's charts in the profile.</p>
+<ol>
+<li>
+<p>Create the topics:
+    <div class="highlight"><pre><span></span><code>quick topic create topartists --key long <span class="se">\</span>
+--value schema -s profiles.Charts
+
+quick topic create topalbums --key long <span class="se">\</span>
+--value schema -s profiles.Charts
+
+quick topic create toptracks --key long <span class="se">\</span>
+--value schema -s profiles.Charts
+</code></pre></div></p>
+</li>
+<li>
+<p>Deploy the applications:
+    <div class="highlight"><pre><span></span><code>quick app deploy topartists <span class="se">\</span>
+--registry bakdata <span class="se">\</span>
+--image quick-demo-profile-listenings-charts <span class="se">\</span>
+--tag <span class="s2">&quot;1.0.0&quot;</span> <span class="se">\</span>
+--args input-topics<span class="o">=</span>listeningevents output-topic<span class="o">=</span>topartists <span class="nv">productive</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div></p>
+</li>
+</ol>
+<h3 id="recommendations">Recommendations<a class="headerlink" href="#recommendations" title="Permanent link">&para;</a></h3>
+<p>Finally, the recommendations are integrated into the profiles.
+Therefore, add the <code>getArtistRecommendations</code> query, which is backed by an external service, to the schema.</p>
+<details>
+<summary>Schema extension with <code>getArtistRecommendations</code></summary>
+<div class="highlight"><pre><span></span><code><span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
+    <span class="n">getArtistRecommendations</span><span class="p">(</span>
+        <span class="n">userId</span><span class="p">:</span> <span class="no">Long</span><span class="err">!</span><span class="p">,</span>
+        <span class="n">field</span><span class="p">:</span> <span class="no">FieldType</span><span class="err">!</span> <span class="err">=</span> <span class="n">ARTIST</span><span class="p">,</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="no">Int</span><span class="p">,</span>
+        <span class="n">walks</span><span class="p">:</span> <span class="no">Int</span><span class="p">,</span>
+        <span class="n">walkLength</span><span class="p">:</span> <span class="no">Int</span><span class="p">,</span>
+        <span class="n">resetProbability</span><span class="p">:</span> <span class="no">Float</span>
+    <span class="p">)</span><span class="err">:</span>  <span class="n">Recommendations</span> <span class="nd">@rest</span><span class="p">(</span>
+            <span class="n">url</span><span class="p">:</span> <span class="s">&quot;http://recommender/recommendation&quot;</span><span class="p">,</span>
+            <span class="n">pathParameter</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;userId&quot;</span><span class="p">,</span> <span class="s">&quot;field&quot;</span><span class="p">],</span>
+            <span class="n">queryParameter</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;limit&quot;</span><span class="p">,</span> <span class="s">&quot;walks&quot;</span><span class="p">,</span> <span class="s">&quot;walkLength&quot;</span><span class="p">,</span> <span class="s">&quot;resetProbability&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">enum</span> <span class="err">FieldType</span> <span class="p">{</span>
+    <span class="n">ARTIST</span>
+    <span class="n">ALBUM</span>
+    <span class="n">TRACK</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">Recommendations</span> <span class="p">{</span>
+    <span class="nl">recommendations</span><span class="p">:</span> <span class="err">[</span><span class="n">Recommendation</span><span class="err">!]!</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">Recommendation</span> <span class="p">{</span>
+    <span class="nl">id</span><span class="p">:</span> <span class="n">Long</span><span class="err">!</span>
+    <span class="nl">artist</span><span class="p">:</span> <span class="n">Item</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;artists&quot;</span><span class="p">,</span> <span class="n">keyField</span><span class="p">:</span> <span class="s">&quot;id&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+</details>
+<p><code>getArtistRecommendations</code> takes several parameters:</p>
+<ul>
+<li><code>userId</code> is mandatory:
+  It tells the service for which user it should compute the recommendations.</li>
+<li><code>field</code> defines which type of recommendation to create:
+  <code>ARTIST</code>, <code>ALBUM</code> or <code>TRACK</code> is possible.
+  The schema sets it to <code>ARTIST</code> by default.</li>
+<li>The remaining parameters come from the underlying recommendation algorithm <a href="https://github.com/twitter/GraphJet">SALSA</a> 
+  and have sensible default values.</li>
+</ul>
+<p>To leverage the external service, you can use the <code>@rest</code> directive.
+This directive integrates a REST services into your global schema.
+In this example, the recommendation service returns the result for a particular user id as a list of ids.
+Quick resolves these ids with the names from the <code>artistis</code> topic in the type <code>recommendation</code>.</p>
+<p>You can deploy the recommendation service via Quick as well:</p>
+<div class="highlight"><pre><span></span><code>quick app deploy recommender <span class="se">\</span>
+  --registry bakdata <span class="se">\</span>
+  --image quick-demo-profile-recommender <span class="se">\</span>
+  --tag <span class="s2">&quot;1.0.0&quot;</span> <span class="se">\</span>
+  --port <span class="m">8080</span> <span class="se">\</span>
+  --args input-topics<span class="o">=</span>listeningevents <span class="nv">productive</span><span class="o">=</span><span class="nb">false</span> 
+</code></pre></div>
+<p>Finally, everything is in place to query the artist recommendation.</p>
+<div class="highlight"><span class="filename">Example query</span><pre><span></span><code>query<span class="o">{</span>
+  getArtistRecommendations<span class="o">(</span>userId: <span class="m">32226961</span><span class="o">){</span>
+    recommendations<span class="o">{</span>
+      id
+      name
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Example results</span><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;getArtistRecommendations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;recommendations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2041</span><span class="p">,</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Leevi and the Leavings&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1825</span><span class="p">,</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Neil Young&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1871</span><span class="p">,</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mogwai&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2353</span><span class="p">,</span><span class="w"></span>
+<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The National&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">},</span><span class="w"></span>
+<span class="w">          </span><span class="err">...</span><span class="w">     </span>
+<span class="w">      </span><span class="p">]</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../real-time-monitoring/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Real-time monitoring and analytics" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Real-time monitoring and analytics
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../../reference/graphql-support/" class="md-footer__link md-footer__link--next" aria-label="Next: GraphQL support" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              GraphQL support
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2022 bakdata
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.sections", "navigation.tabs", "navigation.indexes", "content.code.annotate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../../assets/javascripts/workers/search.bd0b6b67.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.467223ff.min.js"></script>
+      
+    
+  </body>
+</html>
