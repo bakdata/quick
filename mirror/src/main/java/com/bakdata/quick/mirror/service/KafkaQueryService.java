@@ -139,7 +139,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
                 final List<V> values = listOfResponses.stream()
                     .map(response -> Objects.requireNonNull(response.body()).getValue()).collect(Collectors.toList());
                 if (headerSet) {
-                    return HttpResponse.created(new MirrorValue<>(values)).header("x", "y");
+                    return HttpResponse.created(new MirrorValue<>(values)).header(
+                        QuickConstants.getUpdateMappingHeader(), QuickConstants.getCacheUpdateMessage());
                 } else {
                     return HttpResponse.created(new MirrorValue<>(values));
                 }
