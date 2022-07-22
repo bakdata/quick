@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2022 bakdata GmbH
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.bakdata.quick.mirror;
 
 import static io.restassured.RestAssured.when;
@@ -70,29 +86,28 @@ class StreamsStateControllerTest {
         final int port = this.hostConfig.getPort();
         final String expectedBody = String.format("{\"0\":\"127.0.0.1:%d\"}", port);
         await().atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> when()
-                        .get("http://" + this.hostConfig.toConnectionString() + "/streams/partitions")
-                        .then()
-                        .statusCode(200)
-                        .body(equalTo(expectedBody)));
+            .untilAsserted(() -> when()
+                .get("http://" + this.hostConfig.toConnectionString() + "/streams/partitions")
+                .then()
+                .statusCode(200)
+                .body(equalTo(expectedBody)));
         app.close();
         app.getStreams().cleanUp();
         runThread.interrupt();
     }
 
 
-
     private void sendValuesToKafka() throws InterruptedException {
         log.info("Send values");
         final List<KeyValue<String, String>> keyValueList = List.of(new KeyValue<>("key1", "value1"),
-                new KeyValue<>("key2222", "value2"),
-                new KeyValue<>("key2", "value2"));
+            new KeyValue<>("key2222", "value2"),
+            new KeyValue<>("key2", "value2"));
         final SendKeyValuesTransactional<String, String> sendRequest = SendKeyValuesTransactional
-                .inTransaction(INPUT_TOPIC, keyValueList)
-                .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
-                .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
-                .with("schema.registry.url", this.schemaRegistry.getUrl())
-                .build();
+            .inTransaction(INPUT_TOPIC, keyValueList)
+            .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
+            .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
+            .with("schema.registry.url", this.schemaRegistry.getUrl())
+            .build();
 
         this.kafkaCluster.send(sendRequest);
         log.info("Process...");
@@ -100,18 +115,18 @@ class StreamsStateControllerTest {
 
     private TopicTypeService topicTypeService() {
         return TestTopicTypeService.builder()
-                .urlSupplier(this.schemaRegistry::getUrl)
-                .keyType(QuickTopicType.STRING)
-                .valueType(QuickTopicType.STRING)
-                .keySchema(null)
-                .valueSchema(null)
-                .build();
+            .urlSupplier(this.schemaRegistry::getUrl)
+            .keyType(QuickTopicType.STRING)
+            .valueType(QuickTopicType.STRING)
+            .keySchema(null)
+            .valueSchema(null)
+            .build();
     }
 
     private MirrorApplication<String, String> setUpApp() {
         final MirrorApplication<String, String> app = new MirrorApplication<>(
-                this.applicationContext, this.topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-                this.hostConfig, this.queryContextProvider
+            this.applicationContext, this.topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
+            this.hostConfig, this.queryContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(this.kafkaCluster.getBrokerList());

@@ -71,6 +71,11 @@ public class MirrorConfig {
         return new MirrorConfig(Optional.of(""), Optional.of(DEFAULT_MIRROR_HOST_PATH));
     }
 
+    /**
+     * Config when accessing StreamsStateController directly, i.e., not through a service but an IP.
+     *
+     * @return config with empty prefix.
+     */
     public static MirrorConfig directAccessToStreamsState() {
         return new MirrorConfig(Optional.of(""), Optional.of(DEFAULT_STREAMS_STATE_PATH));
     }

@@ -34,7 +34,7 @@ public interface DataFetcherClient<V> {
      * Fetches a single value from the given id.
      *
      * <p>
-     * Therefore, it is important to note that the resource should response with a single JSON object. Otherwise, the
+     * Therefore, it is important to note that the resource should respond with a single JSON object. Otherwise, the
      * parsing will fail.
      *
      * @param id resource to fetch from
@@ -47,7 +47,7 @@ public interface DataFetcherClient<V> {
      * Fetches a list of values from multiple ids.
      *
      * <p>
-     * Therefore, it is important to note that each resource should response with a single JSON object. Otherwise, the
+     * Therefore, it is important to note that each resource should respond with a single JSON object. Otherwise, the
      * parsing will fail.
      *
      * @param ids list of ids to fetch from
@@ -60,7 +60,7 @@ public interface DataFetcherClient<V> {
      * Fetches a list of values from a single id.
      *
      * <p>
-     * Therefore, it is important to note that each resource should response with an array with JSON objects. Otherwise,
+     * Therefore, it is important to note that each resource should respond with an array with JSON objects. Otherwise,
      * the parsing will fail.
      *
      * @return List of parsed json as map

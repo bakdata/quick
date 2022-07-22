@@ -44,6 +44,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param client        http client
      * @param mirrorConfig  configuration of the mirror host
      * @param valueResolver the value's {@link TypeResolver}
+     * @param requestManager a manager for sending requests to the mirror and processing responses
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
                                final TypeResolver<V> valueResolver, final MirrorRequestManager requestManager) {
@@ -56,6 +57,7 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
      * @param mirrorHost   host to use
      * @param client       http client
      * @param typeResolver the value's {@link TypeResolver}
+     * @param requestManager a manager for sending requests to the mirror and processing responses
      */
     public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final TypeResolver<V> typeResolver,
                                final MirrorRequestManager requestManager) {

@@ -32,7 +32,6 @@ public class PartitionRouterTest {
 
     @Test
     void shouldBeInitializedWithTwoDifferentHosts() {
-
         final Map<Integer, String> elements = Map.of(1, "host1", 2, "host2");
         final Router<String> partitionRouter =
             new PartitionRouter<>(Serdes.String(), "dummy", TestUtils.getMockPartitionFinder(), elements);
@@ -41,7 +40,6 @@ public class PartitionRouterTest {
 
     @Test
     void shouldReturnCorrectHostForGivenPartition() {
-
         final Map<Integer, String> elements = Map.of(1, "host1", 2, "host2");
         final Router<String> partitionRouter =
             new PartitionRouter<>(Serdes.String(), "dummy", TestUtils.getMockPartitionFinder(), elements);

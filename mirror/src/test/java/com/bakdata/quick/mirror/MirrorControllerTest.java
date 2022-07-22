@@ -71,8 +71,7 @@ class MirrorControllerTest {
                     .get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", value.getData())
                     .then()
                     .statusCode(HttpStatus.OK.getCode())
-                    .body(equalTo(expected))
-            );
+                    .body(equalTo(expected)));
     }
 
     @Test

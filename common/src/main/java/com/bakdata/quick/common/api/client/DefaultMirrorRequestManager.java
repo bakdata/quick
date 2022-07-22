@@ -76,7 +76,6 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
                         response.code());
                 throw new MirrorException(errorMessage, HttpStatus.valueOf(response.code()));
             }
-            // Code 200 and empty body indicates an error
             if (body == null) {
                 throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
             }

@@ -20,10 +20,11 @@ import com.bakdata.quick.common.api.client.routing.PartitionFinder;
 import com.bakdata.quick.common.api.client.routing.PartitionRouter;
 import com.bakdata.quick.common.api.client.routing.Router;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.exception.InternalErrorException;
+import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.fasterxml.jackson.core.type.TypeReference;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.micronaut.http.HttpStatus;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -110,26 +111,29 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         return this.fetchValue(key) != null;
     }
 
+    /**
+     * Responsible for fetching the information about the partition - host mapping from
+     * the mirror.
+     *
+     * @return a mapping between a partition (a number) and a corresponding host
+     */
     private Map<Integer, String> makeRequestForPartitionHostMapping() {
         final String url = this.streamsStateHost.getPartitionToHostUrl();
         try (final ResponseBody responseBody = this.requestManager.makeRequest(url)) {
             if (responseBody == null) {
-                throw new InternalErrorException("Response body was null.");
+                throw new MirrorException("Response body was null.", HttpStatus.INTERNAL_SERVER_ERROR);
             }
             final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper()
                 .readValue(responseBody.byteStream(), MAP_TYPE_REFERENCE);
-            this.logPartitionHostInfoIfLoggingEnabled(partitionHostMappingResponse);
+            if (log.isInfoEnabled()) {
+                log.info("Collected information about the partitions and hosts."
+                        + " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
+                    (int) partitionHostMappingResponse.values().stream().distinct().count());
+            }
             return partitionHostMappingResponse;
-        } catch (final IOException e) {
-            throw new InternalErrorException("There was a problem handling the response: " + e.getMessage());
-        }
-    }
-
-    private void logPartitionHostInfoIfLoggingEnabled(Map<Integer, String> partitionHostMappingResponse) {
-        if (log.isInfoEnabled()) {
-            log.info("Collected information about the partitions and hosts." +
-                    " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
-                (int) partitionHostMappingResponse.values().stream().distinct().count());
+        } catch (final IOException exception) {
+            throw new MirrorException("There was a problem handling the response: ",
+                HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }
     }
 }

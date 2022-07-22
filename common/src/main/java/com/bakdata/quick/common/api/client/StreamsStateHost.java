@@ -21,7 +21,7 @@ import com.bakdata.quick.common.config.MirrorConfig;
 
 /**
  * Provides information about the host that enables access to the endpoint
- * that delivers info about kafka streams app state.
+ * that delivers info about Kafka Streams app state.
  */
 public class StreamsStateHost {
 
