@@ -64,7 +64,7 @@ class QueryKeyArgumentFetcherTest {
         final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
-        final Map<String, Object> arguments = Map.of("p  urchaseId", "testId");
+        final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
         final Object fetcherResult = queryFetcher.get(env);
