@@ -411,8 +411,8 @@ class RestDataFetcherTest {
         final RecordedRequest recordedRequest = this.mockWebServer.takeRequest();
         assertThat(recordedRequest.getPath()).isEqualTo("/myId");
         assertThat(recordedRequest.getBody()).isNotNull();
-        Map<String, Object> receivedBody =
-            this.mapper.readValue(recordedRequest.getBody().readByteArray(), new TypeReference<Map<String, Object>>() {
+        final Map<String, Object> receivedBody =
+            this.mapper.readValue(recordedRequest.getBody().readByteArray(), new TypeReference<>() {
             });
         assertThat(receivedBody).isEqualTo(body);
 

@@ -30,6 +30,8 @@ public class MirrorConfig {
 
     public static final String DEFAULT_MIRROR_HOST_PREFIX = "quick-mirror-";
     public static final String DEFAULT_MIRROR_HOST_PATH = "mirror";
+    public static final String DEFAULT_STREAMS_STATE_PATH = "streams";
+    public static final String DEFAULT_PARTITION_INFO_PATH = "partitions";
     public static final int DEFAULT_MIRROR_POD_PORT = 8080;
 
     private final String prefix;
@@ -50,9 +52,9 @@ public class MirrorConfig {
      * The parameters are optional. If not set, their defaults are used.
      *
      * @param prefix prefix of mirror, e.g. "quick-mirror" in http://quick-mirror-topic/. Defaults to {@link
-     * MirrorConfig#DEFAULT_MIRROR_HOST_PREFIX} for empty optionals.
-     * @param path rest api path, e.g. "mirror" in http://quick-mirror-topic/mirror/key. Defaults to {@link
-     * MirrorConfig#DEFAULT_MIRROR_HOST_PATH} for empty optionals.
+     *               MirrorConfig#DEFAULT_MIRROR_HOST_PREFIX} for empty optionals.
+     * @param path   rest api path, e.g. "mirror" in http://quick-mirror-topic/mirror/key. Defaults to {@link
+     *               MirrorConfig#DEFAULT_MIRROR_HOST_PATH} for empty optionals.
      */
     @ConfigurationInject
     public MirrorConfig(final Optional<String> prefix, final Optional<String> path) {
@@ -67,5 +69,14 @@ public class MirrorConfig {
      */
     public static MirrorConfig directAccess() {
         return new MirrorConfig(Optional.of(""), Optional.of(DEFAULT_MIRROR_HOST_PATH));
+    }
+
+    /**
+     * Config when accessing StreamsStateController directly, i.e., not through a service but an IP.
+     *
+     * @return config with empty prefix.
+     */
+    public static MirrorConfig directAccessToStreamsState() {
+        return new MirrorConfig(Optional.of(""), Optional.of(DEFAULT_STREAMS_STATE_PATH));
     }
 }

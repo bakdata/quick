@@ -17,6 +17,7 @@
 package com.bakdata.quick.gateway.fetcher;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
 import com.bakdata.quick.common.config.MirrorConfig;
@@ -29,46 +30,50 @@ import java.util.List;
 /**
  * A HTTP client for fetching values from mirror REST APIs.
  */
-public class MirrorDataFetcherClient<T> implements DataFetcherClient<T> {
-    private final Lazy<MirrorClient<String, T>> mirrorClient;
+public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
+    private final Lazy<MirrorClient<String, V>> mirrorClient;
 
     /**
      * Constructor for client.
      *
-     * @param host   host url of the mirror
-     * @param client http client
-     * @param type   key type
+     * @param host             host url of the mirror
+     * @param client           http client
+     * @param mirrorConfig     configuration for the mirror
+     * @param typeResolverLazy a lazy for the value resolver
      */
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final Lazy<TypeResolver<T>> type) {
-        this.mirrorClient = new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, type));
+                                   final Lazy<TypeResolver<V>> typeResolverLazy) {
+        this.mirrorClient =
+            new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, typeResolverLazy.get()));
     }
 
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final TypeResolver<T> type) {
-        this(host, client, mirrorConfig, new Lazy<>(() -> type));
+                                   final TypeResolver<V> valueResolver) {
+        this(host, client, mirrorConfig, new Lazy<>(() -> valueResolver));
     }
 
     @Override
     @Nullable
-    public T fetchResult(final String id) {
+    public V fetchResult(final String id) {
         return this.mirrorClient.get().fetchValue(id);
     }
 
     @Override
     @Nullable
-    public List<T> fetchResults(final List<String> ids) {
+    public List<V> fetchResults(final List<String> ids) {
         return this.mirrorClient.get().fetchValues(ids);
     }
 
     @Override
     @Nullable
-    public List<T> fetchList() {
+    public List<V> fetchList() {
         return this.mirrorClient.get().fetchAll();
     }
 
-    private DefaultMirrorClient<String, T> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
-        final HttpClient client, final Lazy<TypeResolver<T>> resolver) {
-        return new DefaultMirrorClient<>(host, client, mirrorConfig, resolver.get());
+    private DefaultMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
+                                                              final HttpClient client,
+                                                              final TypeResolver<V> valueResolver) {
+        return new DefaultMirrorClient<>(host, client, mirrorConfig, valueResolver,
+            new DefaultMirrorRequestManager(client));
     }
 }

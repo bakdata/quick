@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -147,7 +148,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
         final DefaultMirrorClient<K, V> mirrorClient =
-            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver);
+            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
+                new DefaultMirrorRequestManager(this.client));
         // TODO: don't bother deserializing
         final V value = mirrorClient.fetchValue(key);
 

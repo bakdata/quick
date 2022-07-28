@@ -218,10 +218,10 @@ class RestDirectiveWiringTest {
         assertThat(restDataFetcher)
             .asInstanceOf(InstanceOfAssertFactories.type(RestDataFetcher.class))
             .satisfies(fetcher -> {
-               assertThat(fetcher.getBodyParameter()).isNotNull()
-                   .isEqualTo(new RestParameter("inputs", false));
-               assertThat(fetcher.getPathArguments()).isEmpty();
-               assertThat(fetcher.getQueryArguments()).isEmpty();
+                assertThat(fetcher.getBodyParameter()).isNotNull()
+                    .isEqualTo(new RestParameter("inputs", false));
+                assertThat(fetcher.getPathArguments()).isEmpty();
+                assertThat(fetcher.getQueryArguments()).isEmpty();
             });
     }
 

@@ -41,12 +41,12 @@ class MirrorValueParser<V> {
     private final TypeResolver<V> resolver;
     private final ObjectMapper objectMapper;
 
-    MirrorValueParser(final TypeResolver<V> resolver, final ObjectMapper objectMapper) {
+    public MirrorValueParser(final TypeResolver<V> resolver, final ObjectMapper objectMapper) {
         this.resolver = resolver;
         this.objectMapper = objectMapper;
     }
 
-    MirrorValue<V> deserialize(final InputStream inputStream) throws IOException {
+    public MirrorValue<V> deserialize(final InputStream inputStream) throws IOException {
         final JsonNode jsonNode = this.objectMapper.readTree(inputStream);
         final JsonNode value = jsonNode.get(FIELD_NAME);
         if (value.isArray()) {
@@ -55,7 +55,7 @@ class MirrorValueParser<V> {
         return new MirrorValue<>(this.parseValue(value));
     }
 
-    MirrorValue<List<V>> deserializeList(final InputStream inputStream) throws IOException {
+    public MirrorValue<List<V>> deserializeList(final InputStream inputStream) throws IOException {
         final JsonNode jsonNode = this.objectMapper.readTree(inputStream);
         final JsonNode valueNode = jsonNode.get(FIELD_NAME);
         if (!valueNode.isArray()) {
