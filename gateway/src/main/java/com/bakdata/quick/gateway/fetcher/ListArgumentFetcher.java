@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -43,9 +44,9 @@ import java.util.stream.Collectors;
  * <p>
  * The gateway receives a list of purchase-IDs and sends them to the mirror and should receive a list of purchases.
  */
-public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
+public class ListArgumentFetcher implements DataFetcher<List<JsonNode>> {
     private final String argument;
-    private final DataFetcherClient<V> dataFetcherClient;
+    private final DataFetcherClient<JsonNode> dataFetcherClient;
     private final boolean isNullable;
     private final boolean hasNullableElements;
 
@@ -57,7 +58,7 @@ public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
      * @param isNullable true if field that is being fetched can be null
      */
     public ListArgumentFetcher(final String argument,
-        final DataFetcherClient<V> dataFetcherClient,
+        final DataFetcherClient<JsonNode> dataFetcherClient,
         final boolean isNullable, final boolean hasNullableElements) {
         this.argument = argument;
         this.dataFetcherClient = dataFetcherClient;
@@ -68,11 +69,11 @@ public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
     @Override
     @Nullable
     @SuppressWarnings("unchecked")
-    public List<V> get(final DataFetchingEnvironment environment) {
+    public List<JsonNode> get(final DataFetchingEnvironment environment) {
         final Object arguments = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
 
-        final List<V> results = this.dataFetcherClient.fetchResults((List<String>) arguments);
+        final List<JsonNode> results = this.dataFetcherClient.fetchResults((List<String>) arguments);
 
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case

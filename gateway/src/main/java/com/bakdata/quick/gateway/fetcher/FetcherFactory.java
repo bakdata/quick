@@ -26,6 +26,7 @@ import com.bakdata.quick.gateway.fetcher.subscription.KafkaSubscriptionProvider;
 import com.bakdata.quick.gateway.fetcher.subscription.SubscriptionFetcher;
 import com.bakdata.quick.gateway.fetcher.subscription.SubscriptionProvider;
 import com.bakdata.quick.gateway.ingest.KafkaIngestService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -72,7 +73,7 @@ public class FetcherFactory {
                           final HttpClient client, final MirrorConfig mirrorConfig,
                           final TopicTypeService topicTypeService) {
         this(kafkaConfig, client.objectMapper(),
-            new DefaultClientSupplier(client, topicTypeService, mirrorConfig), topicTypeService);
+            new DefaultClientSupplier(client, client.objectMapper(), mirrorConfig), topicTypeService);
     }
 
     public <K, V> DataFetcher<Publisher<V>> subscriptionFetcher(final String topic, final String operationName,
@@ -81,21 +82,21 @@ public class FetcherFactory {
         return new SubscriptionFetcher<>(this.kafkaConfig, topicData, operationName, argument);
     }
 
-    public <V> DataFetcher<V> queryFetcher(final String topic, final String argument, final boolean isNullable) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
-        return new QueryKeyArgumentFetcher<>(argument, client, isNullable);
+    public DataFetcher<JsonNode> queryFetcher(final String topic, final String argument, final boolean isNullable) {
+        final DataFetcherClient<JsonNode> client = this.clientSupplier.createClient(topic);
+        return new QueryKeyArgumentFetcher(argument, client, isNullable);
     }
 
-    public <V> DataFetcher<List<V>> queryListFetcher(final String topic, final boolean isNullable,
+    public DataFetcher<List<JsonNode>> queryListFetcher(final String topic, final boolean isNullable,
                                                      final boolean hasNullableElements) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
-        return new QueryListFetcher<>(client, isNullable, hasNullableElements);
+        final DataFetcherClient<JsonNode> client = this.clientSupplier.createClient(topic);
+        return new QueryListFetcher(client, isNullable, hasNullableElements);
     }
 
-    public <V> DataFetcher<List<V>> listArgumentFetcher(final String topic, final String argument,
+    public DataFetcher<List<JsonNode>> listArgumentFetcher(final String topic, final String argument,
                                                         final boolean isNullable, final boolean hasNullableElements) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
-        return new ListArgumentFetcher<>(argument, client, isNullable, hasNullableElements);
+        final DataFetcherClient<JsonNode> client = this.clientSupplier.createClient(topic);
+        return new ListArgumentFetcher(argument, client, isNullable, hasNullableElements);
     }
 
     /**
@@ -115,12 +116,12 @@ public class FetcherFactory {
         );
     }
 
-    public <V> DataFetcher<List<V>> listFieldFetcher(final String topic, final String keyFieldName) {
+    public DataFetcher<List<JsonNode>> listFieldFetcher(final String topic, final String keyFieldName) {
         return new ListFieldFetcher<>(keyFieldName, this.clientSupplier.createClient(topic));
     }
 
     public DataFetcher<Object> keyFieldFetcher(final String topic, final String keyFieldName) {
-        return new KeyFieldFetcher<>(this.objectMapper, keyFieldName, this.clientSupplier.createClient(topic));
+        return new KeyFieldFetcher(this.objectMapper, keyFieldName, this.clientSupplier.createClient(topic));
     }
 
     public <K, V> SubscriptionProvider<K, V> subscriptionProvider(final String topic, final String operationName,
@@ -129,7 +130,7 @@ public class FetcherFactory {
             argument);
     }
 
-    public <V> DataFetcherClient<V> dataFetcherClient(final String topic) {
+    public DataFetcherClient<JsonNode> dataFetcherClient(final String topic) {
         return this.clientSupplier.createClient(topic);
     }
 

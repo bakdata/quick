@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -39,8 +40,8 @@ import java.util.stream.Collectors;
  * There, the gateway must fetch all purchases from the corresponding mirror as there is no argument. This is done by
  * this data fetcher.
  */
-public class QueryListFetcher<T> implements DataFetcher<List<T>> {
-    private final DataFetcherClient<T> dataFetcherClient;
+public class QueryListFetcher implements DataFetcher<List<JsonNode>> {
+    private final DataFetcherClient<JsonNode> dataFetcherClient;
     private final boolean isNullable;
     private final boolean hasNullableElements;
 
@@ -51,7 +52,7 @@ public class QueryListFetcher<T> implements DataFetcher<List<T>> {
      * @param isNullable          true if list itself can be null
      * @param hasNullableElements true if list elements can be null
      */
-    public QueryListFetcher(final DataFetcherClient<T> dataFetcherClient, final boolean isNullable,
+    public QueryListFetcher(final DataFetcherClient<JsonNode> dataFetcherClient, final boolean isNullable,
         final boolean hasNullableElements) {
         this.dataFetcherClient = dataFetcherClient;
         this.isNullable = isNullable;
@@ -60,8 +61,8 @@ public class QueryListFetcher<T> implements DataFetcher<List<T>> {
 
     @Override
     @Nullable
-    public List<T> get(final DataFetchingEnvironment environment) {
-        final List<T> values = this.dataFetcherClient.fetchList();
+    public List<JsonNode> get(final DataFetchingEnvironment environment) {
+        final List<JsonNode> values = this.dataFetcherClient.fetchList();
 
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case

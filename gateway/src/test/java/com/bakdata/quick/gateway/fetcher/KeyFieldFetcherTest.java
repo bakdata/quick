@@ -23,6 +23,7 @@ import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
@@ -58,9 +59,9 @@ class KeyFieldFetcherTest {
         final String productJson = this.mapper.writeValueAsString(new MirrorValue<>(product));
         this.server.enqueue(new MockResponse().setBody(productJson));
 
-        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
-        final KeyFieldFetcher<?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient);
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final KeyFieldFetcher queryFetcher =
+            new KeyFieldFetcher(this.mapper, "productId", fetcherClient);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.convertValue(purchase, DataFetcherClient.OBJECT_TYPE_REFERENCE))
             .build();
@@ -91,9 +92,9 @@ class KeyFieldFetcherTest {
         final String currencyJson = this.mapper.writeValueAsString(new MirrorValue<>(currency));
         this.server.enqueue(new MockResponse().setBody(currencyJson));
 
-        final DataFetcherClient<Currency> fetcherClient = this.createClient(Currency.class);
-        final KeyFieldFetcher<?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "currencyId", fetcherClient);
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final KeyFieldFetcher queryFetcher =
+            new KeyFieldFetcher(this.mapper, "currencyId", fetcherClient);
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
@@ -126,9 +127,9 @@ class KeyFieldFetcherTest {
         this.server.enqueue(
             new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
 
-        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
-        final KeyFieldFetcher<?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "productIds", fetcherClient);
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final KeyFieldFetcher queryFetcher =
+            new KeyFieldFetcher(this.mapper, "productIds", fetcherClient);
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
@@ -136,9 +137,9 @@ class KeyFieldFetcherTest {
         assertThat(fetcherResult).isEqualTo(List.of(product1, product2));
     }
 
-    private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig,
-            new KnownTypeResolver<>(clazz, this.mapper));
+    private MirrorDataFetcherClient createClient() {
+        return new MirrorDataFetcherClient(this.host, this.client, this.mirrorConfig,
+            new KnownTypeResolver<>(JsonNode.class, this.mapper));
     }
 
     @Data

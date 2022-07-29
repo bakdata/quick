@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.execution.AbortExecutionException;
 import graphql.schema.DataFetcher;
@@ -29,20 +30,19 @@ import org.apache.avro.generic.GenericRecord;
  * Fetches multiple values from a mirror.
  *
  * @param <T> key type
- * @param <V> value type
  */
-public class ListFieldFetcher<T, V> implements DataFetcher<List<V>> {
+public class ListFieldFetcher<T> implements DataFetcher<List<JsonNode>> {
     private final String idFieldName;
-    private final DataFetcherClient<V> client;
+    private final DataFetcherClient<JsonNode> client;
 
-    public ListFieldFetcher(final String idFieldName, final DataFetcherClient<V> client) {
+    public ListFieldFetcher(final String idFieldName, final DataFetcherClient<JsonNode> client) {
         this.idFieldName = idFieldName;
         this.client = client;
     }
 
     @Override
     @Nullable
-    public List<V> get(final DataFetchingEnvironment environment) {
+    public List<JsonNode> get(final DataFetchingEnvironment environment) {
         final List<String> keys = this.findKeys(environment)
             .stream()
             .map(Object::toString)

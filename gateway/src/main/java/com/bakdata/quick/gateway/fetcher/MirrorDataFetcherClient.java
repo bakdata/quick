@@ -23,6 +23,7 @@ import com.bakdata.quick.common.api.client.MirrorClient;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.util.Lazy;
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
 
@@ -30,8 +31,8 @@ import java.util.List;
 /**
  * A HTTP client for fetching values from mirror REST APIs.
  */
-public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
-    private final Lazy<MirrorClient<String, V>> mirrorClient;
+public class MirrorDataFetcherClient implements DataFetcherClient<JsonNode> {
+    private final Lazy<MirrorClient<String, JsonNode>> mirrorClient;
 
     /**
      * Constructor for client.
@@ -42,37 +43,37 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
      * @param typeResolverLazy a lazy for the value resolver
      */
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-                                   final Lazy<TypeResolver<V>> typeResolverLazy) {
+                                   final Lazy<TypeResolver<JsonNode>> typeResolverLazy) {
         this.mirrorClient =
             new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, typeResolverLazy.get()));
     }
 
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-                                   final TypeResolver<V> valueResolver) {
+                                   final TypeResolver<JsonNode> valueResolver) {
         this(host, client, mirrorConfig, new Lazy<>(() -> valueResolver));
     }
 
     @Override
     @Nullable
-    public V fetchResult(final String id) {
+    public JsonNode fetchResult(final String id) {
         return this.mirrorClient.get().fetchValue(id);
     }
 
     @Override
     @Nullable
-    public List<V> fetchResults(final List<String> ids) {
+    public List<JsonNode> fetchResults(final List<String> ids) {
         return this.mirrorClient.get().fetchValues(ids);
     }
 
     @Override
     @Nullable
-    public List<V> fetchList() {
+    public List<JsonNode> fetchList() {
         return this.mirrorClient.get().fetchAll();
     }
 
-    private DefaultMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
+    private DefaultMirrorClient<String, JsonNode> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
                                                               final HttpClient client,
-                                                              final TypeResolver<V> valueResolver) {
+                                                              final TypeResolver<JsonNode> valueResolver) {
         return new DefaultMirrorClient<>(host, client, mirrorConfig, valueResolver,
             new DefaultMirrorRequestManager(client));
     }

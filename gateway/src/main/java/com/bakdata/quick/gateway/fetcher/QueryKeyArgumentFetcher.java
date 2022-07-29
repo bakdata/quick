@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.execution.NonNullableFieldWasNullException;
 import graphql.schema.DataFetcher;
@@ -25,9 +26,9 @@ import graphql.schema.DataFetchingEnvironment;
 /**
  * Data Fetcher that takes the query's argument and fetches values by sending a request to the given address.
  */
-public class QueryKeyArgumentFetcher<T> implements DataFetcher<T> {
+public class QueryKeyArgumentFetcher implements DataFetcher<JsonNode> {
     private final String argument;
-    private final DataFetcherClient<T> dataFetcherClient;
+    private final DataFetcherClient<JsonNode> dataFetcherClient;
     private final boolean isNullable;
 
     /**
@@ -37,7 +38,7 @@ public class QueryKeyArgumentFetcher<T> implements DataFetcher<T> {
      * @param dataFetcherClient http client for mirror
      * @param isNullable        true if field that is being fetched can be null
      */
-    public QueryKeyArgumentFetcher(final String argument, final DataFetcherClient<T> dataFetcherClient,
+    public QueryKeyArgumentFetcher(final String argument, final DataFetcherClient<JsonNode> dataFetcherClient,
         final boolean isNullable) {
         this.argument = argument;
         this.dataFetcherClient = dataFetcherClient;
@@ -46,10 +47,10 @@ public class QueryKeyArgumentFetcher<T> implements DataFetcher<T> {
 
     @Override
     @Nullable
-    public T get(final DataFetchingEnvironment environment) {
+    public JsonNode get(final DataFetchingEnvironment environment) {
         final Object argumentValue = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
-        final T value = this.dataFetcherClient.fetchResult(argumentValue.toString());
+        final JsonNode value = this.dataFetcherClient.fetchResult(argumentValue.toString());
         if (value == null && !this.isNullable) {
             throw new NonNullableFieldWasNullException(environment.getExecutionStepInfo(),
                 environment.getExecutionStepInfo().getPath());
