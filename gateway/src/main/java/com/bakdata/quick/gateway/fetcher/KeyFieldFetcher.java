@@ -19,8 +19,6 @@ package com.bakdata.quick.gateway.fetcher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -28,6 +26,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -59,7 +58,7 @@ import java.util.stream.StreamSupport;
  * since it is stored in a different topic. The KeyFieldFetcher extracts the productId from the returned purchase and
  * fetches the corresponding product.
  */
-public class KeyFieldFetcher implements DataFetcher<JsonNode> {
+public class KeyFieldFetcher implements DataFetcher<Object> {
     private final ObjectMapper objectMapper;
     private final String argument;
     private final DataFetcherClient<JsonNode> client;
@@ -80,13 +79,15 @@ public class KeyFieldFetcher implements DataFetcher<JsonNode> {
 
     @Override
     @Nullable
-    public JsonNode get(final DataFetchingEnvironment environment) {
+    public Object get(final DataFetchingEnvironment environment) {
         final List<String> uriList = this.findKeyArgument(environment).collect(Collectors.toList());
+
+        // the modification applies either to an array node or to a single field
+        // TODO create two different classes for both use cases and create them based on the schema
         if (uriList.size() == 1) {
             return this.client.fetchResult(uriList.get(0));
         } else {
-            final List<JsonNode> jsonNodes = this.client.fetchResults(uriList);
-            return new ArrayNode(JsonNodeFactory.instance, jsonNodes);
+            return this.client.fetchResults(uriList);
         }
     }
 
@@ -120,7 +121,11 @@ public class KeyFieldFetcher implements DataFetcher<JsonNode> {
     }
 
     private String extractJson(final DataFetchingEnvironment environment) throws IOException {
-        return this.objectMapper.writeValueAsString(environment.getSource());
+        // TODO work on JSON everywhere:
+        //  1. Do not convert back to real types in MirrorDataFetcherClient
+        //  2. Immediately convert to JSON in SubscriptionFetcher
+        final Map<String, Object> value = environment.getSource();
+        return this.objectMapper.writeValueAsString(value);
     }
 
     private String valueAsString(final JsonNode node) {
