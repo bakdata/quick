@@ -59,8 +59,8 @@ jobs:
           issuesWoLabels: "false"
           futureRelease: "${{ steps.create-tag.outputs.tag }}"
           issuesLabel: "**Miscellaneous:**"
-          bug-labels: "bug,type/bug"
-          enhancement-labels: "enhancement,type/enhancement"
+          bugLabels: "type/bug"
+          enhancementLabels: "type/enhancement"
           httpCache: "true"
           verbose: "true"
           addSections: |
