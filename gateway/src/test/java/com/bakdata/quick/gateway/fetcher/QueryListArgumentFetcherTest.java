@@ -25,6 +25,7 @@ import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
@@ -69,10 +70,10 @@ class QueryListArgumentFetcherTest {
             new MockResponse().setBody(
                 this.mapper.writeValueAsString(new MirrorValue<>(List.of(purchase1, purchase2)))));
 
-        final DataFetcherClient<Purchase> fetcherClient = this.createClient(Purchase.class);
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
 
-        final ListArgumentFetcher<?> listArgumentFetcher =
-            new ListArgumentFetcher<>("purchaseId", fetcherClient, isNullable, hasNullableElements);
+        final ListArgumentFetcher listArgumentFetcher =
+            new ListArgumentFetcher("purchaseId", fetcherClient, isNullable, hasNullableElements);
 
         final Map<String, Object> arguments = Map.of("purchaseId", List.of("testId1", "testId2"));
 
@@ -98,10 +99,10 @@ class QueryListArgumentFetcherTest {
         this.server.enqueue(
             new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
 
-        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
 
-        final ListArgumentFetcher<?> listArgumentFetcher =
-            new ListArgumentFetcher<>("productId", fetcherClient, isNullable, hasNullableElements);
+        final ListArgumentFetcher listArgumentFetcher =
+            new ListArgumentFetcher("productId", fetcherClient, isNullable, hasNullableElements);
 
         final Map<String, Object> arguments = Map.of("productId", List.of(1L, 2L));
 
@@ -119,8 +120,8 @@ class QueryListArgumentFetcherTest {
 
         Mockito.when(fetcherClient.fetchResults(any())).thenReturn(null);
 
-        final ListArgumentFetcher<?> listArgumentFetcher =
-            new ListArgumentFetcher<>("purchaseId", fetcherClient, false, hasNullableElements);
+        final ListArgumentFetcher listArgumentFetcher =
+            new ListArgumentFetcher("purchaseId", fetcherClient, false, hasNullableElements);
 
         final Map<String, Object> arguments = Map.of("purchaseId", List.of("testId1", "testId2"));
 
@@ -145,14 +146,15 @@ class QueryListArgumentFetcherTest {
 
         final MirrorDataFetcherClient fetcherClient = Mockito.mock(MirrorDataFetcherClient.class);
 
-        final List<Object> itemList = new ArrayList<>();
-        itemList.add(purchase1);
+        final List<JsonNode> itemList = new ArrayList<>();
+        JsonNode jsonNode = mapper.convertValue(purchase1, JsonNode.class);
+        itemList.add(jsonNode);
         itemList.add(null);
 
         Mockito.when(fetcherClient.fetchResults(any())).thenReturn(itemList);
 
-        final ListArgumentFetcher<?> listArgumentFetcher =
-            new ListArgumentFetcher<>("purchaseId", fetcherClient, isNullable, false);
+        final ListArgumentFetcher listArgumentFetcher =
+            new ListArgumentFetcher("purchaseId", fetcherClient, isNullable, false);
 
         final Map<String, Object> arguments = Map.of("purchaseId", List.of("testId1", "testId2"));
 
@@ -166,9 +168,9 @@ class QueryListArgumentFetcherTest {
     }
 
     @NotNull
-    private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
-        final TypeResolver<T> resolver = new KnownTypeResolver<>(clazz, this.mapper);
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, resolver);
+    private MirrorDataFetcherClient createClient() {
+        final TypeResolver<JsonNode> resolver = new KnownTypeResolver<>(JsonNode.class, this.mapper);
+        return new MirrorDataFetcherClient(this.host, this.client, this.mirrorConfig, resolver);
     }
 
     @Data

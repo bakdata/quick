@@ -19,14 +19,11 @@ package com.bakdata.quick.gateway.fetcher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.util.JsonFormat;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +31,6 @@ import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import org.apache.avro.generic.GenericRecord;
-import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 
 /**
  * A Data Fetcher that resolves a field from a previous request.
@@ -63,11 +58,10 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
  * since it is stored in a different topic. The KeyFieldFetcher extracts the productId from the returned purchase and
  * fetches the corresponding product.
  */
-public class KeyFieldFetcher<T> implements DataFetcher<Object> {
+public class KeyFieldFetcher implements DataFetcher<Object> {
     private final ObjectMapper objectMapper;
     private final String argument;
-    private final DataFetcherClient<T> client;
-    private final JsonAvroConverter converter;
+    private final DataFetcherClient<JsonNode> client;
 
     /**
      * Constructor.
@@ -76,11 +70,11 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
      * @param argument     name of the argument to extract key from
      * @param client       underlying HTTP mirror client
      */
-    public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument, final DataFetcherClient<T> client) {
+    public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument,
+                           final DataFetcherClient<JsonNode> client) {
         this.objectMapper = objectMapper;
         this.argument = argument;
         this.client = client;
-        this.converter = new JsonAvroConverter();
     }
 
     @Override
@@ -130,16 +124,6 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
         // TODO work on JSON everywhere:
         //  1. Do not convert back to real types in MirrorDataFetcherClient
         //  2. Immediately convert to JSON in SubscriptionFetcher
-        if (environment.getSource() instanceof GenericRecord) {
-            final GenericRecord record = environment.getSource();
-            return new String(this.converter.convertToJson(record), StandardCharsets.UTF_8);
-        }
-
-        if (environment.getSource() instanceof DynamicMessage) {
-            final DynamicMessage source = environment.getSource();
-            return JsonFormat.printer().includingDefaultValueFields().print(source);
-        }
-
         final Map<String, Object> value = environment.getSource();
         return this.objectMapper.writeValueAsString(value);
     }

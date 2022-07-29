@@ -22,11 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.resolver.DoubleResolver;
-import com.bakdata.quick.common.resolver.IntegerResolver;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
-import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
@@ -68,10 +66,9 @@ class QueryListFetcherTest {
         final String purchaseJson = this.mapper.writeValueAsString(new MirrorValue<>(purchaseList));
         this.server.enqueue(new MockResponse().setBody(purchaseJson));
 
-        final DataFetcherClient<?> fetcherClient =
-            this.createClient(new KnownTypeResolver<>(Purchase.class, this.mapper));
-        final QueryListFetcher<?> queryFetcher =
-            new QueryListFetcher<>(fetcherClient, isNullable, hasNullableElements);
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final QueryListFetcher queryFetcher =
+            new QueryListFetcher(fetcherClient, isNullable, hasNullableElements);
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
@@ -88,11 +85,11 @@ class QueryListFetcherTest {
         final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
         this.server.enqueue(new MockResponse().setBody(listJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(new StringResolver());
-        final QueryListFetcher<?> queryFetcher = new QueryListFetcher<>(fetcherClient, isNullable, hasNullableElements);
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final QueryListFetcher queryFetcher = new QueryListFetcher(fetcherClient, isNullable, hasNullableElements);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
 
-        final List<?> fetcherResult = queryFetcher.get(env);
+        final List<JsonNode> fetcherResult = queryFetcher.get(env);
 
         assertThat(fetcherResult).isEqualTo(list);
     }
@@ -103,8 +100,8 @@ class QueryListFetcherTest {
         final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
         this.server.enqueue(new MockResponse().setBody(listJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(new IntegerResolver());
-        final QueryListFetcher<?> queryFetcher = new QueryListFetcher<>(fetcherClient, isNullable, hasNullableElements);
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final QueryListFetcher queryFetcher = new QueryListFetcher(fetcherClient, isNullable, hasNullableElements);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
 
         final List<?> fetcherResult = queryFetcher.get(env);
@@ -117,17 +114,18 @@ class QueryListFetcherTest {
         final List<Double> list = List.of(0.5, 0.1);
         final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
         this.server.enqueue(new MockResponse().setBody(listJson));
-        final DataFetcherClient<?> fetcherClient = this.createClient(new DoubleResolver());
-        final QueryListFetcher<?> queryFetcher = new QueryListFetcher<>(fetcherClient, isNullable,
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final QueryListFetcher queryFetcher = new QueryListFetcher(fetcherClient, isNullable,
             hasNullableElements);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
-        final List<?> fetcherResult = queryFetcher.get(env);
+        final List<JsonNode> fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(list);
     }
 
-    private <T> MirrorDataFetcherClient<T> createClient(final TypeResolver<T> type) {
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, type);
+    private MirrorDataFetcherClient createClient() {
+        final TypeResolver<JsonNode> type = new KnownTypeResolver<>(JsonNode.class, mapper);
+        return new MirrorDataFetcherClient(this.host, this.client, this.mirrorConfig, type);
     }
 
     @Data

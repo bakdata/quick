@@ -21,13 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.resolver.DoubleResolver;
-import com.bakdata.quick.common.resolver.IntegerResolver;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
-import com.bakdata.quick.common.resolver.LongResolver;
-import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
@@ -59,9 +56,8 @@ class QueryKeyArgumentFetcherTest {
         final String purchaseJson = this.mapper.writeValueAsString(new MirrorValue<>(purchase));
         this.server.enqueue(new MockResponse().setBody(purchaseJson));
 
-        final DataFetcherClient<?> fetcherClient =
-            this.createClient(new KnownTypeResolver<>(Purchase.class, this.mapper));
-        final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final QueryKeyArgumentFetcher queryFetcher = new QueryKeyArgumentFetcher("purchaseId", fetcherClient,
             isNullable);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
@@ -77,8 +73,8 @@ class QueryKeyArgumentFetcherTest {
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(new StringResolver());
-        final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final QueryKeyArgumentFetcher queryFetcher = new QueryKeyArgumentFetcher("purchaseId", fetcherClient,
             isNullable);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
@@ -95,8 +91,8 @@ class QueryKeyArgumentFetcherTest {
 
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(new IntegerResolver());
-        final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final QueryKeyArgumentFetcher queryFetcher = new QueryKeyArgumentFetcher("purchaseId", fetcherClient,
             isNullable);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
@@ -113,8 +109,8 @@ class QueryKeyArgumentFetcherTest {
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(new LongResolver());
-        final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final QueryKeyArgumentFetcher queryFetcher = new QueryKeyArgumentFetcher("purchaseId", fetcherClient,
             isNullable);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
@@ -131,8 +127,8 @@ class QueryKeyArgumentFetcherTest {
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?> fetcherClient = this.createClient(new DoubleResolver());
-        final QueryKeyArgumentFetcher<?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
+        final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
+        final QueryKeyArgumentFetcher queryFetcher = new QueryKeyArgumentFetcher("purchaseId", fetcherClient,
             isNullable);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
@@ -142,8 +138,9 @@ class QueryKeyArgumentFetcherTest {
         assertThat(fetcherResult).isEqualTo(value);
     }
 
-    private <T> MirrorDataFetcherClient<T> createClient(final TypeResolver<T> type) {
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, type);
+    private MirrorDataFetcherClient createClient() {
+        final TypeResolver<JsonNode> type = new KnownTypeResolver<>(JsonNode.class, mapper);
+        return new MirrorDataFetcherClient(this.host, this.client, this.mirrorConfig, type);
     }
 
 
