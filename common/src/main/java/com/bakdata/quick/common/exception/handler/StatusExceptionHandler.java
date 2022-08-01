@@ -24,7 +24,7 @@ import io.micronaut.http.annotation.Produces;
 import io.micronaut.http.exceptions.HttpStatusException;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
 import io.micronaut.http.server.exceptions.HttpStatusHandler;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Handles exception of type {@link io.micronaut.http.exceptions.HttpStatusException}.

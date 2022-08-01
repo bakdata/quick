@@ -17,10 +17,10 @@
 package com.bakdata.quick.gateway.subscriptions;
 
 
+import jakarta.inject.Singleton;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
 

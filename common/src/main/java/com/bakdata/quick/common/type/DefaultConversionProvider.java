@@ -20,8 +20,8 @@ import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.schema.SchemaFormat;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
+import jakarta.inject.Singleton;
 import java.util.Map;
-import javax.inject.Singleton;
 import org.apache.kafka.common.serialization.Serde;
 import org.checkerframework.checker.nullness.qual.Nullable;
 

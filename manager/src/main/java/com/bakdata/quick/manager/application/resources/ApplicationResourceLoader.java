@@ -28,11 +28,11 @@ import com.bakdata.quick.manager.k8s.resource.ResourceLoader;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.micronaut.core.annotation.Nullable;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import javax.inject.Singleton;
 import org.thymeleaf.context.Context;
 
 /**

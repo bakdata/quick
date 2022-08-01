@@ -31,16 +31,16 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.manager.GatewaySchema;
 import com.bakdata.quick.common.api.model.manager.creation.TopicCreationData;
 import com.bakdata.quick.common.type.QuickTopicType;
-import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.uri.UriBuilder;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
-import javax.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

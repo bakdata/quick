@@ -19,9 +19,9 @@ package com.bakdata.quick.common.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.context.event.BeanCreatedEvent;
 import io.micronaut.context.event.BeanCreatedEventListener;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /**
  * Listener for Micronaut's bean event that configures {@link ObjectMapper} with {@link ObjectMapperConfiguration}.

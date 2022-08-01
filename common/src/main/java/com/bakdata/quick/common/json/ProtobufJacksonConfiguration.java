@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import io.micronaut.context.annotation.Requires;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Configures deserialization of Protobuf objects with Jackson.

@@ -19,7 +19,7 @@ package com.bakdata.quick.gateway.custom.type;
 import graphql.language.Description;
 import graphql.language.EnumTypeDefinition;
 import graphql.language.EnumValueDefinition;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Custom enum for specifying the supported HTTP methods by the rest directive.

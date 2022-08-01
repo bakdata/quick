@@ -23,8 +23,8 @@ import com.bakdata.quick.common.api.model.AvroTopicData;
 import com.bakdata.quick.common.api.model.AvroWriteType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import java.util.List;
-import javax.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest

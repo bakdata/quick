@@ -24,7 +24,7 @@ import com.bakdata.quick.gateway.fetcher.FetcherFactory;
 import graphql.language.DirectiveDefinition;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.idl.SchemaDirectiveWiringEnvironment;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Wiring for handling topic directives when processing the GraphQL schema.

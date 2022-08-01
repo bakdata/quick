@@ -14,7 +14,8 @@ dependencies {
     implementation(libs.JUL_SLF4J)
     implementation(libs.OK_HTTP_CLIENT)
     implementation(libs.JACKSON_DATABIND) // needed so that log4j2 can read yaml test configs
-
+    implementation("io.micronaut.rxjava2:micronaut-rxjava2")
+    implementation("com.github.spotbugs:spotbugs-annotations:4.7.1")
     implementation(libs.JAVAX)
     implementation(libs.INJECT)
     implementation(libs.CAFFEINE)

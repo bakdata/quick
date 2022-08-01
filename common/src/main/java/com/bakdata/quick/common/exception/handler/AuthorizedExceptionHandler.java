@@ -25,7 +25,7 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
 import io.micronaut.security.authentication.AuthorizationException;
 import io.micronaut.security.authentication.DefaultAuthorizationExceptionHandler;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Defines behavior when AuthorizationException is thrown.

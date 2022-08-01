@@ -37,6 +37,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.DescriptorValidationException;
 import graphql.Scalars;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
@@ -48,11 +49,11 @@ import graphql.schema.GraphQLTypeUtil;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.micronaut.context.annotation.Requires;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import lombok.Getter;
 
 /**
@@ -67,7 +68,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
     @Getter
     private final String protobufPackage;
 
-    private static final Map<GraphQLScalarType, FieldDescriptorProto.Type> SCALAR_MAPPING = scalarTypeMap();
+    private static final Map<String, FieldDescriptorProto.Type> SCALAR_MAPPING = scalarTypeMap();
 
     @Inject
     public GraphQLToProtobufConverter(final ProtobufConfig protobufConfig) {
@@ -225,7 +226,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
         final int fieldNumber,
         final Label label) {
 
-        final FieldDescriptorProto.Type protoType = SCALAR_MAPPING.get(graphQLScalarType);
+        final FieldDescriptorProto.Type protoType = SCALAR_MAPPING.get(graphQLScalarType.getName());
         if (protoType == null) {
             final String message =
                 String.format("Scalar %s not supported", GraphQLTypeUtil.simplePrint(graphQLScalarType));
@@ -331,16 +332,16 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
             Label.LABEL_REPEATED);
     }
 
-    private static Map<GraphQLScalarType, FieldDescriptorProto.Type> scalarTypeMap() {
+    private static Map<String, FieldDescriptorProto.Type> scalarTypeMap() {
         return Map.of(
-            Scalars.GraphQLInt, FieldDescriptorProto.Type.TYPE_INT32,
-            Scalars.GraphQLFloat, FieldDescriptorProto.Type.TYPE_FLOAT,
-            Scalars.GraphQLString, FieldDescriptorProto.Type.TYPE_STRING,
-            Scalars.GraphQLBoolean, FieldDescriptorProto.Type.TYPE_BOOL,
-            Scalars.GraphQLID, FieldDescriptorProto.Type.TYPE_STRING,
-            Scalars.GraphQLLong, FieldDescriptorProto.Type.TYPE_INT64,
-            Scalars.GraphQLShort, FieldDescriptorProto.Type.TYPE_INT32,
-            Scalars.GraphQLChar, FieldDescriptorProto.Type.TYPE_STRING
+            Scalars.GraphQLInt.getName(), FieldDescriptorProto.Type.TYPE_INT32,
+            Scalars.GraphQLFloat.getName(), FieldDescriptorProto.Type.TYPE_FLOAT,
+            Scalars.GraphQLString.getName(), FieldDescriptorProto.Type.TYPE_STRING,
+            Scalars.GraphQLBoolean.getName(), FieldDescriptorProto.Type.TYPE_BOOL,
+            Scalars.GraphQLID.getName(), FieldDescriptorProto.Type.TYPE_STRING,
+            ExtendedScalars.GraphQLLong.getName(), FieldDescriptorProto.Type.TYPE_INT64,
+            ExtendedScalars.GraphQLShort.getName(), FieldDescriptorProto.Type.TYPE_INT32,
+            ExtendedScalars.GraphQLChar.getName(), FieldDescriptorProto.Type.TYPE_STRING
         );
     }
 }

@@ -35,7 +35,7 @@ abstract class QuickLibraries {
     val JACKSON_DATABIND = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml" // required for reading config
 
     // ------Micronaut------
-    val MICRONAUT_VERSION = "2.5.6"
+    val MICRONAUT_VERSION = "3.5.4"
 
     val JAVAX = "javax.annotation:javax.annotation-api"
     val HTTP_CLIENT = "io.micronaut:micronaut-http-client"
@@ -74,7 +74,7 @@ abstract class QuickLibraries {
 
     // ------Miscellaneous------
     val GUAVA_VERSION = "29.0-jre"
-    val GRAPHQL_VERSION = "14.1"
+    val GRAPHQL_VERSION = "16.2"
     val JSON2AVRO_CONVERTER_VERSION = "0.2.9"
     val PICOCLI_VERSION = "4.2.0"
     val KUBE_MANAGER_VERSION = "5.9.0"

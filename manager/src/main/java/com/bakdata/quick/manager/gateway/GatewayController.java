@@ -29,8 +29,8 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import jakarta.inject.Inject;
 import java.util.List;
-import javax.inject.Inject;
 
 /**
  * Manager REST API for controlling gateway.

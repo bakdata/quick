@@ -22,8 +22,8 @@ import io.micronaut.configuration.metrics.annotation.RequiresMetrics;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.runtime.ApplicationConfiguration;
+import jakarta.inject.Singleton;
 import java.util.List;
-import javax.inject.Singleton;
 
 /**
  * Factory customizing {@link MeterFilter} for micrometer support.

@@ -25,7 +25,7 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.reactivex.Completable;
 import io.reactivex.schedulers.Schedulers;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * Manager's REST API for managing mirror applications.

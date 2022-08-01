@@ -20,7 +20,7 @@ import io.micronaut.core.async.publisher.Publishers;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.filters.AuthenticationFetcher;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import org.reactivestreams.Publisher;
 
 /**

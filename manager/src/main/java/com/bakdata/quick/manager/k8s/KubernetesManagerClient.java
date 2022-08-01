@@ -34,12 +34,12 @@ import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import io.micronaut.http.HttpStatus;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 /**

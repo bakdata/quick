@@ -17,13 +17,15 @@
 package com.bakdata.quick.gateway;
 
 import graphql.GraphQL;
+import graphql.Scalars;
+import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import io.micronaut.context.annotation.Factory;
+import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.inject.Singleton;
 
 /**
  * Simple wrapper around GraphQL implementation to make swapping schema easier.
@@ -31,7 +33,9 @@ import javax.inject.Singleton;
 @Singleton
 public class QuickGraphQLContext {
     private static final GraphQLSchema EMPTY_SCHEMA = GraphQLSchema.newSchema()
-        .query(GraphQLObjectType.newObject().name("Empty").build())
+        .query(GraphQLObjectType.newObject().name("Empty")
+            .field(GraphQLFieldDefinition.newFieldDefinition().name("dummy").type(
+                Scalars.GraphQLBoolean).build()).build())
         .build();
 
     private final GraphQLSchemaGenerator schemaGenerator;

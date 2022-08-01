@@ -17,7 +17,7 @@
 package com.bakdata.quick.common.security;
 
 import io.micronaut.context.annotation.Property;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import lombok.Getter;
 
 /**

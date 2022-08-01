@@ -24,7 +24,7 @@ import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Requires;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * A factory for creating the correct {@link SchemaProvider}.

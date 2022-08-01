@@ -23,8 +23,8 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
+import jakarta.inject.Singleton;
 import java.util.Objects;
-import javax.inject.Singleton;
 
 /**
  * Base class for exceptions in quick. It includes a handler for converting subclasses to error messages.

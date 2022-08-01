@@ -31,6 +31,8 @@ dependencies {
     testFixturesImplementation(libs.KAFKA_PROTO_SERDE)
     testFixturesImplementation(libs.PROTOBUF)
 
+    testFixturesImplementation("com.github.spotbugs:spotbugs-annotations:4.7.1")
+
     testFixturesAnnotationProcessor(libs.INJECT_JAVA)
 
     testImplementation(testFixtures(project(":common")))

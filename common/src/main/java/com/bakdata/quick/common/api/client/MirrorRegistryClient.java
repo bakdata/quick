@@ -27,9 +27,9 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+import jakarta.inject.Singleton;
 import java.util.Comparator;
 import java.util.List;
-import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 /**
