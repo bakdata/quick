@@ -31,11 +31,11 @@ import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaGeneratorPostProcessing;
+import jakarta.inject.Singleton;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 /**

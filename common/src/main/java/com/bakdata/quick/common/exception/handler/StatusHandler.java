@@ -23,7 +23,7 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MutableHttpResponse;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Utility for converting any http response to a {@link ErrorMessage}.

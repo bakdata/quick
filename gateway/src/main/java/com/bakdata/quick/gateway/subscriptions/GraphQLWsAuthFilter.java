@@ -23,9 +23,9 @@ import io.micronaut.configuration.graphql.ws.GraphQLWsResponse;
 import io.micronaut.configuration.graphql.ws.GraphQLWsResponse.ServerType;
 import io.micronaut.websocket.WebSocketSession;
 import io.reactivex.Flowable;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Singleton;
 import lombok.Data;
 import org.reactivestreams.Publisher;
 

@@ -20,10 +20,10 @@ import graphql.GraphQL;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import io.micronaut.context.annotation.Factory;
+import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.inject.Singleton;
 
 /**
  * Simple wrapper around GraphQL implementation to make swapping schema easier.

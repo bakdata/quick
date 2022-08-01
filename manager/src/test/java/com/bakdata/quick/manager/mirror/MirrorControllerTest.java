@@ -31,8 +31,8 @@ import io.micronaut.http.uri.UriBuilder;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
+import jakarta.inject.Inject;
 import java.util.Collections;
-import javax.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest

@@ -40,8 +40,8 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.micronaut.websocket.RxWebSocketClient;
+import jakarta.inject.Inject;
 import java.util.Map;
-import javax.inject.Inject;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 

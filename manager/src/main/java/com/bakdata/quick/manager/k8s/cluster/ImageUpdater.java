@@ -27,10 +27,10 @@ import io.micronaut.context.event.StartupEvent;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.runtime.event.annotation.EventListener;
 import io.micronaut.scheduling.annotation.Async;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 /**

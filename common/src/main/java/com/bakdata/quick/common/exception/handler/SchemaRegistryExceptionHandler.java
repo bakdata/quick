@@ -22,7 +22,7 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Exception handler for errors occurring when communicating with the Schema Registry Rest service.

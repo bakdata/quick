@@ -25,10 +25,10 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaGeneratorPostProcessing;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.Collections;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /**
  * Responsible for creating a new GraphQLSchema from a string.

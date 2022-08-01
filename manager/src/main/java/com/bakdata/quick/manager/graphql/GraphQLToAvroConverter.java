@@ -39,11 +39,11 @@ import graphql.schema.GraphQLUnionType;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.micronaut.context.annotation.Requires;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import lombok.Getter;
 import org.apache.avro.Schema;
 

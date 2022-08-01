@@ -35,9 +35,9 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import jakarta.inject.Singleton;
 import java.util.Objects;
 import java.util.Optional;
-import javax.inject.Singleton;
 import org.thymeleaf.context.Context;
 
 /**
