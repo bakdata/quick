@@ -28,6 +28,7 @@ import com.bakdata.quick.common.exception.BadArgumentException;
 import com.google.common.annotations.VisibleForTesting;
 import graphql.Scalars;
 import graphql.language.EnumValueDefinition;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
@@ -55,7 +56,7 @@ import org.apache.avro.Schema;
 public final class GraphQLToAvroConverter implements GraphQLConverter {
     @Getter
     private final String avroNamespace;
-    private static final Map<GraphQLScalarType, Schema.Type> SCALAR_MAPPING = scalarTypeMap();
+    private static final Map<String, Schema.Type> SCALAR_MAPPING = scalarTypeMap();
 
     @Inject
     public GraphQLToAvroConverter(final AvroConfig avroConfig) {
@@ -184,7 +185,7 @@ public final class GraphQLToAvroConverter implements GraphQLConverter {
     }
 
     private static Schema createScalarSchema(final GraphQLScalarType scalarType) {
-        final Schema.Type type = SCALAR_MAPPING.get(scalarType);
+        final Schema.Type type = SCALAR_MAPPING.get(scalarType.getName());
         if (type == null) {
             final String message = String.format("Scalar %s not supported", GraphQLTypeUtil.simplePrint(scalarType));
             throw new BadArgumentException(message);
@@ -192,20 +193,20 @@ public final class GraphQLToAvroConverter implements GraphQLConverter {
         return Schema.create(type);
     }
 
-    private static Map<GraphQLScalarType, Schema.Type> scalarTypeMap() {
+    private static Map<String, Schema.Type> scalarTypeMap() {
         // Currently, not supported since no lossless/straight-forward conversion possible:
         // Map.entry(Scalars.GraphQLByte, Schema.Type.BYTES),
         // Map.entry(Scalars.GraphQLBigInteger, Schema.Type.LONG),
         // Map.entry(Scalars.GraphQLBigDecimal, Schema.Type.LONG),
         return Map.of(
-            Scalars.GraphQLInt, Schema.Type.INT,
-            Scalars.GraphQLFloat, Schema.Type.FLOAT,
-            Scalars.GraphQLString, Schema.Type.STRING,
-            Scalars.GraphQLBoolean, Schema.Type.BOOLEAN,
-            Scalars.GraphQLID, Schema.Type.STRING,
-            Scalars.GraphQLLong, Schema.Type.LONG,
-            Scalars.GraphQLShort, Schema.Type.INT,
-            Scalars.GraphQLChar, Schema.Type.STRING
+            Scalars.GraphQLInt.getName(), Schema.Type.INT,
+            Scalars.GraphQLFloat.getName(), Schema.Type.FLOAT,
+            Scalars.GraphQLString.getName(), Schema.Type.STRING,
+            Scalars.GraphQLBoolean.getName(), Schema.Type.BOOLEAN,
+            Scalars.GraphQLID.getName(), Schema.Type.STRING,
+            ExtendedScalars.GraphQLLong.getName(), Schema.Type.LONG,
+            ExtendedScalars.GraphQLShort.getName(), Schema.Type.INT,
+            ExtendedScalars.GraphQLChar.getName(), Schema.Type.STRING
         );
     }
 }

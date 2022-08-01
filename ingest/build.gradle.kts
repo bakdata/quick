@@ -11,4 +11,6 @@ dependencies {
 
     testImplementation(libs.SCHEMA_REGISTRY_MOCK)
     testImplementation(libs.KAFKA_PROTO_SERDE)
+
+    testImplementation("io.micronaut.rxjava2:micronaut-rxjava2-http-client")
 }

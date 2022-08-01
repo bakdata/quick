@@ -34,7 +34,7 @@ import com.bakdata.quick.common.api.model.manager.creation.GatewayCreationData;
 import com.bakdata.quick.manager.gateway.GatewayService.SchemaFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.uri.UriBuilder;
 import io.micronaut.test.annotation.MockBean;

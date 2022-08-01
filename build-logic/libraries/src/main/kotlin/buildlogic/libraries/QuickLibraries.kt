@@ -74,7 +74,7 @@ abstract class QuickLibraries {
 
     // ------Miscellaneous------
     val GUAVA_VERSION = "29.0-jre"
-    val GRAPHQL_VERSION = "14.1"
+    val GRAPHQL_VERSION = "16.2"
     val JSON2AVRO_CONVERTER_VERSION = "0.2.9"
     val PICOCLI_VERSION = "4.2.0"
     val KUBE_MANAGER_VERSION = "5.9.0"

@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 import com.bakdata.quick.common.api.client.ApplicationClient;
 import com.bakdata.quick.common.api.model.manager.ApplicationDescription;
 import com.bakdata.quick.common.api.model.manager.creation.ApplicationCreationData;
-import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.uri.UriBuilder;
 import io.micronaut.test.annotation.MockBean;

@@ -3,4 +3,5 @@ type Mutation {
 }
 
 type Query {
+    dummy: Boolean
 }

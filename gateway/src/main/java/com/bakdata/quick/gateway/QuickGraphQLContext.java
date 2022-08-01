@@ -17,6 +17,8 @@
 package com.bakdata.quick.gateway;
 
 import graphql.GraphQL;
+import graphql.Scalars;
+import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import io.micronaut.context.annotation.Factory;
@@ -31,7 +33,9 @@ import java.util.function.Consumer;
 @Singleton
 public class QuickGraphQLContext {
     private static final GraphQLSchema EMPTY_SCHEMA = GraphQLSchema.newSchema()
-        .query(GraphQLObjectType.newObject().name("Empty").build())
+        .query(GraphQLObjectType.newObject().name("Empty")
+            .field(GraphQLFieldDefinition.newFieldDefinition().name("dummy").type(
+                Scalars.GraphQLBoolean).build()).build())
         .build();
 
     private final GraphQLSchemaGenerator schemaGenerator;

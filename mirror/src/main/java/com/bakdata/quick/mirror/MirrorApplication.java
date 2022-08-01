@@ -174,18 +174,15 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     protected void runStreamsApplication() {
-        // Create a context and set it using provider - this is needed to be able to test
-        // state controller seamlessly
+        final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
+
         final QueryServiceContext serviceContext = new QueryServiceContext(
             this.getStreams(),
             this.hostConfig.toInfo(),
-            MIRROR_STORE
+            MIRROR_STORE,
+            quickTopicData
         );
         this.contextProvider.setQueryContext(serviceContext);
-
-        // register a bean which is needed for QueryService
-        final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
-        this.context.registerSingleton(quickTopicData);
         super.runStreamsApplication();
     }
 

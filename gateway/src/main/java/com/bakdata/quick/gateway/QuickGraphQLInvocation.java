@@ -21,10 +21,10 @@ import io.micronaut.configuration.graphql.DefaultGraphQLInvocation;
 import io.micronaut.configuration.graphql.GraphQLExecutionInputCustomizer;
 import io.micronaut.configuration.graphql.GraphQLInvocation;
 import io.micronaut.configuration.graphql.GraphQLInvocationData;
+import io.micronaut.context.BeanProvider;
 import io.micronaut.context.annotation.Replaces;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.MutableHttpResponse;
-import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 import org.dataloader.DataLoaderRegistry;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +47,7 @@ public class QuickGraphQLInvocation implements GraphQLInvocation {
      */
     public QuickGraphQLInvocation(
         final GraphQLExecutionInputCustomizer graphQLExecutionInputCustomizer,
-        @Nullable final Provider<DataLoaderRegistry> dataLoaderRegistry,
+        @Nullable final BeanProvider<DataLoaderRegistry> dataLoaderRegistry,
         final QuickGraphQLContext graphQLContext) {
         this.invocation = new DefaultGraphQLInvocation(
             graphQLContext.getGraphQL(),

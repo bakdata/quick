@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.KAFKA_PROTOBUF_PROVIDER)
     implementation(libs.THYMELEAF)
     implementation(libs.PROTOBUF)
+    implementation("com.graphql-java:graphql-java-extended-scalars:16.0.1")
 
     compileOnly(libs.SUNDR_IO)
     annotationProcessor(libs.SUNDR_IO)
@@ -23,4 +24,6 @@ dependencies {
     testImplementation(libs.KUBE_MOCK_SERVER)
     testImplementation(libs.SCHEMA_REGISTRY_MOCK)
     testImplementation(libs.OK_HTTP_MOCK_SERVER)
+
+    testImplementation("io.micronaut.rxjava2:micronaut-rxjava2-http-client")
 }

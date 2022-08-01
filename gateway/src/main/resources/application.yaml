@@ -21,6 +21,9 @@ micronaut:
   metrics:
     enabled: true
 
+jackson:
+  always-serialize-errors-as-list: false
+
 quick:
   schema:
     path: "/app/schema.graphql"
