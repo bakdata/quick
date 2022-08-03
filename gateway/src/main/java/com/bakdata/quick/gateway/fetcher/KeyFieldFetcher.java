@@ -19,6 +19,8 @@ package com.bakdata.quick.gateway.fetcher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -58,7 +60,7 @@ import java.util.stream.StreamSupport;
  * since it is stored in a different topic. The KeyFieldFetcher extracts the productId from the returned purchase and
  * fetches the corresponding product.
  */
-public class KeyFieldFetcher implements DataFetcher<Object> {
+public class KeyFieldFetcher implements DataFetcher<JsonNode> {
     private final ObjectMapper objectMapper;
     private final String argument;
     private final DataFetcherClient<JsonNode> client;
@@ -79,15 +81,18 @@ public class KeyFieldFetcher implements DataFetcher<Object> {
 
     @Override
     @Nullable
-    public Object get(final DataFetchingEnvironment environment) {
+    public JsonNode get(final DataFetchingEnvironment environment) {
         final List<String> uriList = this.findKeyArgument(environment).collect(Collectors.toList());
 
         // the modification applies either to an array node or to a single field
         // TODO create two different classes for both use cases and create them based on the schema
+        // TODO: is it possible to convert List<JsonNode> to a single JsonNode?
         if (uriList.size() == 1) {
             return this.client.fetchResult(uriList.get(0));
         } else {
-            return this.client.fetchResults(uriList);
+            List<JsonNode> jsonNodes = this.client.fetchResults(uriList);
+            ArrayNode a = new ArrayNode(JsonNodeFactory.instance, jsonNodes);
+            return a;
         }
     }
 
