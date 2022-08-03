@@ -30,6 +30,7 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import lombok.Builder;
 import lombok.Data;
 import okhttp3.OkHttpClient;
@@ -63,10 +64,13 @@ class QueryKeyArgumentFetcherTest {
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(purchase);
+        final JsonNode fetcherResult = queryFetcher.get(env);
+        assertThat(Objects.requireNonNull(fetcherResult).get("purchaseId").asText()).isEqualTo(purchase.purchaseId);
+        assertThat(fetcherResult.get("productId").asText()).isEqualTo(purchase.productId);
+        assertThat(fetcherResult.get("amount").asInt()).isEqualTo(purchase.amount);
     }
 
+    // TODO: How to handle string values?
     @Test
     void shouldFetchStringValue() throws JsonProcessingException {
         final String value = "test";
@@ -80,8 +84,8 @@ class QueryKeyArgumentFetcherTest {
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo("test");
+        final JsonNode fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult.get("testId").asText()).isEqualTo("test");
     }
 
     @Test
@@ -98,8 +102,8 @@ class QueryKeyArgumentFetcherTest {
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(value);
+        final JsonNode fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult.asInt()).isEqualTo(value);
     }
 
 

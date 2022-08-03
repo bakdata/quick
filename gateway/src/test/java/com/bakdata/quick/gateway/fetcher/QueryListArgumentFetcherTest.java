@@ -80,8 +80,15 @@ class QueryListArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = listArgumentFetcher.get(env);
-        assertThat(actual).isEqualTo(List.of(purchase1, purchase2));
+        final List<JsonNode> actual = listArgumentFetcher.get(env);
+        assertThat(actual.size()).isEqualTo(2);
+        assertThat(actual.get(0).get("purchaseId").asText()).isEqualTo("testId1");
+        assertThat(actual.get(1).get("purchaseId").asText()).isEqualTo("testId2");
+        assertThat(actual.get(0).get("productId").asInt()).isEqualTo(1);
+        assertThat(actual.get(1).get("productId").asInt()).isEqualTo(2);
+        assertThat(actual.get(0).get("amount").asInt()).isEqualTo(3);
+        assertThat(actual.get(1).get("amount").asInt()).isEqualTo(3);
+
     }
 
     @Test
@@ -109,8 +116,12 @@ class QueryListArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = listArgumentFetcher.get(env);
-        assertThat(actual).isEqualTo(List.of(product1, product2));
+        final List<JsonNode> actual = listArgumentFetcher.get(env);
+        assertThat(actual.size()).isEqualTo(2);
+        assertThat(actual.get(0).get("productId").asInt()).isEqualTo(1);
+        assertThat(actual.get(1).get("productId").asInt()).isEqualTo(2);
+        assertThat(actual.get(0).get("name").asText()).isEqualTo("productTest1");
+        assertThat(actual.get(1).get("name").asText()).isEqualTo("productTest2");
     }
 
     @Test
@@ -161,10 +172,13 @@ class QueryListArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = listArgumentFetcher.get(env);
+        final List<JsonNode> actual = listArgumentFetcher.get(env);
         final List<?> expected = List.of(purchase1);
 
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual.size()).isEqualTo(1);
+        assertThat(actual.get(0).get("purchaseId").asText()).isEqualTo("testId1");
+        assertThat(actual.get(0).get("productId").asInt()).isEqualTo(1);
+        assertThat(actual.get(0).get("amount").asInt()).isEqualTo(3);
     }
 
     @NotNull

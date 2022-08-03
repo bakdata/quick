@@ -120,7 +120,7 @@ public class FetcherFactory {
         return new ListFieldFetcher<>(keyFieldName, this.clientSupplier.createClient(topic));
     }
 
-    public DataFetcher<Object> keyFieldFetcher(final String topic, final String keyFieldName) {
+    public DataFetcher<JsonNode> keyFieldFetcher(final String topic, final String keyFieldName) {
         return new KeyFieldFetcher(this.objectMapper, keyFieldName, this.clientSupplier.createClient(topic));
     }
 
