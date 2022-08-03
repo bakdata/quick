@@ -60,14 +60,14 @@ class KeyFieldFetcherTest {
         this.server.enqueue(new MockResponse().setBody(productJson));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
-        final KeyFieldFetcher queryFetcher =
-            new KeyFieldFetcher(this.mapper, "productId", fetcherClient);
+        final KeyFieldFetcher queryFetcher = new KeyFieldFetcher(this.mapper, "productId", fetcherClient);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.convertValue(purchase, DataFetcherClient.OBJECT_TYPE_REFERENCE))
             .build();
 
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(product);
+        final JsonNode fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult.get("prices").get(0).asInt()).isEqualTo(3);
+        assertThat(fetcherResult.get("productId").asInt()).isEqualTo(5);
     }
 
 
@@ -93,8 +93,7 @@ class KeyFieldFetcherTest {
         this.server.enqueue(new MockResponse().setBody(currencyJson));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
-        final KeyFieldFetcher queryFetcher =
-            new KeyFieldFetcher(this.mapper, "currencyId", fetcherClient);
+        final KeyFieldFetcher queryFetcher = new KeyFieldFetcher(this.mapper, "currencyId", fetcherClient);
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
