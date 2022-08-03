@@ -19,26 +19,33 @@ package com.bakdata.quick.common.api.client;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.Optional;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Value;
 import okhttp3.ResponseBody;
 
 /**
  * A wrapper for a response from a call to made with the HttpClient.
+ *
+ * <p>
  * It consists of a response body extracted from the response and an optional field
  * for keeping the information about the custom X-Cache-Update header. This header is used to
  * signal the need for an update of the mapping between partitions and mirror hosts.
+ * </p>
  */
-@Getter
-@Setter
+@Value
 public class ResponseWrapper {
 
     @Nullable
-    private ResponseBody responseBody;
+    ResponseBody responseBody;
     @NonNull
-    private Optional<String> updateCacheHeader;
+    Optional<String> updateCacheHeader;
 
-    public ResponseWrapper() {
+    public ResponseWrapper(@Nullable final ResponseBody responseBody, final Optional<String> header) {
+        this.responseBody = responseBody;
+        this.updateCacheHeader = header;
+    }
+
+    public ResponseWrapper(@Nullable final ResponseBody responseBody) {
+        this.responseBody = responseBody;
         this.updateCacheHeader = Optional.empty();
     }
 }

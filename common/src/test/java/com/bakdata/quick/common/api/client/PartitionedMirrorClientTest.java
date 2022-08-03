@@ -25,7 +25,6 @@ import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.testutils.TestUtils;
 import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.common.util.QuickConstants;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -64,22 +63,39 @@ class PartitionedMirrorClientTest {
             new KnownTypeResolver<>(TopicData.class, this.mapper), TestUtils.getPartitionFinderForMappingUpdateTest());
     }
 
+    /**
+     * 1) We start with the following mapping: 1->host, 2->host. This is the mapping the router is initialised with.
+     * It is fetched by the first server.enqueue in @BeforeEach.
+     * 2) When we make a call to this.topicDataClient.fetchValue(), we'll make a request in
+     * DefaultMirrorRequestManager (DMRM).
+     * Since we create a mocked response with a header, the control statement at the line 71 of DMRM will be called
+     * and the header will be set in the ResponseWrapper.
+     * 3) Because of this, this.updateRouterInfo(); at 90 of PartitionedMirrorClient will be called.
+     * 4) Eventually, we will get a new mapping: 1->host, 2->host, 3->host.
+     * 5) Now, in the first call to this.topicDataClient.fetchValue, the returned partition is 2.
+     * If we make a consecutive call to this.topicDataClient.fetchValue, the returned partition will be 3.
+     * Why do we get 2 and then 3? This is a way of functioning of the custom PartitioningRouter
+     * that was made for the purpose of the test, see PartitionFinderForUpdateMappingTest,
+     * 6) If the info had not been updated, we would have received IllegalStateException because
+     * the partitionToMirrorHost would not have access to the key=3.
+     *
+     * @throws JsonProcessingException json processing exception
+     */
     @Test
-    void shouldReadHeaderAddUpdateRouter() throws JsonProcessingException {
+    void shouldReadHeaderAndUpdateRouter() throws JsonProcessingException {
         final TopicData topicData = createTopicData();
         final String body = TestUtils.generateBody(topicData);
-        // second request is the call to the MirrorClients fetchValue but as we set a header
-        // in the response this should trigger the third call which updates mapping of the router
 
-        this.server.enqueue(new MockResponse().setBody(body)
-            .setHeader(QuickConstants.getUpdateMappingHeader(), "There was a cache miss. Please update mapping"));
+        this.server.enqueue(new MockResponse().setBody(body).setHeader(
+            HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue()));
 
         final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, host, 3, host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
         final TopicData topic = this.topicDataClient.fetchValue(DEFAULT_TOPIC);
+        this.server.enqueue(new MockResponse().setBody(body));
+        final TopicData topic2 = this.topicDataClient.fetchValue(DEFAULT_TOPIC);
         assertThat(Objects.requireNonNull(topic).getName()).isEqualTo(DEFAULT_TOPIC);
-
-
+        assertThat(Objects.requireNonNull(topic2).getName()).isEqualTo(DEFAULT_TOPIC);
     }
 }
 

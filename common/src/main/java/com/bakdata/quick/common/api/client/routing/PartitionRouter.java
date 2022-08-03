@@ -79,7 +79,7 @@ public class PartitionRouter<K> implements Router<K> {
     }
 
     @Override
-    public void update(final Map<Integer, String> updatedRoutingInfo) {
+    public void updateRoutingInfo(final Map<Integer, String> updatedRoutingInfo) {
         this.partitionToMirrorHost = this.convertHostStringToMirrorHost(updatedRoutingInfo);
     }
 }

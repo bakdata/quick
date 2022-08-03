@@ -14,25 +14,26 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.util;
+package com.bakdata.quick.common.api.client;
 
 /**
- * A utility class that contains various constants used in Quick.
+ * A collection of constants for managing headers.
  */
-public class QuickConstants {
-
-    private QuickConstants() {}
+public class HeaderConstants {
 
     private static final String UPDATE_PARTITION_HOST_MAPPING_HEADER = "X-Cache-Update";
-    private static final String CACHE_UPDATE_MESSAGE = "There was a cache miss. Please update routing information.";
+    // The constant below indicates the existence of a header.
+    // See: https://stackoverflow.com/a/65241869 for more details.
+    private static final String HEADER_EXISTS = "?1";
+    private HeaderConstants() {
+    }
 
-    public static String getUpdateMappingHeader() {
+    public static String getCacheMissHeaderName() {
         return UPDATE_PARTITION_HOST_MAPPING_HEADER;
     }
 
-    public static String getCacheUpdateMessage() {
-        return CACHE_UPDATE_MESSAGE;
+    public static String getCacheMissHeaderValue() {
+        return HEADER_EXISTS;
     }
-
 
 }

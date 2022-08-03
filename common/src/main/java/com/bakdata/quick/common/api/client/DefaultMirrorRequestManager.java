@@ -17,7 +17,6 @@
 package com.bakdata.quick.common.api.client;
 
 import com.bakdata.quick.common.exception.MirrorException;
-import com.bakdata.quick.common.util.QuickConstants;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
@@ -41,7 +40,6 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
 
     @Override
     public ResponseWrapper makeRequest(final String url) {
-        final ResponseWrapper responseWrapper = new ResponseWrapper();
         final Request request = new Request.Builder().url(url).get().build();
         /*
         The reason why the classic try-catch statement and not the try-with-resources is used here,
@@ -53,8 +51,7 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
         try {
             final Response response = this.client.newCall(request).execute();
             if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
-                responseWrapper.setResponseBody(null);
-                return responseWrapper;
+                return new ResponseWrapper(null, returnCacheMissHeaderIfExists(response));
             }
             final ResponseBody body = response.body();
             if (response.code() != HttpStatus.OK.getCode()) {
@@ -67,12 +64,10 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
             if (body == null) {
                 throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            responseWrapper.setResponseBody(body);
-            if (response.header(QuickConstants.getUpdateMappingHeader()) != null) {
-                responseWrapper.setUpdateCacheHeader(Optional.ofNullable(
-                    response.header(QuickConstants.getUpdateMappingHeader())));
+            if (response.header(HeaderConstants.getCacheMissHeaderName()) != null) {
+                return new ResponseWrapper(body, returnCacheMissHeaderIfExists(response));
             }
-            return responseWrapper;
+            return new ResponseWrapper(body);
         } catch (final IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }
@@ -90,4 +85,19 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }
     }
+
+    /**
+     * Checks if the X-Cache-Update header has been set and returns a corresponding optional.
+     *
+     * @param response a response from the http call
+     * @return Optional of the X-Cache-Header value if it exists, and Optional.empty() if not.
+     */
+    private Optional<String> returnCacheMissHeaderIfExists(final Response response) {
+        if (response.header(HeaderConstants.getCacheMissHeaderName()) != null) {
+            return Optional.ofNullable(response.header(HeaderConstants.getCacheMissHeaderName()));
+        }
+        return Optional.empty();
+    }
 }
+
+

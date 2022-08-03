@@ -42,5 +42,10 @@ public interface Router<K> {
      */
     List<MirrorHost> getAllHosts();
 
-    void update(Map<Integer, String> updatedRoutingInfo);
+    /**
+     * Updates the current routing information with a provided routing information.
+     *
+     * @param updatedRoutingInfo new routing information
+     */
+    void updateRoutingInfo(Map<Integer, String> updatedRoutingInfo);
 }
