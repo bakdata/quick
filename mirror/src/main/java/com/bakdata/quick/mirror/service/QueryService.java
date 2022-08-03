@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
+import io.micronaut.http.HttpResponse;
 import io.reactivex.Single;
 import java.util.List;
 
@@ -26,9 +27,9 @@ import java.util.List;
  * @param <V> value type
  */
 public interface QueryService<V> {
-    Single<MirrorValue<V>> get(final String key);
+    Single<HttpResponse<MirrorValue<V>>> get(final String key);
 
-    Single<MirrorValue<List<V>>> getValues(final List<String> keys);
+    Single<HttpResponse<MirrorValue<List<V>>>> getValues(final List<String> keys);
 
-    Single<MirrorValue<List<V>>> getAll();
+    Single<HttpResponse<MirrorValue<List<V>>>> getAll();
 }

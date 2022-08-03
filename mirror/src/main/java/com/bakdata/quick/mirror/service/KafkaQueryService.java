@@ -18,6 +18,7 @@ package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
+import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -26,12 +27,17 @@ import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
+import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.exceptions.HttpStatusException;
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
@@ -78,14 +84,12 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.keyResolver = topicData.getKeyData().getResolver();
         this.valueResolver = topicData.getValueData().getResolver();
         this.topicName = topicData.getName();
-        this.storeQueryParameters = StoreQueryParameters.fromNameAndType(
-            this.storeName,
-            QueryableStoreTypes.keyValueStore()
-        );
+        this.storeQueryParameters =
+            StoreQueryParameters.fromNameAndType(this.storeName, QueryableStoreTypes.keyValueStore());
     }
 
     @Override
-    public Single<MirrorValue<V>> get(final String rawKey) {
+    public Single<HttpResponse<MirrorValue<V>>> get(final String rawKey) {
         final K key = this.keyResolver.fromString(rawKey);
         final KeyQueryMetadata metadata;
         try {
@@ -105,9 +109,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
             log.info("Forward request to {}", metadata.activeHost());
-            return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key))
-                .map(MirrorValue::new)
-                .subscribeOn(Schedulers.io());
+            return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).subscribeOn(Schedulers.io());
         }
 
         final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
@@ -122,29 +124,55 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             throw new NotFoundException(String.format("Key %s does not exist in %s", rawKey, this.topicName));
         }
 
-        return Single.just(new MirrorValue<>(value));
+        return Single.just(HttpResponse.created(new MirrorValue<>(value)));
     }
 
     @Override
-    public Single<MirrorValue<List<V>>> getValues(final List<String> keys) {
-        return Flowable.fromIterable(keys)
+    public Single<HttpResponse<MirrorValue<List<V>>>> getValues(final List<String> keys) {
+        return Observable.fromIterable(keys)
             .flatMapSingle(this::get)
-            .map(MirrorValue::getValue)
             .toList()
-            .map(MirrorValue::new);
+            .map(this::transformValuesAndCreateHttpResponse);
+    }
+
+    /**
+     * Transforms a list of HttpResponses of MirrorValue of a specific type into
+     * a single HttpResponse of MirrorValue with a list of values of that type.
+     * Furthermore, if a header is present in one of the HttpResponses (function argument), a HTTP Header
+     * that informs about the Cache-Miss is set. Because of this possibility, the function returns MutableHttpResponse
+     * and not just HttpResponse. However, MutableHttpResponse is of type HttpResponse so there is no clash
+     * with the QueryService interface that uses HttpResponse.
+     *
+     * @param listOfResponses a list of HttpResponses obtained from multiple calls to get(key),
+     *                        see getValues for the details
+     * @return MutableHttpResponse, possibly with a Cache-Miss Header set
+     */
+    private MutableHttpResponse<MirrorValue<List<V>>> transformValuesAndCreateHttpResponse(
+        final List<HttpResponse<MirrorValue<V>>> listOfResponses) {
+        final boolean headerSet = listOfResponses.stream()
+            .anyMatch(response -> response.header(HeaderConstants.getCacheMissHeaderName()) != null);
+        final List<V> values = listOfResponses.stream()
+            .map(response -> Objects.requireNonNull(response.body()).getValue()).collect(Collectors.toList());
+        if (headerSet) {
+            return HttpResponse.created(new MirrorValue<>(values)).header(
+                HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue());
+        } else {
+            return HttpResponse.created(new MirrorValue<>(values));
+        }
     }
 
     @Override
-    public Single<MirrorValue<List<V>>> getAll() {
+    public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
         // For now, we only consider the local state!
         final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
         return Flowable.fromIterable(store::all)
             .map(keyValue -> keyValue.value)
             .toList()
-            .map(MirrorValue::new);
+            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)));
+
     }
 
-    private V fetch(final HostInfo replicaHostInfo, final K key) {
+    private HttpResponse<MirrorValue<V>> fetch(final HostInfo replicaHostInfo, final K key) {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
         final DefaultMirrorClient<K, V> mirrorClient =
@@ -156,7 +184,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         if (value == null) {
             throw new NotFoundException("Key not found");
         }
-
-        return value;
+        return HttpResponse.created(new MirrorValue<>(value)).header(
+            HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue());
     }
 }
