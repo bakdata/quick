@@ -49,6 +49,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     private static final TypeReference<Map<Integer, String>> MAP_TYPE_REFERENCE = new TypeReference<>() {
     };
 
+    private final String topicName;
     private final StreamsStateHost streamsStateHost;
     private final HttpClient client;
     private final MirrorValueParser<V> parser;
@@ -69,6 +70,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     public PartitionedMirrorClient(final String topicName, final MirrorHost mirrorHost, final HttpClient client,
                                    final Serde<K> keySerde, final TypeResolver<V> valueResolver,
                                    final PartitionFinder partitionFinder) {
+        this.topicName = topicName;
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
         this.client = client;
         this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
@@ -146,8 +148,9 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     }
 
     private void updateRouterInfo() {
-        log.info("Updating router information");
+        log.debug("Updating partition - router mapping for the mirror at: {} and the topic: {}.",
+            this.streamsStateHost.getHost(), this.topicName);
         final Map<Integer, String> updatedPartitionHostInfo = this.makeRequestForPartitionHostMapping();
-        this.router.update(updatedPartitionHostInfo);
+        this.router.updateRoutingInfo(updatedPartitionHostInfo);
     }
 }

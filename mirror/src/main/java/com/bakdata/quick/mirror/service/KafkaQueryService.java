@@ -18,6 +18,7 @@ package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
+import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -26,9 +27,9 @@ import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.util.QuickConstants;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.exceptions.HttpStatusException;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -108,8 +109,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
             log.info("Forward request to {}", metadata.activeHost());
-            // The cast in the second map function is possible because MutableHttpResponse is of the same type
-            // as HttpResponse.
             return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).subscribeOn(Schedulers.io());
         }
 
@@ -133,18 +132,33 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         return Observable.fromIterable(keys)
             .flatMapSingle(this::get)
             .toList()
-            .map(listOfResponses -> {
-                final boolean headerSet = listOfResponses.stream()
-                    .anyMatch(response -> response.header(QuickConstants.getUpdateMappingHeader()) != null);
-                final List<V> values = listOfResponses.stream()
-                    .map(response -> Objects.requireNonNull(response.body()).getValue()).collect(Collectors.toList());
-                if (headerSet) {
-                    return HttpResponse.created(new MirrorValue<>(values)).header(
-                        QuickConstants.getUpdateMappingHeader(), QuickConstants.getCacheUpdateMessage());
-                } else {
-                    return HttpResponse.created(new MirrorValue<>(values));
-                }
-            });
+            .map(this::transformValuesAndCreateHttpResponse);
+    }
+
+    /**
+     * Transforms a list of HttpResponses of MirrorValue of a specific type into
+     * a single HttpResponse of MirrorValue with a list of values of that type.
+     * Furthermore, if a header is present in one of the HttpResponses (function argument), a HTTP Header
+     * that informs about the Cache-Miss is set. Because of this possibility, the function returns MutableHttpResponse
+     * and not just HttpResponse. However, MutableHttpResponse is of type HttpResponse so there is no clash
+     * with the QueryService interface that uses HttpResponse.
+     *
+     * @param listOfResponses a list of HttpResponses obtained from multiple calls to get(key),
+     *                        see getValues for the details
+     * @return MutableHttpResponse, possibly with a Cache-Miss Header set
+     */
+    private MutableHttpResponse<MirrorValue<List<V>>> transformValuesAndCreateHttpResponse(
+        final List<HttpResponse<MirrorValue<V>>> listOfResponses) {
+        final boolean headerSet = listOfResponses.stream()
+            .anyMatch(response -> response.header(HeaderConstants.getCacheMissHeaderName()) != null);
+        final List<V> values = listOfResponses.stream()
+            .map(response -> Objects.requireNonNull(response.body()).getValue()).collect(Collectors.toList());
+        if (headerSet) {
+            return HttpResponse.created(new MirrorValue<>(values)).header(
+                HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue());
+        } else {
+            return HttpResponse.created(new MirrorValue<>(values));
+        }
     }
 
     @Override
@@ -154,7 +168,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         return Flowable.fromIterable(store::all)
             .map(keyValue -> keyValue.value)
             .toList()
-            .map(e -> HttpResponse.created(new MirrorValue<>(e)));
+            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)));
 
     }
 
@@ -171,6 +185,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             throw new NotFoundException("Key not found");
         }
         return HttpResponse.created(new MirrorValue<>(value)).header(
-            QuickConstants.getUpdateMappingHeader(), QuickConstants.getCacheUpdateMessage());
+            HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue());
     }
 }

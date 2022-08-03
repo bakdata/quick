@@ -23,10 +23,27 @@ import com.bakdata.quick.common.api.client.routing.PartitionFinder;
  */
 public class PartitionFinderForUpdateMappingTest implements PartitionFinder {
 
-    private int partitionHook = 2;
+    private boolean firstCall = true;
 
+    /**
+     * When it is called for the first time, the partition 2 is returned because there are
+     * two items in the corresponding test (see: PartitionedMirrorClientTest). On consecutive calls,
+     * it returns 3 in order to test whether the partitionToHost mapping has been updated properly.
+     *
+     * @param serializedKey the byte representation of a key for which the partition is sought
+     * @param numPartitions the total number of partitions in a topic
+     * @return partition number
+     */
     @Override
     public int getForSerializedKey(final byte[] serializedKey, final int numPartitions) {
-        return partitionHook++ == 2 ? 2 : 3;
+        return getNextPartition();
+    }
+
+    private int getNextPartition() {
+        if (firstCall) {
+            firstCall = false;
+            return 2;
+        }
+        return 3;
     }
 }
