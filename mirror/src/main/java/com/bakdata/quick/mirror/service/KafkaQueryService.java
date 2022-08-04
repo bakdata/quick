@@ -124,7 +124,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             throw new NotFoundException(String.format("Key %s does not exist in %s", rawKey, this.topicName));
         }
 
-        return Single.just(HttpResponse.created(new MirrorValue<>(value)));
+        return Single.just(HttpResponse.created(new MirrorValue<>(value)).status(200));
     }
 
     @Override
@@ -154,10 +154,11 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final List<V> values = listOfResponses.stream()
             .map(response -> Objects.requireNonNull(response.body()).getValue()).collect(Collectors.toList());
         if (headerSet) {
-            return HttpResponse.created(new MirrorValue<>(values)).header(
-                HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue());
+            return HttpResponse.created(new MirrorValue<>(values))
+                .header(HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue())
+                .status(200);
         } else {
-            return HttpResponse.created(new MirrorValue<>(values));
+            return HttpResponse.created(new MirrorValue<>(values)).status(200);
         }
     }
 
@@ -168,7 +169,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         return Flowable.fromIterable(store::all)
             .map(keyValue -> keyValue.value)
             .toList()
-            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)));
+            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)).status(200));
 
     }
 
@@ -184,7 +185,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         if (value == null) {
             throw new NotFoundException("Key not found");
         }
-        return HttpResponse.created(new MirrorValue<>(value)).header(
-            HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue());
+        return HttpResponse.created(new MirrorValue<>(value))
+            .header(HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue())
+            .status(200);
     }
 }
