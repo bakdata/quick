@@ -68,10 +68,13 @@ class MirrorValueParser<V> {
         return new MirrorValue<>(collect);
     }
 
+    // Hier werden die Quotes weggemacht.
+    // Die Frage ist: Wann wir es haben wollen, wann nicht?
     private V parseValue(final JsonNode element) {
         // If this is a textualValue, `toString()` returns a string with unwanted quotes
-        final String stringValue = element.isTextual() ? element.textValue() : element.toString();
-        return this.resolver.fromString(stringValue);
+        //final String stringValue = element.isTextual() ? element.textValue() : element.toString();
+        //return this.resolver.fromString(stringValue);
+        return this.resolver.fromString(element.toString());
     }
 
 }

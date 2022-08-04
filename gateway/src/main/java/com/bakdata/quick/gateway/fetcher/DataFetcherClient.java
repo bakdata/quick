@@ -30,6 +30,7 @@ public interface DataFetcherClient<V> {
     TypeReference<List<Map<String, Object>>> LIST_TYPE_REFERENCE = new TypeReference<>() {
     };
 
+
     /**
      * Fetches a single value from the given id.
      *

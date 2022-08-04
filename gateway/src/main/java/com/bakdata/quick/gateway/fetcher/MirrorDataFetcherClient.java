@@ -48,8 +48,7 @@ public class MirrorDataFetcherClient implements DataFetcherClient<JsonNode> {
      */
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
                                    final Lazy<TypeResolver<JsonNode>> typeResolverLazy) {
-        this.mirrorClient =
-            new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, typeResolverLazy.get()));
+        this.mirrorClient = new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, typeResolverLazy.get()));
     }
 
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
