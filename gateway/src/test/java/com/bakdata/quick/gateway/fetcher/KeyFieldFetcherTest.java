@@ -89,6 +89,8 @@ class KeyFieldFetcherTest {
             .amount(3)
             .build();
 
+        JsonNode currencyJsonNode = this.mapper.valueToTree(currency);
+
         final String currencyJson = this.mapper.writeValueAsString(new MirrorValue<>(currency));
         this.server.enqueue(new MockResponse().setBody(currencyJson));
 
@@ -98,8 +100,8 @@ class KeyFieldFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
 
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(currency);
+        final JsonNode fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(currencyJsonNode);
     }
 
     @Test
@@ -122,6 +124,7 @@ class KeyFieldFetcherTest {
             .prices(List.of(3, 4, 5))
             .build();
 
+        JsonNode products = this.mapper.valueToTree(List.of(product1, product2));
 
         this.server.enqueue(
             new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
@@ -132,8 +135,8 @@ class KeyFieldFetcherTest {
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(List.of(product1, product2));
+        final JsonNode fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(products);
     }
 
     private MirrorDataFetcherClient createClient() {
