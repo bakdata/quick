@@ -23,11 +23,13 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
+import com.bakdata.quick.common.testutils.TestPartitionFinder;
 import com.bakdata.quick.common.testutils.TestUtils;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import okhttp3.OkHttpClient;
@@ -60,7 +62,7 @@ class PartitionedMirrorClientTest {
         // first request sets the mapping with partitions 1 and 2
         this.server.enqueue(new MockResponse().setBody(routerBody));
         this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, mirrorHost, client, Serdes.String(),
-            new KnownTypeResolver<>(TopicData.class, this.mapper), TestUtils.getPartitionFinderForMappingUpdateTest());
+            new KnownTypeResolver<>(TopicData.class, this.mapper), new TestPartitionFinder(List.of(2, 3)));
     }
 
     /**

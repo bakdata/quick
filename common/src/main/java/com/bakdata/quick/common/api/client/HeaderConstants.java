@@ -25,6 +25,7 @@ public class HeaderConstants {
     // The constant below indicates the existence of a header.
     // See: https://stackoverflow.com/a/65241869 for more details.
     private static final String HEADER_EXISTS = "?1";
+
     private HeaderConstants() {
     }
 

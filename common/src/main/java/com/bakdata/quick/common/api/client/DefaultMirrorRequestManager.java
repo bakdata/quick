@@ -20,7 +20,6 @@ import com.bakdata.quick.common.exception.MirrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -51,7 +50,7 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
         try {
             final Response response = this.client.newCall(request).execute();
             if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
-                return new ResponseWrapper(null, returnCacheMissHeaderIfExists(response));
+                return new ResponseWrapper(null, checkIfCacheMissHeaderSet(response));
             }
             final ResponseBody body = response.body();
             if (response.code() != HttpStatus.OK.getCode()) {
@@ -65,7 +64,7 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
                 throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
             }
             if (response.header(HeaderConstants.getCacheMissHeaderName()) != null) {
-                return new ResponseWrapper(body, returnCacheMissHeaderIfExists(response));
+                return new ResponseWrapper(body, checkIfCacheMissHeaderSet(response));
             }
             return new ResponseWrapper(body);
         } catch (final IOException exception) {
@@ -87,16 +86,13 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     }
 
     /**
-     * Checks if the X-Cache-Update header has been set and returns a corresponding optional.
+     * Checks if the X-Cache-Update header has been set.
      *
      * @param response a response from the http call
-     * @return Optional of the X-Cache-Header value if it exists, and Optional.empty() if not.
+     * @return a boolean that indicates whether the X-Cache-Update header has been set
      */
-    private Optional<String> returnCacheMissHeaderIfExists(final Response response) {
-        if (response.header(HeaderConstants.getCacheMissHeaderName()) != null) {
-            return Optional.ofNullable(response.header(HeaderConstants.getCacheMissHeaderName()));
-        }
-        return Optional.empty();
+    private boolean checkIfCacheMissHeaderSet(final Response response) {
+        return response.header(HeaderConstants.getCacheMissHeaderName()) != null;
     }
 }
 

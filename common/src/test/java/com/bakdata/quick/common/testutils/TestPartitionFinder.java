@@ -17,18 +17,29 @@
 package com.bakdata.quick.common.testutils;
 
 import com.bakdata.quick.common.api.client.routing.PartitionFinder;
+import com.bakdata.quick.common.exception.InternalErrorException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 /**
  * A custom PartitionFinder for testing the update mechanism of the PartitionRouter.
  */
-public class PartitionFinderForUpdateMappingTest implements PartitionFinder {
+public class TestPartitionFinder implements PartitionFinder {
 
-    private boolean firstCall = true;
+    private final Queue<Integer> partitions;
 
     /**
-     * When it is called for the first time, the partition 2 is returned because there are
-     * two items in the corresponding test (see: PartitionedMirrorClientTest). On consecutive calls,
-     * it returns 3 in order to test whether the partitionToHost mapping has been updated properly.
+     * PartitionFinder that uses a queue as a provider for partitions.
+     *
+     * @param elements a list of elements that are inserted into the queue
+     */
+    public TestPartitionFinder(final List<Integer> elements) {
+        this.partitions = new LinkedList<>(elements);
+    }
+
+    /**
+     * Returns an element from the queue as a next partition.
      *
      * @param serializedKey the byte representation of a key for which the partition is sought
      * @param numPartitions the total number of partitions in a topic
@@ -36,14 +47,9 @@ public class PartitionFinderForUpdateMappingTest implements PartitionFinder {
      */
     @Override
     public int getForSerializedKey(final byte[] serializedKey, final int numPartitions) {
-        return getNextPartition();
-    }
-
-    private int getNextPartition() {
-        if (firstCall) {
-            firstCall = false;
-            return 2;
+        if (this.partitions.isEmpty()) {
+            throw new InternalErrorException("There are no partitions to be served in the queue.");
         }
-        return 3;
+        return this.partitions.poll();
     }
 }

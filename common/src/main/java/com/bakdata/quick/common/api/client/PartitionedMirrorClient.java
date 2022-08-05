@@ -88,7 +88,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         final MirrorHost currentKeyHost = router.findHost(key);
         final ResponseWrapper response = this.requestManager
             .makeRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()));
-        if (Objects.requireNonNull(response).getUpdateCacheHeader().isPresent()) {
+        if (response.isUpdateCacheHeaderSet()) {
             this.updateRouterInfo();
         }
         return this.requestManager.processResponse(response, this.parser::deserialize);
@@ -99,12 +99,10 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         final List<V> valuesFromAllHosts = new ArrayList<>();
         for (final MirrorHost host : this.knownHosts) {
             final ResponseWrapper response = this.requestManager.makeRequest(host.forAll());
-            if (response != null) {
-                final List<V> valuesFromSingleHost =
-                    Objects.requireNonNullElse(this.requestManager.processResponse(response, parser::deserializeList),
-                        Collections.emptyList());
-                valuesFromAllHosts.addAll(valuesFromSingleHost);
-            }
+            final List<V> valuesFromSingleHost =
+                Objects.requireNonNullElse(this.requestManager.processResponse(response, parser::deserializeList),
+                    Collections.emptyList());
+            valuesFromAllHosts.addAll(valuesFromSingleHost);
         }
         return valuesFromAllHosts;
     }

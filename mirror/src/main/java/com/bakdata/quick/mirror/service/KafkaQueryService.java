@@ -140,8 +140,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
      * a single HttpResponse of MirrorValue with a list of values of that type.
      * Furthermore, if a header is present in one of the HttpResponses (function argument), a HTTP Header
      * that informs about the Cache-Miss is set. Because of this possibility, the function returns MutableHttpResponse
-     * and not just HttpResponse. However, MutableHttpResponse is of type HttpResponse so there is no clash
-     * with the QueryService interface that uses HttpResponse.
+     * and not just HttpResponse.
      *
      * @param listOfResponses a list of HttpResponses obtained from multiple calls to get(key),
      *                        see getValues for the details
@@ -152,13 +151,15 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final boolean headerSet = listOfResponses.stream()
             .anyMatch(response -> response.header(HeaderConstants.getCacheMissHeaderName()) != null);
         final List<V> values = listOfResponses.stream()
-            .map(response -> Objects.requireNonNull(response.body()).getValue()).collect(Collectors.toList());
+            .map(response -> Objects.requireNonNull(response.body()).getValue())
+            .collect(Collectors.toList());
+        final MutableHttpResponse<MirrorValue<List<V>>> responseWithoutHeader =
+            HttpResponse.created(new MirrorValue<>(values)).status(200);
         if (headerSet) {
-            return HttpResponse.created(new MirrorValue<>(values))
-                .header(HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue())
-                .status(200);
+            return responseWithoutHeader.header(
+                HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue());
         } else {
-            return HttpResponse.created(new MirrorValue<>(values)).status(200);
+            return responseWithoutHeader;
         }
     }
 
