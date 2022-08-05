@@ -18,8 +18,9 @@ package com.bakdata.quick.gateway;
 
 import static org.mockito.Mockito.mock;
 
-import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
 import com.bakdata.quick.gateway.fetcher.ClientSupplier;
+import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
+import com.fasterxml.jackson.databind.JsonNode;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLFieldDefinition;
@@ -29,11 +30,12 @@ import java.util.Map;
 import lombok.Getter;
 
 public final class GraphQLTestUtil {
-    private GraphQLTestUtil() {}
+    private GraphQLTestUtil() {
+    }
 
 
     public static DataFetcher<?> getFieldDataFetcher(final String objectName, final String fieldName,
-        final GraphQLSchema schema) {
+                                                     final GraphQLSchema schema) {
         final GraphQLFieldDefinition modificationField = getFieldDefinition(objectName, fieldName, schema);
         return schema.getCodeRegistry().getDataFetcher(
             FieldCoordinates.coordinates(objectName, fieldName),
@@ -42,7 +44,7 @@ public final class GraphQLTestUtil {
     }
 
     public static GraphQLFieldDefinition getFieldDefinition(final String objectName, final String fieldName,
-        final GraphQLSchema schema) {
+                                                            final GraphQLSchema schema) {
         return schema.getObjectType(objectName).getFieldDefinitions()
             .stream()
             .filter(definition -> fieldName.equals(definition.getName()))
@@ -52,15 +54,15 @@ public final class GraphQLTestUtil {
 
     static final class TestClientSupplier implements ClientSupplier {
         @Getter
-        private final Map<String, DataFetcherClient<?>> clients;
+        private final Map<String, DataFetcherClient<JsonNode>> clients;
 
         TestClientSupplier() {
             this.clients = new HashMap<>();
         }
 
         @Override
-        public DataFetcherClient<?> createClient(final String topic) {
-            final DataFetcherClient<?> client = mock(DataFetcherClient.class);
+        public DataFetcherClient<JsonNode> createClient(final String topic) {
+            final DataFetcherClient<JsonNode> client = mock(DataFetcherClient.class);
             this.clients.put(topic, client);
             return client;
         }

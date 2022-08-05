@@ -57,6 +57,7 @@ class KeyFieldFetcherTest {
             .build();
 
         final String productJson = this.mapper.writeValueAsString(new MirrorValue<>(product));
+        final JsonNode productJsonNode = this.mapper.valueToTree(product);
         this.server.enqueue(new MockResponse().setBody(productJson));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
@@ -66,8 +67,7 @@ class KeyFieldFetcherTest {
             .build();
 
         final JsonNode fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult.get("prices").get(0).asInt()).isEqualTo(3);
-        assertThat(fetcherResult.get("productId").asInt()).isEqualTo(5);
+        assertThat(fetcherResult).isEqualTo(productJsonNode);
     }
 
 
@@ -89,9 +89,8 @@ class KeyFieldFetcherTest {
             .amount(3)
             .build();
 
-        JsonNode currencyJsonNode = this.mapper.valueToTree(currency);
-
         final String currencyJson = this.mapper.writeValueAsString(new MirrorValue<>(currency));
+        final JsonNode currencyJsonNode = this.mapper.valueToTree(currency);
         this.server.enqueue(new MockResponse().setBody(currencyJson));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
@@ -124,8 +123,7 @@ class KeyFieldFetcherTest {
             .prices(List.of(3, 4, 5))
             .build();
 
-        JsonNode products = this.mapper.valueToTree(List.of(product1, product2));
-
+        final JsonNode products = this.mapper.valueToTree(List.of(product1, product2));
         this.server.enqueue(
             new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
 

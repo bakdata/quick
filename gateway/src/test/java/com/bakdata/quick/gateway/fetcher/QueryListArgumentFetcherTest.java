@@ -81,13 +81,7 @@ class QueryListArgumentFetcherTest {
             .localContext(arguments).build();
 
         final List<JsonNode> actual = listArgumentFetcher.get(env);
-        assertThat(actual.size()).isEqualTo(2);
-        assertThat(actual.get(0).get("purchaseId").asText()).isEqualTo("testId1");
-        assertThat(actual.get(1).get("purchaseId").asText()).isEqualTo("testId2");
-        assertThat(actual.get(0).get("productId").asInt()).isEqualTo(1);
-        assertThat(actual.get(1).get("productId").asInt()).isEqualTo(2);
-        assertThat(actual.get(0).get("amount").asInt()).isEqualTo(3);
-        assertThat(actual.get(1).get("amount").asInt()).isEqualTo(3);
+        assertThat(actual).isEqualTo(getJsonNodesFrom(List.of(purchase1, purchase2)));
 
     }
 
@@ -117,15 +111,10 @@ class QueryListArgumentFetcherTest {
             .localContext(arguments).build();
 
         final List<JsonNode> actual = listArgumentFetcher.get(env);
-        assertThat(actual.size()).isEqualTo(2);
-        assertThat(actual.get(0).get("productId").asInt()).isEqualTo(1);
-        assertThat(actual.get(1).get("productId").asInt()).isEqualTo(2);
-        assertThat(actual.get(0).get("name").asText()).isEqualTo("productTest1");
-        assertThat(actual.get(1).get("name").asText()).isEqualTo("productTest2");
+        assertThat(actual).isEqualTo(getJsonNodesFrom(List.of(product1, product2)));
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void shouldFetchEmptyListWhenResultIsNullAndReturnTypeIsNotNullable() {
         final MirrorDataFetcherClient fetcherClient = Mockito.mock(MirrorDataFetcherClient.class);
 
@@ -139,15 +128,12 @@ class QueryListArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = listArgumentFetcher.get(env);
-        final List<?> expected =
-            this.mapper.convertValue(Collections.emptyList(), DataFetcherClient.LIST_TYPE_REFERENCE);
+        final List<JsonNode> actual = listArgumentFetcher.get(env);
 
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual).isEqualTo(getJsonNodesFrom(Collections.emptyList()));
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void shouldFetchEmptyListWhenResultNotIsNullAndDoesNotHaveNullableElements() {
         final Purchase purchase1 = Purchase.builder()
             .purchaseId("testId1")
@@ -158,7 +144,7 @@ class QueryListArgumentFetcherTest {
         final MirrorDataFetcherClient fetcherClient = Mockito.mock(MirrorDataFetcherClient.class);
 
         final List<JsonNode> itemList = new ArrayList<>();
-        JsonNode jsonNode = mapper.convertValue(purchase1, JsonNode.class);
+        final JsonNode jsonNode = this.mapper.valueToTree(purchase1);
         itemList.add(jsonNode);
         itemList.add(null);
 
@@ -173,12 +159,7 @@ class QueryListArgumentFetcherTest {
             .localContext(arguments).build();
 
         final List<JsonNode> actual = listArgumentFetcher.get(env);
-        final List<?> expected = List.of(purchase1);
-
-        assertThat(actual.size()).isEqualTo(1);
-        assertThat(actual.get(0).get("purchaseId").asText()).isEqualTo("testId1");
-        assertThat(actual.get(0).get("productId").asInt()).isEqualTo(1);
-        assertThat(actual.get(0).get("amount").asInt()).isEqualTo(3);
+        assertThat(actual).isEqualTo(getJsonNodesFrom(List.of(purchase1)));
     }
 
     @NotNull
@@ -200,5 +181,11 @@ class QueryListArgumentFetcherTest {
     private static class Product {
         private int productId;
         private String name;
+    }
+
+    private List<JsonNode> getJsonNodesFrom(final List<?> list) {
+        final List<JsonNode> jsonNodes = new ArrayList<>();
+        this.mapper.valueToTree(list).elements().forEachRemaining(jsonNodes::add);
+        return jsonNodes;
     }
 }

@@ -83,16 +83,11 @@ public class KeyFieldFetcher implements DataFetcher<JsonNode> {
     @Nullable
     public JsonNode get(final DataFetchingEnvironment environment) {
         final List<String> uriList = this.findKeyArgument(environment).collect(Collectors.toList());
-
-        // the modification applies either to an array node or to a single field
-        // TODO create two different classes for both use cases and create them based on the schema
-        // TODO: is it possible to convert List<JsonNode> to a single JsonNode?
         if (uriList.size() == 1) {
             return this.client.fetchResult(uriList.get(0));
         } else {
-            List<JsonNode> jsonNodes = this.client.fetchResults(uriList);
-            ArrayNode a = new ArrayNode(JsonNodeFactory.instance, jsonNodes);
-            return a;
+            final List<JsonNode> jsonNodes = this.client.fetchResults(uriList);
+            return new ArrayNode(JsonNodeFactory.instance, jsonNodes);
         }
     }
 

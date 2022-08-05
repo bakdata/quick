@@ -472,7 +472,7 @@ class GraphQLSchemaGeneratorTest {
     @Test
     void shouldNotConvertIfMissingKeyInfoInQueryType(final TestInfo testInfo) throws IOException {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
-        String schema = Files.readString(schemaPath);
+        final String schema = Files.readString(schemaPath);
         assertThatExceptionOfType(QuickDirectiveException.class)
                 .isThrownBy(() -> this.generator.create(schema))
                 .withMessage("When the return type is not a list for a non-mutation and non-subscription type,"

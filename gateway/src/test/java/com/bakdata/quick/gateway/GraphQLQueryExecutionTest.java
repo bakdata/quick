@@ -31,6 +31,7 @@ import com.bakdata.quick.gateway.directives.QuickDirectiveWiring;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveWiring;
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
 import com.bakdata.quick.gateway.fetcher.FetcherFactory;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -77,8 +78,8 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("url-topic");
-        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> "test-url");
+        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> this.objectMapper.valueToTree("test-url"));
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 
@@ -87,7 +88,7 @@ class GraphQLQueryExecutionTest {
         final Map<String, Map<String, Object>> data = executionResult.getData();
         assertThat(data.get("getURL"))
             .isNotNull()
-            .containsEntry("url", "test-url");
+            .containsEntry("url", "\"test-url\"");
     }
 
     @Test
@@ -99,9 +100,10 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("purchase-topic");
+        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("purchase-topic");
         final Purchase purchase = Purchase.builder().purchaseId("test").amount(5).productId("product").build();
-        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> purchase);
+        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation ->
+            this.objectMapper.valueToTree(purchase));
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 

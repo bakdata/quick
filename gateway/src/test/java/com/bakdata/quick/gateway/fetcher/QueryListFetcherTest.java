@@ -66,11 +66,6 @@ class QueryListFetcherTest {
         final List<Purchase> purchaseList = List.of(purchase1, purchase2);
         final String purchaseJson = this.mapper.writeValueAsString(new MirrorValue<>(purchaseList));
         this.server.enqueue(new MockResponse().setBody(purchaseJson));
-        // Below we will receive a string that contains an array of objects
-        // "[{}, {}]". The problem is, we receive an array node and not a list of json node
-        final List<JsonNode> purchases = new ArrayList<>();
-        this.mapper.valueToTree(List.of(purchase1, purchase2))
-            .elements().forEachRemaining(purchases::add);
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
         final QueryListFetcher queryFetcher =
@@ -79,29 +74,23 @@ class QueryListFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<JsonNode> actual = queryFetcher.get(env);
-        assertThat(actual).isEqualTo(purchases);
+        final List<JsonNode> fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(getJsonNodesFrom(purchaseList));
     }
 
 
     @Test
     void shouldFetchListOfStrings() throws Exception {
-
         final List<String> list = List.of("abc", "def");
         final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
         this.server.enqueue(new MockResponse().setBody(listJson));
-
-        final List<JsonNode> stringNodes = new ArrayList<>();
-        this.mapper.valueToTree(list)
-            .elements().forEachRemaining(stringNodes::add);
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
         final QueryListFetcher queryFetcher = new QueryListFetcher(fetcherClient, isNullable, hasNullableElements);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
 
         final List<JsonNode> fetcherResult = queryFetcher.get(env);
-
-        assertThat(fetcherResult).isEqualTo(stringNodes);
+        assertThat(fetcherResult).isEqualTo(getJsonNodesFrom(list));
     }
 
     @Test
@@ -110,18 +99,12 @@ class QueryListFetcherTest {
         final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
         this.server.enqueue(new MockResponse().setBody(listJson));
 
-        final List<JsonNode> integerNodes = new ArrayList<>();
-        this.mapper.valueToTree(list)
-            .elements().forEachRemaining(integerNodes::add);
-
-
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
         final QueryListFetcher queryFetcher = new QueryListFetcher(fetcherClient, isNullable, hasNullableElements);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
 
         final List<JsonNode> fetcherResult = queryFetcher.get(env);
-
-        assertThat(fetcherResult).isEqualTo(integerNodes);
+        assertThat(fetcherResult).isEqualTo(getJsonNodesFrom(list));
     }
 
     @Test
@@ -129,16 +112,14 @@ class QueryListFetcherTest {
         final List<Double> list = List.of(0.5, 0.1);
         final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
         this.server.enqueue(new MockResponse().setBody(listJson));
-        final List<JsonNode> doubleNodes = new ArrayList<>();
-        this.mapper.valueToTree(list)
-            .elements().forEachRemaining(doubleNodes::add);
+
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
         final QueryListFetcher queryFetcher = new QueryListFetcher(fetcherClient, isNullable,
             hasNullableElements);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
         final List<JsonNode> fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(doubleNodes);
+        assertThat(fetcherResult).isEqualTo(getJsonNodesFrom(list));
     }
 
     private MirrorDataFetcherClient createClient() {
@@ -152,5 +133,11 @@ class QueryListFetcherTest {
         private String purchaseId;
         private String productId;
         private int amount;
+    }
+
+    private List<JsonNode> getJsonNodesFrom(final List<?> list) {
+        final List<JsonNode> jsonNodes = new ArrayList<>();
+        this.mapper.valueToTree(list).elements().forEachRemaining(jsonNodes::add);
+        return jsonNodes;
     }
 }
