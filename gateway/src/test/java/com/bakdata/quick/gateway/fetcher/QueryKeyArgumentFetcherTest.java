@@ -30,7 +30,6 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 import lombok.Builder;
 import lombok.Data;
 import okhttp3.OkHttpClient;
@@ -56,7 +55,7 @@ class QueryKeyArgumentFetcherTest {
             .build();
 
         final String purchaseJson = this.mapper.writeValueAsString(new MirrorValue<>(purchase));
-        JsonNode purchaseJsonNode = this.mapper.valueToTree(purchase);
+        final JsonNode purchaseJsonNode = this.mapper.valueToTree(purchase);
         this.server.enqueue(new MockResponse().setBody(purchaseJson));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
@@ -70,13 +69,11 @@ class QueryKeyArgumentFetcherTest {
         assertThat(fetcherResult).isEqualTo(purchaseJsonNode);
     }
 
-    // TODO: How to handle string values?
-    // Wir erwarten einen Text, der gequotet ist. Wenn wir den Text ohne Quotes zurückgeben,
-    // dann haben wir Probleme.
     @Test
     void shouldFetchStringValue() throws JsonProcessingException {
         final String value = "test";
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
+        final JsonNode stringJsonNode = this.mapper.valueToTree(value);
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
@@ -87,14 +84,14 @@ class QueryKeyArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
         final JsonNode fetcherResult = queryFetcher.get(env);
-        assertThat(Objects.requireNonNull(fetcherResult).asText()).isEqualTo("test");
+        assertThat(fetcherResult).isEqualTo(stringJsonNode);
     }
 
     @Test
     void shouldFetchIntegerValue() throws Exception {
         final int value = 5;
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
-
+        final JsonNode intJsonNode = this.mapper.valueToTree(value);
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
@@ -105,14 +102,14 @@ class QueryKeyArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
         final JsonNode fetcherResult = queryFetcher.get(env);
-        assertThat(Objects.requireNonNull(fetcherResult).asInt()).isEqualTo(value);
+        assertThat(fetcherResult).isEqualTo(intJsonNode);
     }
-
 
     @Test
     void shouldFetchLongValue() throws Exception {
         final long value = 5L;
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
+        final JsonNode longNode = this.mapper.valueToTree(value);
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
@@ -122,8 +119,8 @@ class QueryKeyArgumentFetcherTest {
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
-        final JsonNode fetcherResult = queryFetcher.get(env);
-        assertThat(Objects.requireNonNull(fetcherResult).asLong()).isEqualTo(value);
+            final JsonNode fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(longNode);
     }
 
 
@@ -131,6 +128,7 @@ class QueryKeyArgumentFetcherTest {
     void shouldFetchDoubleValue() throws Exception {
         final double value = 0.5;
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
+        final JsonNode valueJsonNode = this.mapper.valueToTree(value);
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
@@ -141,7 +139,7 @@ class QueryKeyArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
         final JsonNode fetcherResult = queryFetcher.get(env);
-        assertThat(Objects.requireNonNull(fetcherResult).asDouble()).isEqualTo(value);
+        assertThat(fetcherResult).isEqualTo(valueJsonNode);
     }
 
     private MirrorDataFetcherClient createClient() {

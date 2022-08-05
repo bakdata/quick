@@ -16,7 +16,6 @@
 
 package com.bakdata.quick.gateway;
 
-import com.bakdata.quick.gateway.custom.QuickWiringFactory;
 import com.bakdata.quick.gateway.custom.type.QuickGraphQLType;
 import com.bakdata.quick.gateway.directives.QuickDirectiveWiring;
 import graphql.Scalars;
@@ -101,7 +100,7 @@ public class GraphQLSchemaGenerator {
             builder.scalar(customScalar);
         }
         this.postProcessings.forEach(builder::transformer);
-        builder.wiringFactory(QuickWiringFactory.create());
+        //builder.wiringFactory(QuickWiringFactory.create());
 
         final TypeDefinitionRegistry userRegistry = new SchemaParser().parse(schema);
         baseRegistry.merge(userRegistry);
