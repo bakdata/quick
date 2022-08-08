@@ -16,7 +16,6 @@
 
 package com.bakdata.quick.gateway.custom;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import graphql.schema.DataFetcher;
 import graphql.schema.idl.FieldWiringEnvironment;
 import graphql.schema.idl.WiringFactory;
@@ -38,7 +37,7 @@ public class QuickWiringFactory implements WiringFactory {
     }
 
     @Override
-    public DataFetcher<JsonNode> getDefaultDataFetcher(final FieldWiringEnvironment environment) {
+    public DataFetcher<Object> getDefaultDataFetcher(final FieldWiringEnvironment environment) {
         return new QuickPropertyDataFetcher(environment.getFieldDefinition().getName());
     }
 }

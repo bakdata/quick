@@ -36,14 +36,22 @@ import org.apache.avro.generic.GenericRecord;
  * @see PropertyDataFetcher
  * @see TrivialDataFetcher
  */
-public class QuickPropertyDataFetcher implements TrivialDataFetcher<JsonNode> {
+public class QuickPropertyDataFetcher implements TrivialDataFetcher<Object> {
+
+    private final String fieldName;
 
     public QuickPropertyDataFetcher(final String fieldName) {
+        this.fieldName = fieldName;
     }
 
+    // TODO: extend this to involve all relevant types
     @Override
-    public JsonNode get(final DataFetchingEnvironment environment) {
-        return environment.getSource();
+    public Object get(final DataFetchingEnvironment environment) {
+        final JsonNode source = environment.getSource();
+        final JsonNode value = source.get(fieldName);
+        if (value.isInt()) {
+            return value.asInt();
+        }
+        return value.asText();
     }
-
 }

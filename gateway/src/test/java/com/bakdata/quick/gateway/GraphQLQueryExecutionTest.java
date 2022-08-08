@@ -126,18 +126,15 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<?> purchaseClient = this.supplier.getClients().get("purchase-topic");
-        final DataFetcherClient<?> productClient = this.supplier.getClients().get("product-topic");
+        final DataFetcherClient<JsonNode> purchaseClient = this.supplier.getClients().get("purchase-topic");
+        final DataFetcherClient<JsonNode> productClient = this.supplier.getClients().get("product-topic");
 
-        final List<?> purchases = List.of(
-            this.objectMapper.convertValue(
-                Purchase.builder().purchaseId("purchase1").amount(5).productId("product1").build(),
-                DataFetcherClient.OBJECT_TYPE_REFERENCE
-            ),
-            this.objectMapper.convertValue(
-                Purchase.builder().purchaseId("purchase2").amount(1).productId("product2").build(),
-                DataFetcherClient.OBJECT_TYPE_REFERENCE
-            )
+        final Purchase purchase1 = Purchase.builder().purchaseId("purchase1").amount(5).productId("product1").build();
+        final Purchase purchase2 = Purchase.builder().purchaseId("purchase2").amount(1).productId("product2").build();
+
+        final List<JsonNode> purchases = List.of(
+            this.objectMapper.valueToTree(purchase1),
+            this.objectMapper.valueToTree(purchase2)
         );
 
         final Product product1 = Product.builder()
@@ -145,16 +142,18 @@ class GraphQLQueryExecutionTest {
             .name("product-name")
             .price(Price.builder().total(5).build())
             .build();
+        final JsonNode product1JsonNode = this.objectMapper.valueToTree(product1);
 
         final Product product2 = Product.builder()
             .productId("product2")
             .name("product-name2")
             .price(Price.builder().total(1).build())
             .build();
+        final JsonNode product2JsonNode = this.objectMapper.valueToTree(product2);
 
         when(purchaseClient.fetchList()).thenAnswer(invocation -> purchases);
-        when(productClient.fetchResult("product1")).thenAnswer(invocation -> product1);
-        when(productClient.fetchResult("product2")).thenAnswer(invocation -> product2);
+        when(productClient.fetchResult("product1")).thenAnswer(invocation -> product1JsonNode);
+        when(productClient.fetchResult("product2")).thenAnswer(invocation -> product2JsonNode);
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 
@@ -189,8 +188,11 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("url-topic");
-        when(dataFetcherClient.fetchList()).thenAnswer(invocation -> List.of("1", "2", "3"));
+        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        final JsonNode n1 = this.objectMapper.valueToTree("1");
+        final JsonNode n2 = this.objectMapper.valueToTree("2");
+        final JsonNode n3 = this.objectMapper.valueToTree("3");
+        when(dataFetcherClient.fetchList()).thenAnswer(invocation -> List.of(n1, n2, n3));
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 
@@ -198,7 +200,7 @@ class GraphQLQueryExecutionTest {
         final Map<String, List<String>> data = executionResult.getData();
         assertThat(data.get("getURL"))
             .isNotNull()
-            .containsExactly("1", "2", "3");
+            .containsExactly("\"1\"", "\"2\"", "\"3\"");
     }
 
     @Test
@@ -231,8 +233,13 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("url-topic");
-        when(dataFetcherClient.fetchResults(List.of("1", "2", "3"))).thenAnswer(invocation -> List.of("1", "2", "3"));
+        final JsonNode n1 = this.objectMapper.valueToTree("1");
+        final JsonNode n2 = this.objectMapper.valueToTree("2");
+        final JsonNode n3 = this.objectMapper.valueToTree("3");
+        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        when(dataFetcherClient.fetchResults(List.of("1", "2", "3"))).thenAnswer(invocation -> List.of(
+            n1, n2, n3
+        ));
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 
@@ -240,7 +247,7 @@ class GraphQLQueryExecutionTest {
         final Map<String, List<String>> data = executionResult.getData();
         assertThat(data.get("getURL"))
             .isNotNull()
-            .containsExactly("1", "2", "3");
+            .containsExactly("\"1\"", "\"2\"", "\"3\"");
     }
 
     @Test
@@ -252,8 +259,9 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("url-topic");
-        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> "url");
+        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation ->
+            this.objectMapper.valueToTree("url"));
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 
@@ -261,7 +269,7 @@ class GraphQLQueryExecutionTest {
         final Map<String, String> data = executionResult.getData();
         assertThat(data.get("getURL"))
             .isNotNull()
-            .isEqualTo("url");
+            .isEqualTo("\"url\"");
     }
 
     @Test

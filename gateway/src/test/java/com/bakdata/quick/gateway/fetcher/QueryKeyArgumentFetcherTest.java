@@ -119,8 +119,9 @@ class QueryKeyArgumentFetcherTest {
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
-            final JsonNode fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(longNode);
+        final JsonNode fetcherResult = queryFetcher.get(env);
+        assert fetcherResult != null;
+        assertThat(fetcherResult.asLong()).isEqualTo(longNode.asLong());
     }
 
 

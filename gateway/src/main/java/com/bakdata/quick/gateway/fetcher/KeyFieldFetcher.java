@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -121,11 +120,7 @@ public class KeyFieldFetcher implements DataFetcher<JsonNode> {
     }
 
     private String extractJson(final DataFetchingEnvironment environment) throws IOException {
-        // TODO work on JSON everywhere:
-        //  1. Do not convert back to real types in MirrorDataFetcherClient
-        //  2. Immediately convert to JSON in SubscriptionFetcher
-        final Map<String, Object> value = environment.getSource();
-        return this.objectMapper.writeValueAsString(value);
+        return this.objectMapper.writeValueAsString(environment.getSource());
     }
 
     private String valueAsString(final JsonNode node) {
