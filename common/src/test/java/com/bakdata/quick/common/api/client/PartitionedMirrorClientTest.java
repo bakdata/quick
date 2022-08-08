@@ -66,18 +66,18 @@ class PartitionedMirrorClientTest {
     }
 
     /**
-     * 1) We start with the following mapping: 1->host, 2->host. This is the mapping the router is initialised with.
+     * 1) We start with the following mapping: 1->host, 2->host. This is the mapping the router is initialized with.
      * It is fetched by the first server.enqueue in @BeforeEach.
      * 2) When we make a call to this.topicDataClient.fetchValue(), we'll make a request in
      * DefaultMirrorRequestManager (DMRM).
-     * Since we create a mocked response with a header, the control statement at the line 71 of DMRM will be called
+     * Since we create a mocked response with a header, the control statement in DMRM where the existence of the header is checked will be called
      * and the header will be set in the ResponseWrapper.
      * 3) Because of this, this.updateRouterInfo(); at 90 of PartitionedMirrorClient will be called.
      * 4) Eventually, we will get a new mapping: 1->host, 2->host, 3->host.
      * 5) Now, in the first call to this.topicDataClient.fetchValue, the returned partition is 2.
      * If we make a consecutive call to this.topicDataClient.fetchValue, the returned partition will be 3.
      * Why do we get 2 and then 3? This is a way of functioning of the custom PartitioningRouter
-     * that was made for the purpose of the test, see PartitionFinderForUpdateMappingTest,
+     * that was made for the purpose of the test. See TestPartitionFinder,
      * 6) If the info had not been updated, we would have received IllegalStateException because
      * the partitionToMirrorHost would not have access to the key=3.
      *

@@ -86,7 +86,7 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     }
 
     /**
-     * Checks if the X-Cache-Update header has been set.
+     * Checks if the X-Cache-Update from {@link HeaderConstants} header has been set.
      *
      * @param response a response from the http call
      * @return a boolean that indicates whether the X-Cache-Update header has been set
@@ -95,5 +95,3 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
         return response.header(HeaderConstants.getCacheMissHeaderName()) != null;
     }
 }
-
-
