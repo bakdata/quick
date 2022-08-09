@@ -44,14 +44,26 @@ public class QuickPropertyDataFetcher implements TrivialDataFetcher<Object> {
         this.fieldName = fieldName;
     }
 
-    // TODO: extend this to involve all relevant types
     @Override
     public Object get(final DataFetchingEnvironment environment) {
         final JsonNode source = environment.getSource();
         final JsonNode value = source.get(fieldName);
+        return extractValueFromJsonNode(value);
+    }
+
+    private Object extractValueFromJsonNode(final JsonNode value) {
         if (value.isInt()) {
             return value.asInt();
+        } else if (value.isObject()) {
+            return value;
+        } else if (value.isDouble()) {
+            return value.asDouble();
+        } else if (value.isArray()) {
+            return value;
+        } else if (value.isBoolean()) {
+            return value.asBoolean();
+        } else {
+            return value.textValue();
         }
-        return value.asText();
     }
 }

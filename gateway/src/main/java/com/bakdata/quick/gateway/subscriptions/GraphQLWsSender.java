@@ -45,7 +45,6 @@ import org.reactivestreams.Subscription;
 @Slf4j
 public class GraphQLWsSender {
 
-
     private final GraphQLWsState state;
     private final GraphQLJsonSerializer graphQLJsonSerializer;
 

@@ -65,13 +65,11 @@ public class GraphQLWsController {
      *
      * @param messageHandler        the {@link GraphQLWsMessageHandler} instance
      * @param state                 the {@link GraphQLWsState} instance
-     * @param graphQLJsonSerializer the {@link GraphQLJsonSerializer} instance
      */
-    public GraphQLWsController(final GraphQLWsMessageHandler messageHandler, final GraphQLWsState state,
-        final GraphQLJsonSerializer graphQLJsonSerializer) {
+    public GraphQLWsController(final GraphQLWsMessageHandler messageHandler, final GraphQLWsState state) {
         this.messageHandler = messageHandler;
         this.state = state;
-        this.graphQLJsonSerializer = graphQLJsonSerializer;
+        this.graphQLJsonSerializer = new CustomGraphQLJsonSerializer();
         this.errorMessage = new GraphQLWsResponse(GQL_CONNECTION_ERROR);
     }
 

@@ -139,7 +139,8 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
         complexType.put(namedRecord.getFieldName(), namedRecord.getConsumerRecord().value());
 
         final FieldKey<?> key = new FieldKey<>(namedRecord.getFieldName(), namedRecord.getConsumerRecord().key());
-        final CompletableFuture<?> recordValue = CompletableFuture.completedFuture(namedRecord.getConsumerRecord().value());
+        final CompletableFuture<?> recordValue = CompletableFuture.completedFuture(
+            namedRecord.getConsumerRecord().value());
         log.info("Update {} with {}", key, namedRecord.getConsumerRecord().value());
         this.fieldCache.put(key, recordValue);
 

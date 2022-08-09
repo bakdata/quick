@@ -281,9 +281,10 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("purchase-topic");
+        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("purchase-topic");
         final Purchase purchase = Purchase.builder().purchaseId("test").amount(5).productId(null).build();
-        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> purchase);
+        final JsonNode purchaseNode = this.objectMapper.valueToTree(purchase);
+        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> purchaseNode);
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
         assertThat(executionResult.getErrors())
