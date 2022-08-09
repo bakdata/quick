@@ -37,20 +37,21 @@ class ProtobufGeneratorPlugin : Plugin<Project> {
     }
 
     override fun apply(project: Project) {
-        project.plugins.apply(ProtobufPlugin::class.java)
+        with(project)
+        {
+            plugins.apply(ProtobufPlugin::class.java)
 
-        project.protobuf {
-            protoc {
-                artifact = "$PROTO_ARTIFACT:$PROTO_VERSION"
+            protobuf {
+                protoc {
+                    artifact = "$PROTO_ARTIFACT:$PROTO_VERSION"
+                }
+            }
+
+            // IntelliJ might not recognize generated source otherwise
+            SOURCES.forEach {
+                val sourceDir = String.format(SOURCE_DIR_FORMAT, it)
+                extensions.getByType(SourceSetContainer::class.java)[it].java.srcDirs(sourceDir);
             }
         }
-
-        // IntelliJ might not recognize generated source otherwise
-        SOURCES.forEach {
-            val sourceDir = String.format(SOURCE_DIR_FORMAT, it)
-            project.extensions.getByType(SourceSetContainer::class.java)[it].java.srcDirs(sourceDir);
-        }
-
     }
-
 }

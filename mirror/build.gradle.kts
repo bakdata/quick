@@ -3,7 +3,7 @@ description = "Mirrors let Quick efficiently query the content of topics. " +
 
 plugins {
     id("quick.base")
-    id("com.github.davidmc24.gradle.plugin.avro") version "1.2.0"
+    alias(libs.plugins.gradleAvroPlugin)
 }
 
 dependencies {

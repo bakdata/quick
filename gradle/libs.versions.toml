@@ -30,6 +30,8 @@ assertj = "3.20.1"
 awaitly = "4.1.0"
 kafka_junit = "2.7.0" # generally same as Kafka, there are some exception however
 
+# ---------Plugins---------
+gradleAvro = "1.3.0"
 
 [libraries]
 # ---------Logging---------
@@ -105,6 +107,5 @@ kafka_junit = { group = "net.mguenther.kafka", name = "kafka-junit", version.ref
 rxjava = { group = "io.reactivex.rxjava2", name = "rxjava" }
 
 
-#[plugins]
-#quick-reproter = { id = "quick.reproter"}
-
+[plugins]
+gradleAvroPlugin = { id = "com.github.davidmc24.gradle.plugin.avro", version.ref = "gradleAvro"}
