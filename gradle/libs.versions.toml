@@ -31,7 +31,7 @@ awaitly = "4.1.0"
 kafka_junit = "2.7.0" # generally same as Kafka, there are some exception however
 
 # ---------Plugins---------
-gradleAvro = "1.3.0"
+gradleAvro = "1.2.0"
 
 [libraries]
 # ---------Logging---------
