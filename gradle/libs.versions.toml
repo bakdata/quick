@@ -16,7 +16,7 @@ reactive_kafka = "1.3.4"
 guava = "29.0-jre"
 graphql = "16.2"
 json2avro = "0.2.9"
-pico_cli = "4.2.0"
+picocli = "4.6.3"
 kube_manager = "5.9.0"
 sundr_io = "0.50.2"
 thymeleaf = "3.0.11.RELEASE"
@@ -29,7 +29,6 @@ junit = "5.7.2"
 mockito = "3.11.1"
 assertj = "3.20.1"
 awaitly = "4.1.0"
-rest_assured = "4.2.0"
 kafka_junit = "2.7.0" # generally same as Kafka, there are some exception however
 
 
@@ -86,7 +85,7 @@ json2avro = { group = "tech.allegro.schema.json2avro", name = "converter", versi
 thymeleaf = { group = "org.thymeleaf", name = "thymeleaf", version.ref = "thymeleaf" }
 caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
-picocli = { group = "info.picocli", name = "picocli", version.ref = "pico_cli" }
+picocli = { group = "info.picocli", name = "picocli", version.ref = "picocli" }
 spotbugs = { group = "com.github.spotbugs", name = "spotbugs-annotations", version.ref = "spotbugs" }
 graphql_extended_scalars = { group = "com.graphql-java", name = "graphql-java-extended-scalars", version.ref = "graphql_extended_scalars" }
 
@@ -101,7 +100,7 @@ micronaut_junit = { group = "io.micronaut.test", name = "micronaut-test-junit5" 
 fluent_kafka_streams = { group = "com.bakdata.fluent-kafka-streams-tests", name = "fluent-kafka-streams-tests-junit5", version.ref = "fluent_streams" }
 schema_registry_mock = { group = "com.bakdata.fluent-kafka-streams-tests", name = "schema-registry-mock-junit5", version.ref = "fluent_streams" }
 kube_mock_server = { group = "io.fabric8", name = "kubernetes-server-mock", version.ref = "kube_manager" }
-rest_assured = { group = "io.rest-assured", name = "rest-assured", version.ref = "rest_assured" }
+rest_assured = { group = "io.rest-assured", name = "rest-assured" }
 mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
 kafka_junit = { group = "net.mguenther.kafka", name = "kafka-junit", version.ref = "kafka_junit" }
 # required for testFixtures, otherwise included with micronaut
