@@ -10,19 +10,11 @@ We don't run them for draft PRs to keep the feedback loop.
 
 We use custom Gradle build logic to orchestrate our builds.
 It's located in the `build-logic` directory and referenced by `includeBuild("build-logic")` in `settings.gradle.kts`.
-The build-logic contains two modules: convention and libraries.
+The build-logic contains Quick's custom Gradle plugins.
 
-### Convention
+### Quick plugins
 
 The convention module configures conventions and plugins that can be applied to a subproject.
-
-`base-dependencies`
-:   This convention applies dependencies that are used throughout all Quick subprojects.
-    Among others, this includes our logging setup and test dependencies.
-
-`http-service`
-:   This adds Micronauts dependencies for running an HTTP service. 
-    It allows configuring whether the service is secured.
 
 `BasePlugin`
 :   The [BasePlugin](https://github.com/bakdata/quick/blob/master/build-logic/convention/src/main/kotlin/buildlogic/convention/BasePlugin.kt)
@@ -43,10 +35,11 @@ The convention module configures conventions and plugins that can be applied to 
     For example, we use this to collect and merge Jacoco test coverage for the whole project.
     See [Operations - Registry](operations.md#container-registry) for more information.
 
-### Libraries
+## Gradle version catalog for dependencies
 
-The libraries module holds all information about all dependencies.
-This makes sure they're defined in a common place.
+Quick uses [Gradle's version catalog](https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog) to 
+define the dependencies. The list of dependencies can be found under the 
+[Gradle folder in the libs.version.toml file](https://github.com/bakdata/quick/blob/master/gradle/libs.versions.toml).
 
 ## OpenAPI
 
