@@ -22,7 +22,6 @@ dependencies {
     implementation(libs.caffeine)
     implementation(libs.streams.bootstrap)
     implementation(libs.kafka.proto.serde)
-    implementation(libs.picocli)
     implementation(libs.micronaut.picocli)
     implementation(libs.micronaut.http.client)
     implementation(libs.micronaut.http.server)
@@ -34,7 +33,7 @@ dependencies {
 
     testAnnotationProcessor(libs.micronaut.inject.java)
     testImplementation(libs.fluent.kafka.streams)
-    testImplementation(libs.rest.assured)
+    testImplementation(libs.micronaut.rest.assured)
     testImplementation(libs.schema.registry.mock)
     testImplementation(libs.micronaut.junit)
     testImplementation(libs.kafka.junit)
