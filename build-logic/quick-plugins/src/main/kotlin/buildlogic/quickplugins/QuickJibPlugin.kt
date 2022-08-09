@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package buildlogic.convention
+package buildlogic.quickplugins
 
 import com.google.cloud.tools.jib.gradle.JibExtension
 import com.google.cloud.tools.jib.gradle.JibPlugin
@@ -30,15 +30,18 @@ class QuickJibPlugin : Plugin<Project> {
     }
 
     override fun apply(project: Project) {
-        project.plugins.apply(JibPlugin::class)
+        with(project)
+        {
+            plugins.apply(JibPlugin::class)
 
-        project.afterEvaluate {
-            project.configure<JibExtension> {
-                to {
-                    image = IMAGE_REPO + "quick-" + name
-                    tags = setOf(version.toString())
-                    container {
-                        environment = mapOf(TAG_ENV_NAME to version.toString())
+            afterEvaluate {
+                configure<JibExtension> {
+                    to {
+                        image = IMAGE_REPO + "quick-" + name
+                        tags = setOf(version.toString())
+                        container {
+                            environment = mapOf(TAG_ENV_NAME to version.toString())
+                        }
                     }
                 }
             }

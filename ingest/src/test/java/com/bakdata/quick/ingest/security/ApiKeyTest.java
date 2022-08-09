@@ -39,14 +39,14 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MutableHttpRequest;
 import io.micronaut.http.client.BlockingHttpClient;
-import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
@@ -73,7 +73,7 @@ class ApiKeyTest {
         final MutableHttpRequest<Object> request = DELETE(SECURE_PATH);
         final Throwable exception = assertThrows(HttpClientResponseException.class,
             () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
     @Test
@@ -89,7 +89,7 @@ class ApiKeyTest {
         final BlockingHttpClient httpClient = this.client.toBlocking();
         final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("X-API-Key", "wrong_key");
         final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
     @Test
@@ -104,7 +104,7 @@ class ApiKeyTest {
         final BlockingHttpClient httpClient = this.client.toBlocking();
         final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("WRONG-API-Key", "test_key");
         final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
     private HttpStatus callAuthenticatedController(final CharSequence key, final CharSequence value) {

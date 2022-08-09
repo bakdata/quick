@@ -5,20 +5,63 @@ description = "The gateway is Quick's GraphQL interface. " +
 
 plugins {
     id("quick.base")
-    id("buildlogic.convention.http-service")
 }
 
 dependencies {
-    implementation(libs.MICRONAUT_GRAPHQL)
-    implementation(libs.SCHEMA_REGISTRY_CLIENT)
-    implementation(libs.REACTIVE_KAFKA)
-    implementation(libs.JSON2AVRO_CONVERTER)
-    implementation(libs.GUAVA)
-    implementation(libs.KAFKA_PROTO_SERDE)
+    implementation(libs.micronaut.graphql)
+    implementation(libs.json2avro)
+    implementation(libs.reactor.kafka)
+    implementation(libs.slf4j.api)
+    implementation(libs.log4j.api)
+    implementation(libs.log4j.core)
+    implementation(libs.log4j.slf4j)
+    implementation(libs.log4j.over.slf4j)
+    implementation(libs.jul.slf4j)
+    implementation(libs.okhttp)
+    implementation(libs.jackson.databind) // needed so that log4j2 can read yaml test configs
+    implementation(libs.micronaut.rxjava)
+    implementation(libs.spotbugs)
+    implementation(libs.javax)
+    implementation(libs.micronaut.inject)
+    implementation(libs.caffeine)
 
-    testImplementation(libs.AVRO)
-    testImplementation(libs.SCHEMA_REGISTRY_MOCK)
-    testImplementation(libs.OK_HTTP_MOCK_SERVER)
+    implementation(libs.guava)
+    implementation(libs.graphql)
+    implementation(libs.kafka.clients)
+    implementation(libs.kube.manager.client)
+    implementation(libs.schema.registry.client)
+    implementation(libs.kafka.protobuf.provider)
+    implementation(libs.thymeleaf)
+    implementation(libs.protobuf)
+    implementation(libs.graphql.extended.scalars)
+    implementation(libs.micronaut.http.client)
+    implementation(libs.micronaut.http.server)
+    implementation(libs.micronaut.management)
+    implementation(libs.micronaut.prometheus)
+    implementation(libs.security)
+
+    annotationProcessor(libs.micronaut.inject.java)
+    annotationProcessor(libs.micronaut.validation)
+
+    testAnnotationProcessor(libs.micronaut.inject.java)
+
+    testImplementation(libs.micronaut.inject)
+    testImplementation(libs.avro)
+    testImplementation(libs.schema.registry.mock)
+    testImplementation(libs.mockwebserver)
+    testImplementation(libs.micronaut.rxjava.http.client)
+    testImplementation(libs.micronaut.junit)
+    testImplementation(libs.kafka.junit)
+    testImplementation(libs.junit.api)
+    testImplementation(libs.junit.params)
+    testImplementation(libs.assertj)
+    testImplementation(libs.mockito)
+    testImplementation(libs.kafka)
+    testImplementation(libs.awaitly)
+
+    testImplementation(libs.jackson.databind) // needed so that log4j2 can read yaml test configs
+
+    testRuntimeOnly(libs.junit.engine)
 }
 
 tasks.withType<JavaCompile>().configureEach {

@@ -34,14 +34,14 @@ import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.client.BlockingHttpClient;
-import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import io.micronaut.websocket.RxWebSocketClient;
+import io.micronaut.rxjava2.http.client.websockets.RxWebSocketClient;
+import jakarta.inject.Inject;
 import java.util.Map;
-import javax.inject.Inject;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
@@ -74,9 +74,10 @@ class GraphQLSecurityTest {
             .body("{test(id: 123)}");
 
         final BlockingHttpClient httpClient = this.client.toBlocking();
+
         assertThatExceptionOfType(HttpClientResponseException.class)
             .isThrownBy(() -> httpClient.exchange(request))
-            .withMessage("Unauthorized");
+            .withMessage("Client '/': Unauthorized");
     }
 
     @Test

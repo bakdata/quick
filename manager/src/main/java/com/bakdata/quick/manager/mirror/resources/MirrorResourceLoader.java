@@ -27,14 +27,14 @@ import com.bakdata.quick.manager.k8s.ResourceConfig;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
 import com.bakdata.quick.manager.k8s.resource.ResourceLoader;
 import com.google.common.collect.ImmutableMap;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import jakarta.inject.Singleton;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.Nullable;
-import javax.inject.Singleton;
 import org.thymeleaf.context.Context;
 
 /**

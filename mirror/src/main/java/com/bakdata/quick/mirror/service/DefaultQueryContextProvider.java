@@ -18,7 +18,7 @@ package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.exception.InternalErrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Basic implementation of QueryContextProvider.

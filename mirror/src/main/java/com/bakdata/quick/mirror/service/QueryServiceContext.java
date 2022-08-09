@@ -16,17 +16,24 @@
 
 package com.bakdata.quick.mirror.service;
 
+import com.bakdata.quick.common.type.QuickTopicData;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;
 
 /**
  * Context for holding information about Kafka state.
- *
  */
 @Value
 public class QueryServiceContext {
     KafkaStreams streams;
     HostInfo hostInfo;
     String storeName;
+    QuickTopicData<?, ?> topicData;
+
+    @SuppressWarnings("unchecked")
+    <K, V> QuickTopicData<K, V> getTopicData() {
+        return (QuickTopicData<K, V>) this.topicData;
+    }
+
 }

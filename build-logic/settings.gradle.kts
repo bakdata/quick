@@ -1,4 +1,3 @@
 rootProject.name = "build-logic"
 
-include("convention")
-include("libraries")
+include("quick-plugins")

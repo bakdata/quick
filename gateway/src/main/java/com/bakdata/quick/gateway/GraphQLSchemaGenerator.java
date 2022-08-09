@@ -19,16 +19,20 @@ package com.bakdata.quick.gateway;
 import com.bakdata.quick.gateway.custom.QuickWiringFactory;
 import com.bakdata.quick.gateway.custom.type.QuickGraphQLType;
 import com.bakdata.quick.gateway.directives.QuickDirectiveWiring;
+import graphql.Scalars;
+import graphql.language.ScalarTypeDefinition;
+import graphql.scalars.ExtendedScalars;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaGeneratorPostProcessing;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.Collections;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /**
  * Responsible for creating a new GraphQLSchema from a string.
@@ -48,6 +52,7 @@ public class GraphQLSchemaGenerator {
     private final List<QuickDirectiveWiring> directiveWirings;
     private final List<QuickGraphQLType<?>> quickGraphQLTypes;
     private final List<SchemaGeneratorPostProcessing> postProcessings;
+    private final List<GraphQLScalarType> customScalars;
 
     /**
      * Injectable constructor.
@@ -63,6 +68,7 @@ public class GraphQLSchemaGenerator {
         this.directiveWirings = directiveWirings;
         this.quickGraphQLTypes = quickGraphQLTypes;
         this.postProcessings = postProcessings;
+        this.customScalars = List.of(ExtendedScalars.GraphQLLong);
     }
 
     // TODO: remove. Currently exists only for old tests
@@ -90,6 +96,10 @@ public class GraphQLSchemaGenerator {
             baseRegistry.add(quickGraphQLType.getDefinition());
         }
 
+        for (final GraphQLScalarType customScalar : this.customScalars) {
+            baseRegistry.add(new ScalarTypeDefinition(customScalar.getName()));
+            builder.scalar(customScalar);
+        }
         this.postProcessings.forEach(builder::transformer);
         builder.wiringFactory(QuickWiringFactory.create());
 

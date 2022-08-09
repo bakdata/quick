@@ -259,7 +259,7 @@ class GraphQLQueryExecutionTest {
             .hasSize(1)
             .first()
             .satisfies(error -> {
-                assertThat(error.getMessage()).startsWith("Cannot return null for non-nullable type");
+                assertThat(error.getMessage()).startsWith("The field at path '/findPurchase/productId' was declared as a non null type");
                 assertThat(error.getPath()).containsExactly("findPurchase", "productId");
             });
     }
