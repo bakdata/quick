@@ -949,21 +949,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#convention" class="md-nav__link">
-    Convention
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#libraries" class="md-nav__link">
-    Libraries
+  <a href="#quick-plugins" class="md-nav__link">
+    Quick plugins
   </a>
   
 </li>
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gradle-version-catalog-for-dependencies" class="md-nav__link">
+    Gradle version catalog for dependencies
+  </a>
   
 </li>
       
@@ -1137,21 +1137,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#convention" class="md-nav__link">
-    Convention
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#libraries" class="md-nav__link">
-    Libraries
+  <a href="#quick-plugins" class="md-nav__link">
+    Quick plugins
   </a>
   
 </li>
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gradle-version-catalog-for-dependencies" class="md-nav__link">
+    Gradle version catalog for dependencies
+  </a>
   
 </li>
       
@@ -1222,16 +1222,10 @@ We don't run them for draft PRs to keep the feedback loop.</p>
 <h2 id="build-logic">Build logic<a class="headerlink" href="#build-logic" title="Permanent link">&para;</a></h2>
 <p>We use custom Gradle build logic to orchestrate our builds.
 It's located in the <code>build-logic</code> directory and referenced by <code>includeBuild("build-logic")</code> in <code>settings.gradle.kts</code>.
-The build-logic contains two modules: convention and libraries.</p>
-<h3 id="convention">Convention<a class="headerlink" href="#convention" title="Permanent link">&para;</a></h3>
+The build-logic contains Quick's custom Gradle plugins.</p>
+<h3 id="quick-plugins">Quick plugins<a class="headerlink" href="#quick-plugins" title="Permanent link">&para;</a></h3>
 <p>The convention module configures conventions and plugins that can be applied to a subproject.</p>
 <dl>
-<dt><code>base-dependencies</code></dt>
-<dd>This convention applies dependencies that are used throughout all Quick subprojects.
-Among others, this includes our logging setup and test dependencies.</dd>
-<dt><code>http-service</code></dt>
-<dd>This adds Micronauts dependencies for running an HTTP service. 
-It allows configuring whether the service is secured.</dd>
 <dt><code>BasePlugin</code></dt>
 <dd>The <a href="https://github.com/bakdata/quick/blob/master/build-logic/convention/src/main/kotlin/buildlogic/convention/BasePlugin.kt">BasePlugin</a>
 is applied to all Quick projects.
@@ -1248,9 +1242,10 @@ It allows the aggregation of data from subprojects.
 For example, we use this to collect and merge Jacoco test coverage for the whole project.
 See <a href="../operations/#container-registry">Operations - Registry</a> for more information.</dd>
 </dl>
-<h3 id="libraries">Libraries<a class="headerlink" href="#libraries" title="Permanent link">&para;</a></h3>
-<p>The libraries module holds all information about all dependencies.
-This makes sure they're defined in a common place.</p>
+<h2 id="gradle-version-catalog-for-dependencies">Gradle version catalog for dependencies<a class="headerlink" href="#gradle-version-catalog-for-dependencies" title="Permanent link">&para;</a></h2>
+<p>Quick uses <a href="https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog">Gradle's version catalog</a> to 
+define the dependencies. The list of dependencies can be found under the 
+<a href="https://github.com/bakdata/quick/blob/master/gradle/libs.versions.toml">Gradle folder in the libs.version.toml file</a>.</p>
 <h2 id="openapi">OpenAPI<a class="headerlink" href="#openapi" title="Permanent link">&para;</a></h2>
 <p>The manager API is specified in <a href="https://github.com/bakdata/quick/tree/master/openapi/spec">the <code>openapi</code> directory</a>.
 We use the <a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI generator</a> (Version 4.3.1) to generate our
