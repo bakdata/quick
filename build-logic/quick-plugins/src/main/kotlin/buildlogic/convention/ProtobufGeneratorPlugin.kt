@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package buildlogic.convention
+package buildlogic.quickplugins
 
 
 import com.google.protobuf.gradle.ProtobufPlugin

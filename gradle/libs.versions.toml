@@ -1,0 +1,113 @@
+[versions]
+slf4j = "1.7.30"
+log4j = "2.17.2"
+jackson = "2.13.3"
+
+micronaut = "3.6.0"
+
+kafka = "2.7.1"
+streams_bootstrap = "1.7.0"
+confluent = "6.1.1"
+avro = "1.9.2"
+protobuf = "3.20.1"
+fluent_streams = "2.3.1"
+reactive_kafka = "1.3.4"
+
+guava = "29.0-jre"
+graphql = "16.2"
+json2avro = "0.2.9"
+pico_cli = "4.2.0"
+kube_manager = "5.9.0"
+sundr_io = "0.50.2"
+thymeleaf = "3.0.11.RELEASE"
+okhttp = "4.9.1"
+caffeine = "3.0.2"
+spotbugs = "4.7.1"
+graphql_extended_scalars = "18.1"
+
+junit = "5.7.2"
+mockito = "3.11.1"
+assertj = "3.20.1"
+awaitly = "4.1.0"
+rest_assured = "4.2.0"
+kafka_junit = "2.7.0" # generally same as Kafka, there are some exception however
+
+
+[libraries]
+# ---------Logging---------
+slf4j_api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+jul_slf4j = { group = "org.slf4j", name = "jul-to-slf4j", version.ref = "slf4j" }
+log4j_over_slf4j = { group = "org.slf4j", name = "log4j-over-slf4j", version.ref = "slf4j" }
+
+log4j_api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
+log4j_core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
+log4j_slf4j = { group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version.ref = "log4j" }
+
+# required for reading config
+jackson_databind = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
+
+# ------Micronaut------
+javax = { group = "javax.annotation", name = "javax.annotation-api" }
+micronaut_http_client = { group = "io.micronaut", name = "micronaut-http-client" }
+micronaut_http_server = { group = "io.micronaut", name = "micronaut-http-server-netty" }
+micronaut_inject = { group = "io.micronaut", name = "micronaut-inject" }
+micronaut_validation = { group = "io.micronaut", name = "micronaut-validation" }
+
+micronaut_inject_java = { group = "io.micronaut", name = "micronaut-inject-java" }
+micronaut_graphql = { group = "io.micronaut.graphql", name = "micronaut-graphql" }
+micronaut_management = { group = "io.micronaut", name = "micronaut-management" }
+micronaut_prometheus = { group = "io.micronaut.micrometer", name = "micronaut-micrometer-registry-prometheus" }
+
+security = { group = "io.micronaut.security", name = "micronaut-security" }
+
+micronaut_picocli = { group = "io.micronaut.picocli", name = "micronaut-picocli" }
+micronaut_rxjava = { group = "io.micronaut.rxjava2", name = "micronaut-rxjava2" }
+micronaut_rxjava_http_client = { group = "io.micronaut.rxjava2", name = "micronaut-rxjava2-http-client" }
+
+# ------Kafka Ecosystem------
+kafka = { group = "org.apache.kafka", name = "kafka_2.13", version.ref = "kafka" }
+kafka_clients = { group = "org.apache.kafka", name = "kafka-clients", version.ref = "kafka" }
+kafka_streams = { group = "org.apache.kafka", name = "kafka-streams", version.ref = "kafka" }
+streams_bootstrap = { group = "com.bakdata.kafka", name = "streams-bootstrap", version.ref = "streams_bootstrap" }
+avro = { group = "org.apache.avro", name = "avro", version.ref = "avro" }
+protobuf = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "protobuf" }
+kafka_streams_serde = { group = "io.confluent", name = "kafka-streams-avro-serde", version.ref = "confluent" }
+kafka_proto_serde = { group = "io.confluent", name = "kafka-streams-protobuf-serde", version.ref = "confluent" }
+schema_registry_client = { group = "io.confluent", name = "kafka-schema-registry-client", version.ref = "confluent" }
+kafka_protobuf_provider = { group = "io.confluent", name = "kafka-protobuf-provider", version.ref = "confluent" }
+
+# ------Miscellaneous------
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+graphql = { group = "com.graphql-java", name = "graphql-java", version.ref = "graphql" }
+kube_manager_client = { group = "io.fabric8", name = "kubernetes-client", version.ref = "kube_manager" }
+sundr_io = { group = "io.sundr", name = "builder-annotations", version.ref = "sundr_io" }
+reactor_kafka = { group = "io.projectreactor.kafka", name = "reactor-kafka", version.ref = "reactive_kafka" }
+json2avro = { group = "tech.allegro.schema.json2avro", name = "converter", version.ref = "json2avro" }
+thymeleaf = { group = "org.thymeleaf", name = "thymeleaf", version.ref = "thymeleaf" }
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version.ref = "caffeine" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+picocli = { group = "info.picocli", name = "picocli", version.ref = "pico_cli" }
+spotbugs = { group = "com.github.spotbugs", name = "spotbugs-annotations", version.ref = "spotbugs" }
+graphql_extended_scalars = { group = "com.graphql-java", name = "graphql-java-extended-scalars", version.ref = "graphql_extended_scalars" }
+
+# ------Tests------
+junit_api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
+junit_engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
+junit_params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
+assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+mockito = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }
+awaitly = { group = "org.awaitility", name = "awaitility", version.ref = "awaitly" }
+micronaut_junit = { group = "io.micronaut.test", name = "micronaut-test-junit5" }
+fluent_kafka_streams = { group = "com.bakdata.fluent-kafka-streams-tests", name = "fluent-kafka-streams-tests-junit5", version.ref = "fluent_streams" }
+schema_registry_mock = { group = "com.bakdata.fluent-kafka-streams-tests", name = "schema-registry-mock-junit5", version.ref = "fluent_streams" }
+kube_mock_server = { group = "io.fabric8", name = "kubernetes-server-mock", version.ref = "kube_manager" }
+rest_assured = { group = "io.rest-assured", name = "rest-assured", version.ref = "rest_assured" }
+mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
+kafka_junit = { group = "net.mguenther.kafka", name = "kafka-junit", version.ref = "kafka_junit" }
+# required for testFixtures, otherwise included with micronaut
+rxjava = { group = "io.reactivex.rxjava2", name = "rxjava" }
+
+
+#[plugins]
+#quick-reproter = { id = "quick.reproter"}
+

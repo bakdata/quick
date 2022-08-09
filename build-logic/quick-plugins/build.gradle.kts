@@ -11,7 +11,6 @@ repositories  {
 
 
 dependencies {
-    implementation(project(":libraries"))
     implementation("gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:3.1.4")
     implementation("io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE")
     implementation("io.freefair.gradle:lombok-plugin:6.1.0")
@@ -25,17 +24,17 @@ gradlePlugin {
     plugins {
         create("reporterPlugin") {
             id = "quick.reporter"
-            implementationClass = "buildlogic.convention.ReporterPlugin"
+            implementationClass = "buildlogic.quickplugins.ReporterPlugin"
         }
 
         create("basePlugin") {
             id = "quick.base"
-            implementationClass = "buildlogic.convention.BasePlugin"
+            implementationClass = "buildlogic.quickplugins.BasePlugin"
         }
 
         create("protobufPlugin") {
             id = "quick.protobuf.generator"
-            implementationClass = "buildlogic.convention.ProtobufGeneratorPlugin"
+            implementationClass = "buildlogic.quickplugins.ProtobufGeneratorPlugin"
         }
     }
 }
