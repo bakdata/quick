@@ -53,7 +53,7 @@ class ApiKeyTest {
         final BlockingHttpClient httpClient = this.client.toBlocking();
         final MutableHttpRequest<?> request = DELETE(SECURE_PATH);
         final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
     @Test
@@ -85,7 +85,7 @@ class ApiKeyTest {
         final BlockingHttpClient httpClient = this.client.toBlocking();
         final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("X-API-Key", "wrong_key");
         final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
     @Test
@@ -93,7 +93,7 @@ class ApiKeyTest {
         final BlockingHttpClient httpClient = this.client.toBlocking();
         final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("WRONG-API-Key", "test_key");
         final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
     @MockBean(TopicService.class)

@@ -55,7 +55,7 @@ class ApiKeyTest {
         final BlockingHttpClient httpClient = this.client.toBlocking();
         final MutableHttpRequest<String> request = POST(SECURE_PATH, "");
         final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
     @Test

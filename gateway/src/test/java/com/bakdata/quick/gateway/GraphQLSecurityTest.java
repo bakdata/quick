@@ -74,9 +74,10 @@ class GraphQLSecurityTest {
             .body("{test(id: 123)}");
 
         final BlockingHttpClient httpClient = this.client.toBlocking();
+
         assertThatExceptionOfType(HttpClientResponseException.class)
             .isThrownBy(() -> httpClient.exchange(request))
-            .withMessage("Unauthorized");
+            .withMessage("Client '/': Unauthorized");
     }
 
     @Test

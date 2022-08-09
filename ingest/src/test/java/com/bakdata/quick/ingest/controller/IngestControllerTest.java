@@ -353,7 +353,7 @@ class IngestControllerTest {
         final HttpRequest<?> request = HttpRequest.GET("/topic/");
         assertThatExceptionOfType(HttpClientResponseException.class)
             .isThrownBy(() -> httpClient.retrieve(request))
-            .withMessage("Method Not Allowed")
+            .withMessage("Client '/': Method Not Allowed")
             .satisfies(ex -> assertThat((CharSequence) ex.getStatus()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED));
     }
 
