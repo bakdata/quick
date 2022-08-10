@@ -95,6 +95,8 @@ class BasePlugin : Plugin<Project> {
             useJUnitPlatform()
             // improve startup time for tests
             jvmArgs = listOf("-noverify", "-XX:TieredStopAtLevel=1")
+            // Embedded Kafka does not reliably work in parallel since Kafka 3.0
+            maxParallelForks = 1
         }
 
         val unitTest = tasks.register<Test>("unitTest") {

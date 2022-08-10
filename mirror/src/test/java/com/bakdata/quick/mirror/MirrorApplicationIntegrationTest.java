@@ -60,9 +60,8 @@ class MirrorApplicationIntegrationTest {
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
 
     @BeforeAll
-    static void setup() throws InterruptedException {
+    static void setup() {
         kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
-        Thread.sleep(10000);
         schemaRegistry.start();
         kafkaCluster.start();
     }
@@ -102,7 +101,7 @@ class MirrorApplicationIntegrationTest {
                 .inTransaction(INPUT_TOPIC, keyValueList)
                 .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
                 .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
-                .with("schema.registry.url", this.schemaRegistry.getUrl())
+                .with("schema.registry.url", schemaRegistry.getUrl())
                 .build();
 
         kafkaCluster.send(sendRequest);
@@ -122,7 +121,7 @@ class MirrorApplicationIntegrationTest {
 
     private TopicTypeService topicTypeService() {
         return TestTopicTypeService.builder()
-                .urlSupplier(this.schemaRegistry::getUrl)
+                .urlSupplier(schemaRegistry::getUrl)
                 .keyType(QuickTopicType.STRING)
                 .valueType(QuickTopicType.STRING)
                 .keySchema(null)
