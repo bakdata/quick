@@ -70,6 +70,7 @@ class KafkaIngestServiceTest {
 
     @AfterEach
     void tearDown() {
+        this.kafkaCluster.deleteTopic(TOPIC);
         this.kafkaCluster.stop();
         this.schemaRegistry.stop();
     }

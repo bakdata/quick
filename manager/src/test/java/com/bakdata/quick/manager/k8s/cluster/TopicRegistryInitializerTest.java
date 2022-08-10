@@ -47,6 +47,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.apache.avro.Schema;
 
 class TopicRegistryInitializerTest {
     public static final String TEST_NAME = "internal-test";
@@ -98,7 +99,7 @@ class TopicRegistryInitializerTest {
         final String subject = topicName + "-value";
 
         assertThat(registryClient.getAllSubjects()).containsExactly(subject);
-        assertThat(registryClient.getBySubjectAndId(subject, 1)).isEqualTo(AvroTopicData.getClassSchema());
+        assertThat((Schema)registryClient.getSchemaBySubjectAndId(subject, 1)).isEqualTo(AvroTopicData.getClassSchema());
     }
 
     @Test
@@ -140,7 +141,7 @@ class TopicRegistryInitializerTest {
     @Test
     void shouldNotFailIfTopicExists() {
         final String topicName = UUID.randomUUID().toString();
-        kafkaCluster.createTopic(TopicConfig.forTopic(topicName).useDefaults());
+        kafkaCluster.createTopic(TopicConfig.withName(topicName).useDefaults());
 
         this.successfulMock();
         final KafkaConfig kafkaConfig = new KafkaConfig(kafkaCluster.getBrokerList(), this.schemaRegistry.getUrl());
