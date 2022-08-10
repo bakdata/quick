@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.util.UUID;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import net.mguenther.kafka.junit.TopicConfig;
-import org.apache.avro.Schema;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

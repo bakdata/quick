@@ -27,7 +27,6 @@ dependencies {
     implementation(libs.micronaut.httpServer)
     implementation(libs.micronaut.management)
     implementation(libs.micronaut.prometheus)
-    implementation(libs.jooq.jool)
 
     annotationProcessor(libs.micronaut.injectJava)
     annotationProcessor(libs.micronaut.validation)

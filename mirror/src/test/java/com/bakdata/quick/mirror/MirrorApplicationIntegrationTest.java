@@ -28,7 +28,7 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.service.QueryContextProvider;
-import com.bakdata.schemaregistrymock.SchemaRegistryMock;
+import com.bakdata.schemaregistrymock.junit5.SchemaRegistryMockExtension;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -44,6 +44,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @IntegrationTest
 @MicronautTest
@@ -57,18 +58,17 @@ class MirrorApplicationIntegrationTest {
     @Inject
     QueryContextProvider queryContextProvider;
     private static EmbeddedKafkaCluster kafkaCluster;
-    private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
+    @RegisterExtension
+    final SchemaRegistryMockExtension schemaRegistry = new SchemaRegistryMockExtension();
 
     @BeforeAll
     static void setup() {
         kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
         kafkaCluster.start();
-        schemaRegistry.start();
     }
 
     @AfterAll
     static void teardown() {
-        schemaRegistry.stop();
         kafkaCluster.stop();
     }
 

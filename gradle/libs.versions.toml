@@ -24,8 +24,6 @@ caffeine = "3.0.2"
 spotbugs = "4.7.1"
 graphql_extended_scalars = "18.1"
 apache_commons_lang = "3.12.0"
-jooq_jool = "0.9.14"
-
 
 junit = "5.7.2"
 mockito = "3.11.1"
@@ -92,7 +90,6 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 spotbugs = { group = "com.github.spotbugs", name = "spotbugs-annotations", version.ref = "spotbugs" }
 graphql_extended_scalars = { group = "com.graphql-java", name = "graphql-java-extended-scalars", version.ref = "graphql_extended_scalars" }
 apache_commons_lang = { group = "org.apache.commons", name = "commons-lang3", version.ref = "apache_commons_lang"}
-jooq_jool = { group = "org.jooq", name = "jool-java-8", version.ref = "jooq_jool"}
 
 # ------Tests------
 junit_api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
