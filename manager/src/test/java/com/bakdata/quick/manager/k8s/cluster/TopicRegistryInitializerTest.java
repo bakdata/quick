@@ -34,6 +34,8 @@ import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.manager.mirror.MirrorService;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.bakdata.schemaregistrymock.junit5.SchemaRegistryMockExtension;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.micronaut.context.ApplicationContext;
@@ -43,11 +45,11 @@ import java.io.IOException;
 import java.util.UUID;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import net.mguenther.kafka.junit.TopicConfig;
+import org.apache.avro.Schema;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.apache.avro.Schema;
 
 class TopicRegistryInitializerTest {
     public static final String TEST_NAME = "internal-test";
@@ -99,7 +101,8 @@ class TopicRegistryInitializerTest {
         final String subject = topicName + "-value";
 
         assertThat(registryClient.getAllSubjects()).containsExactly(subject);
-        assertThat((Schema)registryClient.getSchemaBySubjectAndId(subject, 1)).isEqualTo(AvroTopicData.getClassSchema());
+        final ParsedSchema topicDataSchema = new AvroSchema(AvroTopicData.getClassSchema());
+        assertThat(registryClient.getSchemaBySubjectAndId(subject, 1)).isEqualTo(topicDataSchema);
     }
 
     @Test
