@@ -27,8 +27,6 @@ import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.errors.InvalidTopicException;
 import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
-//import org.apache.kafka.connect.errors.AlreadyExistsException;
-//import org.apache.kafka.connect.errors.NotFoundException;
 
 /**
  * Exception handler for all exceptions that can be thrown by Kafka.
