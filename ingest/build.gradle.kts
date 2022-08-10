@@ -15,16 +15,16 @@ dependencies {
     implementation(libs.rxjava)
     implementation(libs.kafka.clients)
     implementation(libs.json2avro)
-    implementation(libs.micronaut.http.client)
-    implementation(libs.micronaut.http.server)
+    implementation(libs.micronaut.httpClient)
+    implementation(libs.micronaut.httpServer)
     implementation(libs.micronaut.management)
     implementation(libs.micronaut.prometheus)
-    implementation(libs.security)
+    implementation(libs.micronaut.security)
 
-    annotationProcessor(libs.micronaut.inject.java)
+    annotationProcessor(libs.micronaut.injectJava)
     annotationProcessor(libs.micronaut.validation)
 
-    testAnnotationProcessor(libs.micronaut.inject.java)
+    testAnnotationProcessor(libs.micronaut.injectJava)
 
     testImplementation(libs.schema.registry.mock)
     testImplementation(libs.kafka.proto.serde)

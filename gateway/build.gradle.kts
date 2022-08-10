@@ -34,21 +34,21 @@ dependencies {
     implementation(libs.thymeleaf)
     implementation(libs.protobuf)
     implementation(libs.graphql.extended.scalars)
-    implementation(libs.micronaut.http.client)
-    implementation(libs.micronaut.http.server)
+    implementation(libs.micronaut.httpClient)
+    implementation(libs.micronaut.httpServer)
     implementation(libs.micronaut.management)
     implementation(libs.micronaut.prometheus)
-    implementation(libs.security)
+    implementation(libs.micronaut.security)
 
-    annotationProcessor(libs.micronaut.inject.java)
+    annotationProcessor(libs.micronaut.injectJava)
     annotationProcessor(libs.micronaut.validation)
 
-    testAnnotationProcessor(libs.micronaut.inject.java)
+    testAnnotationProcessor(libs.micronaut.injectJava)
 
     testImplementation(libs.micronaut.inject)
     testImplementation(libs.avro)
     testImplementation(libs.schema.registry.mock)
-    testImplementation(libs.mockwebserver)
+    testImplementation(libs.mockWebserver)
     testImplementation(libs.micronaut.rxjava.http.client)
     testImplementation(libs.micronaut.junit)
     testImplementation(libs.kafka.junit)
@@ -58,6 +58,7 @@ dependencies {
     testImplementation(libs.mockito)
     testImplementation(libs.kafka)
     testImplementation(libs.awaitly)
+    testImplementation(libs.apache.commons.lang)
 
     testImplementation(libs.jackson.databind) // needed so that log4j2 can read yaml test configs
 
