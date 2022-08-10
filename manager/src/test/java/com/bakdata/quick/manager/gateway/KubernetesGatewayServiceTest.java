@@ -117,7 +117,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
             .isNotNull()
             .hasSize(1)
             .first()
-            .hasFieldOrPropertyWithValue("image", getImage(DOCKER_REGISTRY, GATEWAY_IMAGE, DEFAULT_IMAGE_TAG))
+            .hasFieldOrPropertyWithValue("image", getImage(GATEWAY_IMAGE, DEFAULT_IMAGE_TAG))
             .hasFieldOrPropertyWithValue("imagePullPolicy", "Always")
             .hasFieldOrPropertyWithValue("name", DEPLOYMENT_NAME)
             .satisfies(container -> {
@@ -277,7 +277,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
             .isNotNull()
             .hasSize(1)
             .first()
-            .hasFieldOrPropertyWithValue("image", getImage(DOCKER_REGISTRY, GATEWAY_IMAGE, customTag));
+            .hasFieldOrPropertyWithValue("image", getImage(GATEWAY_IMAGE, customTag));
     }
 
     @Test
