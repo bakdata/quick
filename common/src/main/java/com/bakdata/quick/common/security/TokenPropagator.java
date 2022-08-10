@@ -21,7 +21,7 @@ import io.micronaut.core.util.StringUtils;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.Filter;
-import io.micronaut.http.filter.OncePerRequestHttpServerFilter;
+import io.micronaut.http.filter.HttpServerFilter;
 import io.micronaut.http.filter.ServerFilterChain;
 import io.micronaut.security.config.SecurityConfigurationProperties;
 import io.micronaut.security.filters.SecurityFilter;
@@ -37,12 +37,11 @@ import org.reactivestreams.Publisher;
 @Filter(Filter.MATCH_ALL_PATTERN)
 @Slf4j
 
-public class TokenPropagator extends OncePerRequestHttpServerFilter {
+public class TokenPropagator implements HttpServerFilter {
     private static final String API_KEY_HEADER_NAME = "X-API-Key";
 
     @Override
-    protected Publisher<MutableHttpResponse<?>> doFilterOnce(final HttpRequest<?> request,
-        final ServerFilterChain chain) {
+    public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain chain) {
         final Optional<String> header = request.getHeaders().findFirst(API_KEY_HEADER_NAME);
         header.ifPresent(authToken -> {
             log.trace("Propagate token for request {}", request.getPath());

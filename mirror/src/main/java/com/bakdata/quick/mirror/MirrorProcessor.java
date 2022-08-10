@@ -17,8 +17,9 @@
 package com.bakdata.quick.mirror;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-import org.apache.kafka.streams.processor.Processor;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.processor.api.Processor;
+import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
 
 
@@ -28,7 +29,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
  * @param <K> key type
  * @param <V> value type
  */
-public class MirrorProcessor<K, V> implements Processor<K, V> {
+public class MirrorProcessor<K, V> implements Processor<K, V, Void, Void> {
     private final String storeName;
     @Nullable
     private KeyValueStore<K, V> store = null;
@@ -38,12 +39,15 @@ public class MirrorProcessor<K, V> implements Processor<K, V> {
     }
 
     @Override
-    public void init(final ProcessorContext context) {
+    public void init(final ProcessorContext<Void, Void> context) {
         this.store = context.getStateStore(this.storeName);
     }
 
     @Override
-    public void process(final K key, final V value) {
+    public void process(final Record<K, V> record) {
+        final K key = record.key();
+        final V value = record.value();
+
         if (this.store == null) {
             throw new IllegalStateException("MirrorProcessor was not initialized.");
         }
@@ -53,10 +57,5 @@ public class MirrorProcessor<K, V> implements Processor<K, V> {
         } else {
             this.store.put(key, value);
         }
-    }
-
-    @Override
-    public void close() {
-        // No resources to close
     }
 }

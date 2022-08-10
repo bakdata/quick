@@ -18,9 +18,9 @@ package com.bakdata.quick.mirror.retention;
 
 import com.bakdata.quick.mirror.MirrorTopology;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.Punctuator;
-import org.apache.kafka.streams.processor.To;
+import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 
@@ -34,14 +34,14 @@ public class RetentionPunctuator<K> implements Punctuator {
 
     private final long retentionTime;
     private final KeyValueStore<Long, K> timestampStore;
-    private final ProcessorContext context;
+    private final ProcessorContext<Void, Void> context;
     private long from = 0;
 
     /**
      * Default constructor.
      */
     public RetentionPunctuator(final long retentionTime, final KeyValueStore<Long, K> timestampStore,
-        final ProcessorContext context) {
+        final ProcessorContext<Void, Void> context) {
         this.retentionTime = retentionTime;
         this.timestampStore = timestampStore;
         this.context = context;
@@ -54,7 +54,7 @@ public class RetentionPunctuator<K> implements Punctuator {
 
             range.forEachRemaining(keyValue -> {
                 log.debug("Retention time for key {} expired", keyValue.key);
-                this.context.forward(keyValue.value, null, To.child(MirrorTopology.RETENTION_SINK));
+                this.context.forward(new Record(keyValue.value, null, timestamp), MirrorTopology.RETENTION_SINK);
                 this.timestampStore.delete(keyValue.key);
             });
         }
