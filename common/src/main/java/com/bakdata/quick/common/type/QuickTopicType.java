@@ -18,11 +18,11 @@ package com.bakdata.quick.common.type;
 
 import com.bakdata.quick.common.resolver.DoubleResolver;
 import com.bakdata.quick.common.resolver.GenericAvroResolver;
-import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.resolver.IntegerResolver;
 import com.bakdata.quick.common.resolver.LongResolver;
 import com.bakdata.quick.common.resolver.ProtobufResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import com.google.protobuf.Descriptors;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
