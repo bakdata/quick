@@ -62,8 +62,9 @@ class StreamsStateControllerTest {
     final SchemaRegistryMockExtension schemaRegistry = new SchemaRegistryMockExtension();
 
     @BeforeAll
-    static void setup() {
+    static void setup() throws InterruptedException {
         kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
+        Thread.sleep(5000);
         kafkaCluster.start();
     }
 

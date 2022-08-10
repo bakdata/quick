@@ -36,6 +36,7 @@ import org.reactivestreams.Publisher;
 @Requires(property = SecurityConfigurationProperties.PREFIX + ".enabled", notEquals = StringUtils.FALSE)
 @Filter(Filter.MATCH_ALL_PATTERN)
 @Slf4j
+
 public class TokenPropagator extends OncePerRequestHttpServerFilter {
     private static final String API_KEY_HEADER_NAME = "X-API-Key";
 
