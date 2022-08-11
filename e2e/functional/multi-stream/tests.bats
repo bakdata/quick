@@ -53,7 +53,9 @@ setup() {
 
 @test "should ingest data in topics" {
     curl --request POST --url "${PRODUCT_INGEST_URL}" --header "${CONTENT_TYPE}" --header "${API_KEY}" --data "@./products.json"
+    sleep 5
     curl --request POST --url "${PURCHASE_INGEST_URL}" --header "${CONTENT_TYPE}" --header "${API_KEY}" --data "@./purchases.json"
+    sleep 5
 }
 
 @test "should retrieve all item" {
