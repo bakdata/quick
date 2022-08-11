@@ -65,9 +65,9 @@ public class StreamsStateController {
             .map(partition -> new PartitionAddress(partition.partition(), metadata.host(), metadata.port()));
     }
 
-    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
-        Set<Object> seen = ConcurrentHashMap.newKeySet();
-        return t -> seen.add(keyExtractor.apply(t));
+    private static <T> Predicate<T> distinctByKey(final Function<? super T, ?> keyExtractor) {
+        final Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return element -> seen.add(keyExtractor.apply(element));
     }
 
     /**

@@ -36,12 +36,11 @@ import org.reactivestreams.Publisher;
 @Requires(property = SecurityConfigurationProperties.PREFIX + ".enabled", notEquals = StringUtils.FALSE)
 @Filter(Filter.MATCH_ALL_PATTERN)
 @Slf4j
-
 public class TokenPropagator implements HttpServerFilter {
     private static final String API_KEY_HEADER_NAME = "X-API-Key";
 
     @Override
-    public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain chain) {
+    public Publisher<MutableHttpResponse<?>> doFilter(final HttpRequest<?> request, final ServerFilterChain chain) {
         final Optional<String> header = request.getHeaders().findFirst(API_KEY_HEADER_NAME);
         header.ifPresent(authToken -> {
             log.trace("Propagate token for request {}", request.getPath());

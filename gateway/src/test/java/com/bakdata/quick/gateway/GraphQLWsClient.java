@@ -75,11 +75,21 @@ public abstract class GraphQLWsClient implements AutoCloseable {
 
     @Data
     static class DeserializableResponse {
+
         String type;
         @Nullable
         String id;
         @Nullable
         GraphQLResponseBody payload;
+
+        public DeserializableResponse() {
+        }
+
+        DeserializableResponse(final String type, final String id, final GraphQLResponseBody payload) {
+            this.type = type;
+            this.id = id;
+            this.payload = payload;
+        }
 
         ServerType getType() {
             for (final GraphQLWsResponse.ServerType serverType : GraphQLWsResponse.ServerType.values()) {
@@ -88,6 +98,19 @@ public abstract class GraphQLWsClient implements AutoCloseable {
                 }
             }
             throw new RuntimeException();
+        }
+
+
+        void setType(final String type) {
+            this.type = type;
+        }
+
+        void setId(final String id) {
+            this.id = id;
+        }
+
+        void setPayload(final GraphQLResponseBody payload) {
+            this.payload = payload;
         }
     }
 
