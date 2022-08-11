@@ -10,7 +10,7 @@ plugins {
 dependencies {
     implementation(libs.micronaut.graphql)
     implementation(libs.json2avro)
-    implementation(libs.reactor.kafka)
+    implementation(libs.reactorKafka)
     implementation(libs.slf4j.api)
     implementation(libs.log4j.api)
     implementation(libs.log4j.core)
@@ -28,7 +28,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.graphql)
     implementation(libs.kafka.clients)
-    implementation(libs.kube.manager.client)
+    implementation(libs.kubernetes.client)
     implementation(libs.schemaRegistryClient)
     implementation(libs.kafka.protobufProvider)
     implementation(libs.thymeleaf)

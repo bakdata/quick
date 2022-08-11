@@ -23,7 +23,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.graphql)
     implementation(libs.kafka.clients)
-    implementation(libs.kube.manager.client)
+    implementation(libs.kubernetes.client)
     implementation(libs.schemaRegistryClient)
     implementation(libs.kafka.protobufProvider)
     implementation(libs.thymeleaf)
@@ -37,12 +37,12 @@ dependencies {
 
     compileOnly(libs.sundrIo)
     annotationProcessor(libs.sundrIo)
-    annotationProcessor(libs.kube.manager.client)
+    annotationProcessor(libs.kubernetes.client)
     annotationProcessor(libs.micronaut.injectJava)
     annotationProcessor(libs.micronaut.validation)
 
     testAnnotationProcessor(libs.micronaut.injectJava)
-    testImplementation(libs.kube.mock.server)
+    testImplementation(libs.kubernetes.serverMock)
     testImplementation(libs.schemaRegistryMock)
     testImplementation(libs.mockWebserver)
     testImplementation(libs.micronaut.rxjavaHttpClient)
