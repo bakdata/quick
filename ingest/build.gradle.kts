@@ -8,9 +8,9 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.log4j.api)
     implementation(libs.log4j.core)
-    implementation(libs.log4j.slf4j)
-    implementation(libs.log4j.over.slf4j)
-    implementation(libs.jul.slf4j)
+    implementation(libs.log4j.slf4jImpl)
+    implementation(libs.log4j.overSlf4j)
+    implementation(libs.julSlf4j)
     implementation(libs.caffeine)
     implementation(libs.rxjava)
     implementation(libs.kafka.clients)
@@ -26,8 +26,8 @@ dependencies {
 
     testAnnotationProcessor(libs.micronaut.injectJava)
 
-    testImplementation(libs.schema.registry.mock)
-    testImplementation(libs.kafka.proto.serde)
+    testImplementation(libs.schemaRegistryMock)
+    testImplementation(libs.kafka.streams.protobufSerde)
     testImplementation(libs.micronaut.junit)
     testImplementation(libs.kafka.junit)
     testImplementation(libs.junit.api)
@@ -37,7 +37,7 @@ dependencies {
     testImplementation(libs.kafka)
     testImplementation(libs.awaitly)
     testImplementation(libs.jackson.databind) // needed so that log4j2 can read yaml test configs
-    testImplementation(libs.micronaut.rxjava.http.client)
+    testImplementation(libs.micronaut.rxjavaHttpClient)
 
     testRuntimeOnly(libs.junit.engine)
 }
