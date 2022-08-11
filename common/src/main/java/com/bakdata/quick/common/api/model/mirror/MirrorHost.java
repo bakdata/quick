@@ -69,4 +69,11 @@ public class MirrorHost {
         log.trace("Preparing Mirror URL: {}", url);
         return url;
     }
+
+    /**
+     * Generates a URL without any keys.
+     */
+    public String plainUrl() {
+        return String.format("http://%s%s/%s", this.config.getPrefix(), this.host, this.config.getPath());
+    }
 }

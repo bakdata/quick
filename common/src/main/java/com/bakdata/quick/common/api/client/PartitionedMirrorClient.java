@@ -37,8 +37,8 @@ import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
 
 /**
- * MirrorClient that has access to information about partition-host mapping. This enables it to efficiently
- * route requests in case when there is more than one mirror replica.
+ * MirrorClient that has access to information about partition-host mapping.
+ * This information enables it to efficiently route requests in the case when there is more than one mirror replica.
  *
  * @param <K> key type
  * @param <V> value type
@@ -58,7 +58,9 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     private final List<MirrorHost> knownHosts;
 
     /**
-     * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
+     * Next to its default task of instantiation PartitionHost, it takes responsibility for
+     * creating several business objects and initializing the PartitionRouter with a mapping
+     * retrieved from StreamController.
      *
      * @param topicName       the name of the topic
      * @param mirrorHost      host to use
@@ -74,7 +76,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
         this.client = client;
         this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
-        this.requestManager = new DefaultMirrorRequestManager(client);
+        this.requestManager = new DefaultMirrorRequestManager(client, mirrorHost);
         log.info("Initializing partition router for the mirror at: {} and the topic: {}.",
             this.streamsStateHost.getHost(), topicName);
         final Map<Integer, String> response = this.makeRequestForPartitionHostMapping();

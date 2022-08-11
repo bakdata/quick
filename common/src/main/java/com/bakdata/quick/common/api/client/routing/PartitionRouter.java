@@ -65,7 +65,9 @@ public class PartitionRouter<K> implements Router<K> {
         final int partition =
             this.partitionFinder.getForSerializedKey(serializedKey, this.partitionToMirrorHost.size());
         if (!this.partitionToMirrorHost.containsKey(partition)) {
-            throw new IllegalStateException("Router has not been initialized properly.");
+            throw new IllegalStateException(String.format(
+                "No MirrorHost found for partition: %d", partition
+            ));
         }
         return this.partitionToMirrorHost.get(partition);
     }
@@ -73,7 +75,7 @@ public class PartitionRouter<K> implements Router<K> {
     @Override
     public List<MirrorHost> getAllHosts() {
         if (this.partitionToMirrorHost.isEmpty()) {
-            throw new IllegalStateException("Router has not been initialized properly.");
+            throw new IllegalStateException("Partition to MirrorHost mapping is empty.");
         }
         return new ArrayList<>(this.partitionToMirrorHost.values());
     }

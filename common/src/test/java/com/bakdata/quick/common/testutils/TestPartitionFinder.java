@@ -18,8 +18,6 @@ package com.bakdata.quick.common.testutils;
 
 import com.bakdata.quick.common.api.client.routing.PartitionFinder;
 import com.bakdata.quick.common.exception.InternalErrorException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 /**
@@ -32,10 +30,9 @@ public class TestPartitionFinder implements PartitionFinder {
     /**
      * PartitionFinder that uses a queue as a provider for partitions.
      *
-     * @param elements a list of elements that are inserted into the queue
      */
-    public TestPartitionFinder(final List<Integer> elements) {
-        this.partitions = new LinkedList<>(elements);
+    public TestPartitionFinder(Queue<Integer> partitionsQueue) {
+        this.partitions = partitionsQueue;
     }
 
     /**
@@ -51,5 +48,13 @@ public class TestPartitionFinder implements PartitionFinder {
             throw new InternalErrorException("There are no partitions to be served in the queue.");
         }
         return this.partitions.poll();
+    }
+
+    /**
+     * Adds an integer that represents the next partition to the queue.
+     * @param nextPartition next partition
+     */
+    public void enqueue(final int nextPartition) {
+        this.partitions.add(nextPartition);
     }
 }

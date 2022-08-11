@@ -138,7 +138,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     /**
      * Transforms a list of HttpResponses of MirrorValue of a specific type into
      * a single HttpResponse of MirrorValue with a list of values of that type.
-     * Furthermore, if a header is present in one of the HttpResponses (function argument), a HTTP Header
+     * Furthermore, if a header is present in one of the HttpResponses (function argument), an HTTP Header
      * that informs about the Cache-Miss is set. Because of this possibility, the function returns MutableHttpResponse
      * and not just HttpResponse.
      *
@@ -179,7 +179,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
         final DefaultMirrorClient<K, V> mirrorClient =
             new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
-                new DefaultMirrorRequestManager(this.client));
+                new DefaultMirrorRequestManager(this.client, mirrorHost));
         // TODO: don't bother deserializing
         final V value = mirrorClient.fetchValue(key);
 

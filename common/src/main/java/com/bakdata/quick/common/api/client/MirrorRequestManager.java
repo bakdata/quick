@@ -24,10 +24,10 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 public interface MirrorRequestManager {
 
     /**
-     * Submits a request and processes the response. Throws an exception in case of various errors.
+     * Submits a request and processes the response. It throws an exception in case of various errors.
      *
-     * @param url a url for which a request is made
-     * @return response body if successful; null if resource has not been found
+     * @param url A URL for which a request is made
+     * @return a response body if successful; null if resource has not been found
      */
     ResponseWrapper makeRequest(final String url);
 

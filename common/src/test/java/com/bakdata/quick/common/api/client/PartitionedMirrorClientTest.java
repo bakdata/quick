@@ -17,6 +17,7 @@
 package com.bakdata.quick.common.api.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
@@ -29,9 +30,10 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import java.util.List;
+import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -51,6 +53,8 @@ class PartitionedMirrorClientTest {
     private final String host = String.format("%s:%d", this.server.getHostName(), this.server.getPort());
     private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
     private MirrorClient<String, TopicData> topicDataClient;
+    private final Queue<Integer> partitionQueue = new ArrayDeque<>();
+    private final TestPartitionFinder partitionFinder = new TestPartitionFinder(partitionQueue);
 
     private static TopicData createTopicData() {
         return new TopicData(DEFAULT_TOPIC, TopicWriteType.IMMUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);
@@ -58,46 +62,109 @@ class PartitionedMirrorClientTest {
 
     @BeforeEach
     void initRouterAndMirror() throws JsonProcessingException {
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, host));
-        // first request sets the mapping with partitions 1 and 2
+        // First response: mapping from partition to host for initializing PartitionRouter
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, "local:1234"));
         this.server.enqueue(new MockResponse().setBody(routerBody));
         this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, mirrorHost, client, Serdes.String(),
-            new KnownTypeResolver<>(TopicData.class, this.mapper), new TestPartitionFinder(List.of(2, 3)));
+            new KnownTypeResolver<>(TopicData.class, this.mapper), partitionFinder);
     }
 
-    /**
-     * 1) We start with the following mapping: 1->host, 2->host. This is the mapping the router is initialized with.
-     * It is fetched by the first server.enqueue in @BeforeEach.
-     * 2) When we make a call to this.topicDataClient.fetchValue(), we'll make a request in
-     * DefaultMirrorRequestManager (DMRM).
-     * Since we create a mocked response with a header, the control statement in DMRM where the existence of the header is checked will be called
-     * and the header will be set in the ResponseWrapper.
-     * 3) Because of this, this.updateRouterInfo(); at 90 of PartitionedMirrorClient will be called.
-     * 4) Eventually, we will get a new mapping: 1->host, 2->host, 3->host.
-     * 5) Now, in the first call to this.topicDataClient.fetchValue, the returned partition is 2.
-     * If we make a consecutive call to this.topicDataClient.fetchValue, the returned partition will be 3.
-     * Why do we get 2 and then 3? This is a way of functioning of the custom PartitioningRouter
-     * that was made for the purpose of the test. See TestPartitionFinder,
-     * 6) If the info had not been updated, we would have received IllegalStateException because
-     * the partitionToMirrorHost would not have access to the key=3.
-     *
-     * @throws JsonProcessingException json processing exception
-     */
     @Test
-    void shouldReadHeaderAndUpdateRouter() throws JsonProcessingException {
+    void shouldThrowExceptionIfNoMappingUpdate() throws JsonProcessingException {
+        // Second response: A dummy response for PartitionedMirrorClient from Mirror.
+        // The X-Cache-Update Header is not set, and thus there will be no mapping update.
         final TopicData topicData = createTopicData();
         final String body = TestUtils.generateBody(topicData);
+        this.server.enqueue(new MockResponse().setBody(body));
+        // The PartitionedRouter of PartitionedMirrorClient will get partition=2 from
+        // the underlying PartitionFinder in PartitionRouter.findHost function.
+        this.partitionFinder.enqueue(2);
+        // The current mapping is 1->host, 2->host, so we will successfully return a host.
+        this.topicDataClient.fetchValue(DEFAULT_TOPIC);
+        // Third response: A dummy message for yet another call to Mirror.
+        this.server.enqueue(new MockResponse().setBody(body));
+        // The PartitionedRouter of PartitionedMirrorClient will get partition=3 from
+        // the underlying PartitionFinder in PartitionRouter.findHost function.
+        this.partitionFinder.enqueue(3);
+        // Since there was no mapping update, an exception will be thrown.
+        // There is no host for partition=3
+        assertThatThrownBy(() -> this.topicDataClient.fetchValue(DEFAULT_TOPIC))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("No MirrorHost found for partition: 3");
 
+    }
+
+    @Test
+    void shouldReadHeaderAndUpdateRouterWithAdditionalReplica() throws JsonProcessingException {
+        // Second response: A dummy response for PartitionedMirrorClient from Mirror contains the X-Cache-Update header.
+        // The header is set to simulate a mapping change from partition to host.
+        final TopicData topicData = createTopicData();
+        final String body = TestUtils.generateBody(topicData);
         this.server.enqueue(new MockResponse().setBody(body).setHeader(
             HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue()));
-
+        // Third response: A new mapping for PartitionedMirrorClient
         final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, host, 3, host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
+        // The PartitionedRouter of PartitionedMirrorClient will get partition=2 from
+        // the underlying PartitionFinder in PartitionRouter.findHost function.
+        this.partitionFinder.enqueue(2);
+        // In the current scenario, we will make two calls to Mirror when we fetch a value.
+        // The first is done to get a value (second response), second to get mapping for updating PartitionRouter
+        // (third response)
         final TopicData topic = this.topicDataClient.fetchValue(DEFAULT_TOPIC);
+        // Fourth response: A dummy message for yet another call to Mirror is needed
+        // to test whether the mapping has been successfully updated.
         this.server.enqueue(new MockResponse().setBody(body));
+        // The PartitionedRouter of PartitionedMirrorClient will get partition=3 from
+        // the underlying PartitionFinder in PartitionRouter.findHost function.
+        this.partitionFinder.enqueue(3);
         final TopicData topic2 = this.topicDataClient.fetchValue(DEFAULT_TOPIC);
+        // If the info had not been updated, we would have received IllegalStateException because
+        // the partitionToMirrorHost would not have access to the partition=3.
         assertThat(Objects.requireNonNull(topic).getName()).isEqualTo(DEFAULT_TOPIC);
         assertThat(Objects.requireNonNull(topic2).getName()).isEqualTo(DEFAULT_TOPIC);
     }
+
+    @Test
+    void shouldReadHeaderAndUpdateRouterWithFewerReplicas() throws JsonProcessingException {
+        // Second response: A dummy response for PartitionedMirrorClient from Mirror contains the X-Cache-Update header.
+        // The header is set to simulate a mapping change from partition to host.
+        final TopicData topicData = createTopicData();
+        final String body = TestUtils.generateBody(topicData);
+        this.server.enqueue(new MockResponse().setBody(body).setHeader(
+            HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue()));
+
+        // Third response: A new mapping for PartitionedMirrorClient
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host));
+        this.server.enqueue(new MockResponse().setBody(routerBody));
+
+        // The PartitionedRouter of PartitionedMirrorClient will get partition=2 from
+        // the underlying PartitionFinder in PartitionRouter.findHost function.
+        this.partitionFinder.enqueue(2);
+        // In the current scenario, we will make two calls to Mirror when we fetch a value.
+        // The first is done to get a value (second response), second to get mapping for updating PartitionRouter
+        // (third response)
+        final TopicData topic = this.topicDataClient.fetchValue(DEFAULT_TOPIC);
+        // Fourth response: A dummy message for yet another call to Mirror is needed
+        // to test whether the mapping has been successfully updated.
+        this.server.enqueue(new MockResponse().setBody(body));
+        // The PartitionedRouter of PartitionedMirrorClient will get partition=3 from
+        // the underlying PartitionFinder in PartitionRouter.findHost function.
+        this.partitionFinder.enqueue(1);
+        final TopicData topic2 = this.topicDataClient.fetchValue(DEFAULT_TOPIC);
+        // If the info had not been updated, we would have received IllegalStateException because
+        // the partitionToMirrorHost would not have access to the partition=3.
+        assertThat(Objects.requireNonNull(topic).getName()).isEqualTo(DEFAULT_TOPIC);
+        assertThat(Objects.requireNonNull(topic2).getName()).isEqualTo(DEFAULT_TOPIC);
+
+        this.partitionFinder.enqueue(2);
+        // Since there was no mapping update, an exception will be thrown.
+        // There is no host for partition=3
+        assertThatThrownBy(() -> this.topicDataClient.fetchValue(DEFAULT_TOPIC))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("No MirrorHost found for partition: 2");
+
+    }
+
 }
 

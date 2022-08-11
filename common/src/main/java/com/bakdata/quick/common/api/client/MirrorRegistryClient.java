@@ -16,9 +16,11 @@
 
 package com.bakdata.quick.common.api.client;
 
+import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
+import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.config.TopicRegistryConfig;
 import com.bakdata.quick.common.exception.NotFoundException;
@@ -31,6 +33,7 @@ import jakarta.inject.Singleton;
 import java.util.Comparator;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serdes;
 
 /**
  * A client for interacting backed by a topic.
@@ -58,7 +61,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
                                 final HttpClient client) {
         this.registryTopic = topicRegistryConfig.getTopicName();
         this.ingestClient = ingestClient;
-        this.topicDataClient = createMirrorClient(topicRegistryConfig, client);
+        this.topicDataClient = createMirrorClient(topicRegistryConfig, client, this.registryTopic);
         this.registryData = new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING,
             QuickTopicType.AVRO, null);
     }
@@ -104,12 +107,12 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     }
 
     private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
-                                                                      final HttpClient client) {
-        final KnownTypeResolver<TopicData> typeResolver =
-            new KnownTypeResolver<>(TopicData.class, client.objectMapper());
-        final String serviceName = topicRegistryConfig.getServiceName();
-        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), typeResolver,
-            new DefaultMirrorRequestManager(client));
+                                                                      final HttpClient client, final String topicName) {
+        final KnownTypeResolver<TopicData> typeResolver = new KnownTypeResolver<>(
+            TopicData.class, client.objectMapper());
+        final MirrorHost mirrorHost = new MirrorHost(topicName, MirrorConfig.directAccess());
+        return new PartitionedMirrorClient<>(topicRegistryConfig.getTopicName(), mirrorHost, client,
+            Serdes.String(), typeResolver, new DefaultPartitionFinder());
     }
 
     private Single<TopicData> getSelf() {

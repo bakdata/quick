@@ -20,6 +20,7 @@ import com.bakdata.quick.common.api.client.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
+import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.util.Lazy;
@@ -79,6 +80,6 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
                                                               final HttpClient client,
                                                               final TypeResolver<V> valueResolver) {
         return new DefaultMirrorClient<>(host, client, mirrorConfig, valueResolver,
-            new DefaultMirrorRequestManager(client));
+            new DefaultMirrorRequestManager(client, new MirrorHost(host, mirrorConfig)));
     }
 }

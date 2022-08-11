@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Strategy for finding a host that keeps information about a specific key, i.e. a partition of a topic
+ * Strategy for finding a host that keeps the information about a specific key, i.e., a partition of a topic
  *
  * @param <K> key type
  */

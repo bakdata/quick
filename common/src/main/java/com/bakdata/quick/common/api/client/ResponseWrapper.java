@@ -16,19 +16,24 @@
 
 package com.bakdata.quick.common.api.client;
 
+import com.bakdata.quick.common.exception.MirrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.micronaut.http.HttpStatus;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
- * A wrapper for a response from a call to made with the HttpClient.
+ * A wrapper for a response from a call to be made with the HttpClient.
  *
  * <p>
  * It consists of a response body extracted from the response and a boolean that indicates
- * whether the X-Cache-Update header has been set. This header is used to
- * signal the need for an update of the mapping between partitions and mirror hosts.
+ * whether the X-Cache-Update header has been set. This header signals the need to update
+ * the mapping between partitions and mirror hosts.
  * </p>
  */
+@Slf4j
 @Value
 public class ResponseWrapper {
 
@@ -36,13 +41,50 @@ public class ResponseWrapper {
     ResponseBody responseBody;
     boolean updateCacheHeaderSet;
 
-    public ResponseWrapper(@Nullable final ResponseBody responseBody, final boolean headerSet) {
+    private ResponseWrapper(@Nullable final ResponseBody responseBody, final boolean headerSet) {
         this.responseBody = responseBody;
         this.updateCacheHeaderSet = headerSet;
     }
 
-    public ResponseWrapper(@Nullable final ResponseBody responseBody) {
+    private ResponseWrapper(@Nullable final ResponseBody responseBody) {
         this.responseBody = responseBody;
         this.updateCacheHeaderSet = false;
+    }
+
+    /**
+     * Static factory method for creating instances of ResponseWrapper.
+     *
+     * @param response a response from the mirror
+     * @return an instance of ResponseWrapper
+     */
+    public static ResponseWrapper fromResponse(final Response response) {
+        if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
+            return new ResponseWrapper(null, checkIfCacheMissHeaderSet(response));
+        }
+        final ResponseBody body = response.body();
+        if (response.code() != HttpStatus.OK.getCode()) {
+            log.error("Got error response from mirror: {}", body);
+            final String errorMessage =
+                String.format("Error while fetching data. Requested resource responded with status code %d",
+                    response.code());
+            throw new MirrorException(errorMessage, HttpStatus.valueOf(response.code()));
+        }
+        if (body == null) {
+            throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if (response.header(HeaderConstants.getCacheMissHeaderName()) != null) {
+            return new ResponseWrapper(body, checkIfCacheMissHeaderSet(response));
+        }
+        return new ResponseWrapper(body);
+    }
+
+    /**
+     * Checks if the X-Cache-Update from {@link HeaderConstants} header has been set.
+     *
+     * @param response a response from the http call
+     * @return a boolean that indicates whether the X-Cache-Update header has been set
+     */
+    private static boolean checkIfCacheMissHeaderSet(final Response response) {
+        return response.header(HeaderConstants.getCacheMissHeaderName()) != null;
     }
 }
