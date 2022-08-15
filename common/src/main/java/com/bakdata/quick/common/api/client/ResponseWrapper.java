@@ -23,6 +23,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A wrapper for a response from a call to be made with the HttpClient.
@@ -53,13 +54,43 @@ public class ResponseWrapper {
     /**
      * Static factory method for creating instances of ResponseWrapper.
      *
-     * @param response a response from the mirror
+     * @param response the response from the mirror
      * @return an instance of ResponseWrapper
      */
     public static ResponseWrapper fromResponse(final Response response) {
         if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
             return new ResponseWrapper(null, checkIfCacheMissHeaderSet(response));
         }
+        final ResponseBody body = getAndCheckResponseBody(response);
+        if (response.header(HeaderConstants.getCacheMissHeaderName()) != null) {
+            return new ResponseWrapper(body, checkIfCacheMissHeaderSet(response));
+        }
+        return new ResponseWrapper(body);
+    }
+
+    /**
+     * Similar to fromResponse, it creates instances of ResponseWrapper. The difference is
+     * that it creates a response from the fallback service. When the fallback service is called,
+     * the mapping between partitions and hosts has to be checked. Thus, all instances of ResponseWrapper returned
+     * from this function have the parameter headerSet equal true.
+     * @param fallbackResponse the response from the fallback service
+     * @return an instance of ResponseWrapper with the headerSet argument set to true
+     */
+    public static ResponseWrapper fromFallbackResponse(final Response fallbackResponse) {
+        if (fallbackResponse.code() == HttpStatus.NOT_FOUND.getCode()) {
+            return new ResponseWrapper(null, true);
+        }
+        final ResponseBody body = getAndCheckResponseBody(fallbackResponse);
+        return new ResponseWrapper(body, true);
+    }
+
+    /**
+     * Extract the ResponseBody from the Response and checks its validity.
+     * @param response the response from a particular service (for example, Mirror or Fallback Service)
+     * @return an instance of ResponseBody or an exception if it could not be retrieved
+     */
+    @NotNull
+    private static ResponseBody getAndCheckResponseBody(final Response response) {
         final ResponseBody body = response.body();
         if (response.code() != HttpStatus.OK.getCode()) {
             log.error("Got error response from mirror: {}", body);
@@ -71,10 +102,7 @@ public class ResponseWrapper {
         if (body == null) {
             throw new MirrorException("Resource responded with empty body", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        if (response.header(HeaderConstants.getCacheMissHeaderName()) != null) {
-            return new ResponseWrapper(body, checkIfCacheMissHeaderSet(response));
-        }
-        return new ResponseWrapper(body);
+        return body;
     }
 
     /**

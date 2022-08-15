@@ -21,7 +21,6 @@ import com.bakdata.quick.common.exception.MirrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
-import java.net.UnknownHostException;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -44,20 +43,15 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     @Override
     public ResponseWrapper makeRequest(final String url) {
         final Request request = new Request.Builder().url(url).get().build();
-        /*
-        The classic try-catch statement and not the try-with-resources is used here because the try-with-resources
-        implicitly closes the processed resource in an automatically added (and not visible) block.
-        If we used it here, we wouldn't be able to read from the InputStream in the caller
-        as it would have been already closed by the try-with-resources in the callee.
-         */
+        // The classic try-catch statement and not the try-with-resources is used here because the try-with-resources
+        // implicitly closes the processed resource in an automatically added (and not visible) block.
+        // If we used it here, we wouldn't be able to read from the InputStream in the caller
+        // as it would have been already closed by the try-with-resources in the callee.
         try {
             final Response response = this.client.newCall(request).execute();
             return ResponseWrapper.fromResponse(response);
         } catch (final IOException exception) {
-            if (exception instanceof UnknownHostException) {
-                return getResponseFromFallbackService(url, request);
-            }
-            throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
+            return getResponseFromFallbackService(url, request);
         }
     }
 
@@ -69,14 +63,11 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     @NotNull
     private ResponseWrapper getResponseFromFallbackService(final String url, final Request request) {
         final String keyInfo = String.join("/", request.url().pathSegments());
-        log.info("Host at {} is unavailable. Forwarding the request to {}", url,
-            fallbackServiceHost);
         final String newUrl = this.fallbackServiceHost.concat(keyInfo);
+        log.info("Host at {} is unavailable. Forwarding the request to {}", url, newUrl);
         final Request fallbackRequest = new Request.Builder().url(newUrl).get().build();
         try {
             final Response fallbackResponse = this.client.newCall(fallbackRequest).execute();
-            fallbackResponse.header(HeaderConstants.getCacheMissHeaderName(),
-                HeaderConstants.getCacheMissHeaderValue());
             return ResponseWrapper.fromResponse(fallbackResponse);
         } catch (final IOException fallbackException) {
             throw new MirrorException("Fallback service error", HttpStatus.INTERNAL_SERVER_ERROR,
