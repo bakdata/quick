@@ -19,22 +19,9 @@ package com.bakdata.quick.gateway.custom;
 import com.fasterxml.jackson.databind.JsonNode;
 import graphql.TrivialDataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.PropertyDataFetcher;
-import org.apache.avro.generic.GenericRecord;
 
 /**
- * Data fetcher extending graphql's property fetcher by also handling avro record.
- *
- * <p>
- * The default {@link graphql.schema.DataFetcher} provided by Java GraphQL is the {@link PropertyDataFetcher}. However,
- * it only supports maps and POJOs. This class is an extension allowing handling Avro's {@link GenericRecord}.
- *
- * <p>
- * It first checks whether the field returned by the parent is of type {@link GenericRecord}.
- * If this is not the case, it delegates to {@link PropertyDataFetcher}.
- *
- * @see PropertyDataFetcher
- * @see TrivialDataFetcher
+ * DataFetcher that extracts a value of a given field from Json.
  */
 public class QuickPropertyDataFetcher implements TrivialDataFetcher<Object> {
 
@@ -47,23 +34,21 @@ public class QuickPropertyDataFetcher implements TrivialDataFetcher<Object> {
     @Override
     public Object get(final DataFetchingEnvironment environment) {
         final JsonNode source = environment.getSource();
-        final JsonNode value = source.get(fieldName);
-        return extractValueFromJsonNode(value);
+        final JsonNode fieldValueJson = source.get(fieldName);
+        return this.extractValueOfTypeFromJsonNode(fieldValueJson);
     }
 
-    private Object extractValueFromJsonNode(final JsonNode value) {
-        if (value.isInt()) {
-            return value.asInt();
-        } else if (value.isObject()) {
-            return value;
-        } else if (value.isDouble()) {
-            return value.asDouble();
-        } else if (value.isArray()) {
-            return value;
-        } else if (value.isBoolean()) {
-            return value.asBoolean();
+    private Object extractValueOfTypeFromJsonNode(final JsonNode fieldValueJson) {
+        if (fieldValueJson.isInt()) {
+            return fieldValueJson.asInt();
+        } else if (fieldValueJson.isDouble()) {
+            return fieldValueJson.asDouble();
+        } else if (fieldValueJson.isBoolean()) {
+            return fieldValueJson.asBoolean();
+        } else if (fieldValueJson.isArray() || fieldValueJson.isObject()) {
+            return fieldValueJson;
         } else {
-            return value.textValue();
+            return fieldValueJson.textValue();
         }
     }
 }

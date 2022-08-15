@@ -27,8 +27,6 @@ import java.util.Map;
 public interface DataFetcherClient<V> {
     TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {
     };
-    TypeReference<List<Map<String, Object>>> LIST_TYPE_REFERENCE = new TypeReference<>() {
-    };
 
 
     /**
