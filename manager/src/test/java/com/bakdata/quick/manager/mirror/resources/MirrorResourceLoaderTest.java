@@ -217,7 +217,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .isNotNull()
                     .hasSize(1)
                     .first()
-                    .hasFieldOrPropertyWithValue("image", getImage(DOCKER_REGISTRY, EXPECTED_MIRROR_IMAGE, customTag));
+                    .hasFieldOrPropertyWithValue("image", getImage(EXPECTED_MIRROR_IMAGE, customTag));
             });
     }
 

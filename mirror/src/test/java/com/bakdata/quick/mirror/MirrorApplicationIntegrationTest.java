@@ -35,93 +35,76 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.SendKeyValuesTransactional;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 @IntegrationTest
-@Slf4j
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
 class MirrorApplicationIntegrationTest {
     public static final String INPUT_TOPIC = "input";
-    private final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
     @Inject
     HostConfig hostConfig;
     @Inject
     ApplicationContext applicationContext;
     @Inject
     QueryContextProvider queryContextProvider;
-    private EmbeddedKafkaCluster kafkaCluster;
+    private static EmbeddedKafkaCluster kafkaCluster;
+    private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
 
-    @BeforeEach
-    void setup() {
-        this.kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
-        this.kafkaCluster.start();
-        this.schemaRegistry.start();
+    @BeforeAll
+    static void setup() {
+        kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
+        schemaRegistry.start();
+        kafkaCluster.start();
     }
 
-    @AfterEach
-    void teardown() {
-        this.schemaRegistry.stop();
-        this.kafkaCluster.stop();
+    @AfterAll
+    static void teardown() {
+        schemaRegistry.stop();
+        kafkaCluster.stop();
     }
 
     @Test
-    void test() throws InterruptedException {
-
-        final MirrorApplication<String, String> app = this.setUpApp();
+    void shouldReceiveCorrectValueFromMirrorApplication() throws InterruptedException {
         sendValuesToKafka();
+        final MirrorApplication<String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();
 
         Thread.sleep(3000);
 
-        log.info("Validate");
         await()
                 .atMost(Duration.ofSeconds(12))
-                .untilAsserted(() -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
-                .then()
-                .statusCode(200)
-                .body(equalTo("{\"value\":\"value1\"}")));
+                .untilAsserted(
+                        () -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
+                                .then()
+                                .statusCode(200)
+                                .body(equalTo("{\"value\":\"value1\"}")));
         app.close();
         app.getStreams().cleanUp();
         runThread.interrupt();
     }
 
-
-
     private void sendValuesToKafka() throws InterruptedException {
-        log.info("Send values");
         final List<KeyValue<String, String>> keyValueList = List.of(new KeyValue<>("key1", "value1"),
-                new KeyValue<>("key2222", "value2"),
-                new KeyValue<>("key2", "value2"));
+                new KeyValue<>("key2", "value2"),
+                new KeyValue<>("key3", "value3"));
         final SendKeyValuesTransactional<String, String> sendRequest = SendKeyValuesTransactional
                 .inTransaction(INPUT_TOPIC, keyValueList)
                 .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
                 .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
-                .with("schema.registry.url", this.schemaRegistry.getUrl())
+                .with("schema.registry.url", schemaRegistry.getUrl())
                 .build();
 
-        this.kafkaCluster.send(sendRequest);
-        log.info("Process...");
-    }
-
-    private TopicTypeService topicTypeService() {
-        return TestTopicTypeService.builder()
-            .urlSupplier(this.schemaRegistry::getUrl)
-            .keyType(QuickTopicType.STRING)
-            .valueType(QuickTopicType.STRING)
-            .keySchema(null)
-            .valueSchema(null)
-            .build();
+        kafkaCluster.send(sendRequest);
     }
 
     private MirrorApplication<String, String> setUpApp() {
@@ -130,9 +113,19 @@ class MirrorApplicationIntegrationTest {
                 this.hostConfig, this.queryContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
-        app.setBrokers(this.kafkaCluster.getBrokerList());
+        app.setBrokers(kafkaCluster.getBrokerList());
         app.setProductive(false);
-        app.setSchemaRegistryUrl(this.schemaRegistry.getUrl());
+        app.setSchemaRegistryUrl(schemaRegistry.getUrl());
         return app;
+    }
+
+    private TopicTypeService topicTypeService() {
+        return TestTopicTypeService.builder()
+                .urlSupplier(schemaRegistry::getUrl)
+                .keyType(QuickTopicType.STRING)
+                .valueType(QuickTopicType.STRING)
+                .keySchema(null)
+                .valueSchema(null)
+                .build();
     }
 }

@@ -34,6 +34,8 @@ import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.manager.mirror.MirrorService;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.bakdata.schemaregistrymock.junit5.SchemaRegistryMockExtension;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.micronaut.context.ApplicationContext;
@@ -98,7 +100,8 @@ class TopicRegistryInitializerTest {
         final String subject = topicName + "-value";
 
         assertThat(registryClient.getAllSubjects()).containsExactly(subject);
-        assertThat(registryClient.getBySubjectAndId(subject, 1)).isEqualTo(AvroTopicData.getClassSchema());
+        final ParsedSchema topicDataSchema = new AvroSchema(AvroTopicData.getClassSchema());
+        assertThat(registryClient.getSchemaBySubjectAndId(subject, 1)).isEqualTo(topicDataSchema);
     }
 
     @Test
@@ -140,7 +143,7 @@ class TopicRegistryInitializerTest {
     @Test
     void shouldNotFailIfTopicExists() {
         final String topicName = UUID.randomUUID().toString();
-        kafkaCluster.createTopic(TopicConfig.forTopic(topicName).useDefaults());
+        kafkaCluster.createTopic(TopicConfig.withName(topicName).useDefaults());
 
         this.successfulMock();
         final KafkaConfig kafkaConfig = new KafkaConfig(kafkaCluster.getBrokerList(), this.schemaRegistry.getUrl());

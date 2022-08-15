@@ -44,46 +44,48 @@ import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 @MicronautTest
 class KafkaIngestServiceTest {
-    private static final String TOPIC = "topic";
-    private final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
-    private KafkaIngestService service = null;
-    private EmbeddedKafkaCluster kafkaCluster = null;
+    private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
+    private static EmbeddedKafkaCluster kafkaCluster = null;
+
     @Inject
     private TopicTypeService typeService;
 
-    @BeforeEach
-    void setUp() {
-        this.schemaRegistry.start();
-        this.kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
-        this.kafkaCluster.start();
-        this.kafkaCluster.createTopic(TopicConfig.withName(TOPIC).useDefaults());
-        final KafkaConfig kafkaConfig =
-            new KafkaConfig(this.kafkaCluster.getBrokerList(), this.schemaRegistry.getUrl());
-        this.service = new KafkaIngestService(this.typeService, kafkaConfig);
+    @BeforeAll
+    static void setUp() {
+        kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
+        kafkaCluster.start();
+        schemaRegistry.start();
     }
 
-    @AfterEach
-    void tearDown() {
-        this.kafkaCluster.stop();
-        this.schemaRegistry.stop();
+    @AfterAll
+    static void tearDown() {
+        schemaRegistry.stop();
+        kafkaCluster.stop();
     }
 
     @Test
-    void testSendData() throws InterruptedException {
+    void testSendData(TestInfo testInfo) throws InterruptedException {
+        final KafkaConfig kafkaConfig = new KafkaConfig(kafkaCluster.getBrokerList(), schemaRegistry.getUrl());
+        KafkaIngestService kafkaIngestService = new KafkaIngestService(this.typeService, kafkaConfig);
+
+        String topic = String.format("%s-topic", testInfo.getTestMethod().get().getName());
+        kafkaCluster.createTopic(TopicConfig.withName(topic).useDefaults());
+
         final KeyValuePair<String, Long> record = new KeyValuePair<>("foo", 5L);
 
-        final Throwable throwable = this.service.sendData(TOPIC, List.of(record)).blockingGet();
+        final Throwable throwable = kafkaIngestService.sendData(topic, List.of(record)).blockingGet();
         if (throwable != null) {
             fail(throwable.getMessage());
         }
 
-        assertThat(this.kafkaCluster.read(ReadKeyValues.from(TOPIC, String.class, Long.class)
+        assertThat(kafkaCluster.read(ReadKeyValues.from(topic, String.class, Long.class)
             .with(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
             .with(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class)
             .build()))
@@ -91,19 +93,24 @@ class KafkaIngestServiceTest {
     }
 
     @Test
-    void testDeleteData() throws InterruptedException {
+    void testDeleteData(TestInfo testInfo) throws InterruptedException {
+        final KafkaConfig kafkaConfig = new KafkaConfig(kafkaCluster.getBrokerList(), schemaRegistry.getUrl());
+        KafkaIngestService kafkaIngestService = new KafkaIngestService(this.typeService, kafkaConfig);
+
+        String topic = String.format("%s-topic", testInfo.getTestMethod().get().getName());
+        kafkaCluster.createTopic(TopicConfig.withName(topic).useDefaults());
         final KeyValue<String, Long> record = new KeyValue<>("foo", 5L);
 
         final SendKeyValuesTransactional<String, Long> transactionalBuilder =
-            SendKeyValuesTransactional.inTransaction(TOPIC, List.of(record))
+            SendKeyValuesTransactional.inTransaction(topic, List.of(record))
                 .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
                 .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, LongSerializer.class)
                 .build();
-        this.kafkaCluster.send(transactionalBuilder);
+        kafkaCluster.send(transactionalBuilder);
         await().atMost(Duration.ofSeconds(5))
             .untilAsserted(() -> {
                 final List<KeyValue<String, Long>> keyValues =
-                    this.kafkaCluster.read(ReadKeyValues.from(TOPIC, String.class, Long.class)
+                    kafkaCluster.read(ReadKeyValues.from(topic, String.class, Long.class)
                         .with(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
                         .with(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class)
                         .build());
@@ -111,13 +118,13 @@ class KafkaIngestServiceTest {
                 assertThat(keyValues).containsExactly(new KeyValue<>("foo", 5L));
             });
 
-        final Throwable throwable = this.service.deleteData(TOPIC, List.of(record.getKey())).blockingGet();
+        final Throwable throwable = kafkaIngestService.deleteData(topic, List.of(record.getKey())).blockingGet();
         if (throwable != null) {
             fail(throwable.getMessage());
         }
 
         // writing null into the topic deletes the value from the store - for now that is good enough
-        assertThat(this.kafkaCluster.read(ReadKeyValues.from(TOPIC, String.class, Long.class)
+        assertThat(kafkaCluster.read(ReadKeyValues.from(topic, String.class, Long.class)
             .with(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class)
             .with(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class)
             .build()))
@@ -127,7 +134,7 @@ class KafkaIngestServiceTest {
     @MockBean(TopicTypeService.class)
     TopicTypeService topicTypeService() {
         return TestTopicTypeService.builder()
-            .urlSupplier(this.schemaRegistry::getUrl)
+            .urlSupplier(schemaRegistry::getUrl)
             .keyType(QuickTopicType.STRING)
             .valueType(QuickTopicType.LONG)
             .build();

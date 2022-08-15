@@ -18,7 +18,7 @@ package com.bakdata.quick.gateway;
 
 import com.bakdata.quick.gateway.subscriptions.GraphQLRequestBody;
 import com.bakdata.quick.gateway.subscriptions.GraphQLWsRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.graphql.GraphQLJsonSerializer;
 import io.micronaut.configuration.graphql.GraphQLResponseBody;
@@ -34,9 +34,9 @@ import java.util.concurrent.TimeUnit;
 import lombok.Data;
 
 /**
- * Simple implementation for GraphQL WS client support Taken from: Micronaut https://github
- * .com/micronaut-projects/micronaut-graphql/blob/master/graphql/src/test/groovy/io/micronaut/configuration/graphql
- * /ws/GraphQLWsClient.groovy
+ * Simple implementation for GraphQL WS client support Taken from micronaut-graphql:
+ * https://github.com/micronaut-projects/micronaut-graphql/blob/1baa6e48b1cf60037478c3e15e207583402e009b
+ * /graphql/src/test/groovy/io/micronaut/configuration/graphql/ws/GraphQLWsClient.groovy
  */
 @ClientWebSocket(uri = "/graphql-ws", subprotocol = "graphql-ws")
 public abstract class GraphQLWsClient implements AutoCloseable {
@@ -46,11 +46,11 @@ public abstract class GraphQLWsClient implements AutoCloseable {
     private WebSocketSession session;
 
     public GraphQLWsClient() {
-        this.serializer = new JacksonGraphQLJsonSerializer(new ObjectMapper());
+        this.serializer = new JacksonGraphQLJsonSerializer(new JsonMapper());
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         this.session.close();
     }
 
@@ -99,6 +99,7 @@ public abstract class GraphQLWsClient implements AutoCloseable {
             }
             throw new RuntimeException();
         }
+
 
         void setType(final String type) {
             this.type = type;

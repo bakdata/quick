@@ -53,7 +53,7 @@ import org.junit.jupiter.api.Test;
 @Property(name = "micronaut.security.enabled", value = "true")
 class ApiKeyTest {
 
-    private static final String TOPIC = "topic";
+    private static final String TOPIC = "mock-topic";
     private static final String SECURE_PATH = String.format("/%s", TOPIC);
 
     @Client(value = "/")
@@ -79,7 +79,7 @@ class ApiKeyTest {
     @Test
     void shouldAuthenticateWithApiKey() {
         final HttpStatus httpStatus =
-            this.callAuthenticatedController("X-API-Key", "test_key");
+            this.callAuthenticatedController("X-API-Key");
 
         assertThat((CharSequence) httpStatus).isEqualTo(HttpStatus.OK);
     }
@@ -94,7 +94,7 @@ class ApiKeyTest {
 
     @Test
     void shouldAuthorizedWhenApiKeyExistsAndHeaderKeyCaseInsensitive() {
-        final HttpStatus httpStatus = this.callAuthenticatedController("x-api-key", "test_key");
+        final HttpStatus httpStatus = this.callAuthenticatedController("x-api-key");
 
         assertThat((CharSequence) httpStatus).isEqualTo(HttpStatus.OK);
     }
@@ -107,7 +107,7 @@ class ApiKeyTest {
         assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
-    private HttpStatus callAuthenticatedController(final CharSequence key, final CharSequence value) {
+    private HttpStatus callAuthenticatedController(final CharSequence key) {
         final KeyValuePair<String, String> pair = new KeyValuePair<>("key", "key");
         final QuickData<String> stringInfo = newStringData();
         final QuickTopicData<String, String> topicInfo =
@@ -116,7 +116,7 @@ class ApiKeyTest {
         when(this.ingestService.sendData(eq(TOPIC), any())).thenReturn(Completable.complete());
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(TOPIC);
 
-        return this.client.toBlocking().exchange(POST(SECURE_PATH, pair).header(key, value)).getStatus();
+        return this.client.toBlocking().exchange(POST(SECURE_PATH, pair).header(key, "test_key")).getStatus();
     }
 
     @MockBean(KafkaIngestService.class)

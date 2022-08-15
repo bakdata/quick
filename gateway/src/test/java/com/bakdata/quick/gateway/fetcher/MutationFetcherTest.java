@@ -77,8 +77,8 @@ class MutationFetcherTest {
 
     @AfterAll
     static void afterAll() {
-        kafkaCluster.stop();
         schemaRegistry.stop();
+        kafkaCluster.stop();
     }
 
     @SuppressWarnings("unused")

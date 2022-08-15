@@ -24,11 +24,15 @@ import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Produces;
 import jakarta.inject.Inject;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.state.StreamsMetadata;
-import org.jooq.lambda.Seq;
+import org.apache.kafka.streams.StreamsMetadata;
 
 /**
  * REST API exposing current Kafka Streams state.
@@ -50,16 +54,20 @@ public class StreamsStateController {
     @Get("/partitions")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<Integer, String> getApplicationHosts() {
-        return Seq.seq(this.streams.allMetadataForStore(this.storeName))
+        return this.streams.streamsMetadataForStore(this.storeName).stream()
             .flatMap(StreamsStateController::getAddressesForPartitions)
-            .distinct(PartitionAddress::getPartition)
+            .filter(distinctByKey(PartitionAddress::getPartition))
             .collect(Collectors.toMap(PartitionAddress::getPartition, PartitionAddress::getAddress));
     }
 
-    private static Seq<PartitionAddress> getAddressesForPartitions(final StreamsMetadata metadata) {
-        return Seq.seq(metadata.topicPartitions())
-            .map(partition ->
-                new PartitionAddress(partition.partition(), metadata.host(), metadata.port()));
+    private static Stream<PartitionAddress> getAddressesForPartitions(final StreamsMetadata metadata) {
+        return metadata.topicPartitions().stream()
+            .map(partition -> new PartitionAddress(partition.partition(), metadata.host(), metadata.port()));
+    }
+
+    private static <T> Predicate<T> distinctByKey(final Function<? super T, ?> keyExtractor) {
+        final Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return element -> seen.add(keyExtractor.apply(element));
     }
 
     /**
@@ -75,5 +83,4 @@ public class StreamsStateController {
             return String.format("%s:%d", this.host, this.port);
         }
     }
-
 }

@@ -18,10 +18,11 @@ package com.bakdata.quick.mirror.retention;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.time.Duration;
-import org.apache.kafka.streams.processor.Processor;
-import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.PunctuationType;
 import org.apache.kafka.streams.processor.Punctuator;
+import org.apache.kafka.streams.processor.api.Processor;
+import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
 
 /**
@@ -30,7 +31,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
  * @param <K> key type
  * @param <V> value type
  */
-public class RetentionMirrorProcessor<K, V> implements Processor<K, V> {
+public class RetentionMirrorProcessor<K, V> implements Processor<K, V, Void, Void> {
     private static final Duration INTERVAL = Duration.ofSeconds(5);
     private final String storeName;
     private final long retentionTime; // in millis
@@ -46,7 +47,7 @@ public class RetentionMirrorProcessor<K, V> implements Processor<K, V> {
      * Default constructor.
      *
      * @param storeName          store to check retention time in
-     * @param retentionTime      retention time of keys in store in milli seconds
+     * @param retentionTime      retention time of keys in store in milliseconds
      * @param timestampStoreName store name storing how long a key is kept
      */
     public RetentionMirrorProcessor(final String storeName, final long retentionTime, final String timestampStoreName) {
@@ -56,7 +57,7 @@ public class RetentionMirrorProcessor<K, V> implements Processor<K, V> {
     }
 
     @Override
-    public void init(final ProcessorContext context) {
+    public void init(final ProcessorContext<Void, Void> context) {
         this.store = context.getStateStore(this.storeName);
         this.timestampStore = context.getStateStore(this.timestampStoreName);
 
@@ -69,9 +70,12 @@ public class RetentionMirrorProcessor<K, V> implements Processor<K, V> {
     }
 
     @Override
-    public void process(final K key, final V value) {
+    public void process(final Record<K, V> record) {
+        final K key = record.key();
+        final V value = record.value();
+
         if (this.store == null || this.timestampStore == null) {
-            throw new IllegalStateException("RetentionTimeProcessor was not intiialized.");
+            throw new IllegalStateException("RetentionTimeProcessor was not initialized.");
         }
 
         if (value == null) {
@@ -81,10 +85,5 @@ public class RetentionMirrorProcessor<K, V> implements Processor<K, V> {
             this.timestampStore.put(System.currentTimeMillis(), key);
             this.store.put(key, value);
         }
-    }
-
-    @Override
-    public void close() {
-        // No resources to close
     }
 }

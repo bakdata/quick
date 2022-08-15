@@ -133,8 +133,8 @@ public abstract class KubernetesTest {
     /**
      * @return A generated string for the deployment image spec. The format is [DOCKER_REGISTRY]/[IMAGE_NAME]:[TAG]
      */
-    protected static String getImage(final String dockerRegistry, final String imageName, final String imageTag) {
-        return String.format("%s/%s:%s", dockerRegistry, imageName, imageTag);
+    protected static String getImage(final String imageName, final String imageTag) {
+        return String.format("%s/%s:%s", KubernetesTest.DOCKER_REGISTRY, imageName, imageTag);
     }
 
     protected enum ResourceKind {
