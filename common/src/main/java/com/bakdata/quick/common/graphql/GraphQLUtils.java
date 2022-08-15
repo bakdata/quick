@@ -61,7 +61,7 @@ public final class GraphQLUtils {
      * Checks whether two TypeDefinitions are the same.
      *
      * <p>
-     * This is necessary as we consider equality when the fields are equals. {@link TypeDefinition#equals(Object)} also
+     * This is necessary as we consider equality when the fields are equals. {@link TypeDefinition} also
      * considers source location. However, this is obviously not always required in our case.
      *
      * @param leftType  left type definition

@@ -34,7 +34,7 @@ public interface ApplicationService {
     /**
      * Deletes an application and runs a clean up job.
      */
-    Completable deleteApplication(String name);
+    Completable deleteApplication(final String name);
 
     /**
      * Deploys a new Kafka Streams application in a Docker container.
