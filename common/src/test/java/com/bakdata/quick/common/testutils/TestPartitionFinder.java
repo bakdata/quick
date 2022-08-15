@@ -31,7 +31,7 @@ public class TestPartitionFinder implements PartitionFinder {
      * PartitionFinder that uses a queue as a provider for partitions.
      *
      */
-    public TestPartitionFinder(Queue<Integer> partitionsQueue) {
+    public TestPartitionFinder(final Queue<Integer> partitionsQueue) {
         this.partitions = partitionsQueue;
     }
 
@@ -52,6 +52,7 @@ public class TestPartitionFinder implements PartitionFinder {
 
     /**
      * Adds an integer that represents the next partition to the queue.
+     *
      * @param nextPartition next partition
      */
     public void enqueue(final int nextPartition) {

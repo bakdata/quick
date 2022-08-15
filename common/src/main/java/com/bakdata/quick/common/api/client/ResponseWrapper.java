@@ -31,7 +31,6 @@ import okhttp3.ResponseBody;
  * It consists of a response body extracted from the response and a boolean that indicates
  * whether the X-Cache-Update header has been set. This header signals the need to update
  * the mapping between partitions and mirror hosts.
- * </p>
  */
 @Slf4j
 @Value

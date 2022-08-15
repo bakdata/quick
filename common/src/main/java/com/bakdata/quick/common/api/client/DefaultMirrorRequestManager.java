@@ -22,11 +22,10 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A default implementation of MirrorRequestManager.
@@ -55,30 +54,33 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
             final Response response = this.client.newCall(request).execute();
             return ResponseWrapper.fromResponse(response);
         } catch (final IOException exception) {
-            /*
-             * This code covers a situation where a replica is removed, and we can no longer
-             * reach the host for a given partition. The k8s-service (Load Balancer) is used
-             * as a fallback in such a case. It might also happen that the Load Balancer itself is not reachable.
-             * If this happens, we throw an exception. We also set the X-Cache-Update header to a response
-             * to immediately update the mapping.
-             */
             if (exception instanceof UnknownHostException) {
-                final String keyInfo = Arrays.stream(url.split("/")).skip(3).collect(Collectors.joining("/"));
-                log.info("Host at {} is unavailable. Forwarding the request to {}", url,
-                    fallbackServiceHost);
-                final String newUrl = this.fallbackServiceHost.concat("/".concat(keyInfo));
-                final Request fallbackRequest = new Request.Builder().url(newUrl).get().build();
-                try {
-                    final Response fallbackResponse = this.client.newCall(fallbackRequest).execute();
-                    fallbackResponse.header(HeaderConstants.getCacheMissHeaderName(),
-                        HeaderConstants.getCacheMissHeaderValue());
-                    return ResponseWrapper.fromResponse(fallbackResponse);
-                } catch (final IOException fallbackException) {
-                    throw new MirrorException("Fallback service error", HttpStatus.INTERNAL_SERVER_ERROR,
-                        fallbackException);
-                }
+                return getResponseFromFallbackService(url, request);
             }
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
+        }
+    }
+
+    // This code covers a situation where a replica is removed, and we can no longer
+    // reach the host for a given partition. The k8s-service (Load Balancer) is used
+    // as a fallback in such a case. It might also happen that the Load Balancer itself is not reachable.
+    // If this occurs, we throw an exception. We also set the X-Cache-Update header to a response
+    // to immediately update the mapping.
+    @NotNull
+    private ResponseWrapper getResponseFromFallbackService(final String url, final Request request) {
+        final String keyInfo = String.join("/", request.url().pathSegments());
+        log.info("Host at {} is unavailable. Forwarding the request to {}", url,
+            fallbackServiceHost);
+        final String newUrl = this.fallbackServiceHost.concat(keyInfo);
+        final Request fallbackRequest = new Request.Builder().url(newUrl).get().build();
+        try {
+            final Response fallbackResponse = this.client.newCall(fallbackRequest).execute();
+            fallbackResponse.header(HeaderConstants.getCacheMissHeaderName(),
+                HeaderConstants.getCacheMissHeaderValue());
+            return ResponseWrapper.fromResponse(fallbackResponse);
+        } catch (final IOException fallbackException) {
+            throw new MirrorException("Fallback service error", HttpStatus.INTERNAL_SERVER_ERROR,
+                fallbackException);
         }
     }
 
