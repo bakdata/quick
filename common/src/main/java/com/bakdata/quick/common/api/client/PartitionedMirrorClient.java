@@ -76,7 +76,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
         this.client = client;
         this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
-        this.requestManager = new DefaultMirrorRequestManager(client, mirrorHost);
+        this.requestManager = new MirrorRequestManagerWithFallback(client, mirrorHost);
         log.info("Initializing partition router for the mirror at: {} and the topic: {}.",
             this.streamsStateHost.getHost(), topicName);
         final Map<Integer, String> response = this.makeRequestForPartitionHostMapping();

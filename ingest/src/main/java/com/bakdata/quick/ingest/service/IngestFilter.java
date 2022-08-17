@@ -22,7 +22,6 @@ import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.api.model.TopicWriteType;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
 import io.reactivex.Flowable;
@@ -83,7 +82,7 @@ public class IngestFilter {
         final MirrorClient<K, V> mirrorClient =
             new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig,
                 topicData.getValueData().getResolver(),
-                new DefaultMirrorRequestManager(this.client, new MirrorHost(topicData.getName(), this.mirrorConfig)));
+                new DefaultMirrorRequestManager(this.client));
 
         return Flowable.fromIterable(pairs)
             .map(pair -> {

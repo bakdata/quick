@@ -23,7 +23,6 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A wrapper for a response from a call to be made with the HttpClient.
@@ -73,6 +72,7 @@ public class ResponseWrapper {
      * that it creates a response from the fallback service. When the fallback service is called,
      * the mapping between partitions and hosts has to be checked. Thus, all instances of ResponseWrapper returned
      * from this function have the parameter headerSet equal true.
+     *
      * @param fallbackResponse the response from the fallback service
      * @return an instance of ResponseWrapper with the headerSet argument set to true
      */
@@ -86,10 +86,10 @@ public class ResponseWrapper {
 
     /**
      * Extract the ResponseBody from the Response and checks its validity.
+     *
      * @param response the response from a particular service (for example, Mirror or Fallback Service)
      * @return an instance of ResponseBody or an exception if it could not be retrieved
      */
-    @NotNull
     private static ResponseBody getAndCheckResponseBody(final Response response) {
         final ResponseBody body = response.body();
         if (response.code() != HttpStatus.OK.getCode()) {

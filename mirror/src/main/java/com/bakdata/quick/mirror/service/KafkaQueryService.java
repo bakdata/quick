@@ -178,7 +178,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
         final DefaultMirrorClient<K, V> mirrorClient =
             new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
-                new DefaultMirrorRequestManager(this.client, mirrorHost));
+                new DefaultMirrorRequestManager(this.client));
         // TODO: don't bother deserializing
         final V value = mirrorClient.fetchValue(key);
 
