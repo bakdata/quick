@@ -35,6 +35,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
+import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
