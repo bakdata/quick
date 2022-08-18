@@ -16,9 +16,11 @@
 
 package com.bakdata.quick.manager;
 
-import com.bakdata.quick.manager.k8s.ResourceConfig;
-import com.bakdata.quick.manager.k8s.ResourceConfig.Cpu;
-import com.bakdata.quick.manager.k8s.ResourceConfig.Memory;
+import com.bakdata.quick.manager.config.ApplicationSpecificationConfig;
+import com.bakdata.quick.manager.config.HardwareResource;
+import com.bakdata.quick.manager.config.HardwareResource.Cpu;
+import com.bakdata.quick.manager.config.HardwareResource.Memory;
+import java.util.Optional;
 
 /**
  * Utility class for tests.
@@ -29,14 +31,20 @@ public final class TestUtil {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    public static ResourceConfig newResourceConfig() {
-        return new ResourceConfig(newMemoryResource("250Mi", "500Mi"), newCpuResource("1", "5"));
+    public static ApplicationSpecificationConfig newAppSpec() {
+        return new ApplicationSpecificationConfig(Optional.empty(), newResourceConfig());
+    }
+
+    private static HardwareResource newResourceConfig() {
+        return new HardwareResource(newMemoryResource("250Mi", "500Mi"),
+            newCpuResource("1", "5")
+        );
     }
 
     /**
      * Returns memory k8s settings.
      */
-    public static Memory newMemoryResource(final String request, final String limit) {
+    private static Memory newMemoryResource(final String request, final String limit) {
         return new Memory() {
             @Override
             public String getLimit() {
@@ -53,7 +61,7 @@ public final class TestUtil {
     /**
      * Returns cpu k8s settings.
      */
-    public static Cpu newCpuResource(final String request, final String limit) {
+    private static Cpu newCpuResource(final String request, final String limit) {
         return new Cpu() {
             @Override
             public String getLimit() {

@@ -14,26 +14,19 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.model.manager.creation;
+package com.bakdata.quick.manager.config;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import java.time.Duration;
-import lombok.Value;
+import lombok.Getter;
 
-/**
- * User supplied data for creating a new mirror.
- */
-@Value
-public class MirrorCreationData implements CreationData {
-    String name;
-    String topicName;
-    @Nullable
-    Integer replicas;
-    @Nullable
-    String tag;
-    @Nullable
-    Duration retentionTime;
-    boolean point;
-    @Nullable
-    String rangeFiled;
+public enum ImagePullPolicy {
+    IF_NOT_PRESENT("IfNotPresent"),
+    ALWAYS("Always"),
+    NEVER("Never");
+
+    @Getter
+    private final String policyName;
+
+    ImagePullPolicy(final String policyName) {
+        this.policyName = policyName;
+    }
 }

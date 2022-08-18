@@ -107,8 +107,8 @@ public class KafkaTopicService implements TopicService {
     @SuppressWarnings("RxReturnValueIgnored")
     @Override
     public Completable createTopic(final String name, final QuickTopicType keyType, final QuickTopicType valueType,
-        final TopicCreationData requestData) {
-        log.info("Create new topic {} with data {}", name, requestData);
+        final TopicCreationData topicCreationData) {
+        log.info("Create new topic {} with data {}", name, topicCreationData);
         // we don't need the cache, so make sure we get the current information
         this.schemaRegistryClient.reset();
 
@@ -116,8 +116,8 @@ public class KafkaTopicService implements TopicService {
         final Completable kafkaStateCheck =
             Completable.mergeArray(this.checkKafka(name), this.checkTopicRegistry(name));
 
-        final Single<Optional<QuickSchemas>> keySchema = this.getQuickSchemas(requestData.getKeySchema()).cache();
-        final Single<Optional<QuickSchemas>> valueSchema = this.getQuickSchemas(requestData.getValueSchema()).cache();
+        final Single<Optional<QuickSchemas>> keySchema = this.getQuickSchemas(topicCreationData.getKeySchema()).cache();
+        final Single<Optional<QuickSchemas>> valueSchema = this.getQuickSchemas(topicCreationData.getValueSchema()).cache();
 
         final Completable schemaRegistryCheck = Completable.defer(() -> Completable.mergeArray(
             keySchema.flatMapCompletable(schema -> this.checkSchemaRegistry(name + "-key", schema)),
@@ -128,10 +128,10 @@ public class KafkaTopicService implements TopicService {
 
         // create topic in kafka and deploy a mirror application
         final Completable kafkaTopicCreation = this.createKafkaTopic(name);
-        final Completable mirrorCreation = this.createMirror(name, requestData.getRetentionTime());
+        final Completable mirrorCreation = this.createMirror(name, topicCreationData.getRetentionTime(), topicCreationData.getRangeFiled());
 
         // default to mutable topic write type
-        final TopicWriteType writeType = Objects.requireNonNullElse(requestData.getWriteType(), TopicWriteType.MUTABLE);
+        final TopicWriteType writeType = Objects.requireNonNullElse(topicCreationData.getWriteType(), TopicWriteType.MUTABLE);
         // register at topic registry (value schema can be nullable)
         // todo evaluate whether the schema should be part of the topic registry
         final Completable topicRegister = Completable.defer(() -> {
@@ -166,8 +166,8 @@ public class KafkaTopicService implements TopicService {
 
             // we don't need the cache, so make sure we get the current information
             this.schemaRegistryClient.reset();
-            // deleting stuff that has to do with Kafka happens during the clean up run
-            // the clean up run is a job that is deployed when deleting the mirror
+            // deleting stuff that has to do with Kafka happens during the cleanup run
+            // the cleanup run is a job that is deployed when deleting the mirror
             final Completable deleteMirror = this.deleteMirror(name);
             final Completable deleteFromRegistry = this.topicRegistryClient.delete(name);
             return deleteMirror.andThen(deleteFromRegistry);
@@ -196,14 +196,16 @@ public class KafkaTopicService implements TopicService {
         });
     }
 
-    private Completable createMirror(final String name, final Duration retentionTime) {
+    private Completable createMirror(final String topicName, final Duration retentionTime, final String rangeField) {
         return Completable.defer(() -> {
-            log.debug("Create mirror for topic {}", name);
-            final MirrorCreationData mirrorCreationData = new MirrorCreationData(name,
-                name,
+            log.debug("Create mirror for topic {}", topicName);
+            final MirrorCreationData mirrorCreationData = new MirrorCreationData(topicName,
+                topicName,
                 1,
                 null, // use default tag
-                retentionTime);
+                retentionTime,
+                true,
+                rangeField);
             return this.mirrorService.createMirror(mirrorCreationData);
         });
     }

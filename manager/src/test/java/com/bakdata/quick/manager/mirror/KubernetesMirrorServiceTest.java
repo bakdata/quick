@@ -46,7 +46,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
         final MirrorResourceLoader loader =
             new MirrorResourceLoader(new KubernetesResources(),
                 this.getDeploymentConfig(),
-                this.getResourceConfig());
+                this.getAppSpecConfig());
 
         this.mirrorService = new KubernetesMirrorService(new KubernetesResources(),
             this.getManagerClient(), this.getDeploymentConfig(), loader);
@@ -59,6 +59,8 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
             TOPIC_NAME,
             1,
             null,
+            null,
+            true,
             null);
         this.createMirror(mirrorCreationData);
 
@@ -81,6 +83,8 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
             TOPIC_NAME,
             1,
             null,
+            null,
+            true,
             null);
         this.createMirror(mirrorCreationData);
 
@@ -103,6 +107,8 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
             TOPIC_NAME,
             1,
             null,
+            null,
+            true,
             null);
         this.createMirror(mirrorCreationData);
 
@@ -123,6 +129,8 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
             TOPIC_NAME,
             1,
             null,
+            null,
+            true,
             null);
         this.createMirror(mirrorCreationData);
         assertThat(this.getDeployments()).isNotNull().hasSize(1);
@@ -140,6 +148,8 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
             TOPIC_NAME,
             1,
             null,
+            null,
+            true,
             null);
         this.createMirror(mirrorCreationData);
         assertThat(this.getServices()).isNotNull().hasSize(1);
@@ -157,6 +167,8 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
             TOPIC_NAME,
             1,
             null,
+            null,
+            true,
             null);
         this.createMirror(mirrorCreationData);
         assertThat(this.getServices()).isNotNull().hasSize(1);
@@ -183,7 +195,9 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
                 TOPIC_NAME,
                 1,
                 null,
-                null);
+                null,
+            true,
+            null);
         final Throwable firstDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
         assertThat(firstDeployment).isNull();
         final Throwable invalidDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();

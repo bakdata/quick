@@ -18,8 +18,9 @@ package com.bakdata.quick.common.api.model.manager.creation;
 
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.manager.GatewaySchema;
-import java.time.Duration;
 import lombok.Value;
+
+import java.time.Duration;
 
 /**
  * POJO for data when creating a new topic.
@@ -30,4 +31,5 @@ public class TopicCreationData implements CreationData {
     GatewaySchema valueSchema;
     GatewaySchema keySchema;
     Duration retentionTime;
+    String rangeFiled;
 }

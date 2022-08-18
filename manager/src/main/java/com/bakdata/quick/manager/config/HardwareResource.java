@@ -14,7 +14,9 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.manager.k8s;
+package com.bakdata.quick.manager.config;
+
+import static com.bakdata.quick.manager.config.ApplicationSpecificationConfig.QUICK_APPLICATIONS_SPEC;
 
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
@@ -23,15 +25,15 @@ import lombok.Getter;
 /**
  * Configuration setting resources for k8s deployments.
  */
-@ConfigurationProperties(ResourceConfig.QUICK_APPLICATIONS_RESOURCES)
+@ConfigurationProperties(HardwareResource.QUICK_APPLICATIONS_RESOURCES)
 @Getter
-public class ResourceConfig {
-    public static final String QUICK_APPLICATIONS_RESOURCES = "quick.applications.resources";
+public class HardwareResource {
+    public static final String QUICK_APPLICATIONS_RESOURCES = QUICK_APPLICATIONS_SPEC + ".resources";
     private final Memory memory;
     private final Cpu cpu;
 
     @ConfigurationInject
-    public ResourceConfig(final Memory memory, final Cpu cpu) {
+    public HardwareResource(final Memory memory, final Cpu cpu) {
         this.memory = memory;
         this.cpu = cpu;
     }
@@ -53,8 +55,6 @@ public class ResourceConfig {
      */
     public interface Resource {
         String getLimit();
-
         String getRequest();
     }
-
 }

@@ -60,7 +60,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         final GatewayResourceLoader loader =
             new GatewayResourceLoader(new KubernetesResources(),
                 this.getDeploymentConfig(),
-                this.getResourceConfig(),
+                this.getAppSpecConfig(),
                 NAMESPACE);
 
         this.gatewayService = new KubernetesGatewayService(

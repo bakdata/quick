@@ -21,10 +21,10 @@ import static com.bakdata.quick.manager.gateway.resource.GatewayResources.getCon
 import static com.bakdata.quick.manager.gateway.resource.GatewayResources.getResourceName;
 
 import com.bakdata.quick.common.api.model.manager.creation.GatewayCreationData;
+import com.bakdata.quick.manager.config.ApplicationSpecificationConfig;
 import com.bakdata.quick.manager.config.DeploymentConfig;
 import com.bakdata.quick.manager.k8s.ImageConfig;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
-import com.bakdata.quick.manager.k8s.ResourceConfig;
 import com.bakdata.quick.manager.k8s.middleware.Middleware;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
 import com.bakdata.quick.manager.k8s.resource.ResourceLoader;
@@ -50,7 +50,7 @@ import org.thymeleaf.context.Context;
 public class GatewayResourceLoader implements ResourceLoader<GatewayResources, GatewayCreationData> {
     private final KubernetesResources kubernetesResources;
     private final DeploymentConfig deploymentConfig;
-    private final ResourceConfig resourceConfig;
+    private final ApplicationSpecificationConfig appSpecConfig;
     private final String namespace;
 
     /**
@@ -58,14 +58,14 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
      *
      * @param kubernetesResources underlying engine for loading k8s resources
      * @param deploymentConfig    config for deploying new resources
-     * @param resourceConfig      config for setting resources for new deployments
+     * @param appSpecConfig      config for setting resources for new deployments
      * @param client              k8s manager client
      */
     public GatewayResourceLoader(final KubernetesResources kubernetesResources, final DeploymentConfig deploymentConfig,
-                                 final ResourceConfig resourceConfig, final KubernetesClient client) {
+                                 final ApplicationSpecificationConfig appSpecConfig, final KubernetesClient client) {
         this.kubernetesResources = kubernetesResources;
         this.deploymentConfig = deploymentConfig;
-        this.resourceConfig = resourceConfig;
+        this.appSpecConfig = appSpecConfig;
         this.namespace = client.getNamespace();
     }
 
@@ -74,15 +74,15 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
      *
      * @param kubernetesResources underlying engine for loading k8s resources
      * @param deploymentConfig    config for deploying new resources
-     * @param resourceConfig      config for setting resources for new deployments
+     * @param appSpecConfig      config for setting resources for new deployments
      * @param namespace           namespace the new resources should be deployed in
      */
     @VisibleForTesting
     public GatewayResourceLoader(final KubernetesResources kubernetesResources, final DeploymentConfig deploymentConfig,
-                                 final ResourceConfig resourceConfig, final String namespace) {
+                                 final ApplicationSpecificationConfig appSpecConfig, final String namespace) {
         this.kubernetesResources = kubernetesResources;
         this.deploymentConfig = deploymentConfig;
-        this.resourceConfig = resourceConfig;
+        this.appSpecConfig = appSpecConfig;
         this.namespace = namespace;
     }
 
@@ -110,7 +110,7 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
         final boolean hasFixedTag = gatewayCreationData.getTag() != null;
 
         final GatewayDeployment deployment = new GatewayDeployment(
-            this.createGatewayDeployment(resourceName, imageConfig, this.resourceConfig, hasFixedTag));
+            this.createGatewayDeployment(resourceName, imageConfig, this.appSpecConfig, hasFixedTag));
 
         final GatewayService service = new GatewayService(this.createGatewayService(resourceName));
 
@@ -159,19 +159,18 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
      *
      * @param name           deployment name
      * @param imageConfig    configuration of the gateway image that should be used
-     * @param resourceConfig memory + cpu requests and limits to use
+     * @param appSpecConfig  memory + cpu requests and limits to use
      * @param hasFixedTag    true if tag is manually set by user
      */
     private Deployment createGatewayDeployment(final String name, final ImageConfig imageConfig,
-                                               final ResourceConfig resourceConfig, final boolean hasFixedTag) {
+                                               final ApplicationSpecificationConfig appSpecConfig, final boolean hasFixedTag) {
         final Context root = new Context();
         root.setVariable("name", name);
         root.setVariable("image", imageConfig.asImageString());
         root.setVariable("hasFixedTag", hasFixedTag);
-        root.setVariable("releaseName", "quick-dev");
         root.setVariable("replicas", imageConfig.getReplicas());
-        root.setVariable("pullPolicy", "Always");
-        root.setVariable("resourceConfig", resourceConfig);
+        root.setVariable("pullPolicy", appSpecConfig.getImagePullPolicy().getPolicyName());
+        root.setVariable("resourceConfig", appSpecConfig.getResources());
         return this.kubernetesResources.loadResource(root, "gateway/deployment", Deployment.class);
     }
 

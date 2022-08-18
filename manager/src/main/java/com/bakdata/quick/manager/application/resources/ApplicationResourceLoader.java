@@ -19,10 +19,11 @@ package com.bakdata.quick.manager.application.resources;
 import com.bakdata.quick.common.api.model.manager.creation.ApplicationCreationData;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.util.CliArgHandler;
+import com.bakdata.quick.manager.config.ApplicationSpecificationConfig;
 import com.bakdata.quick.manager.config.DeploymentConfig;
 import com.bakdata.quick.manager.k8s.ImageConfig;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
-import com.bakdata.quick.manager.k8s.ResourceConfig;
+import com.bakdata.quick.manager.config.HardwareResource;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
 import com.bakdata.quick.manager.k8s.resource.ResourceLoader;
 import io.fabric8.kubernetes.api.model.Service;
@@ -45,21 +46,21 @@ import org.thymeleaf.context.Context;
 public class ApplicationResourceLoader implements ResourceLoader<ApplicationResources, ApplicationCreationData> {
     private final KubernetesResources kubernetesResources;
     private final KafkaConfig kafkaConfig;
-    private final ResourceConfig resourceConfig;
+    private final ApplicationSpecificationConfig appSpecConfig;
     private final DeploymentConfig deploymentConfig;
 
     /**
      * Default constructor.
      *
      * @param kubernetesResources underlying engine for loading k8s resources
-     * @param resourceConfig config for setting resources for new deployments
+     * @param appSpecConfig config for setting resources for new deployments
      */
     public ApplicationResourceLoader(final KubernetesResources kubernetesResources,
-        final KafkaConfig kafkaConfig, final ResourceConfig resourceConfig,
+        final KafkaConfig kafkaConfig, final ApplicationSpecificationConfig appSpecConfig,
         final DeploymentConfig deploymentConfig) {
         this.kubernetesResources = kubernetesResources;
         this.kafkaConfig = kafkaConfig;
-        this.resourceConfig = resourceConfig;
+        this.appSpecConfig = appSpecConfig;
         this.deploymentConfig = deploymentConfig;
     }
 
@@ -83,7 +84,7 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
         final List<String> listArgs = CliArgHandler.convertArgs(arguments, this.kafkaConfig);
 
         final ApplicationDeployment deployment =
-            new ApplicationDeployment(this.createAppDeployment(deploymentName, listArgs, config, this.resourceConfig,
+            new ApplicationDeployment(this.createAppDeployment(deploymentName, listArgs, config, this.appSpecConfig,
                 appCreationData.getPort(),  appCreationData.getImagePullSecret()));
 
         if (appCreationData.getPort() != null) {
@@ -119,21 +120,18 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
      * @param name deployment name
      * @param arguments additional arguments passed to the app through the CLI
      * @param imageConfig configuration for the deployed image
-     * @param resourceConfig memory + cpu requests and limits to use
+     * @param appSpecConfig memory + cpu requests and limits to use
      */
     private Deployment createAppDeployment(final String name, final List<String> arguments,
-                                           final ImageConfig imageConfig, final ResourceConfig resourceConfig,
+                                           final ImageConfig imageConfig, final ApplicationSpecificationConfig appSpecConfig,
                                            @Nullable final Integer port, @Nullable final String imagePullSecret) {
         final Context root = new Context();
         root.setVariable("name", name);
         root.setVariable("args", arguments);
         root.setVariable("image", imageConfig.asImageString());
-        // todo set release name correctly
-        root.setVariable("releaseName", "quick-dev");
         root.setVariable("replicas", imageConfig.getReplicas());
-        // todo set pull policy through image config
-        root.setVariable("pullPolicy", "Always");
-        root.setVariable("resourceConfig", resourceConfig);
+        root.setVariable("pullPolicy", appSpecConfig.getImagePullPolicy().getPolicyName());
+        root.setVariable("resourceConfig", appSpecConfig.getResources());
         root.setVariable("port", port);
         root.setVariable("hasService", !Objects.isNull(port));
         root.setVariable("imagePullSecret", imagePullSecret);
