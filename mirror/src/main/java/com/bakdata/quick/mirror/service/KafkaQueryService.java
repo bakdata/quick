@@ -73,10 +73,11 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
      * @param contextProvider query service data
      */
     @Inject
-    public KafkaQueryService(final QueryContextProvider contextProvider, final QuickTopicData<K, V> topicData,
+    public KafkaQueryService(final QueryContextProvider contextProvider,
                              final HttpClient client) {
         final QueryServiceContext context = contextProvider.get();
         this.client = client;
+        final QuickTopicData<K, V> topicData = context.getTopicData();
         this.streams = context.getStreams();
         this.hostInfo = context.getHostInfo();
         this.storeName = context.getStoreName();
