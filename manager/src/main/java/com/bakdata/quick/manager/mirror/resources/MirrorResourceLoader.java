@@ -19,6 +19,7 @@ package com.bakdata.quick.manager.mirror.resources;
 import static com.bakdata.quick.manager.mirror.resources.MirrorResources.MIRROR_IMAGE;
 
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.util.CliArgHandler;
 import com.bakdata.quick.manager.config.ApplicationSpecificationConfig;
 import com.bakdata.quick.manager.config.DeploymentConfig;
@@ -151,6 +152,7 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
 
     /**
      * Sets the args for the mirror deployment.
+     * Throws {@link BadArgumentException} if no query type (range or point) is defined.
      *
      * @param topic the input topic name
      * @param retentionTime retention time
@@ -162,18 +164,24 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
         final boolean point,
         @Nullable final String rangeField) {
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
-            .put("--input-topics", topic)
-            .put("--point", Boolean.toString(true));
+            .put("--input-topics", topic);
 
-        if (!point) {
+        if (point) {
+            builder.put("--point", Boolean.toString(true));
+        } else {
             builder.put("--point", Boolean.toString(false));
         }
+
         if (Objects.nonNull(retentionTime)) {
             builder.put("--retention-time", retentionTime.toString());
         }
         if (Objects.nonNull(rangeField)) {
             builder.put("--range", rangeField);
         }
+        if (Objects.isNull(rangeField) && !point) {
+            throw new BadArgumentException("At least one query type (--range <Field> or --point) should be defined");
+        }
+
         return builder.build();
     }
 }

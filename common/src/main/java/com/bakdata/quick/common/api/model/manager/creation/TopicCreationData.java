@@ -31,5 +31,6 @@ public class TopicCreationData implements CreationData {
     GatewaySchema valueSchema;
     GatewaySchema keySchema;
     Duration retentionTime;
+    boolean point;
     String rangeFiled;
 }

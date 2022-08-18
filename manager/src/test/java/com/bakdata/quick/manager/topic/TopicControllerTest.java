@@ -93,7 +93,7 @@ class TopicControllerTest {
         when(this.service.createTopic(anyString(), any(), any(), any())).thenReturn(Completable.complete());
 
         final TopicCreationData creationData =
-            new TopicCreationData(TopicWriteType.MUTABLE, null, new GatewaySchema("test", "test"), null, null);
+            new TopicCreationData(TopicWriteType.MUTABLE, null, new GatewaySchema("test", "test"), null, true, null);
         this.client.toBlocking().exchange(POST(baseUri, creationData));
 
         verify(this.service).createTopic(NAME, QuickTopicType.LONG, QuickTopicType.SCHEMA, creationData);
@@ -110,7 +110,7 @@ class TopicControllerTest {
             .toString();
 
         final TopicCreationData creationData =
-            new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, null);
+            new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
         this.client.toBlocking().exchange(POST(uri, creationData));
 
         verify(this.service).createTopic(NAME, QuickTopicType.STRING, QuickTopicType.DOUBLE, creationData);

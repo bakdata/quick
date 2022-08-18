@@ -17,10 +17,12 @@
 package com.bakdata.quick.manager.mirror.resources;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.manager.TestUtil;
 import com.bakdata.quick.manager.k8s.ImageConfig;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
@@ -354,6 +356,56 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .contains("--retention-time=" + retentionTime)
                     .contains("--range=" + rangeFiled);
             });
+    }
+
+    @Test
+    void shouldSetOnlyRangeFieldForMirrorDeployment() {
+        final String rangeFiled = "timestamp";
+        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
+            DEFAULT_NAME,
+            DEFAULT_TOPIC_NAME,
+            1,
+            null,
+            null,
+            false,
+            rangeFiled);
+        final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
+
+        final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
+
+        assertThat(hasMetadata)
+            .isPresent()
+            .get(InstanceOfAssertFactories.type(Deployment.class))
+            .satisfies(deployment -> {
+
+                final PodSpec podSpec = deployment.getSpec().getTemplate().getSpec();
+                assertThat(podSpec.getContainers())
+                    .isNotNull()
+                    .hasSize(1)
+                    .first()
+                    .extracting(Container::getArgs, LIST)
+                    .isNotEmpty()
+                    .hasSize(3)
+                    .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
+                    .contains("--point=" + "false")
+                    .contains("--range=" + rangeFiled);
+            });
+    }
+
+    @Test
+    void shouldThrowBadArgumentExceptionWhenNoQueryTypeIsDefined() {
+        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
+            DEFAULT_NAME,
+            DEFAULT_TOPIC_NAME,
+            1,
+            null,
+            null,
+            false,
+            null);
+
+        assertThatThrownBy(() -> this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR)).isInstanceOf(
+                BadArgumentException.class)
+            .hasMessageContaining("At least one query type (--range <Field> or --point) should be defined");
     }
 
     @Test
