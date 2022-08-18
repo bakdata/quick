@@ -151,8 +151,8 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
     }
 
     /**
-     * Sets the args for the mirror deployment.
-     * Throws {@link BadArgumentException} if no query type (range or point) is defined.
+     * Sets the args for the mirror deployment. Throws {@link BadArgumentException} if no query type (range or point) is
+     * defined.
      *
      * @param topic the input topic name
      * @param retentionTime retention time
