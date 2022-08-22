@@ -191,18 +191,18 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
     @Test
     void shouldRejectDuplicateMirrorCreation() {
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-                TOPIC_NAME,
-                TOPIC_NAME,
-                1,
-                null,
-                null,
+            TOPIC_NAME,
+            TOPIC_NAME,
+            1,
+            null,
+            null,
             true,
             null);
         final Throwable firstDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
         assertThat(firstDeployment).isNull();
         final Throwable invalidDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
         assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
-                .hasMessageContaining(String.format("The resource with the name %s already exists", TOPIC_NAME));
+            .hasMessageContaining(String.format("The resource with the name %s already exists", TOPIC_NAME));
     }
 
     private void createMirror(final MirrorCreationData mirrorCreationData) {

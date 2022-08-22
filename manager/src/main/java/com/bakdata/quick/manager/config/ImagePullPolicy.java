@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.manager.config;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 public enum ImagePullPolicy {
@@ -24,6 +25,7 @@ public enum ImagePullPolicy {
     NEVER("Never");
 
     @Getter
+    @JsonValue
     private final String policyName;
 
     ImagePullPolicy(final String policyName) {

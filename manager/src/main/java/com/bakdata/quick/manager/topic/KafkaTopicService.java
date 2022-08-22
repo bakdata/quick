@@ -34,6 +34,7 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.manager.gateway.GatewayService;
 import com.bakdata.quick.manager.graphql.GraphQLConverter;
 import com.bakdata.quick.manager.mirror.MirrorService;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
@@ -129,8 +130,9 @@ public class KafkaTopicService implements TopicService {
 
         // create topic in kafka and deploy a mirror application
         final Completable kafkaTopicCreation = this.createKafkaTopic(name);
-        final Completable mirrorCreation =
-            this.createMirror(name, topicCreationData.getRetentionTime(), topicCreationData.getRangeFiled());
+        final Completable mirrorCreation = this.createMirror(name, topicCreationData.getRetentionTime(),
+            topicCreationData.isPoint(),
+            topicCreationData.getRangeFiled());
 
         // default to mutable topic write type
         final TopicWriteType writeType =
@@ -199,7 +201,10 @@ public class KafkaTopicService implements TopicService {
         });
     }
 
-    private Completable createMirror(final String topicName, final Duration retentionTime, final String rangeField) {
+    private Completable createMirror(final String topicName,
+        @Nullable final Duration retentionTime,
+        final boolean point,
+        @Nullable final String rangeField) {
         return Completable.defer(() -> {
             log.debug("Create mirror for topic {}", topicName);
             final MirrorCreationData mirrorCreationData = new MirrorCreationData(topicName,
@@ -207,7 +212,7 @@ public class KafkaTopicService implements TopicService {
                 1,
                 null, // use default tag
                 retentionTime,
-                true,
+                point,
                 rangeField);
             return this.mirrorService.createMirror(mirrorCreationData);
         });

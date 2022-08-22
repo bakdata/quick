@@ -24,6 +24,8 @@ import com.bakdata.quick.manager.config.ImagePullPolicy;
 import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 
 class ApplicationSpecificationConfigTest {
@@ -31,27 +33,44 @@ class ApplicationSpecificationConfigTest {
     void shouldCreateConfigWithDefault() {
         final ApplicationSpecificationConfig
             specConfig = ConfigUtils.createWithProperties(Collections.emptyMap(), ApplicationSpecificationConfig.class);
-        assertThat(specConfig.getImagePullPolicy()).isEqualTo(ImagePullPolicy.ALWAYS);
+        assertThat(specConfig.getImagePullPolicy().getPolicyName()).isEqualTo(ImagePullPolicy.ALWAYS.getPolicyName());
     }
 
-    @Test
-    void shouldCreateConfigWithImagePullPolicyIfNotPresent() {
+    @ParameterizedTest
+    @ValueSource(strings = {"always", "Always", "ALWAYS"})
+    void shouldCreateConfigWithImagePullPolicyAlways(final String alwaysPolicy) {
         final Map<String, Object> properties = Map.of(
-            "quick.applications.spec.imagePullPolicy", ImagePullPolicy.IF_NOT_PRESENT
+            "quick.applications.spec.imagePullPolicy", alwaysPolicy
         );
         final ApplicationSpecificationConfig specConfig =
             ConfigUtils.createWithProperties(properties, ApplicationSpecificationConfig.class);
-        assertThat(specConfig.getImagePullPolicy()).isEqualTo(ImagePullPolicy.IF_NOT_PRESENT);
+
+        assertThat(specConfig.getImagePullPolicy().getPolicyName()).isEqualTo(ImagePullPolicy.ALWAYS.getPolicyName());
     }
 
-    @Test
-    void shouldCreateConfigWithImagePullPolicyNever() {
+    @ParameterizedTest
+    @ValueSource(strings = {"ifNotPresent", "IfNotPresent", "if_not_present", "IF_NOT_PRESENT"})
+    void shouldCreateConfigWithImagePullPolicyIfNotPresent(final String ifNotPresentPolicy) {
         final Map<String, Object> properties = Map.of(
-            "quick.applications.spec.imagePullPolicy", ImagePullPolicy.NEVER
+            "quick.applications.spec.imagePullPolicy", ifNotPresentPolicy
+        );
+        final ApplicationSpecificationConfig specConfig =
+            ConfigUtils.createWithProperties(properties, ApplicationSpecificationConfig.class);
+
+        assertThat(specConfig.getImagePullPolicy().getPolicyName())
+            .isEqualTo(ImagePullPolicy.IF_NOT_PRESENT.getPolicyName());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"never", "Never", "NEVER"})
+    void shouldCreateConfigWithImagePullPolicyNever(final String neverPolicy) {
+        final Map<String, Object> properties = Map.of(
+            "quick.applications.spec.imagePullPolicy", neverPolicy
         );
         final ApplicationSpecificationConfig
             specConfig = ConfigUtils.createWithProperties(properties, ApplicationSpecificationConfig.class);
-        assertThat(specConfig.getImagePullPolicy()).isEqualTo(ImagePullPolicy.NEVER);
+        assertThat(specConfig.getImagePullPolicy().getPolicyName())
+            .isEqualTo(ImagePullPolicy.NEVER.getPolicyName());
     }
 
     @Test
@@ -62,9 +81,9 @@ class ApplicationSpecificationConfigTest {
             "quick.applications.spec.resources.cpu.limit", "5",
             "quick.applications.spec.resources.cpu.request", "1"
         );
-        final ApplicationSpecificationConfig
-            specConfig = ConfigUtils.createWithProperties(properties, ApplicationSpecificationConfig.class);
-        assertThat(specConfig.getImagePullPolicy()).isEqualTo(ImagePullPolicy.ALWAYS);
+        final ApplicationSpecificationConfig specConfig =
+            ConfigUtils.createWithProperties(properties, ApplicationSpecificationConfig.class);
+        assertThat(specConfig.getImagePullPolicy().getPolicyName()).isEqualTo(ImagePullPolicy.ALWAYS.getPolicyName());
 
         assertThat(specConfig.getResources().getMemory().getLimit()).isEqualTo("200Mi");
         assertThat(specConfig.getResources().getMemory().getRequest()).isEqualTo("150Mi");

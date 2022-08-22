@@ -132,7 +132,8 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
-        final TopicCreationData requestData = new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true,null);
+        final TopicCreationData requestData =
+            new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
         topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData)
             .blockingAwait();
 
@@ -155,7 +156,8 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
-        final TopicCreationData requestData = new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true,null);
+        final TopicCreationData requestData =
+            new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
 
         this.topicRegistryClient
             .register(topicName, new TopicData(topicName, TopicWriteType.MUTABLE, null, null, null))
@@ -184,7 +186,8 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
-        final TopicCreationData requestData = new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true,null);
+        final TopicCreationData requestData =
+            new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
         final Completable completable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData);
 
@@ -212,7 +215,7 @@ class KafkaTopicServiceTest {
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
         final TopicCreationData requestData =
-            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true,null);
+            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true, null);
         final Throwable throwable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData)
                 .blockingGet();
@@ -240,7 +243,7 @@ class KafkaTopicServiceTest {
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
         final TopicCreationData requestData =
-            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true,null);
+            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true, null);
         final Completable completable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData);
 
@@ -264,7 +267,7 @@ class KafkaTopicServiceTest {
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.error(new BadArgumentException("Type OopsNotHere does not exist")));
         final TopicCreationData requestData =
-            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true,null);
+            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true, null);
         final Throwable throwable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData)
                 .blockingGet();
@@ -287,7 +290,7 @@ class KafkaTopicServiceTest {
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
         final TopicCreationData requestData =
-            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true,null);
+            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true, null);
         final Completable completable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData);
 
@@ -313,7 +316,7 @@ class KafkaTopicServiceTest {
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
         final TopicCreationData requestData =
-            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true,null);
+            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true, null);
         final Completable completable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, requestData);
 
@@ -341,7 +344,7 @@ class KafkaTopicServiceTest {
 
         final Duration retentionTime = Duration.ofMinutes(30);
         final TopicCreationData requestData =
-            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, retentionTime, true,null);
+            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, retentionTime, true, null);
         final Completable completable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData);
 
@@ -366,7 +369,8 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
-        final TopicCreationData requestData = new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true,null);
+        final TopicCreationData requestData =
+            new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
         final Completable completable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData);
 
@@ -387,7 +391,8 @@ class KafkaTopicServiceTest {
 
         for (int i = 0; i < numberOfTopics; i++) {
             final String topicName = UUID.randomUUID().toString();
-            final TopicCreationData requestData = new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true,null);
+            final TopicCreationData requestData =
+                new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData)
                 .blockingAwait();
         }
@@ -414,7 +419,7 @@ class KafkaTopicServiceTest {
         when(this.gatewayClient.getWriteSchema(anyString(), anyString())).thenReturn(Single.error(clientException));
 
         final TopicCreationData requestData =
-            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true,null);
+            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, null, true, null);
         final Completable completable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData);
 
