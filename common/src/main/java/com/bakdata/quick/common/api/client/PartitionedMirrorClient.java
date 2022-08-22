@@ -83,7 +83,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        final MirrorHost currentKeyHost = router.findHost(key);
+        final MirrorHost currentKeyHost = this.router.findHost(key);
         return this.requestManager.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()),
             this.parser::deserialize);
     }
@@ -104,6 +104,12 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
         return keys.stream().map(this::fetchValue).collect(Collectors.toList());
+    }
+
+    @Override
+    @Nullable
+    public List<V> fetchRange(final K id, final K rangeFrom, final K rangeTo) {
+        throw new UnsupportedOperationException("Range queries are not supported in partitioned Mirrors.");
     }
 
     @Override

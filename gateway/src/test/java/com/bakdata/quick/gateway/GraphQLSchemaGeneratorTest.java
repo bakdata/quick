@@ -40,7 +40,6 @@ import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
-import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -52,8 +51,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
-@Property(name = "quick.kafka.schema-registry-url", value = "mock://dummy")
-@Property(name = "quick.kafka.broker", value = "dummy")
 @MicronautTest(startApplication = false)
 class GraphQLSchemaGeneratorTest {
 
@@ -63,7 +60,7 @@ class GraphQLSchemaGeneratorTest {
 
     @Inject
     GraphQLSchemaGeneratorTest(final GraphQLSchemaGenerator generator,
-                               final TestTopicRegistryClient registryClient) {
+        final TestTopicRegistryClient registryClient) {
         this.generator = generator;
         this.registryClient = registryClient;
     }
@@ -260,6 +257,25 @@ class GraphQLSchemaGeneratorTest {
         assertThat(rootDataFetcher)
             .isNotNull()
             .isInstanceOf(QueryKeyArgumentFetcher.class);
+    }
+
+    @Test
+    void shouldConvertQueryWithRange(final TestInfo testInfo) throws IOException {
+        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
+
+        final List<GraphQLArgument> topicDirectiveArguments =
+            GraphQLTestUtil.getTopicDirectiveArgumentsFromField("Query", "userRequests", schema);
+
+        assertThat(topicDirectiveArguments)
+            .hasSize(4)
+            .extracting(GraphQLArgument::getName)
+            .containsExactly("name", "keyArgument", "rangeFrom", "rangeTo");
+
+        assertThat(topicDirectiveArguments)
+            .hasSize(4)
+            .extracting(GraphQLArgument::getValue)
+            .containsExactly("user-request-range", "userId", "timestampFrom", "timestampTo");
     }
 
     @Test
@@ -471,53 +487,54 @@ class GraphQLSchemaGeneratorTest {
 
     @Test
     void shouldNotConvertIfMissingKeyInfoInQueryType(final TestInfo testInfo) throws IOException {
-        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
-        String schema = Files.readString(schemaPath);
-        assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(schema))
-                .withMessage("When the return type is not a list for a non-mutation and non-subscription type,"
-                        + " key information (keyArgument or keyField) is needed.");
+        this.assertQuickDirectiveExceptionMessage(testInfo,
+            "When the return type is not a list for a non-mutation and non-subscription type,"
+                + " key information (keyArgument or keyField) is needed.");
     }
 
     @Test
     void shouldNotConvertIfMissingKeyInfoInBasicType(final TestInfo testInfo) throws IOException {
-        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
-        final String schema = Files.readString(schemaPath);
-        assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(schema))
-                .withMessage("When the return type is not a list for a non-mutation and non-subscription type,"
-                        + " key information (keyArgument or keyField) is needed.");
+        this.assertQuickDirectiveExceptionMessage(testInfo,
+            "When the return type is not a list for a non-mutation and non-subscription type,"
+                + " key information (keyArgument or keyField) is needed.");
     }
 
     @Test
     void shouldNotConvertIfMutationDoesNotHaveTwoArgs(final TestInfo testInfo) throws IOException {
-        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
-        final String schema = Files.readString(schemaPath);
-        assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(schema))
-                .withMessage("Mutation requires two input arguments");
+        this.assertQuickDirectiveExceptionMessage(testInfo, "Mutation requires two input arguments");
     }
 
     @Test
     void shouldNotConvertIfKeyArgAndInputNameDifferentInQueryType(final TestInfo testInfo) throws IOException {
-        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
-        final String schema = Files.readString(schemaPath);
-        assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(schema))
-                .withMessage("Key argument has to be identical to the input name.");
+        this.assertQuickDirectiveExceptionMessage(testInfo, "Key argument has to be identical to the input name.");
     }
 
     @Test
     void shouldNotConvertIfKeyArgAndInputNameDifferentInNonQueryType(final TestInfo testInfo) throws IOException {
+        this.assertQuickDirectiveExceptionMessage(testInfo, "Key argument has to be identical to the input name.");
+    }
+
+    @Test
+    void shouldNotConvertIfRangeToArgumentIsMissing(final TestInfo testInfo) throws IOException {
+        this.assertQuickDirectiveExceptionMessage(testInfo, "Both rangeFrom and rangeTo arguments should be set.");
+    }
+
+    @Test
+    void shouldNotCoverIfRangeFromArgumentIsMissing(final TestInfo testInfo) throws  IOException {
+        this.assertQuickDirectiveExceptionMessage(testInfo, "Both rangeFrom and rangeTo arguments should be set.");
+    }
+
+    private void assertQuickDirectiveExceptionMessage(final TestInfo testInfo, final String message)
+        throws IOException {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
         final String schema = Files.readString(schemaPath);
         assertThatExceptionOfType(QuickDirectiveException.class)
-                .isThrownBy(() -> this.generator.create(schema))
-                .withMessage("Key argument has to be identical to the input name.");
+            .isThrownBy(() -> this.generator.create(schema))
+            .withMessage(message);
     }
 
     private static void hasFieldWithListType(final GraphQLObjectType objectType, final String insuredPersonId,
-                                             final String fieldTypeName) {
+        final String fieldTypeName) {
         assertThat(objectType.getFieldDefinition(insuredPersonId).getType())
             .isNotNull()
             .isInstanceOfSatisfying(GraphQLList.class, list ->

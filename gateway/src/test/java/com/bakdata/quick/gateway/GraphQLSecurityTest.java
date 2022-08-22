@@ -45,8 +45,7 @@ import java.util.Map;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-@Property(name = "quick.kafka.bootstrap-server", value = "dummy:1234")
-@Property(name = "quick.kafka.schema-registry-url", value = "http://dummy")
+
 @Property(name = "micronaut.security.enabled", value = StringUtils.TRUE)
 @MicronautTest
 class GraphQLSecurityTest {

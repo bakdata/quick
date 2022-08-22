@@ -31,11 +31,12 @@ public class DataFetcherRules implements TopicDirectiveRules {
         rules = List.of(
             new SubscriptionRule(),
             new QueryFetcherRule(),
-            new QueryListFetchRule(),
+            new QueryListFetcherRule(),
             new ListArgumentFetcherRule(),
             new ModificationRule(),
             new ModificationListRule(),
-            new MutationRule()
+            new MutationRule(),
+            new RangeFetcherRule()
         );
     }
 

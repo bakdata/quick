@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -136,7 +136,7 @@ class QueryListArgumentFetcherTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void shouldFetchEmptyListWhenResultNotIsNullAndDoesNotHaveNullableElements() {
+    void shouldFetchEmptyListWhenResultIsNotNullAndDoesNotHaveNullableElements() {
         final Purchase purchase1 = Purchase.builder()
             .purchaseId("testId1")
             .productId(1)
@@ -171,18 +171,18 @@ class QueryListArgumentFetcherTest {
         return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, resolver);
     }
 
-    @Data
+    @Value
     @Builder
     private static class Purchase {
-        private String purchaseId;
-        private int productId;
-        private int amount;
+        String purchaseId;
+        int productId;
+        int amount;
     }
 
-    @Data
+    @Value
     @Builder
     private static class Product {
-        private int productId;
-        private String name;
+        int productId;
+        String name;
     }
 }

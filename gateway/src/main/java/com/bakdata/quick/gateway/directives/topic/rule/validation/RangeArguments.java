@@ -19,19 +19,15 @@ package com.bakdata.quick.gateway.directives.topic.rule.validation;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import java.util.Optional;
 
-/**
- * Validation for {@link com.bakdata.quick.gateway.directives.topic.TopicDirective}
- *
- * <p>
- * The query type only supports single arguments. Therefore, if the size is bigger than one this should be considered as
- * not supported.
- */
-public class MultipleArguments implements ValidationRule {
+public class RangeArguments implements ValidationRule{
     @Override
     public Optional<String> validate(final TopicDirectiveContext context) {
-        if (context.getEnvironment().getElement().getArguments().size() > 1) {
-            return Optional.of("Only single arguments are supported");
+        if(context.getTopicDirective().hasRangeFrom() && context.getTopicDirective().hasRangeTo()) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        else if (!context.getTopicDirective().hasRangeFrom() && !context.getTopicDirective().hasRangeTo()) {
+            return Optional.empty();
+        }
+        return Optional.of("Both rangeFrom and rangeTo arguments should be set.");
     }
 }

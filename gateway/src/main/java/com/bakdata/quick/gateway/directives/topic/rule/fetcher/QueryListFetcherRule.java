@@ -21,19 +21,17 @@ import com.bakdata.quick.gateway.DataFetcherSpecification;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
-import graphql.schema.GraphQLTypeUtil;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
- * Rule for list argument fetcher.
+ * Rule for query fetcher.
  *
  * <p>
  * <h2>Example:</h2>
  * <pre>{@code
  * type Query {
- *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic") # <- list argument fetcher
+ *  findPurchases: [Purchase] @topic(name: "purchase-topic") # <- query list fetcher
  * }
  *
  * type Purchase  {
@@ -42,31 +40,29 @@ import java.util.Objects;
  * }
  * }</pre>
  *
- * @see com.bakdata.quick.gateway.fetcher.ListArgumentFetcher
+ * @see com.bakdata.quick.gateway.fetcher.QueryListFetcher
  */
-public class ListArgumentFetcherRule implements DataFetcherRule {
+public class QueryListFetcherRule implements DataFetcherRule {
+
     @Override
     public List<DataFetcherSpecification> extractDataFetchers(final TopicDirectiveContext context) {
         final List<DataFetcherSpecification> specifications = new ArrayList<>();
-
-        Objects.requireNonNull(context.getTopicDirective().getKeyArgument());
-        final DataFetcher<?> dataFetcher = context.getFetcherFactory().listArgumentFetcher(
+        final DataFetcher<?> dataFetcher = context.getFetcherFactory().queryListFetcher(
             context.getTopicDirective().getTopicName(),
-            context.getTopicDirective().getKeyArgument(),
             context.isNullable(),
             context.isHasNullableElements()
         );
         final FieldCoordinates coordinates = this.currentCoordinates(context);
-        specifications.add(DataFetcherSpecification.of(coordinates, dataFetcher));
 
+        specifications.add(DataFetcherSpecification.of(coordinates, dataFetcher));
+        DataFetcherRule.extractDeferFetcher(context).forEach(specifications::add);
         return specifications;
     }
 
     @Override
     public boolean isValid(final TopicDirectiveContext context) {
-        return context.getTopicDirective().hasKeyArgument()
+        return !context.getTopicDirective().hasKeyArgument()
             && context.isListType()
-            && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE)
-            && GraphQLTypeUtil.isList(context.getEnvironment().getElement().getType());
+            && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE);
     }
 }

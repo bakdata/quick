@@ -98,6 +98,12 @@ public class FetcherFactory {
         return new ListArgumentFetcher<>(argument, client, isNullable, hasNullableElements);
     }
 
+    public <V> DataFetcher<List<V>> rangeFetcher(final String topic, final String argument, final String rangeFrom, final
+        String rangeTo, final boolean isNullable) {
+        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
+        return new RangeQueryFetcher<>(argument, client, rangeFrom, rangeTo, isNullable);
+    }
+
     /**
      * Creates a MutationFetcher object.
      *

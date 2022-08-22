@@ -21,47 +21,31 @@ import com.bakdata.quick.gateway.DataFetcherSpecification;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-/**
- * Rule for query fetcher.
- *
- * <p>
- * <h2>Example:</h2>
- * <pre>{@code
- * type Query {
- *  findPurchases: [Purchase] @topic(name: "purchase-topic") # <- query list fetcher
- * }
- *
- * type Purchase  {
- *  purchaseId: ID!,
- *  productId: ID!,
- * }
- * }</pre>
- *
- * @see com.bakdata.quick.gateway.fetcher.QueryListFetcher
- */
-public class QueryListFetchRule implements DataFetcherRule {
-
+public class RangeFetcherRule implements DataFetcherRule{
     @Override
     public List<DataFetcherSpecification> extractDataFetchers(final TopicDirectiveContext context) {
-        final List<DataFetcherSpecification> specifications = new ArrayList<>();
-        final DataFetcher<?> dataFetcher = context.getFetcherFactory().queryListFetcher(
+        Objects.requireNonNull(context.getTopicDirective().getKeyArgument());
+        Objects.requireNonNull(context.getTopicDirective().getRangeFrom());
+        Objects.requireNonNull(context.getTopicDirective().getRangeTo());
+        final DataFetcher<?> dataFetcher = context.getFetcherFactory().rangeFetcher(
             context.getTopicDirective().getTopicName(),
-            context.isNullable(),
-            context.isHasNullableElements()
+            context.getTopicDirective().getKeyArgument(),
+            context.getTopicDirective().getRangeFrom(),
+            context.getTopicDirective().getRangeTo(),
+            context.isNullable()
         );
         final FieldCoordinates coordinates = this.currentCoordinates(context);
-
-        specifications.add(DataFetcherSpecification.of(coordinates, dataFetcher));
-        DataFetcherRule.extractDeferFetcher(context).forEach(specifications::add);
-        return specifications;
+        return List.of(DataFetcherSpecification.of(coordinates, dataFetcher));
     }
 
     @Override
     public boolean isValid(final TopicDirectiveContext context) {
-        return !context.getTopicDirective().hasKeyArgument()
+        return context.getTopicDirective().hasKeyArgument()
+            && context.getTopicDirective().hasRangeFrom()
+            && context.getTopicDirective().hasRangeTo()
             && context.isListType()
             && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE);
     }

@@ -77,6 +77,4 @@ public class QueryListFetcher<T> implements DataFetcher<List<T>> {
 
         return values;
     }
-
-
 }

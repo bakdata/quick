@@ -70,6 +70,12 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
         return this.mirrorClient.get().fetchAll();
     }
 
+    @Override
+    @Nullable
+    public List<V> fetchRange(final String id, final String from, final String to) {
+        return this.mirrorClient.get().fetchRange(id, from, to);
+    }
+
     private DefaultMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
                                                               final HttpClient client,
                                                               final TypeResolver<V> valueResolver) {
