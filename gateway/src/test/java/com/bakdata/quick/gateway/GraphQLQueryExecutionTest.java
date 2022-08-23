@@ -42,7 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -113,6 +113,43 @@ class GraphQLQueryExecutionTest {
             .containsEntry("purchaseId", "test")
             .containsEntry("amount", 5)
             .containsEntry("productId", "product");
+    }
+
+    @Test
+    void shouldExecuteRange(final TestInfo testInfo) throws IOException {
+        final String name = testInfo.getTestMethod().orElseThrow().getName();
+        final Path schemaPath = workingDirectory.resolve(name + ".graphql");
+        final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
+
+        final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
+        final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
+
+        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("user-request-range");
+
+        final List<?> userRequests = List.of(
+            UserRequest.builder().userId(1).timestamp(1).requests(5).build(),
+            UserRequest.builder().userId(1).timestamp(2).requests(10).build(),
+            UserRequest.builder().userId(1).timestamp(3).requests(8).build()
+        );
+
+        when(dataFetcherClient.fetchRange("1", "1", "3")).thenAnswer(invocation -> userRequests);
+
+        final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
+
+        assertThat(executionResult.getErrors()).isEmpty();
+
+        final Map<String, List<Map<String, Object>>> data = executionResult.getData();
+        assertThat(data.get("userRequests"))
+            .isNotNull()
+            .hasSize(3)
+            .satisfies(userRequest -> {
+                assertThat(userRequest.get(0).get("requests")).isEqualTo(5);
+
+            }).satisfies(userRequest -> {
+                assertThat(userRequest.get(1).get("requests")).isEqualTo(10);
+            }).satisfies(userRequest -> {
+                assertThat(userRequest.get(2).get("requests")).isEqualTo(8);
+            });
     }
 
     @Test
@@ -259,7 +296,8 @@ class GraphQLQueryExecutionTest {
             .hasSize(1)
             .first()
             .satisfies(error -> {
-                assertThat(error.getMessage()).startsWith("The field at path '/findPurchase/productId' was declared as a non null type");
+                assertThat(error.getMessage()).startsWith(
+                    "The field at path '/findPurchase/productId' was declared as a non null type");
                 assertThat(error.getPath()).containsExactly("findPurchase", "productId");
             });
     }
@@ -290,29 +328,43 @@ class GraphQLQueryExecutionTest {
             "url-topic",
             new TopicData("url-topic", TopicWriteType.MUTABLE, QuickTopicType.STRING, QuickTopicType.AVRO, "")
         ).blockingAwait();
+
+        this.registryClient.register(
+            "user-request-range",
+            new TopicData("user-request-range", TopicWriteType.MUTABLE, QuickTopicType.INTEGER, QuickTopicType.AVRO,
+                "")
+        ).blockingAwait();
     }
 
-    @Data
+    @Value
     @Builder
     private static class Purchase {
-        private String purchaseId;
-        private String productId;
-        private int amount;
+        String purchaseId;
+        String productId;
+        int amount;
     }
 
-    @Data
+    @Value
     @Builder
     private static class Product {
-        private String productId;
-        private String name;
-        private String description;
-        private Price price;
+        String productId;
+        String name;
+        String description;
+        Price price;
     }
 
-    @Data
+    @Value
     @Builder
     private static class Price {
-        private double total;
-        private String currency;
+        double total;
+        String currency;
+    }
+
+    @Value
+    @Builder
+    private static class UserRequest {
+        int userId;
+        int timestamp;
+        int requests;
     }
 }
