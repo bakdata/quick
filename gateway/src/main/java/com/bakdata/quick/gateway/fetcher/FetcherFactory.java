@@ -32,9 +32,9 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.execution.DataFetcherResult;
 import graphql.schema.DataFetcher;
 import io.reactivex.Single;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 

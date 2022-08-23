@@ -17,6 +17,7 @@
 package com.bakdata.quick.ingest.service;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
 import com.bakdata.quick.common.api.model.KeyValuePair;
@@ -25,12 +26,12 @@ import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+import jakarta.inject.Singleton;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.inject.Singleton;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,7 +47,7 @@ public class IngestFilter {
     /**
      * Default constructor.
      *
-     * @param client http client
+     * @param client       http client
      * @param mirrorConfig config for Quick mirror
      */
     public IngestFilter(final HttpClient client, final MirrorConfig mirrorConfig) {
@@ -68,7 +69,7 @@ public class IngestFilter {
      * @return two new lists: one with keys to ingest and one with keys that cannot be overriden.
      */
     public <K, V> Single<IngestLists<K, V>> prepareIngest(final QuickTopicData<K, V> topicData,
-        final List<KeyValuePair<K, V>> pairs) {
+                                                          final List<KeyValuePair<K, V>> pairs) {
         log.debug("Prepare ingest for topic {}", topicData.getName());
         if (topicData.getWriteType() == TopicWriteType.MUTABLE) {
             return Single.just(new IngestLists<>(pairs, Collections.emptyList()));
@@ -77,10 +78,10 @@ public class IngestFilter {
     }
 
     private <K, V> Single<IngestLists<K, V>> getExistingKeys(final QuickTopicData<K, V> topicData,
-        final List<KeyValuePair<K, V>> pairs) {
+                                                             final List<KeyValuePair<K, V>> pairs) {
         final MirrorClient<K, V> mirrorClient =
             new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig,
-                topicData.getValueData().getResolver());
+                topicData.getValueData().getResolver(), new DefaultMirrorRequestManager(this.client));
 
         return Flowable.fromIterable(pairs)
             .map(pair -> {

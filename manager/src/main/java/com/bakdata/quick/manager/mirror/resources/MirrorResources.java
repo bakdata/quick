@@ -40,7 +40,7 @@ public class MirrorResources implements QuickResources {
      *
      * @param name       name of  the mirror
      * @param deployment k8s deployment for the mirror
-     * @param service    k8s service for the mirrror
+     * @param service    k8s service for the mirror
      */
     public MirrorResources(final String name,
                            final MirrorDeployment deployment,

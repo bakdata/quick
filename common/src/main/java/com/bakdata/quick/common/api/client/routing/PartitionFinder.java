@@ -14,17 +14,19 @@
  *    limitations under the License.
  */
 
-package buildlogic.convention
+package com.bakdata.quick.common.api.client.routing;
 
-open class BaseExtension {
-    // Accessor for build DSL
-    val APPLICATION = ProjectType.APPLICATION
-    val LIBRARY = ProjectType.LIBRARY
+/**
+ * Represents logic for finding the partition for a specific key.
+ */
+public interface PartitionFinder {
 
-    var type: ProjectType = ProjectType.APPLICATION
-
-    enum class ProjectType {
-        APPLICATION,
-        LIBRARY;
-    }
+    /**
+     * Calculates the partition for a specific serialized key.
+     *
+     * @param serializedKey the byte representation of a key for which the partition is sought
+     * @param numPartitions the total number of partitions in a topic
+     * @return an int that represents a partition
+     */
+    int getForSerializedKey(final byte[] serializedKey, final int numPartitions);
 }

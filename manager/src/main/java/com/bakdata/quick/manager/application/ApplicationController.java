@@ -27,7 +27,7 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * REST API for controlling applications.

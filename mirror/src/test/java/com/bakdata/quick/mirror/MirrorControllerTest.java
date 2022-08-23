@@ -37,10 +37,10 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Single;
+import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.inject.Inject;
 import lombok.Value;
 import org.apache.avro.generic.GenericData.Record;
 import org.junit.jupiter.api.Test;
@@ -71,8 +71,7 @@ class MirrorControllerTest {
                     .get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", value.getData())
                     .then()
                     .statusCode(HttpStatus.OK.getCode())
-                    .body(equalTo(expected))
-            );
+                    .body(equalTo(expected)));
     }
 
     @Test

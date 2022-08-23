@@ -19,7 +19,7 @@ package com.bakdata.quick.manager;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.micronaut.context.annotation.Factory;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Factory for manager beans.

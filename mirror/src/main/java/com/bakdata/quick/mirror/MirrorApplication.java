@@ -39,11 +39,11 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.runtime.Micronaut;
 import io.micronaut.runtime.server.EmbeddedServer;
 import io.reactivex.Single;
+import jakarta.inject.Singleton;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
@@ -123,7 +123,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     public String getUniqueAppId() {
-        return this.getClass().getSimpleName() + "-" + this.getInputTopic();
+        return this.getClass().getSimpleName() + "-" + this.getInputTopics().get(0);
     }
 
     /**
@@ -174,18 +174,15 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     protected void runStreamsApplication() {
-        // Create a context and set it using provider - this is needed to be able to test
-        // state controller seamlessly
+        final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
+
         final QueryServiceContext serviceContext = new QueryServiceContext(
             this.getStreams(),
             this.hostConfig.toInfo(),
-            MIRROR_STORE
+            MIRROR_STORE,
+            quickTopicData
         );
         this.contextProvider.setQueryContext(serviceContext);
-
-        // register a bean which is needed for QueryService
-        final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
-        this.context.registerSingleton(quickTopicData);
         super.runStreamsApplication();
     }
 
@@ -228,7 +225,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         }
 
         // query the topic registry for getting information about the topic and set it during runtime
-        final String inputTopic = this.getInputTopic();
+        final String inputTopic = this.getInputTopics().get(0);
         final Single<QuickTopicData<K, V>> topicDataFuture = this.topicTypeService.getTopicData(inputTopic);
         final QuickTopicData<K, V> topicData = topicDataFuture
             .onErrorResumeNext(e -> {
@@ -246,12 +243,12 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     }
 
     /**
-     * Return static topic data for a clean up run.
+     * Return static topic data for a cleanup run.
      *
      * <p>
-     * When the clean up is executed, it is possible that the topic is already deleted from the topic registry.
-     * Therefore, the type service cannot be called. Instead we return static data (not respecting actual types). This
-     * works because the clean up requires only the topic names!
+     * When the cleanup is executed, it is possible that the topic is already deleted from the topic registry.
+     * Therefore, the type service cannot be called. Instead, we return static data (not respecting actual types). This
+     * works because the cleanup requires only the topic names!
      *
      * @return fallback topic data for clean up run
      */
@@ -262,7 +259,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .inputTopics(this.getInputTopics())
             .outputTopic(this.getOutputTopic())
             .errorTopic(this.errorTopic)
-            .topicData(new QuickTopicData<>(this.getInputTopic(), TopicWriteType.MUTABLE, data, data))
+            .topicData(new QuickTopicData<>(this.getInputTopics().get(0), TopicWriteType.MUTABLE, data, data))
             .build();
 
     }

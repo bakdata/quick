@@ -14,14 +14,13 @@
  *    limitations under the License.
  */
 
-package buildlogic.convention
+package buildlogic.quickplugins
 
-import buildlogic.libraries.QuickLibraries
-import buildlogic.libraries.QuickLibrariesPlugin
 import io.spring.gradle.dependencymanagement.DependencyManagementPlugin
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.repositories
@@ -38,13 +37,15 @@ class VersionPlugin : Plugin<Project> {
                 }
             }
 
-            plugins.apply(BaseDependenciesPlugin::class)
-            plugins.apply(QuickLibrariesPlugin::class)
-            val librariesExtension = extensions.getByType(QuickLibraries::class)
+            // https://docs.gradle.org/7.5.1/userguide/platforms.html#sub:type-unsafe-access-to-catalog
+            val librariesExtension = extensions.getByType<VersionCatalogsExtension>().named("libs")
+
+            val micronautVersion = librariesExtension.findVersion("micronaut").get().requiredVersion
+            val kafkaVersion = librariesExtension.findVersion("kafka").get().requiredVersion
             plugins.apply(DependencyManagementPlugin::class)
             extensions.getByType(DependencyManagementExtension::class).imports {
-                mavenBom("io.micronaut:micronaut-bom:" + librariesExtension.MICRONAUT_VERSION) {
-                    bomProperty("kafka.version", librariesExtension.KAFKA_VERSION)
+                mavenBom("io.micronaut:micronaut-bom:$micronautVersion") {
+                    bomProperty("kafka.version", kafkaVersion)
                 }
             }
         }

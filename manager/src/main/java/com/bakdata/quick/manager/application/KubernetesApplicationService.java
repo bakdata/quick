@@ -32,8 +32,8 @@ import io.micronaut.context.env.Environment;
 import io.micronaut.http.HttpStatus;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import jakarta.inject.Singleton;
 import java.util.Optional;
-import javax.inject.Singleton;
 
 /**
  * Service for handling application deployments on k8s cluster.

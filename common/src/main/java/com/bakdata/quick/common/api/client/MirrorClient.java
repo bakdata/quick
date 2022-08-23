@@ -19,6 +19,7 @@ package com.bakdata.quick.common.api.client;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
 
+
 /**
  * Client for interacting with the REST API of mirror applications.
  *

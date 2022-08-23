@@ -45,6 +45,7 @@ setup() {
 }
 
 @test "should retrieve inserted item" {
+    sleep 5
     result="$(${GRAPHQL_CLI} < query.gql | jq -j .findProduct)"
     [ "$result" = "T-Shirt" ]
 }
@@ -54,11 +55,13 @@ setup() {
 }
 
 @test "should retrieve updated item" {
+    sleep 5
     result="$(${GRAPHQL_CLI} < query.gql | jq -j .findProduct)"
     [ "$result" = "T-Shirt (black)" ]
 }
 
 @test "should retrieve new item" {
+    sleep 5
     result="$(${GRAPHQL_CLI} < query-new-item.gql | jq -j .findProduct)"
     [ "$result" = "Jeans" ]
 }

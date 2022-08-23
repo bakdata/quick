@@ -31,8 +31,8 @@ import io.micronaut.security.rules.SecurityRule;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
+import jakarta.inject.Inject;
 import java.util.List;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 /**

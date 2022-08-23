@@ -11,8 +11,8 @@ RUN apt-get update \
   jq -y && \
   apt-get clean
 
-ARG QUICK_CLI_VERSION 0.4.0
-ENV BATS_VERSION 1.6.0
+ARG QUICK_CLI_VERSION=0.7.0
+ENV BATS_VERSION 1.7.0
 
 RUN curl -#L https://github.com/bats-core/bats-core/archive/v${BATS_VERSION}.zip -o bats.zip \
     && unzip ./bats.zip \

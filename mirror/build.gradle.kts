@@ -3,21 +3,48 @@ description = "Mirrors let Quick efficiently query the content of topics. " +
 
 plugins {
     id("quick.base")
-    id("buildlogic.convention.http-service")
-    id("com.github.davidmc24.gradle.plugin.avro") version "1.2.0"
-}
-
-httpService {
-    secured = false
+    alias(libs.plugins.gradleAvroPlugin)
 }
 
 dependencies {
-    implementation(libs.STREAMS_BOOTSTRAP)
-    implementation(libs.KAFKA_PROTO_SERDE)
-    implementation(libs.PICO_CLI)
-    implementation(libs.MICRONAUT_PICO_CLI)
+    implementation(libs.slf4j.api)
+    implementation(libs.log4j.api)
+    implementation(libs.log4j.core)
+    implementation(libs.log4j.slf4jImpl)
+    implementation(libs.log4j.overSlf4j)
+    implementation(libs.julSlf4j)
+    implementation(libs.okhttp)
+    implementation(libs.jackson.databind) // needed so that log4j2 can read yaml test configs
+    implementation(libs.micronaut.rxjava)
+    implementation(libs.spotbugs)
+    implementation(libs.javax)
+    implementation(libs.micronaut.inject)
+    implementation(libs.caffeine)
+    implementation(libs.streamsBootstrap)
+    implementation(libs.kafka.streams.protobufSerde)
+    implementation(libs.micronaut.picocli)
+    implementation(libs.micronaut.httpClient)
+    implementation(libs.micronaut.httpServer)
+    implementation(libs.micronaut.management)
+    implementation(libs.micronaut.prometheus)
 
-    testImplementation(libs.FLUENT_KAFKA_STREAMS)
-    testImplementation(libs.REST_ASSURED)
-    testImplementation(libs.SCHEMA_REGISTRY_MOCK)
+    annotationProcessor(libs.micronaut.injectJava)
+    annotationProcessor(libs.micronaut.validation)
+
+    testAnnotationProcessor(libs.micronaut.injectJava)
+    testImplementation(libs.fluentKafkaStreams)
+    testImplementation(libs.micronaut.restAssured)
+    testImplementation(libs.schemaRegistryMock)
+    testImplementation(libs.micronaut.junit)
+    testImplementation(libs.kafka.junit)
+    testImplementation(libs.junit.api)
+    testImplementation(libs.junit.params)
+    testImplementation(libs.assertj)
+    testImplementation(libs.mockito)
+    testImplementation(libs.kafka)
+    testImplementation(libs.awaitly)
+
+    testImplementation(libs.jackson.databind) // needed so that log4j2 can read yaml test configs
+
+    testRuntimeOnly(libs.junit.engine)
 }

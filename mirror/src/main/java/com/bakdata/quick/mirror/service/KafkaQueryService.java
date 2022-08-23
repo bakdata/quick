@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.api.client.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -30,8 +31,8 @@ import io.micronaut.http.exceptions.HttpStatusException;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
+import jakarta.inject.Inject;
 import java.util.List;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
@@ -66,13 +67,13 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
      * @param contextProvider query service data
      */
     @Inject
-    public KafkaQueryService(final QueryContextProvider contextProvider, final QuickTopicData<K, V> topicData,
-                             final HttpClient client) {
+    public KafkaQueryService(final QueryContextProvider contextProvider, final HttpClient client) {
         final QueryServiceContext context = contextProvider.get();
         this.client = client;
         this.streams = context.getStreams();
         this.hostInfo = context.getHostInfo();
         this.storeName = context.getStoreName();
+        final QuickTopicData<K, V> topicData = context.getTopicData();
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
         this.valueResolver = topicData.getValueData().getResolver();
@@ -147,7 +148,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
         final DefaultMirrorClient<K, V> mirrorClient =
-            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver);
+            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
+                new DefaultMirrorRequestManager(this.client));
         // TODO: don't bother deserializing
         final V value = mirrorClient.fetchValue(key);
 

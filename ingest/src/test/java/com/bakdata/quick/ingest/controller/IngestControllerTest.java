@@ -55,19 +55,18 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
-import io.micronaut.http.MutableHttpRequest;
 import io.micronaut.http.client.BlockingHttpClient;
-import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import javax.inject.Inject;
 import lombok.Value;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericRecord;
@@ -354,7 +353,7 @@ class IngestControllerTest {
         final HttpRequest<?> request = HttpRequest.GET("/topic/");
         assertThatExceptionOfType(HttpClientResponseException.class)
             .isThrownBy(() -> httpClient.retrieve(request))
-            .withMessage("Method Not Allowed")
+            .withMessage("Client '/': Method Not Allowed")
             .satisfies(ex -> assertThat((CharSequence) ex.getStatus()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED));
     }
 

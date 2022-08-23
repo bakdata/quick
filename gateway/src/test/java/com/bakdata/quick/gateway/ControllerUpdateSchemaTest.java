@@ -23,16 +23,17 @@ import com.bakdata.quick.common.api.model.ErrorMessage;
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.BlockingHttpClient;
-import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import java.util.Optional;
-import javax.inject.Inject;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +45,9 @@ class ControllerUpdateSchemaTest {
     @Inject
     private RxHttpClient httpClient;
 
+    @Inject
+    private ApplicationContext context;
+    
     static Optional<ErrorMessage> extractErrorMessage(final HttpClientResponseException ex) {
         try {
             return Optional

@@ -39,21 +39,21 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MutableHttpRequest;
 import io.micronaut.http.client.BlockingHttpClient;
-import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
 @Property(name = "micronaut.security.enabled", value = "true")
 class ApiKeyTest {
 
-    private static final String TOPIC = "topic";
+    private static final String TOPIC = "mock-topic";
     private static final String SECURE_PATH = String.format("/%s", TOPIC);
 
     @Client(value = "/")
@@ -73,13 +73,13 @@ class ApiKeyTest {
         final MutableHttpRequest<Object> request = DELETE(SECURE_PATH);
         final Throwable exception = assertThrows(HttpClientResponseException.class,
             () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
     @Test
     void shouldAuthenticateWithApiKey() {
         final HttpStatus httpStatus =
-            this.callAuthenticatedController("X-API-Key", "test_key");
+            this.callAuthenticatedController("X-API-Key");
 
         assertThat((CharSequence) httpStatus).isEqualTo(HttpStatus.OK);
     }
@@ -89,12 +89,12 @@ class ApiKeyTest {
         final BlockingHttpClient httpClient = this.client.toBlocking();
         final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("X-API-Key", "wrong_key");
         final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
     @Test
     void shouldAuthorizedWhenApiKeyExistsAndHeaderKeyCaseInsensitive() {
-        final HttpStatus httpStatus = this.callAuthenticatedController("x-api-key", "test_key");
+        final HttpStatus httpStatus = this.callAuthenticatedController("x-api-key");
 
         assertThat((CharSequence) httpStatus).isEqualTo(HttpStatus.OK);
     }
@@ -104,10 +104,10 @@ class ApiKeyTest {
         final BlockingHttpClient httpClient = this.client.toBlocking();
         final MutableHttpRequest<?> request = DELETE(SECURE_PATH).header("WRONG-API-Key", "test_key");
         final Throwable exception = assertThrows(HttpClientResponseException.class, () -> httpClient.exchange(request));
-        assertThat(exception.getMessage()).isEqualTo("Unauthorized");
+        assertThat(exception.getMessage()).isEqualTo("Client '/': Unauthorized");
     }
 
-    private HttpStatus callAuthenticatedController(final CharSequence key, final CharSequence value) {
+    private HttpStatus callAuthenticatedController(final CharSequence key) {
         final KeyValuePair<String, String> pair = new KeyValuePair<>("key", "key");
         final QuickData<String> stringInfo = newStringData();
         final QuickTopicData<String, String> topicInfo =
@@ -116,7 +116,7 @@ class ApiKeyTest {
         when(this.ingestService.sendData(eq(TOPIC), any())).thenReturn(Completable.complete());
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(TOPIC);
 
-        return this.client.toBlocking().exchange(POST(SECURE_PATH, pair).header(key, value)).getStatus();
+        return this.client.toBlocking().exchange(POST(SECURE_PATH, pair).header(key, "test_key")).getStatus();
     }
 
     @MockBean(KafkaIngestService.class)

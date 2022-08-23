@@ -22,13 +22,11 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.errors.InvalidTopicException;
 import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
-import org.apache.kafka.connect.errors.AlreadyExistsException;
-import org.apache.kafka.connect.errors.NotFoundException;
 
 /**
  * Exception handler for all exceptions that can be thrown by Kafka.
@@ -38,11 +36,7 @@ public class KafkaExceptionHandler implements ExceptionHandler<KafkaException, H
     @Override
     public HttpResponse<ErrorMessage> handle(final HttpRequest request, final KafkaException exception) {
         final ErrorMessage errorMessage;
-        if (exception instanceof NotFoundException) {
-            errorMessage = HttpStatusError.toError(HttpStatus.NOT_FOUND, request.getPath(), exception.getMessage());
-        } else if (exception instanceof AlreadyExistsException) {
-            errorMessage = HttpStatusError.toError(HttpStatus.CONFLICT, request.getPath(), exception.getMessage());
-        } else if (exception instanceof TopicExistsException
+        if (exception instanceof TopicExistsException
             || exception instanceof UnknownTopicOrPartitionException
             || exception instanceof InvalidTopicException) {
             errorMessage = HttpStatusError.toError(HttpStatus.BAD_REQUEST, request.getPath(), exception.getMessage());

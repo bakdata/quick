@@ -14,13 +14,22 @@
  *    limitations under the License.
  */
 
-package buildlogic.libraries
+package com.bakdata.quick.common.util;
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import com.bakdata.quick.common.resolver.TypeResolver;
+import lombok.Value;
+import org.apache.kafka.common.serialization.Serde;
 
-class QuickLibrariesPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        target.extensions.create("libs", QuickLibraries::class.java)
-    }
+/**
+ * A wrapper for key serde and value type resolver.
+ * The wrapper is needed in order to return a single value from FetcherFactory.
+ *
+ * @param <K> key type
+ * @param <V> value type
+ */
+@Value
+public class KeySerdeValueResolverWrapper<K, V> {
+
+    Serde<K> keySerde;
+    TypeResolver<V> valueTypeResolver;
 }

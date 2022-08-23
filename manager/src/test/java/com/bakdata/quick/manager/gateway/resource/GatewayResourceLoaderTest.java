@@ -95,7 +95,7 @@ class GatewayResourceLoaderTest extends KubernetesTest {
                     .isNotNull()
                     .hasSize(1)
                     .first()
-                    .hasFieldOrPropertyWithValue("image", getImage(DOCKER_REGISTRY, EXPECTED_GATEWAY_IMAGE, TAG));
+                    .hasFieldOrPropertyWithValue("image", getImage(EXPECTED_GATEWAY_IMAGE, TAG));
 
                 assertThat(deployment.getMetadata())
                     .satisfies(metadata -> {

@@ -29,8 +29,8 @@ import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.client.rest.entities.Schema;
 import io.micronaut.http.HttpStatus;
 import io.reactivex.Single;
+import jakarta.inject.Singleton;
 import java.io.IOException;
-import javax.inject.Singleton;
 import okhttp3.Request;
 import okhttp3.Response;
 

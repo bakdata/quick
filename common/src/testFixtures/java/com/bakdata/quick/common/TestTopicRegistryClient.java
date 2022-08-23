@@ -24,11 +24,11 @@ import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.env.Environment;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Singleton;
 
 /**
  * Mock for the topic registry client.

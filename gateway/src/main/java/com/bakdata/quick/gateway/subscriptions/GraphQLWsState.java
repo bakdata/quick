@@ -22,11 +22,11 @@ import static io.micronaut.configuration.graphql.ws.GraphQLWsResponse.ServerType
 import io.micronaut.configuration.graphql.ws.GraphQLWsResponse;
 import io.micronaut.websocket.WebSocketSession;
 import io.reactivex.Flowable;
+import jakarta.inject.Singleton;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
-import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;

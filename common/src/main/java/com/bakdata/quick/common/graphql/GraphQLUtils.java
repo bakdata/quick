@@ -28,6 +28,7 @@ import graphql.language.ObjectTypeDefinition;
 import graphql.language.Type;
 import graphql.language.TypeDefinition;
 import graphql.language.TypeName;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,12 +61,12 @@ public final class GraphQLUtils {
      * Checks whether two TypeDefinitions are the same.
      *
      * <p>
-     * This is necessary as we consider equality when the fields are equals. {@link TypeDefinition#equals(Object)} also
+     * This is necessary as we consider equality when the fields are equals. {@link TypeDefinition} also
      * considers source location. However, this is obviously not always required in our case.
      *
      * @param leftType  left type definition
      * @param rightType right type definition
-     * @return true if all fields/values are equals or they are exactly the same type
+     * @return true if all fields/values are equals, or they are exactly the same type
      */
     public static boolean areSameTypes(final TypeDefinition<?> leftType, final TypeDefinition<?> rightType) {
         if (leftType instanceof ObjectTypeDefinition && rightType instanceof ObjectTypeDefinition) {
@@ -89,7 +90,7 @@ public final class GraphQLUtils {
      * @return name of the type
      */
     public static String getRootType(final QuickTopicType type, final TypeDefinitionRegistry registry) {
-        if (type != QuickTopicType.AVRO && type != QuickTopicType.PROTOBUF) {
+        if (type != QuickTopicType.SCHEMA) {
             return Objects.requireNonNull(TYPE_TO_GQL_SCALAR_NAME_MAP.get(type));
         }
 
@@ -127,7 +128,7 @@ public final class GraphQLUtils {
      * Extracts the name of the given type.
      *
      * <p>
-     * Required as we need to work around container types like list type and non null type.
+     * Required as we need to work around container types like list type and non-null type.
      *
      * @param type type to extract the name from
      * @return name of the type
@@ -155,7 +156,7 @@ public final class GraphQLUtils {
     private static Map<QuickTopicType, String> typeToScalarNameMap() {
         return Map.of(
             QuickTopicType.STRING, Scalars.GraphQLString.getName(),
-            QuickTopicType.LONG, Scalars.GraphQLLong.getName(),
+            QuickTopicType.LONG, ExtendedScalars.GraphQLLong.getName(),
             QuickTopicType.INTEGER, Scalars.GraphQLInt.getName(),
             QuickTopicType.DOUBLE, Scalars.GraphQLFloat.getName()
         );

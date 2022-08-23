@@ -18,7 +18,7 @@ package com.bakdata.quick.mirror.base;
 
 import io.micronaut.context.annotation.Property;
 import io.micronaut.runtime.server.EmbeddedServer;
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import lombok.Getter;
 import org.apache.kafka.streams.state.HostInfo;
 

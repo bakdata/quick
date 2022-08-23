@@ -24,45 +24,47 @@ import java.util.Map;
 /**
  * Client for fetching values from rest endpoints and converting them into generic containers.
  */
-public interface DataFetcherClient<T> {
-    TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<Map<String, Object>>() {};
-    TypeReference<List<Map<String, Object>>> LIST_TYPE_REFERENCE = new TypeReference<List<Map<String, Object>>>() {};
+public interface DataFetcherClient<V> {
+    TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {
+    };
+    TypeReference<List<Map<String, Object>>> LIST_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     /**
      * Fetches a single value from the given id.
      *
      * <p>
-     * Therefore, it is important to note that the resource should response with a single JSON object. Otherwise, the
+     * Therefore, it is important to note that the resource should respond with a single JSON object. Otherwise, the
      * parsing will fail.
      *
      * @param id resource to fetch from
      * @return parsed json as Map
      */
     @Nullable
-    T fetchResult(final String id);
+    V fetchResult(final String id);
 
     /**
      * Fetches a list of values from multiple ids.
      *
      * <p>
-     * Therefore, it is important to note that each resource should response with a single JSON object. Otherwise, the
+     * Therefore, it is important to note that each resource should respond with a single JSON object. Otherwise, the
      * parsing will fail.
      *
      * @param ids list of ids to fetch from
      * @return List of parsed json as Map
      */
     @Nullable
-    List<T> fetchResults(final List<String> ids);
+    List<V> fetchResults(final List<String> ids);
 
     /**
      * Fetches a list of values from a single id.
      *
      * <p>
-     * Therefore, it is important to note that each resource should response with an array with JSON objects. Otherwise,
+     * Therefore, it is important to note that each resource should respond with an array with JSON objects. Otherwise,
      * the parsing will fail.
      *
      * @return List of parsed json as map
      */
     @Nullable
-    List<T> fetchList();
+    List<V> fetchList();
 }

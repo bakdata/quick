@@ -31,10 +31,10 @@ import io.micronaut.context.env.Environment;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.functions.Action;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
 /**

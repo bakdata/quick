@@ -96,7 +96,7 @@ class KafkaTopicServiceTest {
     }
 
     @AfterAll
-    static void afterAll() throws InterruptedException {
+    static void afterAll() {
         kafkaCluster.stop();
     }
 
