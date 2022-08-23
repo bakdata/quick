@@ -37,7 +37,9 @@ import lombok.Getter;
  * directive @topic(
  *     name: String!,
  *     keyArgument: String,
- *     keyField: String
+ *     keyField: String,
+ *     rangeFrom: String,
+ *     rangeTo: String
  * ) on FIELD_DEFINITION
  * }</pre>
  */

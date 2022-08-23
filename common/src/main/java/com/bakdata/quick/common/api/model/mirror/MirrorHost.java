@@ -60,9 +60,12 @@ public class MirrorHost {
         return String.format("http://%s%s/%s", this.config.getPrefix(), this.host, this.config.getPath());
     }
 
-    public String forRange(final String key, final String rangeFrom, final String rangeTo) {
+    /**
+     * Generates a URL for fetching a range of keys
+     */
+    public String forRange(final String key, final String from, final String to) {
         return String.format("http://%s%s/%s/%s?from=%s&to=%s", this.config.getPrefix(), this.host,
-            this.config.getPath(), key, rangeFrom, rangeTo);
+            this.config.getPath(), key, from, to);
     }
 
 }

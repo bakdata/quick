@@ -40,8 +40,6 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
-@Property(name = "quick.kafka.bootstrap-server", value = "dummy:1234")
-@Property(name = "quick.kafka.schema-registry-url", value = "http://dummy")
 @Property(name = "micronaut.security.enabled", value = "true")
 class ApiKeyTest {
     private static final String SECURE_PATH = "control/definition";

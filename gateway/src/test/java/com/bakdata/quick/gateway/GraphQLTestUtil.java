@@ -33,9 +33,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 
 public final class GraphQLTestUtil {
-    private GraphQLTestUtil() {
-    }
-
+    private GraphQLTestUtil() {}
 
     public static DataFetcher<?> getFieldDataFetcher(final String objectName, final String fieldName,
         final GraphQLSchema schema) {
