@@ -89,7 +89,7 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
             createArgs(mirrorCreationData.getTopicName(),
                 mirrorCreationData.getRetentionTime(),
                 mirrorCreationData.isPoint(),
-                mirrorCreationData.getRangeFiled()));
+                mirrorCreationData.getRangeField()));
 
         final MirrorDeployment deployment = new MirrorDeployment(
             this.createMirrorDeployment(deploymentName, arguments, config, this.appSpecConfig, hasFixedTag));

@@ -35,5 +35,5 @@ public class MirrorCreationData implements CreationData {
     Duration retentionTime;
     boolean point;
     @Nullable
-    String rangeFiled;
+    String rangeField;
 }
