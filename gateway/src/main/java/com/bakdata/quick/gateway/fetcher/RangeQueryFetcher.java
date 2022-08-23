@@ -22,6 +22,10 @@ import graphql.schema.DataFetchingEnvironment;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Data Fetcher that takes the query's key, rangeFrom, and rangeTo arguments and fetches values from the mirror's range
+ * index.
+ */
 public class RangeQueryFetcher<T> implements DataFetcher<List<T>> {
     private final String argument;
     private final String rangeFrom;

@@ -88,9 +88,9 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
 
     @Override
     @Nullable
-    public List<V> fetchRange(final K key, final K rangeFrom, final K rangeTo) {
+    public List<V> fetchRange(final K key, final String from, final String rangeTo) {
         return this.mirrorRequestManager.sendRequest(
-            this.host.forRange(key.toString(), rangeFrom.toString(), rangeTo.toString()),
+            this.host.forRange(key.toString(), from, rangeTo),
             this.parser::deserializeList
         );
     }

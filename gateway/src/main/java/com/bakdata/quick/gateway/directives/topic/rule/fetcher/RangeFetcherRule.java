@@ -24,6 +24,34 @@ import graphql.schema.FieldCoordinates;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Rule for range query fetcher.
+ *
+ * <p>
+ * <h2>Example:</h2>
+ * <pre>{@code
+ * type Query {
+ *     userRequests(
+ *         userId: Int
+ *         timestampFrom: Int
+ *         timestampTo: Int
+ *     ): [UserRequests] @topic(name: "user-request-range",
+ *                              keyArgument: "userId",
+ *                              rangeFrom: "timestampFrom",
+ *                              rangeTo: "timestampTo")
+ * }
+ *
+ * type UserRequests {
+ *     userId: Int
+ *     serviceId: Int
+ *     timestamp: Int
+ *     requests: Int
+ *     success: Int
+ * }
+ * }</pre>
+ *
+ * @see com.bakdata.quick.gateway.fetcher.RangeQueryFetcher
+ */
 public class RangeFetcherRule implements DataFetcherRule{
     @Override
     public List<DataFetcherSpecification> extractDataFetchers(final TopicDirectiveContext context) {

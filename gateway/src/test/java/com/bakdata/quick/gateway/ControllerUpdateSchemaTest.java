@@ -36,7 +36,6 @@ import java.util.Optional;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-
 @MicronautTest
 class ControllerUpdateSchemaTest {
     @Client("/")

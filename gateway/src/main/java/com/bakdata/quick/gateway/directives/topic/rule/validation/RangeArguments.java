@@ -19,6 +19,11 @@ package com.bakdata.quick.gateway.directives.topic.rule.validation;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import java.util.Optional;
 
+/**
+ * Validation for {@link com.bakdata.quick.gateway.directives.topic.TopicDirective}
+ *
+ * rangeFrom and rangeTo should be either both present or both absent in the topic directive.
+ */
 public class RangeArguments implements ValidationRule{
     @Override
     public Optional<String> validate(final TopicDirectiveContext context) {

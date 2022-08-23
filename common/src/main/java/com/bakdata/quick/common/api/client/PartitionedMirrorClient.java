@@ -37,8 +37,8 @@ import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
 
 /**
- * MirrorClient that has access to information about partition-host mapping. This enables it to efficiently
- * route requests in case when there is more than one mirror replica.
+ * MirrorClient that has access to information about partition-host mapping. This enables it to efficiently route
+ * requests in case when there is more than one mirror replica.
  *
  * @param <K> key type
  * @param <V> value type
@@ -59,16 +59,16 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
      *
-     * @param topicName       the name of the topic
-     * @param mirrorHost      host to use
-     * @param client          http client
-     * @param keySerde        the serde for the key
-     * @param valueResolver   the value's {@link TypeResolver}
+     * @param topicName the name of the topic
+     * @param mirrorHost host to use
+     * @param client http client
+     * @param keySerde the serde for the key
+     * @param valueResolver the value's {@link TypeResolver}
      * @param partitionFinder strategy for finding partitions
      */
     public PartitionedMirrorClient(final String topicName, final MirrorHost mirrorHost, final HttpClient client,
-                                   final Serde<K> keySerde, final TypeResolver<V> valueResolver,
-                                   final PartitionFinder partitionFinder) {
+        final Serde<K> keySerde, final TypeResolver<V> valueResolver,
+        final PartitionFinder partitionFinder) {
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
         this.client = client;
         this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
@@ -108,8 +108,10 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
 
     @Override
     @Nullable
-    public List<V> fetchRange(final K id, final K rangeFrom, final K rangeTo) {
-        throw new UnsupportedOperationException("Range queries are not supported in partitioned Mirrors.");
+    public List<V> fetchRange(final K key, final String from, final String to) {
+        final MirrorHost currentKeyHost = this.router.findHost(key);
+        return this.requestManager.sendRequest(
+            Objects.requireNonNull(currentKeyHost).forRange(key.toString(), from, to), this.parser::deserializeList);
     }
 
     @Override
@@ -118,8 +120,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     }
 
     /**
-     * Responsible for fetching the information about the partition - host mapping from
-     * the mirror.
+     * Responsible for fetching the information about the partition - host mapping from the mirror.
      *
      * @return a mapping between a partition (a number) and a corresponding host
      */

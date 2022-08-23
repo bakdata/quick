@@ -29,12 +29,12 @@ import java.util.stream.Collectors;
  *
  * <p>
  * Consider the following schema:
- * <pre>
+ * <pre>{@code
  *   type Query {
  *       allPurchases: [Purchase]
  *   }
+ * }
  * </pre>
- *
  * <p>
  * There, the gateway must fetch all purchases from the corresponding mirror as there is no argument. This is done by
  * this data fetcher.
@@ -47,8 +47,8 @@ public class QueryListFetcher<T> implements DataFetcher<List<T>> {
     /**
      * Standard constructor.
      *
-     * @param dataFetcherClient   mirror http client
-     * @param isNullable          true if list itself can be null
+     * @param dataFetcherClient mirror http client
+     * @param isNullable true if list itself can be null
      * @param hasNullableElements true if list elements can be null
      */
     public QueryListFetcher(final DataFetcherClient<T> dataFetcherClient, final boolean isNullable,
