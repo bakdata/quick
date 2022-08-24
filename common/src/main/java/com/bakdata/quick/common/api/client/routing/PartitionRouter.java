@@ -18,6 +18,8 @@ package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
+import com.bakdata.quick.common.exception.MirrorException;
+import io.micronaut.http.HttpStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,9 +67,9 @@ public class PartitionRouter<K> implements Router<K> {
         final int partition =
             this.partitionFinder.getForSerializedKey(serializedKey, this.partitionToMirrorHost.size());
         if (!this.partitionToMirrorHost.containsKey(partition)) {
-            throw new IllegalStateException(String.format(
+            throw new MirrorException(String.format(
                 "No MirrorHost found for partition: %d", partition
-            ));
+            ), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return this.partitionToMirrorHost.get(partition);
     }
@@ -75,7 +77,7 @@ public class PartitionRouter<K> implements Router<K> {
     @Override
     public List<MirrorHost> getAllHosts() {
         if (this.partitionToMirrorHost.isEmpty()) {
-            throw new IllegalStateException("Partition to MirrorHost mapping is empty.");
+            throw new MirrorException("Partition to MirrorHost mapping is empty.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ArrayList<>(this.partitionToMirrorHost.values());
     }

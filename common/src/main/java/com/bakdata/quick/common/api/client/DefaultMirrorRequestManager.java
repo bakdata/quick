@@ -44,7 +44,7 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
         try {
             final Response response = this.client.newCall(request).execute();
             return ResponseWrapper.fromResponse(response);
-        } catch (final IOException exception) {
+        } catch (final IllegalStateException | IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }
     }

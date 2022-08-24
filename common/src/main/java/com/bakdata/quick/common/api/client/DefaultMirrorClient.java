@@ -86,7 +86,9 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     public List<V> fetchValues(final List<K> keys) {
         final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
         final ResponseWrapper response = this.mirrorRequestManager.makeRequest(this.host.forKeys(collect));
-        return this.mirrorRequestManager.processResponse(response, this.parser::deserializeList);
+        return Objects.requireNonNullElse(
+            this.mirrorRequestManager.processResponse(response, this.parser::deserializeList),
+            Collections.emptyList());
     }
 
     @Override

@@ -29,7 +29,6 @@ import com.bakdata.quick.common.testutils.TestUtils;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Objects;
@@ -41,20 +40,18 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@MicronautTest
 class PartitionedMirrorClientTest {
 
     private static final String DEFAULT_TOPIC = "dummy";
 
     private final MockWebServer server = new MockWebServer();
-
     private final ObjectMapper mapper = new ObjectMapper();
     private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
     private final String host = String.format("%s:%d", this.server.getHostName(), this.server.getPort());
     private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
     private MirrorClient<String, TopicData> topicDataClient;
     private final Queue<Integer> partitionQueue = new ArrayDeque<>();
-    private final TestPartitionFinder partitionFinder = new TestPartitionFinder(partitionQueue);
+    private final TestPartitionFinder partitionFinder = new TestPartitionFinder(this.partitionQueue);
 
     private static TopicData createTopicData() {
         return new TopicData(DEFAULT_TOPIC, TopicWriteType.IMMUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);
@@ -63,10 +60,10 @@ class PartitionedMirrorClientTest {
     @BeforeEach
     void initRouterAndMirror() throws JsonProcessingException {
         // First response: mapping from partition to host for initializing PartitionRouter
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, "local:1234"));
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, this.host, 2, "local:1234"));
         this.server.enqueue(new MockResponse().setBody(routerBody));
-        this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, mirrorHost, client, Serdes.String(),
-            new KnownTypeResolver<>(TopicData.class, this.mapper), partitionFinder);
+        this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, this.mirrorHost, this.client,
+            Serdes.String(), new KnownTypeResolver<>(TopicData.class, this.mapper), this.partitionFinder);
     }
 
     @Test
@@ -103,7 +100,8 @@ class PartitionedMirrorClientTest {
         this.server.enqueue(new MockResponse().setBody(body).setHeader(
             HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue()));
         // Third response: A new mapping for PartitionedMirrorClient
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, host, 3, host));
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, this.host, 2, this.host,
+            3, this.host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
         // The PartitionedRouter of PartitionedMirrorClient will get partition=2 from
         // the underlying PartitionFinder in PartitionRouter.findHost function.
@@ -135,7 +133,7 @@ class PartitionedMirrorClientTest {
             HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue()));
 
         // Third response: A new mapping for PartitionedMirrorClient
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host));
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, this.host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
 
         // The PartitionedRouter of PartitionedMirrorClient will get partition=2 from

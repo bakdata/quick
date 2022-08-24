@@ -87,7 +87,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        final MirrorHost currentKeyHost = router.findHost(key);
+        final MirrorHost currentKeyHost = this.router.findHost(key);
         final ResponseWrapper response = this.requestManager
             .makeRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()));
         if (response.isUpdateCacheHeaderSet()) {
@@ -102,7 +102,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         for (final MirrorHost host : this.knownHosts) {
             final ResponseWrapper response = this.requestManager.makeRequest(host.forAll());
             final List<V> valuesFromSingleHost =
-                Objects.requireNonNullElse(this.requestManager.processResponse(response, parser::deserializeList),
+                Objects.requireNonNullElse(this.requestManager.processResponse(response, this.parser::deserializeList),
                     Collections.emptyList());
             valuesFromAllHosts.addAll(valuesFromSingleHost);
         }
@@ -129,7 +129,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     private Map<Integer, String> makeRequestForPartitionHostMapping() {
         final String url = this.streamsStateHost.getPartitionToHostUrl();
         try (final ResponseBody responseBody = Objects.requireNonNull(
-            requestManager.makeRequest(url)).getResponseBody()) {
+            this.requestManager.makeRequest(url)).getResponseBody()) {
             if (responseBody == null) {
                 throw new MirrorException("Response body was null.", HttpStatus.INTERNAL_SERVER_ERROR);
             }

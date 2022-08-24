@@ -59,7 +59,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
             final Response response = this.client.newCall(request).execute();
             return ResponseWrapper.fromResponse(response);
         } catch (final IOException exception) {
-            return getResponseFromFallbackService(url, request);
+            return this.getResponseFromFallbackService(url, request);
         }
     }
 
@@ -87,7 +87,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
         final Request fallbackRequest = new Request.Builder().url(newUrl).get().build();
         try {
             final Response fallbackResponse = this.client.newCall(fallbackRequest).execute();
-            return ResponseWrapper.fromResponse(fallbackResponse);
+            return ResponseWrapper.fromFallbackResponse(fallbackResponse);
         } catch (final IOException fallbackException) {
             throw new MirrorException("Fallback service error", HttpStatus.INTERNAL_SERVER_ERROR,
                 fallbackException);
