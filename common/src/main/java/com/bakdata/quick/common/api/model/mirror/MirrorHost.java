@@ -67,5 +67,4 @@ public class MirrorHost {
         return String.format("http://%s%s/%s/%s?from=%s&to=%s", this.config.getPrefix(), this.host,
             this.config.getPath(), key, from, to);
     }
-
 }
