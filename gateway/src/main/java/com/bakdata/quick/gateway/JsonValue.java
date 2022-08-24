@@ -16,24 +16,41 @@
 
 package com.bakdata.quick.gateway;
 
-import com.bakdata.quick.common.exception.InternalErrorException;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 
+/**
+ * A wrapper class over JsonNode which provides a custom way to access the
+ * value from the corresponding JsonNode.
+ */
 public class JsonValue {
 
     @Nullable
     private final JsonNode jsonNode;
 
-    public JsonValue(@Nullable final JsonNode jsonNode) {
+    private JsonValue(@Nullable final JsonNode jsonNode) {
         this.jsonNode = jsonNode;
     }
 
+    /**
+     * Static factory method for creating instances of JsonValue from a JsonNode.
+     *
+     * @param jsonNode a JsonNode that forms a basis for the JsonValue
+     * @return an instance of JsonValue
+     */
     public static JsonValue fromJsonNode(@Nullable final JsonNode jsonNode) {
         return new JsonValue(jsonNode);
     }
 
-    public Object getValue() {
+    /**
+     * Extracts a value from the corresponding JsonNode conforming to
+     * the underlying type of the value. Values can have different types
+     * so an instance of Object must be returned to cover all possible types.
+     *
+     * @return an object that represents the value of the jsonNode
+     */
+    @Nullable
+    public Object fetchValue() {
         if (this.jsonNode != null) {
             if (this.jsonNode.isInt()) {
                 return this.jsonNode.asInt();
@@ -47,7 +64,6 @@ public class JsonValue {
                 return this.jsonNode.textValue();
             }
         }
-            throw new InternalErrorException("nul");
+        return null;
     }
-
 }

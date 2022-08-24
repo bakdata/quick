@@ -92,8 +92,9 @@ class QueryListFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
 
         final List<Object> fetcherResult = queryFetcher.get(env);
-        final List<String> result = Objects.requireNonNull(fetcherResult).stream().map(Object::toString).collect(
-            Collectors.toList());
+        final List<String> result = Objects.requireNonNull(fetcherResult).stream()
+            .map(Object::toString)
+            .collect(Collectors.toList());
         assertThat(result).isEqualTo(list);
     }
 
@@ -108,8 +109,9 @@ class QueryListFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
 
         final List<Object> fetcherResult = queryFetcher.get(env);
-        final List<Integer> result = Objects.requireNonNull(fetcherResult).stream().map(object -> Integer.valueOf(object.toString())).collect(
-            Collectors.toList());
+        final List<Integer> result = Objects.requireNonNull(fetcherResult).stream()
+            .map(object -> Integer.valueOf(object.toString()))
+            .collect(Collectors.toList());
         assertThat(result).isEqualTo(list);
     }
 
@@ -125,8 +127,9 @@ class QueryListFetcherTest {
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
         final List<Object> fetcherResult = queryFetcher.get(env);
-        final List<Double> result = Objects.requireNonNull(fetcherResult).stream().map(object -> Double.valueOf(object.toString())).collect(
-            Collectors.toList());
+        final List<Double> result = Objects.requireNonNull(fetcherResult).stream()
+            .map(object -> Double.valueOf(object.toString()))
+            .collect(Collectors.toList());
         assertThat(result).isEqualTo(list);
     }
 

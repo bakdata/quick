@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
 public class QueryListFetcher implements DataFetcher<List<Object>> {
     private final DataFetcherClient<JsonNode> dataFetcherClient;
     private final boolean hasNullableElements;
+    private final boolean isNullable;
 
     /**
      * Standard constructor.
@@ -52,29 +54,33 @@ public class QueryListFetcher implements DataFetcher<List<Object>> {
      * @param hasNullableElements true if list elements can be null
      */
     public QueryListFetcher(final DataFetcherClient<JsonNode> dataFetcherClient, final boolean isNullable,
-        final boolean hasNullableElements) {
+                            final boolean hasNullableElements) {
         this.dataFetcherClient = dataFetcherClient;
         this.hasNullableElements = hasNullableElements;
+        this.isNullable = isNullable;
     }
 
     @Override
     @Nullable
     public List<Object> get(final DataFetchingEnvironment environment) {
-        final List<JsonNode> nodes = this.dataFetcherClient.fetchList();
-        final List<Object> values = Objects.requireNonNull(nodes).stream().map(
-            node -> JsonValue.fromJsonNode(node).getValue()
-        ).collect(Collectors.toList());
+        final List<JsonNode> values = this.dataFetcherClient.fetchList();
+
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case
         // we therefore continue gracefully by simply returning a list and  not throwing an exception
+        if (values == null && !this.isNullable) {
+            return Collections.emptyList();
+        }
+
+        final List<Object> vals = Objects.requireNonNull(values).stream()
+            .map(node -> JsonValue.fromJsonNode(node).fetchValue())
+            .collect(Collectors.toList());
 
         // null elements are not allowed, so we have to filter them
         if (!this.hasNullableElements) {
-            return nodes.stream().filter(Objects::nonNull).collect(Collectors.toList());
+            return values.stream().filter(Objects::nonNull).collect(Collectors.toList());
         }
 
-        return values;
+        return vals;
     }
-
-
 }

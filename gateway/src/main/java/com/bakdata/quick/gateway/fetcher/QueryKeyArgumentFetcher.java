@@ -56,7 +56,7 @@ public class QueryKeyArgumentFetcher implements DataFetcher<Object> {
             throw new NonNullableFieldWasNullException(environment.getExecutionStepInfo(),
                 environment.getExecutionStepInfo().getPath());
         } else {
-            return JsonValue.fromJsonNode(value).getValue();
+            return JsonValue.fromJsonNode(value).fetchValue();
         }
     }
 

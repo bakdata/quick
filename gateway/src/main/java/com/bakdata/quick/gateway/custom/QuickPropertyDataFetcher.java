@@ -18,6 +18,7 @@ package com.bakdata.quick.gateway.custom;
 
 import com.bakdata.quick.gateway.JsonValue;
 import com.fasterxml.jackson.databind.JsonNode;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.TrivialDataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 
@@ -33,9 +34,10 @@ public class QuickPropertyDataFetcher implements TrivialDataFetcher<Object> {
     }
 
     @Override
+    @Nullable
     public Object get(final DataFetchingEnvironment environment) {
         final JsonNode source = environment.getSource();
         final JsonValue jsonValue = JsonValue.fromJsonNode(source.get(this.fieldName));
-        return jsonValue.getValue();
+        return jsonValue.fetchValue();
     }
 }

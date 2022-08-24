@@ -21,12 +21,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * A Data Fetcher that fetchers a list of values in a mirror's key value store.
@@ -47,7 +45,6 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * The gateway receives a list of purchase-IDs and sends them to the mirror and should receive a list of purchases.
  */
-@Slf4j
 public class ListArgumentFetcher implements DataFetcher<List<Object>> {
     private final String argument;
     private final DataFetcherClient<JsonNode> dataFetcherClient;
@@ -96,13 +93,22 @@ public class ListArgumentFetcher implements DataFetcher<List<Object>> {
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case
         // we therefore continue gracefully by simply returning a list and not throwing an exception
+        if (results == null && !this.isNullable) {
+            return Collections.emptyList();
+        }
+
+        final List<Object> values = Objects.requireNonNull(results).stream()
+            .map(node -> JsonValue.fromJsonNode(node).fetchValue())
+            .collect(Collectors.toList());
 
         // null elements are not allowed, so we have to filter them
         if (!this.hasNullableElements) {
+            return values.stream().filter(Objects::nonNull).collect(Collectors.toList());
             log.trace("Null elements are not allowed, Filtering the results.");
             return results.stream().filter(Objects::nonNull).collect(Collectors.toList());
         }
 
+        return values;
         log.trace("Returning the list argument fetcher results: {}", results);
         return results;
     }
