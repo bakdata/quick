@@ -23,6 +23,7 @@ import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
+import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.testutils.TestPartitionFinder;
 import com.bakdata.quick.common.testutils.TestUtils;
@@ -60,7 +61,7 @@ class PartitionedMirrorClientTest {
     @BeforeEach
     void initRouterAndMirror() throws JsonProcessingException {
         // First response: mapping from partition to host for initializing PartitionRouter
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, this.host, 2, "local:1234"));
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, this.host, 2, this.host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
         this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, this.mirrorHost, this.client,
             Serdes.String(), new KnownTypeResolver<>(TopicData.class, this.mapper), this.partitionFinder);
@@ -83,10 +84,9 @@ class PartitionedMirrorClientTest {
         // The PartitionedRouter of PartitionedMirrorClient will get partition=3 from
         // the underlying PartitionFinder in PartitionRouter.findHost function.
         this.partitionFinder.enqueue(3);
-        // Since there was no mapping update, an exception will be thrown.
-        // There is no host for partition=3
+        // Since there was no mapping update, there will be a call to the fallback service
         assertThatThrownBy(() -> this.topicDataClient.fetchValue(DEFAULT_TOPIC))
-            .isInstanceOf(IllegalStateException.class)
+            .isInstanceOf(MirrorException.class)
             .hasMessage("No MirrorHost found for partition: 3");
 
     }
@@ -159,9 +159,8 @@ class PartitionedMirrorClientTest {
         // Since there was no mapping update, an exception will be thrown.
         // There is no host for partition=3
         assertThatThrownBy(() -> this.topicDataClient.fetchValue(DEFAULT_TOPIC))
-            .isInstanceOf(IllegalStateException.class)
+            .isInstanceOf(MirrorException.class)
             .hasMessage("No MirrorHost found for partition: 2");
-
     }
 
 }
