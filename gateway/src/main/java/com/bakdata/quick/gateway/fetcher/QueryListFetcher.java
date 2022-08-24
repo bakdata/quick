@@ -16,11 +16,11 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.gateway.JsonValue;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -40,9 +40,8 @@ import java.util.stream.Collectors;
  * There, the gateway must fetch all purchases from the corresponding mirror as there is no argument. This is done by
  * this data fetcher.
  */
-public class QueryListFetcher implements DataFetcher<List<JsonNode>> {
+public class QueryListFetcher implements DataFetcher<List<Object>> {
     private final DataFetcherClient<JsonNode> dataFetcherClient;
-    private final boolean isNullable;
     private final boolean hasNullableElements;
 
     /**
@@ -55,25 +54,23 @@ public class QueryListFetcher implements DataFetcher<List<JsonNode>> {
     public QueryListFetcher(final DataFetcherClient<JsonNode> dataFetcherClient, final boolean isNullable,
         final boolean hasNullableElements) {
         this.dataFetcherClient = dataFetcherClient;
-        this.isNullable = isNullable;
         this.hasNullableElements = hasNullableElements;
     }
 
     @Override
     @Nullable
-    public List<JsonNode> get(final DataFetchingEnvironment environment) {
-        final List<JsonNode> values = this.dataFetcherClient.fetchList();
-
+    public List<Object> get(final DataFetchingEnvironment environment) {
+        final List<JsonNode> nodes = this.dataFetcherClient.fetchList();
+        final List<Object> values = Objects.requireNonNull(nodes).stream().map(
+            node -> JsonValue.fromJsonNode(node).getValue()
+        ).collect(Collectors.toList());
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case
         // we therefore continue gracefully by simply returning a list and  not throwing an exception
-        if (values == null && !this.isNullable) {
-            return Collections.emptyList();
-        }
 
         // null elements are not allowed, so we have to filter them
-        if (values != null && !this.hasNullableElements) {
-            return values.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        if (!this.hasNullableElements) {
+            return nodes.stream().filter(Objects::nonNull).collect(Collectors.toList());
         }
 
         return values;

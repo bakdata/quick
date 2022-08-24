@@ -82,18 +82,18 @@ public class FetcherFactory {
         return new SubscriptionFetcher<>(this.kafkaConfig, topicData, operationName, argument);
     }
 
-    public DataFetcher<JsonNode> queryFetcher(final String topic, final String argument, final boolean isNullable) {
+    public DataFetcher<Object> queryFetcher(final String topic, final String argument, final boolean isNullable) {
         final DataFetcherClient<JsonNode> client = this.clientSupplier.createClient(topic);
         return new QueryKeyArgumentFetcher(argument, client, isNullable);
     }
 
-    public DataFetcher<List<JsonNode>> queryListFetcher(final String topic, final boolean isNullable,
+    public DataFetcher<List<Object>> queryListFetcher(final String topic, final boolean isNullable,
                                                      final boolean hasNullableElements) {
         final DataFetcherClient<JsonNode> client = this.clientSupplier.createClient(topic);
         return new QueryListFetcher(client, isNullable, hasNullableElements);
     }
 
-    public DataFetcher<List<JsonNode>> listArgumentFetcher(final String topic, final String argument,
+    public DataFetcher<List<Object>> listArgumentFetcher(final String topic, final String argument,
                                                         final boolean isNullable, final boolean hasNullableElements) {
         final DataFetcherClient<JsonNode> client = this.clientSupplier.createClient(topic);
         return new ListArgumentFetcher(argument, client, isNullable, hasNullableElements);

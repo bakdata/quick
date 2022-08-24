@@ -80,8 +80,8 @@ class QueryListArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<JsonNode> actual = listArgumentFetcher.get(env);
-        assertThat(actual).isEqualTo(getJsonNodesFrom(List.of(purchase1, purchase2)));
+        final List<Object> actual = listArgumentFetcher.get(env);
+        assertThat(actual).isEqualTo(this.getJsonNodesFrom(List.of(purchase1, purchase2)));
 
     }
 
@@ -110,8 +110,8 @@ class QueryListArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<JsonNode> actual = listArgumentFetcher.get(env);
-        assertThat(actual).isEqualTo(getJsonNodesFrom(List.of(product1, product2)));
+        final List<Object> actual = listArgumentFetcher.get(env);
+        assertThat(actual).isEqualTo(this.getJsonNodesFrom(List.of(product1, product2)));
     }
 
     @Test
@@ -128,9 +128,9 @@ class QueryListArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<JsonNode> actual = listArgumentFetcher.get(env);
+        final List<Object> actual = listArgumentFetcher.get(env);
 
-        assertThat(actual).isEqualTo(getJsonNodesFrom(Collections.emptyList()));
+        assertThat(actual).isEqualTo(this.getJsonNodesFrom(Collections.emptyList()));
     }
 
     @Test
@@ -158,8 +158,8 @@ class QueryListArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<JsonNode> actual = listArgumentFetcher.get(env);
-        assertThat(actual).isEqualTo(getJsonNodesFrom(List.of(purchase1)));
+        final List<Object> actual = listArgumentFetcher.get(env);
+        assertThat(actual).isEqualTo(this.getJsonNodesFrom(List.of(purchase1)));
     }
 
     @NotNull

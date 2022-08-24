@@ -20,7 +20,6 @@ import static org.mockito.Mockito.mock;
 
 import com.bakdata.quick.gateway.fetcher.ClientSupplier;
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
-import com.fasterxml.jackson.databind.JsonNode;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
 import graphql.schema.GraphQLFieldDefinition;
@@ -54,15 +53,15 @@ public final class GraphQLTestUtil {
 
     static final class TestClientSupplier implements ClientSupplier {
         @Getter
-        private final Map<String, DataFetcherClient<JsonNode>> clients;
+        private final Map<String, DataFetcherClient<JsonValue>> clients;
 
         TestClientSupplier() {
             this.clients = new HashMap<>();
         }
 
         @Override
-        public DataFetcherClient<JsonNode> createClient(final String topic) {
-            final DataFetcherClient<JsonNode> client = mock(DataFetcherClient.class);
+        public DataFetcherClient<JsonValue> createClient(final String topic) {
+            final DataFetcherClient<JsonValue> client = mock(DataFetcherClient.class);
             this.clients.put(topic, client);
             return client;
         }

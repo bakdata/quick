@@ -78,8 +78,9 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("url-topic");
-        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> this.objectMapper.valueToTree("test-url"));
+        final DataFetcherClient<JsonValue> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation ->
+            this.objectMapper.valueToTree("test-url"));
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 
@@ -88,7 +89,7 @@ class GraphQLQueryExecutionTest {
         final Map<String, Map<String, Object>> data = executionResult.getData();
         assertThat(data.get("getURL"))
             .isNotNull()
-            .containsEntry("url", "\"test-url\"");
+            .containsEntry("url", "test-url");
     }
 
     @Test
@@ -100,7 +101,7 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("purchase-topic");
+        final DataFetcherClient<JsonValue> dataFetcherClient = this.supplier.getClients().get("purchase-topic");
         final Purchase purchase = Purchase.builder().purchaseId("test").amount(5).productId("product").build();
         when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation ->
             this.objectMapper.valueToTree(purchase));
@@ -126,8 +127,8 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<JsonNode> purchaseClient = this.supplier.getClients().get("purchase-topic");
-        final DataFetcherClient<JsonNode> productClient = this.supplier.getClients().get("product-topic");
+        final DataFetcherClient<JsonValue> purchaseClient = this.supplier.getClients().get("purchase-topic");
+        final DataFetcherClient<JsonValue> productClient = this.supplier.getClients().get("product-topic");
 
         final Purchase purchase1 = Purchase.builder().purchaseId("purchase1").amount(5).productId("product1").build();
         final Purchase purchase2 = Purchase.builder().purchaseId("purchase2").amount(1).productId("product2").build();
@@ -188,7 +189,7 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        final DataFetcherClient<JsonValue> dataFetcherClient = this.supplier.getClients().get("url-topic");
         final JsonNode n1 = this.objectMapper.valueToTree("1");
         final JsonNode n2 = this.objectMapper.valueToTree("2");
         final JsonNode n3 = this.objectMapper.valueToTree("3");
@@ -200,7 +201,7 @@ class GraphQLQueryExecutionTest {
         final Map<String, List<String>> data = executionResult.getData();
         assertThat(data.get("getURL"))
             .isNotNull()
-            .containsExactly("\"1\"", "\"2\"", "\"3\"");
+            .containsExactly("1", "2", "3");
     }
 
     @Test
@@ -236,7 +237,7 @@ class GraphQLQueryExecutionTest {
         final JsonNode n1 = this.objectMapper.valueToTree("1");
         final JsonNode n2 = this.objectMapper.valueToTree("2");
         final JsonNode n3 = this.objectMapper.valueToTree("3");
-        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        final DataFetcherClient<JsonValue> dataFetcherClient = this.supplier.getClients().get("url-topic");
         when(dataFetcherClient.fetchResults(List.of("1", "2", "3"))).thenAnswer(invocation -> List.of(
             n1, n2, n3
         ));
@@ -247,7 +248,7 @@ class GraphQLQueryExecutionTest {
         final Map<String, List<String>> data = executionResult.getData();
         assertThat(data.get("getURL"))
             .isNotNull()
-            .containsExactly("\"1\"", "\"2\"", "\"3\"");
+            .containsExactly("1", "2", "3");
     }
 
     @Test
@@ -259,7 +260,7 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        final DataFetcherClient<JsonValue> dataFetcherClient = this.supplier.getClients().get("url-topic");
         when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation ->
             this.objectMapper.valueToTree("url"));
 
@@ -269,7 +270,7 @@ class GraphQLQueryExecutionTest {
         final Map<String, String> data = executionResult.getData();
         assertThat(data.get("getURL"))
             .isNotNull()
-            .isEqualTo("\"url\"");
+            .isEqualTo("url");
     }
 
     @Test
@@ -281,7 +282,7 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<JsonNode> dataFetcherClient = this.supplier.getClients().get("purchase-topic");
+        final DataFetcherClient<JsonValue> dataFetcherClient = this.supplier.getClients().get("purchase-topic");
         final Purchase purchase = Purchase.builder().purchaseId("test").amount(5).productId(null).build();
         final JsonNode purchaseNode = this.objectMapper.valueToTree(purchase);
         when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> purchaseNode);

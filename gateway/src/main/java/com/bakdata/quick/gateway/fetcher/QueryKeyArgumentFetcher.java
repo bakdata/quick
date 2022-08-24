@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.gateway.JsonValue;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.execution.NonNullableFieldWasNullException;
@@ -26,7 +27,7 @@ import graphql.schema.DataFetchingEnvironment;
 /**
  * Data Fetcher that takes the query's argument and fetches values by sending a request to the given address.
  */
-public class QueryKeyArgumentFetcher implements DataFetcher<JsonNode> {
+public class QueryKeyArgumentFetcher implements DataFetcher<Object> {
     private final String argument;
     private final DataFetcherClient<JsonNode> dataFetcherClient;
     private final boolean isNullable;
@@ -47,15 +48,16 @@ public class QueryKeyArgumentFetcher implements DataFetcher<JsonNode> {
 
     @Override
     @Nullable
-    public JsonNode get(final DataFetchingEnvironment environment) {
+    public Object get(final DataFetchingEnvironment environment) {
         final Object argumentValue = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
         final JsonNode value = this.dataFetcherClient.fetchResult(argumentValue.toString());
         if (value == null && !this.isNullable) {
             throw new NonNullableFieldWasNullException(environment.getExecutionStepInfo(),
                 environment.getExecutionStepInfo().getPath());
+        } else {
+            return JsonValue.fromJsonNode(value).getValue();
         }
-        return value;
     }
 
 }

@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.gateway.JsonValue;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
@@ -34,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  * <h2>Example:</h2>
  * <pre>{@code
  * type Query {
- *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic", keyArgument: "purchaseId") # <- query list fetcher
+ *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic") # <- query list fetcher
  * }
  *
  * type Purchase  {
@@ -47,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
  * The gateway receives a list of purchase-IDs and sends them to the mirror and should receive a list of purchases.
  */
 @Slf4j
-public class ListArgumentFetcher implements DataFetcher<List<JsonNode>> {
+public class ListArgumentFetcher implements DataFetcher<List<Object>> {
     private final String argument;
     private final DataFetcherClient<JsonNode> dataFetcherClient;
     private final boolean isNullable;
@@ -72,24 +73,32 @@ public class ListArgumentFetcher implements DataFetcher<List<JsonNode>> {
     @Override
     @Nullable
     @SuppressWarnings("unchecked")
-    public List<JsonNode> get(final DataFetchingEnvironment environment) {
+    public List<Object> get(final DataFetchingEnvironment environment) {
         final Object arguments = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
 
-        final List<JsonNode> results = null;
+        List<JsonNode> nodes = null;
         if (arguments instanceof List) {
             final List<String> stringArgument =
                 ((Collection<?>) arguments).stream().map(Object::toString).collect(Collectors.toList());
             log.trace("Preparing list arguments {} to fetch from the data fetcher client (Mirror)", stringArgument);
-            results = this.dataFetcherClient.fetchResults(stringArgument);
+            nodes = this.dataFetcherClient.fetchResults(stringArgument);
         }
 
-        if (results == null && !this.isNullable) {
+        if (nodes == null && !this.isNullable) {
             log.trace("Result is null, but schema does not allow null. Gracefully returning an empty list.");
             return Collections.emptyList();
         }
 
-        if (results != null && !this.hasNullableElements) {
+        final List<Object> results = Objects.requireNonNull(nodes).stream().map(
+            jsonNode -> JsonValue.fromJsonNode(jsonNode).getValue()
+        ).collect(Collectors.toList());
+        // got null but schema doesn't allow null
+        // semantically, there is no difference between null and an empty list for us in this case
+        // we therefore continue gracefully by simply returning a list and not throwing an exception
+
+        // null elements are not allowed, so we have to filter them
+        if (!this.hasNullableElements) {
             log.trace("Null elements are not allowed, Filtering the results.");
             return results.stream().filter(Objects::nonNull).collect(Collectors.toList());
         }

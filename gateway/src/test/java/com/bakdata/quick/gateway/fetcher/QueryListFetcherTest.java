@@ -31,6 +31,8 @@ import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;
 import okhttp3.OkHttpClient;
@@ -74,8 +76,8 @@ class QueryListFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<JsonNode> fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(getJsonNodesFrom(purchaseList));
+        final List<Object> fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(this.getJsonNodesFrom(purchaseList));
     }
 
 
@@ -89,8 +91,10 @@ class QueryListFetcherTest {
         final QueryListFetcher queryFetcher = new QueryListFetcher(fetcherClient, isNullable, hasNullableElements);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
 
-        final List<JsonNode> fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(getJsonNodesFrom(list));
+        final List<Object> fetcherResult = queryFetcher.get(env);
+        final List<String> result = Objects.requireNonNull(fetcherResult).stream().map(Object::toString).collect(
+            Collectors.toList());
+        assertThat(result).isEqualTo(list);
     }
 
     @Test
@@ -103,8 +107,10 @@ class QueryListFetcherTest {
         final QueryListFetcher queryFetcher = new QueryListFetcher(fetcherClient, isNullable, hasNullableElements);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
 
-        final List<JsonNode> fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(getJsonNodesFrom(list));
+        final List<Object> fetcherResult = queryFetcher.get(env);
+        final List<Integer> result = Objects.requireNonNull(fetcherResult).stream().map(object -> Integer.valueOf(object.toString())).collect(
+            Collectors.toList());
+        assertThat(result).isEqualTo(list);
     }
 
     @Test
@@ -118,12 +124,14 @@ class QueryListFetcherTest {
             hasNullableElements);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
-        final List<JsonNode> fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(getJsonNodesFrom(list));
+        final List<Object> fetcherResult = queryFetcher.get(env);
+        final List<Double> result = Objects.requireNonNull(fetcherResult).stream().map(object -> Double.valueOf(object.toString())).collect(
+            Collectors.toList());
+        assertThat(result).isEqualTo(list);
     }
 
     private MirrorDataFetcherClient createClient() {
-        final TypeResolver<JsonNode> type = new KnownTypeResolver<>(JsonNode.class, mapper);
+        final TypeResolver<JsonNode> type = new KnownTypeResolver<>(JsonNode.class, this.mapper);
         return new MirrorDataFetcherClient(this.host, this.client, this.mirrorConfig, type);
     }
 
