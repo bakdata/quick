@@ -16,16 +16,18 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import com.bakdata.quick.common.api.client.DefaultMirrorClient;
-import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.MirrorClient;
+import com.bakdata.quick.common.api.client.PartitionedMirrorClient;
+import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
+import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serdes;
 
 
 /**
@@ -75,10 +77,11 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
         return this.mirrorClient.get().fetchAll();
     }
 
-    private DefaultMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
-                                                              final HttpClient client,
-                                                              final TypeResolver<V> valueResolver) {
-        return new DefaultMirrorClient<>(host, client, mirrorConfig, valueResolver,
-            new DefaultMirrorRequestManager(client));
+    private PartitionedMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
+                                                                  final HttpClient client,
+                                                                  final TypeResolver<V> valueResolver) {
+        final MirrorHost mirrorHost = new MirrorHost(host, mirrorConfig);
+        return new PartitionedMirrorClient<>(host, mirrorHost, client, Serdes.String(),
+            valueResolver, new DefaultPartitionFinder());
     }
 }

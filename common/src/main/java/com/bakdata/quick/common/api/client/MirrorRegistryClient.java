@@ -61,7 +61,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
                                 final HttpClient client) {
         this.registryTopic = topicRegistryConfig.getTopicName();
         this.ingestClient = ingestClient;
-        this.topicDataClient = createMirrorClient(topicRegistryConfig, client, this.registryTopic);
+        this.topicDataClient = createMirrorClient(topicRegistryConfig, client);
         this.registryData = new TopicData(this.registryTopic, TopicWriteType.MUTABLE, QuickTopicType.STRING,
             QuickTopicType.AVRO, null);
     }
@@ -107,11 +107,11 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     }
 
     private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
-                                                                      final HttpClient client, final String topicName) {
+                                                                      final HttpClient client) {
         final KnownTypeResolver<TopicData> typeResolver = new KnownTypeResolver<>(
             TopicData.class, client.objectMapper());
-        final MirrorHost mirrorHost = new MirrorHost(topicName, MirrorConfig.directAccess());
-        return new PartitionedMirrorClient<>(topicRegistryConfig.getTopicName(), mirrorHost, client,
+        final MirrorHost mirrorHost = new MirrorHost(topicRegistryConfig.getServiceName(), MirrorConfig.directAccess());
+        return new PartitionedMirrorClient<>(topicRegistryConfig.getServiceName(), mirrorHost, client,
             Serdes.String(), typeResolver, new DefaultPartitionFinder());
     }
 
