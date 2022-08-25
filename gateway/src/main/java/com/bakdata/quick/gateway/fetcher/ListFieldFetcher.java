@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.gateway.JsonValue;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.execution.AbortExecutionException;
@@ -31,7 +32,7 @@ import org.apache.avro.generic.GenericRecord;
  *
  * @param <T> key type
  */
-public class ListFieldFetcher<T> implements DataFetcher<List<JsonNode>> {
+public class ListFieldFetcher<T> implements DataFetcher<List<Object>> {
     private final String idFieldName;
     private final DataFetcherClient<JsonNode> client;
 
@@ -42,12 +43,13 @@ public class ListFieldFetcher<T> implements DataFetcher<List<JsonNode>> {
 
     @Override
     @Nullable
-    public List<JsonNode> get(final DataFetchingEnvironment environment) {
+    public List<Object> get(final DataFetchingEnvironment environment) {
         final List<String> keys = this.findKeys(environment)
             .stream()
             .map(Object::toString)
             .collect(Collectors.toList());
-        return this.client.fetchResults(keys);
+        final List<JsonNode> nodesFromMirror = this.client.fetchResults(keys);
+        return JsonValue.fetchValuesFromJsonNodes(nodesFromMirror);
     }
 
     @SuppressWarnings("unchecked")

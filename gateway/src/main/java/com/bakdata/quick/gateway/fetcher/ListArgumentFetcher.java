@@ -74,6 +74,7 @@ public class ListArgumentFetcher implements DataFetcher<List<Object>> {
         final Object arguments = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
 
+        final List<JsonNode> nodesFromMirror = this.dataFetcherClient.fetchResults((List<String>) arguments);
         List<JsonNode> nodes = null;
         if (arguments instanceof List) {
             final List<String> stringArgument =
@@ -93,13 +94,11 @@ public class ListArgumentFetcher implements DataFetcher<List<Object>> {
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case
         // we therefore continue gracefully by simply returning a list and not throwing an exception
-        if (results == null && !this.isNullable) {
+        if (nodesFromMirror == null && !this.isNullable) {
             return Collections.emptyList();
         }
 
-        final List<Object> values = Objects.requireNonNull(results).stream()
-            .map(node -> JsonValue.fromJsonNode(node).fetchValue())
-            .collect(Collectors.toList());
+        final List<Object> values = JsonValue.fetchValuesFromJsonNodes(nodesFromMirror);
 
         // null elements are not allowed, so we have to filter them
         if (!this.hasNullableElements) {

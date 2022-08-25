@@ -18,6 +18,9 @@ package com.bakdata.quick.gateway;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * A wrapper class over JsonNode which provides a custom way to access the
@@ -56,6 +59,8 @@ public class JsonValue {
                 return this.jsonNode.asInt();
             } else if (this.jsonNode.isDouble()) {
                 return this.jsonNode.asDouble();
+            } else if (this.jsonNode.isLong()) {
+                return this.jsonNode.asLong();
             } else if (this.jsonNode.isBoolean()) {
                 return this.jsonNode.asBoolean();
             } else if (this.jsonNode.isArray() || this.jsonNode.isObject()) {
@@ -65,5 +70,16 @@ public class JsonValue {
             }
         }
         return null;
+    }
+
+    /**
+     * Extracts the values from the corresponding JsonNodes
+     * @param nodes a list of JsonNode
+     * @return a list of objects where each corresponds to a value from the JsonNode.
+     */
+    public static List<Object> fetchValuesFromJsonNodes(@Nullable final List<JsonNode> nodes) {
+        return Objects.requireNonNull(nodes).stream()
+            .map(node -> JsonValue.fromJsonNode(node).fetchValue())
+            .collect(Collectors.toList());
     }
 }

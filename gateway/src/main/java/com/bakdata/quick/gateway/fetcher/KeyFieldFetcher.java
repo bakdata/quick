@@ -16,11 +16,10 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.gateway.JsonValue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -59,7 +58,7 @@ import java.util.stream.StreamSupport;
  * since it is stored in a different topic. The KeyFieldFetcher extracts the productId from the returned purchase and
  * fetches the corresponding product.
  */
-public class KeyFieldFetcher implements DataFetcher<JsonNode> {
+public class KeyFieldFetcher implements DataFetcher<Object> {
     private final ObjectMapper objectMapper;
     private final String argument;
     private final DataFetcherClient<JsonNode> client;
@@ -80,13 +79,14 @@ public class KeyFieldFetcher implements DataFetcher<JsonNode> {
 
     @Override
     @Nullable
-    public JsonNode get(final DataFetchingEnvironment environment) {
+    public Object get(final DataFetchingEnvironment environment) {
         final List<String> uriList = this.findKeyArgument(environment).collect(Collectors.toList());
         if (uriList.size() == 1) {
-            return this.client.fetchResult(uriList.get(0));
+            final JsonNode nodeFromMirror = this.client.fetchResult(uriList.get(0));
+            return JsonValue.fromJsonNode(nodeFromMirror).fetchValue();
         } else {
-            final List<JsonNode> jsonNodes = this.client.fetchResults(uriList);
-            return new ArrayNode(JsonNodeFactory.instance, jsonNodes);
+            final List<JsonNode> nodesFromMirror = this.client.fetchResults(uriList);
+            return JsonValue.fetchValuesFromJsonNodes(nodesFromMirror);
         }
     }
 

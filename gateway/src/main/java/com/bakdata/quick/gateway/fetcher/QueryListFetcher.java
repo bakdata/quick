@@ -63,24 +63,21 @@ public class QueryListFetcher implements DataFetcher<List<Object>> {
     @Override
     @Nullable
     public List<Object> get(final DataFetchingEnvironment environment) {
-        final List<JsonNode> values = this.dataFetcherClient.fetchList();
+        final List<JsonNode> nodesFromMirror = this.dataFetcherClient.fetchList();
 
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case
         // we therefore continue gracefully by simply returning a list and  not throwing an exception
-        if (values == null && !this.isNullable) {
+        if (nodesFromMirror == null && !this.isNullable) {
             return Collections.emptyList();
         }
 
-        final List<Object> vals = Objects.requireNonNull(values).stream()
-            .map(node -> JsonValue.fromJsonNode(node).fetchValue())
-            .collect(Collectors.toList());
+        final List<Object> values = JsonValue.fetchValuesFromJsonNodes(nodesFromMirror);
 
         // null elements are not allowed, so we have to filter them
         if (!this.hasNullableElements) {
             return values.stream().filter(Objects::nonNull).collect(Collectors.toList());
         }
-
-        return vals;
+        return values;
     }
 }

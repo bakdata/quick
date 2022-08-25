@@ -76,10 +76,10 @@ public class FetcherFactory {
             new DefaultClientSupplier(client, client.objectMapper(), mirrorConfig), topicTypeService);
     }
 
-    public <K, V> DataFetcher<Publisher<V>> subscriptionFetcher(final String topic, final String operationName,
-                                                                @Nullable final String argument) {
+    public <K, V> DataFetcher<Publisher<Object>> subscriptionFetcher(final String topic, final String operationName,
+                                                                     @Nullable final String argument) {
         final Lazy<QuickTopicData<K, V>> topicData = this.getTopicData(topic);
-        return new SubscriptionFetcher<>(this.kafkaConfig, topicData, operationName, argument);
+        return new SubscriptionFetcher<>(this.kafkaConfig, topicData, operationName, argument, this.objectMapper);
     }
 
     public DataFetcher<Object> queryFetcher(final String topic, final String argument, final boolean isNullable) {
@@ -116,11 +116,11 @@ public class FetcherFactory {
         );
     }
 
-    public DataFetcher<List<JsonNode>> listFieldFetcher(final String topic, final String keyFieldName) {
+    public DataFetcher<List<Object>> listFieldFetcher(final String topic, final String keyFieldName) {
         return new ListFieldFetcher<>(keyFieldName, this.clientSupplier.createClient(topic));
     }
 
-    public DataFetcher<JsonNode> keyFieldFetcher(final String topic, final String keyFieldName) {
+    public DataFetcher<Object> keyFieldFetcher(final String topic, final String keyFieldName) {
         return new KeyFieldFetcher(this.objectMapper, keyFieldName, this.clientSupplier.createClient(topic));
     }
 

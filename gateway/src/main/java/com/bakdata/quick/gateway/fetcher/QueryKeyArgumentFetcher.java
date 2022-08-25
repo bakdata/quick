@@ -51,12 +51,12 @@ public class QueryKeyArgumentFetcher implements DataFetcher<Object> {
     public Object get(final DataFetchingEnvironment environment) {
         final Object argumentValue = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
-        final JsonNode value = this.dataFetcherClient.fetchResult(argumentValue.toString());
-        if (value == null && !this.isNullable) {
+        final JsonNode nodeFromMirror = this.dataFetcherClient.fetchResult(argumentValue.toString());
+        if (nodeFromMirror == null && !this.isNullable) {
             throw new NonNullableFieldWasNullException(environment.getExecutionStepInfo(),
                 environment.getExecutionStepInfo().getPath());
         } else {
-            return JsonValue.fromJsonNode(value).fetchValue();
+            return JsonValue.fromJsonNode(nodeFromMirror).fetchValue();
         }
     }
 

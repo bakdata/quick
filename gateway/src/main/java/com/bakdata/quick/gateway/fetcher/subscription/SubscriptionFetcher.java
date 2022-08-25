@@ -21,9 +21,10 @@ import static com.bakdata.quick.gateway.fetcher.subscription.KafkaSubscriptionPr
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
+import com.bakdata.quick.gateway.JsonValue;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.jetbrains.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
@@ -37,8 +38,9 @@ import org.reactivestreams.Publisher;
  *
  * @see io.micronaut.configuration.graphql.ws.GraphQLWsSender
  */
-public class SubscriptionFetcher<K, V> implements DataFetcher<Publisher<V>> {
+public class SubscriptionFetcher<K, V> implements DataFetcher<Publisher<Object>> {
     final SubscriptionProvider<K, V> subscriptionProvider;
+    private final ObjectMapper objectMapper;
 
     /**
      * Creates a new SubscriptionFetcher.
@@ -50,17 +52,22 @@ public class SubscriptionFetcher<K, V> implements DataFetcher<Publisher<V>> {
      * @param key         key to filter on - can be null.
      */
     public SubscriptionFetcher(final KafkaConfig kafkaConfig, final Lazy<QuickTopicData<K, V>> info,
-        final String queryName, final OffsetStrategy autoOffset, @Nullable final String key) {
+                               final String queryName, final OffsetStrategy autoOffset,
+                               @Nullable final String key, final ObjectMapper objectMapper) {
         this.subscriptionProvider = new KafkaSubscriptionProvider<>(kafkaConfig, info, queryName, autoOffset, key);
+        this.objectMapper = objectMapper;
     }
 
     public SubscriptionFetcher(final KafkaConfig kafkaConfig, final Lazy<QuickTopicData<K, V>> info,
-        final String queryName, @Nullable final String key) {
+        final String queryName, @Nullable final String key, final ObjectMapper objectMapper) {
         this.subscriptionProvider = new KafkaSubscriptionProvider<>(kafkaConfig, info, queryName, key);
+        this.objectMapper = objectMapper;
     }
 
     @Override
-    public Publisher<V> get(final DataFetchingEnvironment environment) {
-        return this.subscriptionProvider.getElementStream(environment).map(ConsumerRecord::value);
+    public Publisher<Object> get(final DataFetchingEnvironment environment) {
+        return this.subscriptionProvider.getElementStream(environment).mapNotNull(
+            flux -> JsonValue.fromJsonNode(this.objectMapper.valueToTree(flux.value())).fetchValue()
+        );
     }
 }

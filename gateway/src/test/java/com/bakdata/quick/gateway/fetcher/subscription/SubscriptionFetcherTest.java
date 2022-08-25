@@ -27,6 +27,7 @@ import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.fetcher.subscription.KafkaSubscriptionProvider.OffsetStrategy;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import io.reactivex.subscribers.TestSubscriber;
@@ -52,6 +53,7 @@ import org.reactivestreams.Publisher;
 
 class SubscriptionFetcherTest {
     private static EmbeddedKafkaCluster kafkaCluster = null;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeAll
     static void setup() {
@@ -175,13 +177,13 @@ class SubscriptionFetcherTest {
 
         final SubscriptionFetcher<String, V>
             subscriptionFetcher = new SubscriptionFetcher<>(kafkaConfig, new Lazy<>(() -> info), "test-query",
-            OffsetStrategy.EARLIEST, null);
-        final Publisher<V> publisher =
+            OffsetStrategy.EARLIEST, null, this.objectMapper);
+        final Publisher<Object> publisher =
             subscriptionFetcher.get(DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build());
 
-        final TestSubscriber<V> testSubscriber = TestSubscriber.create();
+        final TestSubscriber<Object> testSubscriber = TestSubscriber.create();
         // ensures that multiple subscriber work
-        final TestSubscriber<V> test2Subscriber = TestSubscriber.create();
+        final TestSubscriber<Object> test2Subscriber = TestSubscriber.create();
         publisher.subscribe(testSubscriber);
         publisher.subscribe(test2Subscriber);
 
@@ -218,12 +220,12 @@ class SubscriptionFetcherTest {
         final String argumentName = "id";
         final SubscriptionFetcher<K, V> subscriptionFetcher =
             new SubscriptionFetcher<>(kafkaConfig, new Lazy<>(() -> info), "key-query", OffsetStrategy.EARLIEST,
-                argumentName);
+                argumentName, this.objectMapper);
         final DataFetchingEnvironment fetchingEnvironment = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .arguments(Map.of(argumentName, key))
             .build();
-        final Publisher<V> publisher = subscriptionFetcher.get(fetchingEnvironment);
-        final TestSubscriber<V> testSubscriber = TestSubscriber.create();
+        final Publisher<Object> publisher = subscriptionFetcher.get(fetchingEnvironment);
+        final TestSubscriber<Object> testSubscriber = TestSubscriber.create();
         publisher.subscribe(testSubscriber);
 
         await().atMost(Duration.ofSeconds(10))

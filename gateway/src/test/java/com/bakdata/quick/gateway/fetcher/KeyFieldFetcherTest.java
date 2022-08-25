@@ -66,7 +66,7 @@ class KeyFieldFetcherTest {
             .source(this.mapper.convertValue(purchase, DataFetcherClient.OBJECT_TYPE_REFERENCE))
             .build();
 
-        final JsonNode fetcherResult = queryFetcher.get(env);
+        final Object fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(productJsonNode);
     }
 
@@ -99,7 +99,7 @@ class KeyFieldFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
 
-        final JsonNode fetcherResult = queryFetcher.get(env);
+        final Object fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(currencyJsonNode);
     }
 
@@ -133,7 +133,7 @@ class KeyFieldFetcherTest {
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
-        final JsonNode fetcherResult = queryFetcher.get(env);
+        final Object fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(products);
     }
 
