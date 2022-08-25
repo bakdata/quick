@@ -123,9 +123,7 @@ class KeyFieldFetcherTest {
             .prices(List.of(3, 4, 5))
             .build();
 
-        final JsonNode products = this.mapper.valueToTree(List.of(product1, product2));
-        this.server.enqueue(
-            new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
+        this.server.enqueue(new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
         final KeyFieldFetcher queryFetcher =
@@ -134,7 +132,8 @@ class KeyFieldFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
         final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(products);
+        assertThat(fetcherResult).isEqualTo(
+            List.of(this.mapper.valueToTree(product1), this.mapper.valueToTree(product2)));
     }
 
     private MirrorDataFetcherClient createClient() {
