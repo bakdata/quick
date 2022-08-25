@@ -90,7 +90,7 @@ class QueryListFetcherTest {
         final List<Purchase> doublePurchaseList = Streams.concat(
             purchaseList.stream(), purchaseList.stream()).collect(Collectors.toList());
         final List<?> actual = queryFetcher.get(env);
-        assertThat(actual).isEqualTo(purchaseList.addAll(doublePurchaseList));
+        assertThat(actual).isEqualTo(doublePurchaseList);
     }
 
 
