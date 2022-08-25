@@ -111,8 +111,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
         final KnownTypeResolver<TopicData> typeResolver = new KnownTypeResolver<>(
             TopicData.class, client.objectMapper());
         final MirrorHost mirrorHost = new MirrorHost(topicRegistryConfig.getServiceName(), MirrorConfig.directAccess());
-        return new PartitionedMirrorClient<>(topicRegistryConfig.getServiceName(), mirrorHost, client,
-            Serdes.String(), typeResolver, new DefaultPartitionFinder());
+        return new PartitionedMirrorClient<>(mirrorHost, client, Serdes.String(), typeResolver, new DefaultPartitionFinder());
     }
 
     private Single<TopicData> getSelf() {

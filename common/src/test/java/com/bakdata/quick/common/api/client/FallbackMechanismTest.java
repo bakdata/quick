@@ -65,7 +65,7 @@ public class FallbackMechanismTest {
         final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, this.host,
             2, "unavailableHost:1234"));
         this.server.enqueue(new MockResponse().setBody(routerBody));
-        this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, this.mirrorHost, this.client,
+        this.topicDataClient = new PartitionedMirrorClient<>(this.mirrorHost, this.client,
             Serdes.String(), new KnownTypeResolver<>(TopicData.class, this.mapper), this.partitionFinder);
     }
 

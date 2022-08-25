@@ -77,11 +77,12 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
         return this.mirrorClient.get().fetchAll();
     }
 
-    private PartitionedMirrorClient<String, V> createMirrorClient(final String host, final MirrorConfig mirrorConfig,
+    private PartitionedMirrorClient<String, V> createMirrorClient(final String host,
+                                                                  final MirrorConfig mirrorConfig,
                                                                   final HttpClient client,
                                                                   final TypeResolver<V> valueResolver) {
         final MirrorHost mirrorHost = new MirrorHost(host, mirrorConfig);
-        return new PartitionedMirrorClient<>(host, mirrorHost, client, Serdes.String(),
+        return new PartitionedMirrorClient<>(mirrorHost, client, Serdes.String(),
             valueResolver, new DefaultPartitionFinder());
     }
 }

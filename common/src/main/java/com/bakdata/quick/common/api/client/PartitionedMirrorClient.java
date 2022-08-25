@@ -62,25 +62,24 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
      * creating several business objects and initializing the PartitionRouter with a mapping
      * retrieved from StreamController.
      *
-     * @param topicName       the name of the topic
-     * @param mirrorHost      host to use
+     * @param mirrorHost      mirror host to use
      * @param client          http client
      * @param keySerde        the serde for the key
      * @param valueResolver   the value's {@link TypeResolver}
      * @param partitionFinder strategy for finding partitions
      */
-    public PartitionedMirrorClient(final String topicName, final MirrorHost mirrorHost, final HttpClient client,
+    public PartitionedMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
                                    final Serde<K> keySerde, final TypeResolver<V> valueResolver,
                                    final PartitionFinder partitionFinder) {
-        this.topicName = topicName;
+        this.topicName = mirrorHost.getHost();
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
         this.client = client;
         this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
         this.requestManager = new MirrorRequestManagerWithFallback(client, mirrorHost);
         log.info("Initializing partition router for the mirror at: {} and the topic: {}.",
-            this.streamsStateHost.getHost(), topicName);
+            this.streamsStateHost.getHost(), this.topicName);
         final Map<Integer, String> response = this.makeRequestForPartitionHostMapping();
-        this.router = new PartitionRouter<>(keySerde, topicName, partitionFinder, response);
+        this.router = new PartitionRouter<>(keySerde, this.topicName, partitionFinder, response);
         this.knownHosts = this.router.getAllHosts();
     }
 

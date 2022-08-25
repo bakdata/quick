@@ -43,8 +43,6 @@ import org.junit.jupiter.api.Test;
 @MicronautTest
 class TopicRegistryMirrorClientTest {
 
-    private static final String DEFAULT_TOPIC = "dummy";
-
     private final MockWebServer server = new MockWebServer();
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -59,9 +57,9 @@ class TopicRegistryMirrorClientTest {
 
     @BeforeEach
     void initRouterAndMirror() throws JsonProcessingException {
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, host, 2, host));
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, this.host, 2, this.host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
-        this.topicDataClient = new PartitionedMirrorClient<>(DEFAULT_TOPIC, mirrorHost, client, Serdes.String(),
+        this.topicDataClient = new PartitionedMirrorClient<>(this.mirrorHost, this.client, Serdes.String(),
             new KnownTypeResolver<>(TopicData.class, this.mapper), TestUtils.getMockPartitionFinder());
     }
 
