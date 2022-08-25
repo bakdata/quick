@@ -20,17 +20,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.common.ConfigUtils;
 import java.util.Map;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ManagerConfigTest {
-    @Test
-    void shouldCreateManagerConfigWithExpectedValues() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldCreateManagerConfigWithExpectedValues(final boolean configFlag) {
         final Map<String, Object> properties = Map.of(
-            "quick.manager.update-managed-images", "false",
-            "quick.manager.create-topic-registry", "false"
+            "quick.manager.update-managed-images", configFlag,
+            "quick.manager.create-topic-registry", configFlag
         );
         final ManagerConfig managerConfig = ConfigUtils.createWithProperties(properties, ManagerConfig.class);
-        assertThat(managerConfig.isUpdateManagedImages()).isEqualTo(false);
-        assertThat(managerConfig.isCreateTopicRegistry()).isEqualTo(false);
+        assertThat(managerConfig.isUpdateManagedImages()).isEqualTo(configFlag);
+        assertThat(managerConfig.isCreateTopicRegistry()).isEqualTo(configFlag);
     }
 }

@@ -86,7 +86,7 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
         final boolean hasFixedTag = mirrorCreationData.getTag() != null;
 
         final List<String> arguments = CliArgHandler.convertArgs(
-            createArgs(mirrorCreationData.getTopicName(),
+            createCliArguments(mirrorCreationData.getTopicName(),
                 mirrorCreationData.getRetentionTime(),
                 mirrorCreationData.isPoint(),
                 mirrorCreationData.getRangeField()));
@@ -159,18 +159,14 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
      * @param rangeField the field where the range index should be build on
      * @return an immutable map of command option and the value
      */
-    private static Map<String, String> createArgs(final String topic,
+    private static Map<String, String> createCliArguments(final String topic,
         @Nullable final Duration retentionTime,
         final boolean point,
         @Nullable final String rangeField) {
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
             .put("--input-topics", topic);
 
-        if (point) {
-            builder.put("--point", Boolean.toString(true));
-        } else {
-            builder.put("--point", Boolean.toString(false));
-        }
+        builder.put("--point", Boolean.toString(point));
 
         if (Objects.nonNull(retentionTime)) {
             builder.put("--retention-time", retentionTime.toString());

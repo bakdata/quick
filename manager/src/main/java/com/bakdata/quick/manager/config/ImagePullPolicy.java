@@ -19,6 +19,11 @@ package com.bakdata.quick.manager.config;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
+/**
+ * Defines the image pull policies of the manager resources.
+ *
+ * @see ApplicationSpecificationConfig
+ */
 public enum ImagePullPolicy {
     IF_NOT_PRESENT("IfNotPresent"),
     ALWAYS("Always"),

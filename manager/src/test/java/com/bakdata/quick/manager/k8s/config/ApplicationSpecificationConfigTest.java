@@ -83,7 +83,6 @@ class ApplicationSpecificationConfigTest {
         );
         final ApplicationSpecificationConfig specConfig =
             ConfigUtils.createWithProperties(properties, ApplicationSpecificationConfig.class);
-        assertThat(specConfig.getImagePullPolicy().getPolicyName()).isEqualTo(ImagePullPolicy.ALWAYS.getPolicyName());
 
         assertThat(specConfig.getResources().getMemory().getLimit()).isEqualTo("200Mi");
         assertThat(specConfig.getResources().getMemory().getRequest()).isEqualTo("150Mi");
