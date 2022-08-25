@@ -76,6 +76,6 @@ public class RangeFetcherRule implements DataFetcherRule{
             && context.getTopicDirective().hasRangeTo()
             && context.isListType()
             && context.getEnvironment().getElement().getArguments().size() == 3
-            && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE);
+            && context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE);
     }
 }

@@ -1,4 +1,3 @@
-# Invalid Schema
 type Query {
     userRequests(
         userId: Int
@@ -6,8 +5,8 @@ type Query {
         timestampTo: Int
     ): [UserRequests]
     @topic(name: "user-request-range",
-        keyArgument: "userId",
-        rangeFrom: "timestampFrom")
+        rangeFrom: "timestampFrom",
+        rangeTo: "timestampTo")
 }
 
 type UserRequests {

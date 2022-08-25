@@ -4,10 +4,11 @@ type Query {
         userId: Int
         timestampFrom: Int
         timestampTo: Int
-    ): [UserRequests]
+    ): UserRequests
     @topic(name: "user-request-range",
         keyArgument: "userId",
-        rangeFrom: "timestampFrom")
+        rangeFrom: "timestampFrom",
+        rangeTo: "timestampTo")
 }
 
 type UserRequests {

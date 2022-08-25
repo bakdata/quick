@@ -16,23 +16,58 @@
 
 package com.bakdata.quick.gateway.directives.topic.rule.validation;
 
+import com.bakdata.quick.common.graphql.GraphQLUtils;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import java.util.Optional;
 
 /**
- * Validation for {@link com.bakdata.quick.gateway.directives.topic.TopicDirective}
+ * Validation for range queries. These rules should apply:
+ * 1. The Parent container should be a Query and not Mutation/Subscription
+ * 2. Both rangeFrom and rangeTo fields should exist in the topic directive
+ * 3. A valid keyArgument should exist in the topic directive
+ * 4. The return type of the query should be list
+ * <p>
+ * <h2>Valid schema:</h2>
+ * <pre>{@code
+ * type Query {
+ *     userRequests(
+ *         userId: Int
+ *         timestampFrom: Int
+ *         timestampTo: Int
+ *     ): [UserRequests] @topic(name: "user-request-range",
+ *                              keyArgument: "userId",
+ *                              rangeFrom: "timestampFrom",
+ *                              rangeTo: "timestampTo")
+ * }
  *
- * rangeFrom and rangeTo should be either both present or both absent in the topic directive.
+ * type UserRequests {
+ *     userId: Int
+ *     serviceId: Int
+ *     timestamp: Int
+ *     requests: Int
+ *     success: Int
+ * }
+ * }</pre>
  */
-public class RangeArguments implements ValidationRule{
+public class RangeArguments implements ValidationRule {
     @Override
     public Optional<String> validate(final TopicDirectiveContext context) {
-        if(context.getTopicDirective().hasRangeFrom() && context.getTopicDirective().hasRangeTo()) {
-            return Optional.empty();
-        }
-        else if (!context.getTopicDirective().hasRangeFrom() && !context.getTopicDirective().hasRangeTo()) {
+        if (checkIfItIsRange(context)) {
+            if (!context.getTopicDirective().hasKeyArgument()) {
+                return Optional.of("You must define a keyArgument.");
+            } else if (!context.isListType()) {
+                return Optional.of("The return type of range queries should be a list.");
+            }
+            return ValidationUtility.makeCheckForKeyArgument(context);
+        } else if (!context.getTopicDirective().hasRangeFrom() && !context.getTopicDirective().hasRangeTo()) {
             return Optional.empty();
         }
         return Optional.of("Both rangeFrom and rangeTo arguments should be set.");
+    }
+
+    private static boolean checkIfItIsRange(final TopicDirectiveContext context) {
+        return context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE)
+            && context.getTopicDirective().hasRangeFrom()
+            && context.getTopicDirective().hasRangeTo();
     }
 }

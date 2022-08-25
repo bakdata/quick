@@ -520,8 +520,18 @@ class GraphQLSchemaGeneratorTest {
     }
 
     @Test
-    void shouldNotCoverIfRangeFromArgumentIsMissing(final TestInfo testInfo) throws  IOException {
+    void shouldNotCovertIfRangeFromArgumentIsMissing(final TestInfo testInfo) throws  IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "Both rangeFrom and rangeTo arguments should be set.");
+    }
+
+    @Test
+    void shouldNotCovertIfKeyArgumentInRangeQueryIsMissing(final TestInfo testInfo) throws  IOException {
+        this.assertQuickDirectiveExceptionMessage(testInfo, "You must define a keyArgument.");
+    }
+
+    @Test
+    void shouldNotCovertIfReturnTypeOfRangeQueryIsNotList(final TestInfo testInfo) throws  IOException {
+        this.assertQuickDirectiveExceptionMessage(testInfo, "The return type of range queries should be a list.");
     }
 
     private void assertQuickDirectiveExceptionMessage(final TestInfo testInfo, final String message)
