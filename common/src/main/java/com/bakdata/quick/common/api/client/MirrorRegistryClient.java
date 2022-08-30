@@ -16,7 +16,6 @@
 
 package com.bakdata.quick.common.api.client;
 
-import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
@@ -33,7 +32,6 @@ import jakarta.inject.Singleton;
 import java.util.Comparator;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serdes;
 
 /**
  * A client for interacting backed by a topic.
@@ -111,7 +109,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
         final KnownTypeResolver<TopicData> typeResolver = new KnownTypeResolver<>(
             TopicData.class, client.objectMapper());
         final MirrorHost mirrorHost = new MirrorHost(topicRegistryConfig.getServiceName(), MirrorConfig.directAccess());
-        return new PartitionedMirrorClient<>(mirrorHost, client, Serdes.String(), typeResolver, new DefaultPartitionFinder());
+        return new DefaultMirrorClient<>(mirrorHost, client, typeResolver, new DefaultMirrorRequestManager(client));
     }
 
     private Single<TopicData> getSelf() {

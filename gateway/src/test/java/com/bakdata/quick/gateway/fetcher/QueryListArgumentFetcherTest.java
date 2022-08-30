@@ -39,6 +39,7 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -90,34 +91,38 @@ class QueryListArgumentFetcherTest {
         assertThat(actual).isEqualTo(List.of(purchase1, purchase2));
     }
 
-//    @Test
-//    void shouldFetchListWhenListArgumentOfTypeInt() throws JsonProcessingException {
-//        final Product product1 = Product.builder()
-//            .productId(1)
-//            .name("productTest1")
-//            .build();
-//
-//        final Product product2 = Product.builder()
-//            .productId(2)
-//            .name("productTest2")
-//            .build();
-//
-//        this.server.enqueue(
-//            new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
-//
-//        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
-//
-//        final ListArgumentFetcher<?> listArgumentFetcher =
-//            new ListArgumentFetcher<>("productId", fetcherClient, isNullable, hasNullableElements);
-//
-//        final Map<String, Object> arguments = Map.of("productId", List.of(1L, 2L));
-//
-//        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-//            .localContext(arguments).build();
-//
-//        final List<?> actual = listArgumentFetcher.get(env);
-//        assertThat(actual).isEqualTo(List.of(product1, product2));
-//    }
+    // This test is temporarily disabled because PartitionedMirrorClient can only work with a single type.
+    // The reason is the findHost function in the underlying PartitionRouter that needs the serializer
+    // of a specific type.
+    @Disabled
+    @Test
+    void shouldFetchListWhenListArgumentOfTypeInt() throws JsonProcessingException {
+        final Product product1 = Product.builder()
+            .productId(1)
+            .name("productTest1")
+            .build();
+
+        final Product product2 = Product.builder()
+            .productId(2)
+            .name("productTest2")
+            .build();
+
+        this.server.enqueue(
+            new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
+
+        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
+
+        final ListArgumentFetcher<?> listArgumentFetcher =
+            new ListArgumentFetcher<>("productId", fetcherClient, isNullable, hasNullableElements);
+
+        final Map<String, Object> arguments = Map.of("productId", List.of(1L, 2L));
+
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
+            .localContext(arguments).build();
+
+        final List<?> actual = listArgumentFetcher.get(env);
+        assertThat(actual).isEqualTo(List.of(product1, product2));
+    }
 
     @Test
     @SuppressWarnings("unchecked")
