@@ -55,6 +55,7 @@ public class HardwareResource {
      */
     public interface Resource {
         String getLimit();
+
         String getRequest();
     }
 }

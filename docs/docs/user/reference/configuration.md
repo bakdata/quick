@@ -53,7 +53,7 @@
 
 | Environment Variable                               | Required         | Description                                                                                                  |
 |----------------------------------------------------|------------------|--------------------------------------------------------------------------------------------------------------|
-| `QUICK_APPLICATIONS_SPEC_IMAGE_PULL_POLICY`        | :material-close: | Image pull policy of the deployed applications by Quick. Valid values: Always (default), ifNotPresent, Never |
+| `QUICK_APPLICATIONS_SPEC_IMAGE_PULL_POLICY`        | :material-close: | Image pull policy of the deployed applications by Quick. Valid values: Always (default), IfNotPresent, Never |
 | `QUICK_APPLICATIONS_SPEC_RESOURCES_MEMORY_LIMIT`   | :material-close: | Memory limit for deployments                                                                                 |
 | `QUICK_APPLICATIONS_SPEC_RESOURCES_MEMORY_REQUEST` | :material-close: | Memory request for deployments                                                                               |
 | `QUICK_APPLICATIONS_SPEC_RESOURCES_CPU_LIMIT`      | :material-close: | Cpu limit for deployments                                                                                    |

@@ -84,7 +84,8 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Option(names = "--range", description = "The field which the Mirror builds its range index on")
     private String rangeField;
 
-    @Option(names = "--point", description = "Determines if a point index should be built or not", defaultValue = "true")
+    @Option(names = "--point", description = "Determines if a point index should be built or not",
+        defaultValue = "true")
     private boolean isPoint;
 
 

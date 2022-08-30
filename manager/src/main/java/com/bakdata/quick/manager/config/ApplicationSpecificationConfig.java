@@ -38,7 +38,8 @@ public class ApplicationSpecificationConfig {
      * @param resources sets the hardware resources (i.e., CPU and memory) for an application
      */
     @ConfigurationInject
-    public ApplicationSpecificationConfig(final Optional<ImagePullPolicy> imagePullPolicy, final HardwareResource resources) {
+    public ApplicationSpecificationConfig(final Optional<ImagePullPolicy> imagePullPolicy,
+        final HardwareResource resources) {
         this.imagePullPolicy = imagePullPolicy.orElse(ImagePullPolicy.ALWAYS);
         this.resources = resources;
     }

@@ -23,7 +23,6 @@ import com.bakdata.quick.manager.config.ApplicationSpecificationConfig;
 import com.bakdata.quick.manager.config.DeploymentConfig;
 import com.bakdata.quick.manager.k8s.ImageConfig;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
-import com.bakdata.quick.manager.config.HardwareResource;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
 import com.bakdata.quick.manager.k8s.resource.ResourceLoader;
 import io.fabric8.kubernetes.api.model.Service;
@@ -85,7 +84,7 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
 
         final ApplicationDeployment deployment =
             new ApplicationDeployment(this.createAppDeployment(deploymentName, listArgs, config, this.appSpecConfig,
-                appCreationData.getPort(),  appCreationData.getImagePullSecret()));
+                appCreationData.getPort(), appCreationData.getImagePullSecret()));
 
         if (appCreationData.getPort() != null) {
             final ApplicationService service =
@@ -123,8 +122,8 @@ public class ApplicationResourceLoader implements ResourceLoader<ApplicationReso
      * @param appSpecConfig memory + cpu requests and limits to use
      */
     private Deployment createAppDeployment(final String name, final List<String> arguments,
-                                           final ImageConfig imageConfig, final ApplicationSpecificationConfig appSpecConfig,
-                                           @Nullable final Integer port, @Nullable final String imagePullSecret) {
+        final ImageConfig imageConfig, final ApplicationSpecificationConfig appSpecConfig,
+        @Nullable final Integer port, @Nullable final String imagePullSecret) {
         final Context root = new Context();
         root.setVariable("name", name);
         root.setVariable("args", arguments);

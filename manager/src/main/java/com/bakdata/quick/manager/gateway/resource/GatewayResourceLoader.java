@@ -57,12 +57,12 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
      * Default constructor.
      *
      * @param kubernetesResources underlying engine for loading k8s resources
-     * @param deploymentConfig    config for deploying new resources
-     * @param appSpecConfig      config for setting resources for new deployments
-     * @param client              k8s manager client
+     * @param deploymentConfig config for deploying new resources
+     * @param appSpecConfig config for setting resources for new deployments
+     * @param client k8s manager client
      */
     public GatewayResourceLoader(final KubernetesResources kubernetesResources, final DeploymentConfig deploymentConfig,
-                                 final ApplicationSpecificationConfig appSpecConfig, final KubernetesClient client) {
+        final ApplicationSpecificationConfig appSpecConfig, final KubernetesClient client) {
         this.kubernetesResources = kubernetesResources;
         this.deploymentConfig = deploymentConfig;
         this.appSpecConfig = appSpecConfig;
@@ -73,13 +73,13 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
      * Constructor for testing.
      *
      * @param kubernetesResources underlying engine for loading k8s resources
-     * @param deploymentConfig    config for deploying new resources
-     * @param appSpecConfig      config for setting resources for new deployments
-     * @param namespace           namespace the new resources should be deployed in
+     * @param deploymentConfig config for deploying new resources
+     * @param appSpecConfig config for setting resources for new deployments
+     * @param namespace namespace the new resources should be deployed in
      */
     @VisibleForTesting
     public GatewayResourceLoader(final KubernetesResources kubernetesResources, final DeploymentConfig deploymentConfig,
-                                 final ApplicationSpecificationConfig appSpecConfig, final String namespace) {
+        final ApplicationSpecificationConfig appSpecConfig, final String namespace) {
         this.kubernetesResources = kubernetesResources;
         this.deploymentConfig = deploymentConfig;
         this.appSpecConfig = appSpecConfig;
@@ -91,12 +91,12 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
      *
      * <p>
      * This function creates all the Kubernetes resources that a gateway needs for its deployment. Deployment, Service,
-     * Ingress, Middleware, and ConfigMap templates are filled with the data passed through the {@link
-     * GatewayCreationData}.
+     * Ingress, Middleware, and ConfigMap templates are filled with the data passed through the
+     * {@link GatewayCreationData}.
      */
     @Override
     public GatewayResources forCreation(final GatewayCreationData gatewayCreationData,
-                                        final ResourcePrefix resourcePrefix) {
+        final ResourcePrefix resourcePrefix) {
         final String imageTag =
             Objects.requireNonNullElse(gatewayCreationData.getTag(), this.deploymentConfig.getDefaultImageTag());
         final int imageReplicas =
@@ -157,13 +157,13 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
     /**
      * Creates a gateway k8s deployment.
      *
-     * @param name           deployment name
-     * @param imageConfig    configuration of the gateway image that should be used
-     * @param appSpecConfig  memory + cpu requests and limits to use
-     * @param hasFixedTag    true if tag is manually set by user
+     * @param name deployment name
+     * @param imageConfig configuration of the gateway image that should be used
+     * @param appSpecConfig memory + cpu requests and limits to use
+     * @param hasFixedTag true if tag is manually set by user
      */
     private Deployment createGatewayDeployment(final String name, final ImageConfig imageConfig,
-                                               final ApplicationSpecificationConfig appSpecConfig, final boolean hasFixedTag) {
+        final ApplicationSpecificationConfig appSpecConfig, final boolean hasFixedTag) {
         final Context root = new Context();
         root.setVariable("name", name);
         root.setVariable("image", imageConfig.asImageString());
@@ -186,15 +186,15 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
     /**
      * Creates a k8s ingress for a gateway.
      *
-     * @param deploymentName    name of the gateway deployment the ingress should route to
-     * @param pathName          path fragment to use, e.g. {@code d9p.io/gateway/<pathName>/}
-     * @param ingressHost       host of the deployment
-     * @param ingressSsl        whether the ingress should use ssl
+     * @param deploymentName name of the gateway deployment the ingress should route to
+     * @param pathName path fragment to use, e.g. {@code d9p.io/gateway/<pathName>/}
+     * @param ingressHost host of the deployment
+     * @param ingressSsl whether the ingress should use ssl
      * @param ingressEntrypoint entrypoint for Traefik
      */
     private Ingress createGatewayIngress(final String deploymentName, final String pathName,
-                                         final String namespace, final Optional<String> ingressHost,
-                                         final boolean ingressSsl, final String ingressEntrypoint) {
+        final String namespace, final Optional<String> ingressHost,
+        final boolean ingressSsl, final String ingressEntrypoint) {
         final Context root = new Context();
         root.setVariable("deploymentName", deploymentName);
         root.setVariable("pathName", pathName);
@@ -214,7 +214,7 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
      * http://d9p.io/gateway/my-gateway/graphql, the gateway sees http://host/graphql.
      *
      * @param deploymentName gateway deployment name
-     * @param pathName       gateway path name
+     * @param pathName gateway path name
      */
     private Middleware createGatewayMiddleware(final String deploymentName, final String pathName) {
         final Context root = new Context();
