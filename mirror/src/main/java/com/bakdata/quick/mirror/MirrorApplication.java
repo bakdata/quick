@@ -80,17 +80,24 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Option(names = "--retention-time", description = "Retention time defined in ISO_8601")
     private Duration retentionTime;
 
+    @Option(names = "--range", description = "The field which the Mirror builds its range index on")
+    private String rangeField;
+
+    @Option(names = "--point", description = "Determines if a point index should be built or not")
+    private boolean isPoint;
+
+
     /**
      * Constructor.
      *
-     * @param context          Micronaut application context
+     * @param context Micronaut application context
      * @param topicTypeService Quick's topic type service
-     * @param topicConfig      kafka topic config
-     * @param hostConfig       host config for this pod
+     * @param topicConfig kafka topic config
+     * @param hostConfig host config for this pod
      */
     public MirrorApplication(final ApplicationContext context, final TopicTypeService topicTypeService,
-                             final QuickTopicConfig topicConfig, final HostConfig hostConfig,
-                             final QueryContextProvider contextProvider) {
+        final QuickTopicConfig topicConfig, final HostConfig hostConfig,
+        final QueryContextProvider contextProvider) {
         this.topicTypeService = topicTypeService;
         this.topicConfig = topicConfig;
         this.context = context;
@@ -130,7 +137,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      * Starts application with embedded HTTP server runtime.
      *
      * @param context current context
-     * @param args    CLI arguments
+     * @param args CLI arguments
      */
     private static void startWithWebServer(final ApplicationContext context, final String[] args) {
         // do NOT use try resource block, as it closes the application context and with the server
@@ -151,7 +158,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      * us. With this, we enable it to properly populate these.
      *
      * @param context current context
-     * @param args    existing CLI args
+     * @param args existing CLI args
      */
     private static String[] addKafkaConfigToArgs(final ApplicationContext context, final String[] args) {
         final KafkaConfig kafkaConfig = context.getBean(KafkaConfig.class);
@@ -164,7 +171,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      * Starts application within given context.
      *
      * @param context application context to start streams app in
-     * @param args    CLI arguments
+     * @param args CLI arguments
      */
     private static int execute(final ApplicationContext context, final String[] args) {
         return new CommandLine(MirrorApplication.class, new MicronautFactory(context))
