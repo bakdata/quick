@@ -36,6 +36,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.context.Context;
 
 /**
@@ -45,6 +46,7 @@ import org.thymeleaf.context.Context;
  * It fills out the Kubernetes template files with the given arguments.
  */
 @Singleton
+@Slf4j
 public class MirrorResourceLoader implements ResourceLoader<MirrorResources, MirrorCreationData> {
 
     private final KubernetesResources kubernetesResources;
@@ -163,15 +165,19 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
         @Nullable final Duration retentionTime,
         final boolean point,
         @Nullable final String rangeField) {
+        log.debug("Setting the --input-topics option with topic: {}", topic);
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
             .put("--input-topics", topic);
 
+        log.debug("Setting the --point option to: {}", point);
         builder.put("--point", Boolean.toString(point));
 
         if (Objects.nonNull(retentionTime)) {
+            log.debug("Setting the --retention-time option with topic: {}", retentionTime);
             builder.put("--retention-time", retentionTime.toString());
         }
         if (Objects.nonNull(rangeField)) {
+            log.debug("Setting the --range option with field: {}", rangeField);
             builder.put("--range", rangeField);
         }
         if (Objects.isNull(rangeField) && !point) {

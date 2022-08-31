@@ -85,6 +85,7 @@ components:
           type: string # ISO-8601
         point:
           type: boolean
+          default: true
         rangeField:
           type: string
 
@@ -115,6 +116,7 @@ components:
           type: string # ISO-8601
         point:
           type: boolean
+          default: true
         rangeField:
           type: string
       required:

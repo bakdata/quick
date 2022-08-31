@@ -93,7 +93,7 @@ paths:
 
   /gateway/{name}/schema/{type}/graphql:
     get:
-      summary: Returns the Gatewy schema in GraphQL format
+      summary: Returns the Gateway schema in GraphQL format
       operationId: getGraphqlWriteSchema
       parameters:
         - $ref: 'parameters.yaml#/components/parameters/gatewayNameParam'
@@ -112,7 +112,7 @@ paths:
 
   /gateway/{name}/schema/{type}/avro:
     get:
-      summary: Returns the Gatewy schema in Avro format
+      summary: Returns the Gateway schema in Avro format
       operationId: getAvroWriteSchema
       parameters:
         - $ref: 'parameters.yaml#/components/parameters/gatewayNameParam'
