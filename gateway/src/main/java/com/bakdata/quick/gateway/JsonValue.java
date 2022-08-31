@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway;
 
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
@@ -65,8 +66,10 @@ public class JsonValue {
                 return this.jsonNode.asBoolean();
             } else if (this.jsonNode.isArray() || this.jsonNode.isObject()) {
                 return this.jsonNode;
-            } else {
+            } else if (this.jsonNode.isTextual()) {
                 return this.jsonNode.textValue();
+            } else {
+                throw new BadArgumentException("Provided argument is not supported.");
             }
         }
         return null;

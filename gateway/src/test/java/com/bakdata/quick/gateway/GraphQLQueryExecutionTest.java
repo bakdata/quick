@@ -293,7 +293,7 @@ class GraphQLQueryExecutionTest {
             .first()
             .satisfies(error -> {
                 assertThat(error.getMessage()).startsWith(
-                    "The field at path '/findPurchase/productId' was declared as a non null type");
+                    "Exception while fetching data (/findPurchase/productId) : Provided argument is not supported.");
                 assertThat(error.getPath()).containsExactly("findPurchase", "productId");
             });
     }

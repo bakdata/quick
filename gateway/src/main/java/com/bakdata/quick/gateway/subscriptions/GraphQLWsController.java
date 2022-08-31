@@ -65,11 +65,13 @@ public class GraphQLWsController {
      *
      * @param messageHandler        the {@link GraphQLWsMessageHandler} instance
      * @param state                 the {@link GraphQLWsState} instance
+     * @param graphQLJsonSerializer the {@link GraphQLJsonSerializer} instance
      */
-    public GraphQLWsController(final GraphQLWsMessageHandler messageHandler, final GraphQLWsState state) {
+    public GraphQLWsController(final GraphQLWsMessageHandler messageHandler, final GraphQLWsState state,
+                               final GraphQLJsonSerializer graphQLJsonSerializer) {
         this.messageHandler = messageHandler;
         this.state = state;
-        this.graphQLJsonSerializer = new CustomGraphQLJsonSerializer();
+        this.graphQLJsonSerializer = graphQLJsonSerializer;
         this.errorMessage = new GraphQLWsResponse(GQL_CONNECTION_ERROR);
     }
 
@@ -139,7 +141,7 @@ public class GraphQLWsController {
     }
 
     private Publisher<GraphQLWsResponse> send(final Publisher<GraphQLWsResponse> publisher,
-        final WebSocketSession session) {
+                                              final WebSocketSession session) {
         return Publishers.then(publisher, response -> {
             if (session.isOpen()) {
                 session.sendSync(this.graphQLJsonSerializer.serialize(response));
