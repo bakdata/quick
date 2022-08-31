@@ -19,6 +19,7 @@ package com.bakdata.quick.gateway.fetcher;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
  * <h2>Example:</h2>
  * <pre>{@code
  * type Query {
- *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic") # <- query list fetcher
+ *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic", keyArgument: "purchaseId") # <- query list fetcher
  * }
  *
  * type Purchase  {
@@ -72,7 +73,12 @@ public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
         final Object arguments = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
 
-        final List<V> results = this.dataFetcherClient.fetchResults((List<String>) arguments);
+        List<V> results = null;
+        if (arguments instanceof List) {
+            final List<String> stringArgument =
+                ((Collection<?>) arguments).stream().map(Object::toString).collect(Collectors.toList());
+            results = this.dataFetcherClient.fetchResults(stringArgument);
+        }
 
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case

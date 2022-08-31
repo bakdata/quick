@@ -1,0 +1,10 @@
+[
+  {
+    "productId": 123,
+    "name": "T-Shirt"
+  },
+  {
+    "productId": 456,
+    "name": "Shoes"
+  }
+]
