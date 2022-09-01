@@ -25,12 +25,53 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.generic.GenericRecord;
 
+/**
+ * Utils for creating range indexes in a Mirror's state store
+ */
 @Slf4j
 public class RangeUtils {
     private static final int MAX_INTEGER_LENGTH = 10;
     private static final int MAX_LONG_LENGTH = 19;
 
+    /**
+     * Creates the range index for a given key over a specific range field First the value is converted to Avro generic
+     * record or Protobuf message. Then the value is extracted from the schema. Depending on the type (integer or long)
+     * of the key and value zero paddings are appended to the left side of the key and value, and they are contaminated
+     * with an <b>_</b>.
+     * <p>
+     * Imagine the incoming record has a key of type integer with the value 1. The value is a proto
+     * schema with the following schema:
+     *
+     * <pre>{@code
+     * message ProtoRangeQueryTest {
+     *   int32 userId = 1;
+     *   int32 timestamp = 2;
+     * }
+     *  }</pre>
+     *  <p>
+     *  And the <i>range field</i> is <i>timestamp</i> with the value of 5.
+     *  The returned value would be 0000000001_0000000005
+     */
     public static String createRangeIndex(final Object key, final Object value, final String rangeField) {
+        final Object rangeFieldValue = getRangeFieldValue(value, rangeField);
+
+        if (key instanceof Integer && rangeFieldValue instanceof Integer) {
+            return String.format("%s_%s", padZeros((Integer) key), padZeros((Integer) rangeFieldValue));
+        } else if (key instanceof Integer && rangeFieldValue instanceof Long) {
+            return String.format("%s_%s", padZeros((Integer) key), padZeros((Long) rangeFieldValue));
+        } else if (key instanceof Long && rangeFieldValue instanceof Integer) {
+            return String.format("%s_%s", padZeros((Long) key), padZeros((Integer) rangeFieldValue));
+        } else if (key instanceof Long && rangeFieldValue instanceof Long) {
+            return String.format("%s_%s", padZeros((Long) key), padZeros((Long) rangeFieldValue));
+        } else {
+            throw new MirrorException(
+                "The key or range field type is not supported for range queries. Supported types for range queries: "
+                    + "integer and long",
+                HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private static Object getRangeFieldValue(final Object value, final String rangeField) {
         final Object rangeFieldValue;
         if (value instanceof GenericRecord) {
             log.trace("Record value of type Avro Generic Record");
@@ -56,21 +97,7 @@ public class RangeUtils {
                 "The value of the topic should be schema (Avro or Protobuf) and not a primitive type",
                 HttpStatus.BAD_REQUEST);
         }
-
-        if (key instanceof Integer && rangeFieldValue instanceof Integer) {
-            return String.format("%s_%s", padZeros((Integer) key), padZeros((Integer) rangeFieldValue));
-        } else if (key instanceof Integer && rangeFieldValue instanceof Long) {
-            return String.format("%s_%s", padZeros((Integer) key), padZeros((Long) rangeFieldValue));
-        } else if (key instanceof Long && rangeFieldValue instanceof Integer) {
-            return String.format("%s_%s", padZeros((Long) key), padZeros((Integer) rangeFieldValue));
-        } else if (key instanceof Long && rangeFieldValue instanceof Long) {
-            return String.format("%s_%s", padZeros((Long) key), padZeros((Long) rangeFieldValue));
-        } else {
-            throw new MirrorException(
-                "The key or range field type is not supported for range queries. Supported types for range queries: "
-                    + "integer and long",
-                HttpStatus.BAD_REQUEST);
-        }
+        return rangeFieldValue;
     }
 
     private static String padZeros(final int number) {
