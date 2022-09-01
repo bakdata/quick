@@ -64,6 +64,7 @@ import picocli.CommandLine.Option;
 public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     public static final String MIRROR_STORE = "mirror-store";
     public static final String RETENTION_STORE = "retention-store";
+    public static final String RANGE_STORE = "range-store";
 
     // injectable parameter
     private final TopicTypeService topicTypeService;
@@ -79,6 +80,14 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Nullable
     @Option(names = "--retention-time", description = "Retention time defined in ISO_8601")
     private Duration retentionTime;
+
+    @Nullable
+    @Option(names = "--rangeField", description = "The field which the Mirror builds its range index on")
+    private String rangeField;
+
+    @Option(names = "--point", description = "Determines if a point index should be built or not",
+        defaultValue = "true")
+    private boolean isPoint;
 
     /**
      * Constructor.
@@ -114,9 +123,12 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         return MirrorTopology.<K, V>builder()
             .topologyData(this.getTopologyData())
             .storeName(MIRROR_STORE)
+            .rangeStoreName(RANGE_STORE)
             .retentionTime(this.retentionTime)
             .retentionStoreName(RETENTION_STORE)
             .storeType(this.storeType)
+            .isPoint(this.isPoint)
+            .rangeField(this.rangeField)
             .build()
             .createTopology(streamsBuilder);
     }
