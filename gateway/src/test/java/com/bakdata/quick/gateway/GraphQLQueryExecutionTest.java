@@ -200,7 +200,28 @@ class GraphQLQueryExecutionTest {
     }
 
     @Test
-    void shouldExecuteQueryWithListArgument(final TestInfo testInfo) throws IOException {
+    void shouldExecuteQueryWithListArgumentTypeId(final TestInfo testInfo) throws IOException {
+        final String name = testInfo.getTestMethod().orElseThrow().getName();
+        final Path schemaPath = workingDirectory.resolve(name + ".graphql");
+        final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
+
+        final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
+        final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
+
+        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        when(dataFetcherClient.fetchResults(List.of("1", "2", "3"))).thenAnswer(invocation -> List.of("1", "2", "3"));
+
+        final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
+
+        assertThat(executionResult.getErrors()).isEmpty();
+        final Map<String, List<String>> data = executionResult.getData();
+        assertThat(data.get("getURL"))
+            .isNotNull()
+            .containsExactly("1", "2", "3");
+    }
+
+    @Test
+    void shouldExecuteQueryWithListArgumentTypeInt(final TestInfo testInfo) throws IOException {
         final String name = testInfo.getTestMethod().orElseThrow().getName();
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
