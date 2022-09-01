@@ -17,8 +17,14 @@
 package com.bakdata.quick.mirror.range;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import org.junit.jupiter.api.Test;
+import com.bakdata.quick.testutil.AvroRangeQueryTest;
+import com.bakdata.quick.testutil.ProtoRangeQueryTest;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class RangeUtilsTest {
 
@@ -36,26 +42,46 @@ class RangeUtilsTest {
     private static final long FOUR_DIGIT_LONG_NUMBER = 1234L;
     private static final long NINETEEN_DIGIT_LONG_NUMBER = 1000000000000000000L;
     private static final long NINETEEN_DIGIT_MINUS_LONG_NUMBER = -1000000000000000000L;
+    public static final String RANGE_FIELD = "timestamp";
 
-    @Test
-    void shouldPadZerosToInteger() {
-        assertThat(RangeUtils.padZeros(ONE_DIGIT_INT_NUMBER)).isEqualTo("0000000001");
-        assertThat(RangeUtils.padZeros(INT_ZERO)).isEqualTo("0000000000");
-        assertThat(RangeUtils.padZeros(TWO_DIGIT_INT_NUMBER)).isEqualTo("0000000012");
-        assertThat(RangeUtils.padZeros(THREE_DIGIT_INT_NUMBER)).isEqualTo("0000000123");
-        assertThat(RangeUtils.padZeros(FOUR_DIGIT_INT_NUMBER)).isEqualTo("0000001234");
-        assertThat(RangeUtils.padZeros(TEN_DIGIT_INT_NUMBER)).isEqualTo("1000000000");
-        assertThat(RangeUtils.padZeros(TEN_DIGIT_MINUS_INT_NUMBER)).isEqualTo("-1000000000");
+    @ParameterizedTest
+    @MethodSource("integerKeyAvroValueAndRangeIndexProvider")
+    void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final AvroRangeQueryTest avroRecord,
+        final String range_index) {
+        assertThat(RangeUtils.createRangeIndex(key, avroRecord, RANGE_FIELD)).isEqualTo(range_index);
     }
 
-    @Test
-    void shouldPadZerosToLong() {
-        assertThat(RangeUtils.padZeros(LONG_ZERO)).isEqualTo("0000000000000000000");
-        assertThat(RangeUtils.padZeros(ONE_DIGIT_LONG_NUMBER)).isEqualTo("0000000000000000001");
-        assertThat(RangeUtils.padZeros(TWO_DIGIT_LONG_NUMBER)).isEqualTo("0000000000000000012");
-        assertThat(RangeUtils.padZeros(THREE_DIGIT_LONG_NUMBER)).isEqualTo("0000000000000000123");
-        assertThat(RangeUtils.padZeros(FOUR_DIGIT_LONG_NUMBER)).isEqualTo("0000000000000001234");
-        assertThat(RangeUtils.padZeros(NINETEEN_DIGIT_LONG_NUMBER)).isEqualTo("1000000000000000000");
-        assertThat(RangeUtils.padZeros(NINETEEN_DIGIT_MINUS_LONG_NUMBER)).isEqualTo("-1000000000000000000");
+    @ParameterizedTest
+    @MethodSource("longKeyProtobufValueAndRangeIndexProvider")
+    void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key,
+        final ProtoRangeQueryTest protoMessage,
+        final String range_index) {
+        assertThat(RangeUtils.createRangeIndex(key, protoMessage, RANGE_FIELD)).isEqualTo(range_index);
+    }
+
+    static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {
+        final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1).build();
+        return Stream.of(
+            arguments(INT_ZERO, avroRecord, "0000000000_0000000000000000001"),
+            arguments(ONE_DIGIT_INT_NUMBER, avroRecord, "0000000001_0000000000000000001"),
+            arguments(TWO_DIGIT_INT_NUMBER, avroRecord, "0000000012_0000000000000000001"),
+            arguments(THREE_DIGIT_INT_NUMBER, avroRecord, "0000000123_0000000000000000001"),
+            arguments(FOUR_DIGIT_INT_NUMBER, avroRecord, "0000001234_0000000000000000001"),
+            arguments(TEN_DIGIT_INT_NUMBER, avroRecord, "1000000000_0000000000000000001"),
+            arguments(TEN_DIGIT_MINUS_INT_NUMBER, avroRecord, "-1000000000_0000000000000000001")
+        );
+    }
+
+    static Stream<Arguments> longKeyProtobufValueAndRangeIndexProvider() {
+        final ProtoRangeQueryTest protoMessage = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1).build();
+        return Stream.of(
+            arguments(LONG_ZERO, protoMessage, "0000000000000000000_0000000001"),
+            arguments(ONE_DIGIT_LONG_NUMBER, protoMessage, "0000000000000000001_0000000001"),
+            arguments(TWO_DIGIT_LONG_NUMBER, protoMessage, "0000000000000000012_0000000001"),
+            arguments(THREE_DIGIT_LONG_NUMBER, protoMessage, "0000000000000000123_0000000001"),
+            arguments(FOUR_DIGIT_LONG_NUMBER, protoMessage, "0000000000000001234_0000000001"),
+            arguments(NINETEEN_DIGIT_LONG_NUMBER, protoMessage, "1000000000000000000_0000000001"),
+            arguments(NINETEEN_DIGIT_MINUS_LONG_NUMBER, protoMessage, "-1000000000000000000_0000000001")
+        );
     }
 }

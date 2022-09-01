@@ -73,12 +73,12 @@ public class RangeUtils {
         }
     }
 
-    public static String padZeros(final int number) {
+    private static String padZeros(final int number) {
         final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_INTEGER_LENGTH));
         return decimalFormat.format(number);
     }
 
-    public static String padZeros(final long number) {
+    private static String padZeros(final long number) {
         final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_LONG_LENGTH));
         return decimalFormat.format(number);
     }
