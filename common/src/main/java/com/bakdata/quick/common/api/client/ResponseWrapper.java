@@ -46,8 +46,7 @@ public class ResponseWrapper {
     }
 
     private ResponseWrapper(@Nullable final ResponseBody responseBody) {
-        this.responseBody = responseBody;
-        this.updateCacheHeaderSet = false;
+        this(responseBody, false);
     }
 
     /**
@@ -58,11 +57,11 @@ public class ResponseWrapper {
      */
     public static ResponseWrapper fromResponse(final Response response) {
         if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
-            return new ResponseWrapper(null, checkIfCacheMissHeaderSet(response));
+            return new ResponseWrapper(null, isCacheMissHeaderSet(response));
         }
         final ResponseBody body = getAndCheckResponseBody(response);
         if (response.header(HeaderConstants.getCacheMissHeaderName()) != null) {
-            return new ResponseWrapper(body, checkIfCacheMissHeaderSet(response));
+            return new ResponseWrapper(body, isCacheMissHeaderSet(response));
         }
         return new ResponseWrapper(body);
     }
@@ -111,7 +110,7 @@ public class ResponseWrapper {
      * @param response a response from the http call
      * @return a boolean that indicates whether the X-Cache-Update header has been set
      */
-    private static boolean checkIfCacheMissHeaderSet(final Response response) {
+    private static boolean isCacheMissHeaderSet(final Response response) {
         return response.header(HeaderConstants.getCacheMissHeaderName()) != null;
     }
 }

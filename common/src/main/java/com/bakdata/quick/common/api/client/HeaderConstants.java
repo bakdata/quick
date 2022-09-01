@@ -18,12 +18,12 @@ package com.bakdata.quick.common.api.client;
 
 /**
  * A collection of constants for managing headers.
- * The X-Cache-Update header is set when there is a need to update the
- * partition-host mapping in the {@link com.bakdata.quick.common.api.client.routing.PartitionRouter}.
- * The need arises when a replica of the mirror is added or removed.
  */
 public class HeaderConstants {
 
+    // The X-Cache-Update header is set when there is a need to update the
+    // partition-host mapping in the {@link com.bakdata.quick.common.api.client.routing.PartitionRouter}.
+    // The need arises when a replica of the mirror is added or removed.
     private static final String UPDATE_PARTITION_HOST_MAPPING_HEADER = "X-Cache-Update";
     // The constant below indicates the existence of a header.
     // See: https://stackoverflow.com/a/65241869 for more details.

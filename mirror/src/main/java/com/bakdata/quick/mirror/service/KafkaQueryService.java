@@ -37,7 +37,6 @@ import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import jakarta.inject.Inject;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
@@ -152,7 +151,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final boolean headerSet = listOfResponses.stream()
             .anyMatch(response -> response.header(HeaderConstants.getCacheMissHeaderName()) != null);
         final List<V> values = listOfResponses.stream()
-            .map(response -> Objects.requireNonNull(response.body()).getValue())
+            .filter(response -> response.body() != null)
+            .map(response -> response.body().getValue())
             .collect(Collectors.toList());
         final MutableHttpResponse<MirrorValue<List<V>>> responseWithoutHeader =
             HttpResponse.created(new MirrorValue<>(values)).status(200);

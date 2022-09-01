@@ -87,9 +87,11 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public V fetchValue(final K key) {
         final MirrorHost currentKeyHost = this.router.findHost(key);
+        log.debug("Host {} will answer the request for the key: {}.", currentKeyHost.getHost(), key);
         final ResponseWrapper response = this.requestManager
             .makeRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()));
         if (response.isUpdateCacheHeaderSet()) {
+            log.debug("The update header has been set. Updating router info.");
             this.updateRouterInfo();
         }
         return this.requestManager.processResponse(response, this.parser::deserialize);
@@ -98,12 +100,16 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     public List<V> fetchAll() {
         final List<V> valuesFromAllHosts = new ArrayList<>();
+        log.debug("Fetching the values for all possible keys that are distributed across {} hosts.",
+            this.knownHosts.size());
         for (final MirrorHost host : this.knownHosts) {
+            log.debug("Fetching the value from the following host: {}", host.getHost());
             final ResponseWrapper response = this.requestManager.makeRequest(host.forAll());
             final List<V> valuesFromSingleHost =
                 Objects.requireNonNullElse(this.requestManager.processResponse(response, this.parser::deserializeList),
                     Collections.emptyList());
             valuesFromAllHosts.addAll(valuesFromSingleHost);
+            log.debug("Fetched {} values.", valuesFromSingleHost.size());
         }
         return valuesFromAllHosts;
     }
@@ -111,6 +117,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
+        log.debug("Fetching values for {} keys.", keys.size());
         return keys.stream().map(this::fetchValue).collect(Collectors.toList());
     }
 

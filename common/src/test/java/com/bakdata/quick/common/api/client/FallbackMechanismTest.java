@@ -40,7 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for the Fallback mechanism of the PartitionedMirrorClient
+ * Test for the Fallback mechanism of the PartitionedMirrorClient.
  */
 public class FallbackMechanismTest {
 

@@ -73,8 +73,8 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
      * This code covers a situation where a replica is removed, and we can no longer
      * reach the host for a given partition. The k8s-service (Load Balancer) is used
      * as a fallback in such a case. It might also happen that the Load Balancer itself is not reachable.
-     * If this occurs, we throw an exception. We also set the X-Cache-Update header to a response
-     * to immediately update the mapping.
+     * If this occurs, we throw an exception. We also set the X-Cache-Update header {@link HeaderConstants}
+     * to a response to immediately update the mapping.
      *
      * @param initialUrl the original URL for which an initial call is made
      * @param initialRequest the original request

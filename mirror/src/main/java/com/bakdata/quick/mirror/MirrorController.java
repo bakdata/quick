@@ -70,6 +70,7 @@ public class MirrorController<K, V> {
      */
     @Get
     public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
+        log.debug("Request for all existing keys.");
         return this.queryService.getAll();
     }
 }

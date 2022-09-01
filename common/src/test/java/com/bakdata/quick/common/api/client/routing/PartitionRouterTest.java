@@ -30,11 +30,14 @@ import org.junit.jupiter.api.Test;
 @MicronautTest
 public class PartitionRouterTest {
 
+
     @Test
-    void shouldBeInitializedWithTwoDifferentHosts() {
-        final Map<Integer, String> elements = Map.of(1, "host1", 2, "host2");
+    void shouldReturnSingleHostWhenTheyAreEqualAndTwoIfTheyDiffer() {
+        final Map<Integer, String> elements = Map.of(1, "host1", 2, "host1");
         final Router<String> partitionRouter =
             new PartitionRouter<>(Serdes.String(), "dummy", TestUtils.getMockPartitionFinder(), elements);
+        assertThat(partitionRouter.getAllHosts()).hasSize(1);
+        partitionRouter.updateRoutingInfo(Map.of(1, "host1", 2, "host2"));
         assertThat(partitionRouter.getAllHosts()).hasSize(2);
     }
 

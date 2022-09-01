@@ -29,12 +29,10 @@ import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Streams;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;
 import okhttp3.OkHttpClient;
@@ -87,10 +85,8 @@ class QueryListFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<Purchase> doublePurchaseList = Streams.concat(
-            purchaseList.stream(), purchaseList.stream()).collect(Collectors.toList());
         final List<?> actual = queryFetcher.get(env);
-        assertThat(actual).isEqualTo(doublePurchaseList);
+        assertThat(actual).isEqualTo(purchaseList);
     }
 
 
@@ -108,7 +104,7 @@ class QueryListFetcherTest {
 
         final List<?> fetcherResult = queryFetcher.get(env);
 
-        assertThat(fetcherResult).isEqualTo(List.of("abc", "def", "abc", "def"));
+        assertThat(fetcherResult).isEqualTo(List.of("abc", "def"));
     }
 
     @Test
@@ -124,7 +120,7 @@ class QueryListFetcherTest {
 
         final List<?> fetcherResult = queryFetcher.get(env);
 
-        assertThat(fetcherResult).isEqualTo(List.of(1, 2, 1, 2));
+        assertThat(fetcherResult).isEqualTo(List.of(1, 2));
     }
 
     @Test
@@ -140,7 +136,7 @@ class QueryListFetcherTest {
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
         final List<?> fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(List.of(0.5, 0.1, 0.5, 0.1));
+        assertThat(fetcherResult).isEqualTo(List.of(0.5, 0.1));
     }
 
     private <T> MirrorDataFetcherClient<T> createClient(final TypeResolver<T> type) {

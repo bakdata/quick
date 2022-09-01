@@ -20,9 +20,10 @@ import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
 import io.micronaut.http.HttpStatus;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -39,6 +40,8 @@ public class PartitionRouter<K> implements Router<K> {
     private final Serde<K> keySerde;
     private final PartitionFinder partitionFinder;
     private Map<Integer, MirrorHost> partitionToMirrorHost;
+    private final Set<String> distinctHosts;
+    private List<MirrorHost> distinctMirrorHosts;
 
     /**
      * A constructor with the default partitioner that is retrieved from a static method.
@@ -54,6 +57,15 @@ public class PartitionRouter<K> implements Router<K> {
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
         this.partitionToMirrorHost = this.convertHostStringToMirrorHost(partitionToHost);
+        this.distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
+        this.distinctMirrorHosts = this.findDistinctHosts();
+    }
+
+    private List<MirrorHost> findDistinctHosts() {
+        return this.partitionToMirrorHost.values()
+            .stream()
+            .filter(mirrorHost -> this.distinctHosts.add(mirrorHost.getHost()))
+            .collect(Collectors.toList());
     }
 
     private Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
@@ -79,11 +91,13 @@ public class PartitionRouter<K> implements Router<K> {
         if (this.partitionToMirrorHost.isEmpty()) {
             throw new MirrorException("Partition to MirrorHost mapping is empty.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ArrayList<>(this.partitionToMirrorHost.values());
+        return this.distinctMirrorHosts;
     }
 
     @Override
     public void updateRoutingInfo(final Map<Integer, String> updatedRoutingInfo) {
+        this.distinctHosts.clear();
         this.partitionToMirrorHost = this.convertHostStringToMirrorHost(updatedRoutingInfo);
+        this.distinctMirrorHosts = this.findDistinctHosts();
     }
 }
