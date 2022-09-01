@@ -66,7 +66,7 @@ setup() {
 }
 
 @test "should query list of items and retrieve list" {
-    sleep 30
+    sleep 10
     result="$(${GRAPHQL_CLI} < query-list.gql | jq -j .findProducts)"
     echo "$result"
     expected="$(cat result-list.json)"
@@ -74,7 +74,6 @@ setup() {
 }
 
 @test "should retrieve all item" {
-    sleep 30
     result="$(${GRAPHQL_CLI} < query-all.gql | jq -j .allProducts)"
     echo "$result"
     expected="$(cat result-all.json)"

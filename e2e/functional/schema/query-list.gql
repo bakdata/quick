@@ -1,5 +1,5 @@
 {
-    findProduct(productId: [123, 456]) {
+    findProducts(productId: [123, 456]) {
         productId
         name
     }
