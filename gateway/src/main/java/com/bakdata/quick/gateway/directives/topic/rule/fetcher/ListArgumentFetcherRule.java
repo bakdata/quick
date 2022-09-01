@@ -33,7 +33,8 @@ import java.util.Objects;
  * <h2>Example:</h2>
  * <pre>{@code
  * type Query {
- *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic", keyArgument: "purchaseId") # <- list argument fetcher
+ *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic", keyArgument: "purchaseId")
+ *  # <- list argument fetcher
  * }
  *
  * type Purchase  {

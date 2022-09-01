@@ -21,10 +21,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A Data Fetcher that fetchers a list of values in a mirror's key value store.
@@ -45,7 +47,9 @@ import java.util.stream.Collectors;
  * <p>
  * The gateway receives a list of purchase-IDs and sends them to the mirror and should receive a list of purchases.
  */
+@Slf4j
 public class ListArgumentFetcher implements DataFetcher<List<Object>> {
+
     private final String argument;
     private final DataFetcherClient<JsonNode> dataFetcherClient;
     private final boolean isNullable;
@@ -54,13 +58,13 @@ public class ListArgumentFetcher implements DataFetcher<List<Object>> {
     /**
      * Standard constructor.
      *
-     * @param argument an argument of type list containing the keys
+     * @param argument          an argument of type list containing the keys
      * @param dataFetcherClient http client for mirror
-     * @param isNullable true if field that is being fetched can be null
+     * @param isNullable        true if field that is being fetched can be null
      */
     public ListArgumentFetcher(final String argument,
-        final DataFetcherClient<JsonNode> dataFetcherClient,
-        final boolean isNullable, final boolean hasNullableElements) {
+                               final DataFetcherClient<JsonNode> dataFetcherClient,
+                               final boolean isNullable, final boolean hasNullableElements) {
         this.argument = argument;
         this.dataFetcherClient = dataFetcherClient;
         this.isNullable = isNullable;
@@ -69,32 +73,21 @@ public class ListArgumentFetcher implements DataFetcher<List<Object>> {
 
     @Override
     @Nullable
-    @SuppressWarnings("unchecked")
     public List<Object> get(final DataFetchingEnvironment environment) {
         final Object arguments = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
 
-        final List<JsonNode> nodesFromMirror = this.dataFetcherClient.fetchResults((List<String>) arguments);
-        List<JsonNode> nodes = null;
+        List<JsonNode> nodesFromMirror = null;
         if (arguments instanceof List) {
-            final List<String> stringArgument =
-                ((Collection<?>) arguments).stream().map(Object::toString).collect(Collectors.toList());
+            final List<String> stringArgument = ((Collection<?>) arguments).stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
             log.trace("Preparing list arguments {} to fetch from the data fetcher client (Mirror)", stringArgument);
-            nodes = this.dataFetcherClient.fetchResults(stringArgument);
+            nodesFromMirror = this.dataFetcherClient.fetchResults(stringArgument);
         }
 
-        if (nodes == null && !this.isNullable) {
-            log.trace("Result is null, but schema does not allow null. Gracefully returning an empty list.");
-            return Collections.emptyList();
-        }
-
-        final List<Object> results = Objects.requireNonNull(nodes).stream().map(
-            jsonNode -> JsonValue.fromJsonNode(jsonNode).getValue()
-        ).collect(Collectors.toList());
-        // got null but schema doesn't allow null
-        // semantically, there is no difference between null and an empty list for us in this case
-        // we therefore continue gracefully by simply returning a list and not throwing an exception
         if (nodesFromMirror == null && !this.isNullable) {
+            log.trace("Result is null, but schema does not allow null. Gracefully returning an empty list.");
             return Collections.emptyList();
         }
 
@@ -102,13 +95,12 @@ public class ListArgumentFetcher implements DataFetcher<List<Object>> {
 
         // null elements are not allowed, so we have to filter them
         if (!this.hasNullableElements) {
-            return values.stream().filter(Objects::nonNull).collect(Collectors.toList());
             log.trace("Null elements are not allowed, Filtering the results.");
-            return results.stream().filter(Objects::nonNull).collect(Collectors.toList());
+            return values.stream().filter(Objects::nonNull).collect(Collectors.toList());
         }
 
+        log.trace("Returning the list argument fetcher results: {}", values);
         return values;
-        log.trace("Returning the list argument fetcher results: {}", results);
-        return results;
+
     }
 }

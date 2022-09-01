@@ -76,7 +76,8 @@ public class JsonValue {
     }
 
     /**
-     * Extracts the values from the corresponding JsonNodes
+     * Extracts the values from the corresponding JsonNodes.
+     *
      * @param nodes a list of JsonNode
      * @return a list of objects where each corresponds to a value from the JsonNode.
      */

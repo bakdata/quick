@@ -34,12 +34,12 @@ import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.client.BlockingHttpClient;
-import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.runtime.server.EmbeddedServer;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.rxjava2.http.client.websockets.RxWebSocketClient;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.util.Map;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -90,9 +90,7 @@ class GraphQLSecurityTest {
 
         final GraphQLWsResponse graphQLWsResponse = client.nextResponse();
         assertThat(graphQLWsResponse)
-            .satisfies(response -> {
-                assertThat(response.getType()).isEqualTo(ServerType.GQL_ERROR.getType());
-            })
+            .satisfies(response -> assertThat(response.getType()).isEqualTo(ServerType.GQL_ERROR.getType()))
             .extracting(GraphQLWsResponse::getPayload)
             .extracting(GraphQLResponseBody::getSpecification)
             .asInstanceOf(MAP)

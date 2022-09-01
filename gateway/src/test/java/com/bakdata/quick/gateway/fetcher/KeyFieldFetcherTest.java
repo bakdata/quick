@@ -123,7 +123,8 @@ class KeyFieldFetcherTest {
             .prices(List.of(3, 4, 5))
             .build();
 
-        this.server.enqueue(new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
+        this.server.enqueue(new MockResponse().setBody(this.mapper.writeValueAsString(
+            new MirrorValue<>(List.of(product1, product2)))));
 
         final DataFetcherClient<JsonNode> fetcherClient = this.createClient();
         final KeyFieldFetcher queryFetcher =

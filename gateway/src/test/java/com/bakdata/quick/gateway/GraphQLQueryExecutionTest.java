@@ -213,8 +213,13 @@ class GraphQLQueryExecutionTest {
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
         final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("url-topic");
-        when(dataFetcherClient.fetchResults(List.of("1", "2", "3"))).thenAnswer(invocation -> List.of("1", "2", "3"));
+        final DataFetcherClient<JsonValue> dataFetcherClient = this.supplier.getClients().get("url-topic");
+        final JsonNode n1 = this.objectMapper.valueToTree("1");
+        final JsonNode n2 = this.objectMapper.valueToTree("2");
+        final JsonNode n3 = this.objectMapper.valueToTree("3");
+        when(dataFetcherClient.fetchResults(List.of("1", "2", "3"))).thenAnswer(invocation -> List.of(
+            n1, n2, n3
+        ));
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 

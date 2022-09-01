@@ -28,9 +28,9 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.BlockingHttpClient;
-import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.util.Optional;
@@ -47,7 +47,7 @@ class ControllerUpdateSchemaTest {
 
     @Inject
     private ApplicationContext context;
-    
+
     static Optional<ErrorMessage> extractErrorMessage(final HttpClientResponseException ex) {
         try {
             return Optional
