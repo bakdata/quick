@@ -25,11 +25,13 @@ import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * A HTTP client for fetching values from mirror REST APIs.
  */
+@Slf4j
 public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     private final Lazy<MirrorClient<String, V>> mirrorClient;
 
@@ -55,18 +57,21 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     @Override
     @Nullable
     public V fetchResult(final String id) {
+        log.trace("Preparing to send request for fetching a key {} to Mirror", id);
         return this.mirrorClient.get().fetchValue(id);
     }
 
     @Override
     @Nullable
     public List<V> fetchResults(final List<String> ids) {
+        log.trace("Preparing to send request for fetching a list of ids {} to Mirror", ids);
         return this.mirrorClient.get().fetchValues(ids);
     }
 
     @Override
     @Nullable
     public List<V> fetchList() {
+        log.trace("Preparing to send request for fetching all keys from the Mirror");
         return this.mirrorClient.get().fetchAll();
     }
 

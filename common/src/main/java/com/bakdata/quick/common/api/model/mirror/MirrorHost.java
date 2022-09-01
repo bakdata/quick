@@ -18,11 +18,13 @@ package com.bakdata.quick.common.api.model.mirror;
 
 import com.bakdata.quick.common.config.MirrorConfig;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility for setting a Mirror host in Quick.
  */
 @Getter
+@Slf4j
 public class MirrorHost {
     private final String host;
     private final MirrorConfig config;
@@ -42,7 +44,10 @@ public class MirrorHost {
      * Generates a URL for fetching a single key in a topic.
      */
     public String forKey(final String key) {
-        return String.format("http://%s%s/%s/%s", this.config.getPrefix(), this.host, this.config.getPath(), key);
+        final String url =
+            String.format("http://%s%s/%s/%s", this.config.getPrefix(), this.host, this.config.getPath(), key);
+        log.trace("Preparing Mirror URL: {}", url);
+        return url;
     }
 
     /**
@@ -50,13 +55,18 @@ public class MirrorHost {
      */
     public String forKeys(final Iterable<String> keys) {
         final String ids = String.join(",", keys);
-        return String.format("http://%s%s/%s?ids=%s", this.config.getPrefix(), this.host, this.config.getPath(), ids);
+        final String url =
+            String.format("http://%s%s/%s/keys?ids=%s", this.config.getPrefix(), this.host, this.config.getPath(), ids);
+        log.trace("Preparing Mirror URL: {}", url);
+        return url;
     }
 
     /**
      * Generates a URL for fetching all keys in a topic.
      */
     public String forAll() {
-        return String.format("http://%s%s/%s", this.config.getPrefix(), this.host, this.config.getPath());
+        final String url = String.format("http://%s%s/%s", this.config.getPrefix(), this.host, this.config.getPath());
+        log.trace("Preparing Mirror URL: {}", url);
+        return url;
     }
 }
