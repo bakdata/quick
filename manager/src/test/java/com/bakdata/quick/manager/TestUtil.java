@@ -16,11 +16,16 @@
 
 package com.bakdata.quick.manager;
 
+import com.bakdata.quick.common.api.model.TopicWriteType;
+import com.bakdata.quick.common.api.model.manager.GatewaySchema;
+import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
+import com.bakdata.quick.common.api.model.manager.creation.TopicCreationData;
 import com.bakdata.quick.manager.config.ApplicationSpecificationConfig;
 import com.bakdata.quick.manager.config.HardwareResource;
 import com.bakdata.quick.manager.config.HardwareResource.Cpu;
 import com.bakdata.quick.manager.config.HardwareResource.Memory;
 import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility class for tests.
@@ -33,6 +38,21 @@ public final class TestUtil {
 
     public static ApplicationSpecificationConfig newAppSpec() {
         return new ApplicationSpecificationConfig(Optional.empty(), newResourceConfig());
+    }
+
+    public static MirrorCreationData createDefaultMirrorCreationData(final String topicName) {
+        return new MirrorCreationData(
+            topicName,
+            topicName,
+            1,
+            null,
+            null,
+            true,
+            null);
+    }
+
+    public static TopicCreationData createDefaultTopicCreationData(@Nullable final GatewaySchema gatewaySchema) {
+        return new TopicCreationData(TopicWriteType.MUTABLE, gatewaySchema, null, null, true, null);
     }
 
     private static HardwareResource newResourceConfig() {

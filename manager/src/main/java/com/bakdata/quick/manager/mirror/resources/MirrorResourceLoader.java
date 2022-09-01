@@ -165,25 +165,23 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
         @Nullable final Duration retentionTime,
         final boolean point,
         @Nullable final String rangeField) {
-        log.debug("Setting the --input-topics option with topic: {}", topic);
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
             .put("--input-topics", topic);
 
-        log.debug("Setting the --point option to: {}", point);
         builder.put("--point", Boolean.toString(point));
 
         if (Objects.nonNull(retentionTime)) {
-            log.debug("Setting the --retention-time option with topic: {}", retentionTime);
             builder.put("--retention-time", retentionTime.toString());
         }
         if (Objects.nonNull(rangeField)) {
-            log.debug("Setting the --range option with field: {}", rangeField);
-            builder.put("--range", rangeField);
+            builder.put("--rangeField", rangeField);
         }
         if (Objects.isNull(rangeField) && !point) {
-            throw new BadArgumentException("At least one query type (--range <Field> or --point) should be defined");
+            throw new BadArgumentException(
+                "At least one query type (--rangeField <Field> or --point) should be defined");
         }
 
+        log.debug("Creating CLI arguments for the mirror deployment: {}", builder.build().toString());
         return builder.build();
     }
 }

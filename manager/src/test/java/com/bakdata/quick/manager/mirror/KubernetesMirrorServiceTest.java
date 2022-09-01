@@ -17,6 +17,7 @@
 package com.bakdata.quick.manager.mirror;
 
 
+import static com.bakdata.quick.manager.TestUtil.createDefaultMirrorCreationData;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
@@ -54,14 +55,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
 
     @Test
     void shouldCreateMirrorResources() {
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            TOPIC_NAME,
-            TOPIC_NAME,
-            1,
-            null,
-            null,
-            true,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(TOPIC_NAME);
         this.createMirror(mirrorCreationData);
 
         final List<Deployment> deployments = this.getDeployments();
@@ -78,14 +72,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
 
     @Test
     void shouldCreateDeployment() {
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            TOPIC_NAME,
-            TOPIC_NAME,
-            1,
-            null,
-            null,
-            true,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(TOPIC_NAME);
         this.createMirror(mirrorCreationData);
 
         final List<Deployment> items = this.getDeployments();
@@ -102,14 +89,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
 
     @Test
     void shouldCreateServiceWithDefaults() {
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            TOPIC_NAME,
-            TOPIC_NAME,
-            1,
-            null,
-            null,
-            true,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(TOPIC_NAME);
         this.createMirror(mirrorCreationData);
 
         final List<Service> services = this.getServices();
@@ -124,14 +104,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
 
     @Test
     void shouldDeleteDeployment() {
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            TOPIC_NAME,
-            TOPIC_NAME,
-            1,
-            null,
-            null,
-            true,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(TOPIC_NAME);
         this.createMirror(mirrorCreationData);
         assertThat(this.getDeployments()).isNotNull().hasSize(1);
 
@@ -143,14 +116,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
 
     @Test
     void shouldDeleteService() {
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            TOPIC_NAME,
-            TOPIC_NAME,
-            1,
-            null,
-            null,
-            true,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(TOPIC_NAME);
         this.createMirror(mirrorCreationData);
         assertThat(this.getServices()).isNotNull().hasSize(1);
 
@@ -162,14 +128,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
 
     @Test
     void shouldCreateDeletionJob() {
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            TOPIC_NAME,
-            TOPIC_NAME,
-            1,
-            null,
-            null,
-            true,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(TOPIC_NAME);
         this.createMirror(mirrorCreationData);
         assertThat(this.getServices()).isNotNull().hasSize(1);
 
@@ -190,14 +149,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
 
     @Test
     void shouldRejectDuplicateMirrorCreation() {
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            TOPIC_NAME,
-            TOPIC_NAME,
-            1,
-            null,
-            null,
-            true,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(TOPIC_NAME);
         final Throwable firstDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
         assertThat(firstDeployment).isNull();
         final Throwable invalidDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
