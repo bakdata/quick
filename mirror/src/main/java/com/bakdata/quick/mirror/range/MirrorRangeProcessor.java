@@ -25,6 +25,12 @@ import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
 
+/**
+ * Processor for putting filling up Kafka state store for range queries.
+ *
+ * @param <K> key type
+ * @param <V> value type
+ */
 @Slf4j
 public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
     private final String storeName;

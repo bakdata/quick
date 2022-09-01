@@ -92,6 +92,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
                 stream.process(() -> new MirrorProcessor<>(this.storeName), Named.as(PROCESSOR_NAME), this.storeName);
             }
             if (this.rangeField != null) {
+                // key serde is string because the store saves zero padded range index string as keys
                 builder.addStateStore(
                     Stores.keyValueStoreBuilder(this.createStore(this.rangeStoreName), Serdes.String(), valueSerDe));
                 stream.process(
