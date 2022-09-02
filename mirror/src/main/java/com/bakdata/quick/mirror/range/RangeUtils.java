@@ -17,7 +17,6 @@
 package com.bakdata.quick.mirror.range;
 
 import com.bakdata.quick.common.exception.MirrorException;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import io.micronaut.http.HttpStatus;
