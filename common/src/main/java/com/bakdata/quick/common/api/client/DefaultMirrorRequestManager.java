@@ -37,10 +37,8 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     @Override
     public ResponseWrapper makeRequest(final String url) {
         final Request request = new Request.Builder().url(url).get().build();
-        // The classic try-catch statement and not the try-with-resources is used here because the try-with-resources
-        // implicitly closes the processed resource in an automatically added (and not visible) block.
-        // If we used it here, we wouldn't be able to read from the InputStream in the caller
-        // as it would have been already closed by the try-with-resources in the callee.
+        // Do not close the response here because its content is read later (try-with-resources
+        // implicitly closes the processed resource).
         try {
             final Response response = this.client.newCall(request).execute();
             return ResponseWrapper.fromResponse(response);

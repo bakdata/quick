@@ -63,7 +63,8 @@ class MirrorValueParser<V> {
     }
 
     /**
-     * A similar functionality as to the deserialize function but adjusted to work with lists.
+     * Has a similar functionality to {@link MirrorValueParser#deserialize(InputStream)}
+     * but is adjusted to work with lists.
      *
      * @param inputStream an input stream
      * @return a list of values that have been parsed from the corresponding json nodes

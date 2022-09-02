@@ -60,14 +60,14 @@ public class ResponseWrapper {
             return new ResponseWrapper(null, isCacheMissHeaderSet(response));
         }
         final ResponseBody body = getAndCheckResponseBody(response);
-        if (response.header(HeaderConstants.getCacheMissHeaderName()) != null) {
+        if (response.header(HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER) != null) {
             return new ResponseWrapper(body, isCacheMissHeaderSet(response));
         }
         return new ResponseWrapper(body);
     }
 
     /**
-     * Similar to fromResponse, it creates instances of ResponseWrapper. The difference is
+     * Has a similar functionality to {@link ResponseWrapper#fromResponse(Response)}. The difference is
      * that it creates a response from the fallback service. When the fallback service is called,
      * the mapping between partitions and hosts has to be checked. Thus, all instances of ResponseWrapper returned
      * from this function have the parameter headerSet equal true.
@@ -111,6 +111,6 @@ public class ResponseWrapper {
      * @return a boolean that indicates whether the X-Cache-Update header has been set
      */
     private static boolean isCacheMissHeaderSet(final Response response) {
-        return response.header(HeaderConstants.getCacheMissHeaderName()) != null;
+        return response.header(HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER) != null;
     }
 }
