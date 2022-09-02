@@ -32,10 +32,10 @@ import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ProtoRangeQueryTest;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.google.common.collect.Maps;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
-import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import java.util.List;
@@ -66,29 +66,80 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldAddRangeValueWithAvroSchema() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(
-            (props) -> {
-                this.schemaRegistryMock.start();
-                props.setProperty(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-                    this.schemaRegistryMock.getUrl());
-                return createAvroTopology(props);
-            }, avroTestProps()
-        ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new AvroSchemaProvider())));
+            MirrorRangeTopologyTest::createAvroTopology, avroTestProps()
+        );
 
         testTopology.start();
-        final AvroRangeQueryTest avroRecord1 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1).build();
-        final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2).build();
-        final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3).build();
-        final AvroRangeQueryTest avroRecord4 = AvroRangeQueryTest.newBuilder().setUserId(2).setTimestamp(1).build();
-        testTopology.input().add(1, avroRecord1).add(1, avroRecord2).add(1, avroRecord3).add(2, avroRecord4);
+        final AvroRangeQueryTest avroRecord1 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
+        final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
+        final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
+        final AvroRangeQueryTest avroRecord4 = AvroRangeQueryTest.newBuilder().setUserId(2).setTimestamp(1L).build();
+        testTopology.input()
+            .add(1, avroRecord1)
+            .add(1, avroRecord2)
+            .add(1, avroRecord3)
+            .add(0, avroRecord4)
+            .add(2, avroRecord4)
+            .add(3, avroRecord4)
+            .add(10, avroRecord4)
+            .add(-2, avroRecord4)
+            .add(-3, avroRecord4)
+            .add(-10, avroRecord4);
         final KeyValueStore<String, GenericRecord> store =
             testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
         assertThat(store.range("0000000001_0000000000000000001", "0000000001_0000000000000000003")).toIterable()
             .hasSize(3)
-            .extracting(stringGenericRecordKeyValue -> stringGenericRecordKeyValue.key)
-            .containsExactly(
-                "0000000001_0000000000000000001",
-                "0000000001_0000000000000000002",
-                "0000000001_0000000000000000003");
+            .satisfies(keyValues -> {
+                assertThat(keyValues).extracting(stringGenericRecordKeyValue -> stringGenericRecordKeyValue.key)
+                    .containsExactly(
+                        "0000000001_0000000000000000001",
+                        "0000000001_0000000000000000002",
+                        "0000000001_0000000000000000003");
+                assertThat(keyValues).extracting(
+                        stringGenericRecordKeyValue -> stringGenericRecordKeyValue.value.get(RANGE_FIELD))
+                    .containsExactly(1L, 2L, 3L);
+            });
+
+        testTopology.stop();
+    }
+
+    @Test
+    void shouldAddRangeValueWithAvroSchemaWithNegativeValues() {
+        final TestTopology<Object, Object> testTopology = new TestTopology<>(
+            MirrorRangeTopologyTest::createAvroTopology, avroTestProps()
+        );
+        testTopology.start();
+
+        final AvroRangeQueryTest avroRecord1 = AvroRangeQueryTest.newBuilder().setUserId(-1).setTimestamp(1L).build();
+        final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(-1).setTimestamp(2L).build();
+        final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(-1).setTimestamp(3L).build();
+        final AvroRangeQueryTest avroRecord4 = AvroRangeQueryTest.newBuilder().setUserId(2).setTimestamp(1L).build();
+        testTopology.input()
+            .add(-1, avroRecord1)
+            .add(-1, avroRecord2)
+            .add(-1, avroRecord3)
+            .add(0, avroRecord4)
+            .add(2, avroRecord4)
+            .add(3, avroRecord4)
+            .add(10, avroRecord4)
+            .add(-2, avroRecord4)
+            .add(-3, avroRecord4)
+            .add(-10, avroRecord4);
+
+        final KeyValueStore<String, GenericRecord> store =
+            testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
+        assertThat(store.range("-0000000001_0000000000000000001", "-0000000001_0000000000000000003")).toIterable()
+            .hasSize(3)
+            .satisfies(keyValues -> {
+                assertThat(keyValues).extracting(stringGenericRecordKeyValue -> stringGenericRecordKeyValue.key)
+                    .containsExactly(
+                        "-0000000001_0000000000000000001",
+                        "-0000000001_0000000000000000002",
+                        "-0000000001_0000000000000000003");
+                assertThat(keyValues).extracting(
+                        stringGenericRecordKeyValue -> stringGenericRecordKeyValue.value.get(RANGE_FIELD))
+                    .containsExactly(1L, 2L, 3L);
+            });
 
         testTopology.stop();
     }
@@ -96,12 +147,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldAddRangeValueWithProto() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(
-            (props) -> {
-                this.schemaRegistryMock.start();
-                props.setProperty(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-                    this.schemaRegistryMock.getUrl());
-                return createProtoTopology(props);
-            }, protoTestProps()
+            MirrorRangeTopologyTest::createProtoTopology, protoTestProps()
         ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new ProtobufSchemaProvider())));
 
         testTopology.start();
@@ -110,15 +156,80 @@ class MirrorRangeTopologyTest {
         final ProtoRangeQueryTest protoRecord2 = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2).build();
         final ProtoRangeQueryTest protoRecord3 = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3).build();
         final ProtoRangeQueryTest protoRecord4 = ProtoRangeQueryTest.newBuilder().setUserId(2).setTimestamp(1).build();
-        testTopology.input().add(1, protoRecord1).add(1, protoRecord2).add(1, protoRecord3).add(2, protoRecord4);
+        testTopology.input()
+            .add(1, protoRecord1)
+            .add(1, protoRecord2)
+            .add(1, protoRecord3)
+            .add(0, protoRecord4)
+            .add(2, protoRecord4)
+            .add(3, protoRecord4)
+            .add(10, protoRecord4)
+            .add(-2, protoRecord4)
+            .add(-3, protoRecord4)
+            .add(-10, protoRecord4);
         final KeyValueStore<String, Message> store = testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
         assertThat(store.range("0000000001_0000000001", "0000000001_0000000003")).toIterable()
             .hasSize(3)
-            .extracting(stringGenericRecordKeyValue -> stringGenericRecordKeyValue.key)
-            .containsExactly(
-                "0000000001_0000000001",
-                "0000000001_0000000002",
-                "0000000001_0000000003");
+            .satisfies(keyValues -> {
+                assertThat(keyValues).extracting(stringGenericRecordKeyValue -> stringGenericRecordKeyValue.key)
+                    .containsExactly(
+                        "0000000001_0000000001",
+                        "0000000001_0000000002",
+                        "0000000001_0000000003");
+                assertThat(keyValues).extracting(
+                        stringGenericRecordKeyValue -> {
+                            final FieldDescriptor fieldDescriptor =
+                                stringGenericRecordKeyValue.value.getDescriptorForType().findFieldByName(RANGE_FIELD);
+                            return stringGenericRecordKeyValue.value.getField(fieldDescriptor);
+                        })
+                    .containsExactly(1, 2, 3);
+            });
+
+        testTopology.stop();
+    }
+
+    @Test
+    void shouldAddRangeValueWithProtoWithNegativeValues() {
+        final TestTopology<Object, Object> testTopology = new TestTopology<>(
+            MirrorRangeTopologyTest::createProtoTopology, protoTestProps()
+        ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new ProtobufSchemaProvider())));
+
+        testTopology.start();
+
+        final ProtoRangeQueryTest protoRecord1 = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1).build();
+        final ProtoRangeQueryTest protoRecord2 = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2).build();
+        final ProtoRangeQueryTest protoRecord3 = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3).build();
+        final ProtoRangeQueryTest protoRecord4 = ProtoRangeQueryTest.newBuilder().setUserId(2).setTimestamp(1).build();
+
+        testTopology.input()
+            .add(-1, protoRecord1)
+            .add(-1, protoRecord2)
+            .add(-1, protoRecord3)
+            .add(0, protoRecord4)
+            .add(2, protoRecord4)
+            .add(3, protoRecord4)
+            .add(10, protoRecord4)
+            .add(-2, protoRecord4)
+            .add(-3, protoRecord4)
+            .add(-10, protoRecord4)
+        ;
+        final KeyValueStore<String, Message> store = testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
+        assertThat(store.range("-0000000001_0000000001", "-0000000001_0000000003")).toIterable()
+            .hasSize(3)
+            .satisfies(keyValues -> {
+                assertThat(keyValues).extracting(stringGenericRecordKeyValue -> stringGenericRecordKeyValue.key)
+                    .containsExactly(
+                        "-0000000001_0000000001",
+                        "-0000000001_0000000002",
+                        "-0000000001_0000000003");
+                assertThat(keyValues).extracting(
+                        stringGenericRecordKeyValue -> {
+                            final FieldDescriptor fieldDescriptor =
+                                stringGenericRecordKeyValue.value.getDescriptorForType().findFieldByName(RANGE_FIELD);
+                            return stringGenericRecordKeyValue.value.getField(fieldDescriptor);
+                        })
+                    .containsExactly(1, 2, 3);
+            });
 
         testTopology.stop();
     }

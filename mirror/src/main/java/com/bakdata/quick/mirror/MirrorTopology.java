@@ -19,6 +19,7 @@ package com.bakdata.quick.mirror;
 import com.bakdata.quick.mirror.base.QuickTopology;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
+import com.bakdata.quick.mirror.range.RangeUtils;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.time.Duration;
@@ -95,8 +96,11 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
                 // key serde is string because the store saves zero padded range index string as keys
                 builder.addStateStore(
                     Stores.keyValueStoreBuilder(this.createStore(this.rangeStoreName), Serdes.String(), valueSerDe));
+                final RangeUtils<K, V> rangeUtils = new RangeUtils<>(this.rangeField);
+
                 stream.process(
-                    () -> new MirrorRangeProcessor<>(this.rangeStoreName, Objects.requireNonNull(this.rangeField)),
+                    () -> new MirrorRangeProcessor<>(this.rangeStoreName, Objects.requireNonNull(this.rangeField),
+                        rangeUtils),
                     Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
             }
             return builder.build();

@@ -21,6 +21,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ProtoRangeQueryTest;
+import com.squareup.wire.Message;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -48,7 +49,8 @@ class RangeUtilsTest {
     @MethodSource("integerKeyAvroValueAndRangeIndexProvider")
     void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final AvroRangeQueryTest avroRecord,
         final String range_index) {
-        assertThat(RangeUtils.createRangeIndex(key, avroRecord, RANGE_FIELD)).isEqualTo(range_index);
+        final RangeUtils<Integer, AvroRangeQueryTest> objectObjectRangeUtils = new RangeUtils<>(RANGE_FIELD);
+        assertThat(objectObjectRangeUtils.createRangeIndex(key, avroRecord)).isEqualTo(range_index);
     }
 
     @ParameterizedTest
@@ -56,7 +58,8 @@ class RangeUtilsTest {
     void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key,
         final ProtoRangeQueryTest protoMessage,
         final String range_index) {
-        assertThat(RangeUtils.createRangeIndex(key, protoMessage, RANGE_FIELD)).isEqualTo(range_index);
+        final RangeUtils<Long, ProtoRangeQueryTest> objectObjectRangeUtils = new RangeUtils<>(RANGE_FIELD);
+        assertThat(objectObjectRangeUtils.createRangeIndex(key, protoMessage)).isEqualTo(range_index);
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {

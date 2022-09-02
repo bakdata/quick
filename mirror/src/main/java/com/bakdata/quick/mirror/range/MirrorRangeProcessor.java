@@ -16,11 +16,7 @@
 
 package com.bakdata.quick.mirror.range;
 
-import static com.bakdata.quick.mirror.range.RangeUtils.createRangeIndex;
-
 import edu.umd.cs.findbugs.annotations.Nullable;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
@@ -37,12 +33,15 @@ import org.apache.kafka.streams.state.KeyValueStore;
 public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
     private final String storeName;
     private final String rangeField;
+    private final RangeUtils<K, V> rangeUtils;
     @Nullable
     private KeyValueStore<String, V> store = null;
 
-    public MirrorRangeProcessor(final String storeName, final String rangeField) {
+    public MirrorRangeProcessor(final String storeName, final String rangeField,
+        final RangeUtils<K, V> rangeUtils) {
         this.storeName = storeName;
         this.rangeField = rangeField;
+        this.rangeUtils = rangeUtils;
     }
 
     @Override
@@ -60,9 +59,8 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
         }
 
 
-        final String rangeIndex = createRangeIndex(key, value, this.rangeField);
-        RangeUtils2<K, V> kvRangeUtils2 = new RangeUtils2<>(key, value, this.rangeField);
-        String rangeIndex1 = kvRangeUtils2.createRangeIndex();
+        final String rangeIndex = this.rangeUtils.createRangeIndex(key, value);
+
         log.debug("crating range index: {}", rangeIndex);
 
         this.store.put(rangeIndex, value);

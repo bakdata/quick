@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.range;
 
 import com.bakdata.quick.common.exception.MirrorException;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import io.micronaut.http.HttpStatus;
@@ -24,68 +25,49 @@ import java.text.DecimalFormat;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.generic.GenericRecord;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Utils for creating range indexes in a Mirror's state store
- */
 @Slf4j
-public class RangeUtils {
+public class RangeUtils<K, V> {
+    private final String rangeField;
+
     private static final int MAX_INTEGER_LENGTH = 10;
     private static final int MAX_LONG_LENGTH = 19;
 
-    /**
-     * Creates the range index for a given key over a specific range field First the value is converted to Avro generic
-     * record or Protobuf message. Then the value is extracted from the schema. Depending on the type (integer or long)
-     * of the key and value zero paddings are appended to the left side of the key and value, and they are contaminated
-     * with an <b>_</b>.
-     * <p>
-     * Imagine the incoming record has a key of type integer with the value 1. The value is a proto
-     * schema with the following schema:
-     *
-     * <pre>{@code
-     * message ProtoRangeQueryTest {
-     *   int32 userId = 1;
-     *   int32 timestamp = 2;
-     * }
-     *  }</pre>
-     *  <p>
-     *  And the <i>range field</i> is <i>timestamp</i> with the value of 5.
-     *  The returned value would be 0000000001_0000000005
-     */
-    public static String createRangeIndex(final Object key, final Object value, final String rangeField) {
-        final Object rangeFieldValue = getRangeFieldValue(value, rangeField);
-
-        return getString(key, rangeFieldValue, new IntIntZero());
+    public RangeUtils(final String rangeField) {
+        this.rangeField = rangeField;
     }
 
-    private static String getString(Object key, Object rangeFieldValue, BaseRangeIndex baseRangeIndex) {
+    public String createRangeIndex(final K key, final V value) {
+        final Object rangeFieldValue = this.getRangeFieldValue(value, this.rangeField);
+        return String.format("%s_%s", pad(key), pad(rangeFieldValue));
+    }
 
-        if (key instanceof Integer && rangeFieldValue instanceof Integer) {
-            return String.format("%s_%s", padZeros((Integer) key), padZeros((Integer) rangeFieldValue));
-        } else if (key instanceof Integer && rangeFieldValue instanceof Long) {
-            return String.format("%s_%s", padZeros((Integer) key), padZeros((Long) rangeFieldValue));
-        } else if (key instanceof Long && rangeFieldValue instanceof Integer) {
-            return String.format("%s_%s", padZeros((Long) key), padZeros((Integer) rangeFieldValue));
-        } else if (key instanceof Long && rangeFieldValue instanceof Long) {
-            return String.format("%s_%s", padZeros((Long) key), padZeros((Long) rangeFieldValue));
+    @NotNull
+    private static String pad(final Object number) {
+        final String paddedKey;
+        if (number instanceof Integer) {
+            paddedKey = padZeros(((Integer) number));
+        } else if (number instanceof Long) {
+            paddedKey = padZeros(((Long) number));
         } else {
             throw new MirrorException(
-                "The key or range field type is not supported for range queries. Supported types for range queries: "
+                "The given key or range field type is not supported for range queries. Supported types for range "
+                    + "queries: "
                     + "integer and long",
                 HttpStatus.BAD_REQUEST);
         }
+        return paddedKey;
     }
 
-    private static Object getRangeFieldValue(final Object value, final String rangeField) {
+    private Object getRangeFieldValue(final V value, final String rangeField) {
         final Object rangeFieldValue;
         if (value instanceof GenericRecord) {
             log.trace("Record value of type Avro Generic Record");
             final GenericRecord genericRecordValue = (GenericRecord) value;
             try {
                 rangeFieldValue = genericRecordValue.get(rangeField);
-            }
-            // TODO: Add to AvroException Handler?
-            catch (final AvroRuntimeException exception) {
+            } catch (final AvroRuntimeException exception) {
                 final String message = String.format("Could not find range field with name %s", rangeField);
                 throw new MirrorException(message, HttpStatus.BAD_REQUEST);
             }
@@ -93,8 +75,13 @@ public class RangeUtils {
         } else if (value instanceof Message) {
             log.trace("Record value of type Protobuf Message");
             final Message messageValue = (Message) value;
+
             final FieldDescriptor fieldDescriptor =
                 messageValue.getDescriptorForType().findFieldByName(rangeField);
+            if (fieldDescriptor == null) {
+                final String message = String.format("Could not find range field with name %s", rangeField);
+                throw new MirrorException(message, HttpStatus.BAD_REQUEST);
+            }
             rangeFieldValue = messageValue.getField(fieldDescriptor);
             log.trace("Extracted range field value is: {}", rangeFieldValue);
         } else {
