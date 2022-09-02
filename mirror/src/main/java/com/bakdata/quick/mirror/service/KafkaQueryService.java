@@ -149,7 +149,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private MutableHttpResponse<MirrorValue<List<V>>> transformValuesAndCreateHttpResponse(
         final List<HttpResponse<MirrorValue<V>>> listOfResponses) {
         final boolean headerSet = listOfResponses.stream()
-            .anyMatch(response -> response.header(HeaderConstants.getCacheMissHeaderName()) != null);
+            .anyMatch(response -> response.header(HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER) != null);
         final List<V> values = listOfResponses.stream()
             .filter(response -> response.body() != null)
             .map(response -> response.body().getValue())
@@ -158,7 +158,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             HttpResponse.created(new MirrorValue<>(values)).status(200);
         if (headerSet) {
             return responseWithoutHeader.header(
-                HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue());
+                HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS);
         } else {
             return responseWithoutHeader;
         }
@@ -188,7 +188,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             throw new NotFoundException("Key not found");
         }
         return HttpResponse.created(new MirrorValue<>(value))
-            .header(HeaderConstants.getCacheMissHeaderName(), HeaderConstants.getCacheMissHeaderValue())
+            .header(HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS)
             .status(200);
     }
 }
