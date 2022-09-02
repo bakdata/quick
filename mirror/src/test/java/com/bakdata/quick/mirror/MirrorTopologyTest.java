@@ -37,7 +37,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 class MirrorTopologyTest {
     private static final List<String> INPUT_TOPICS = List.of("input");
     private static final String STORE_NAME = "test-store";
-    private static final String RETENTION_STORE_NAME = "retention-test-store";
 
     @RegisterExtension
     final TestTopologyExtension<Integer, Integer> driver =
@@ -59,8 +58,8 @@ class MirrorTopologyTest {
 
         final MirrorTopology<Integer, Integer> mirrorTopology = MirrorTopology.<Integer, Integer>builder()
             .topologyData(topologyInfo)
+            .isPoint(true)
             .storeName(STORE_NAME)
-            .retentionStoreName(RETENTION_STORE_NAME)
             .storeType(StoreType.INMEMORY)
             .build();
 

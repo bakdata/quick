@@ -19,6 +19,8 @@ package com.bakdata.quick.mirror.range;
 import static com.bakdata.quick.mirror.range.RangeUtils.createRangeIndex;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
@@ -57,7 +59,10 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
             throw new IllegalStateException("MirrorProcessor was not initialized.");
         }
 
+
         final String rangeIndex = createRangeIndex(key, value, this.rangeField);
+        RangeUtils2<K, V> kvRangeUtils2 = new RangeUtils2<>(key, value, this.rangeField);
+        String rangeIndex1 = kvRangeUtils2.createRangeIndex();
         log.debug("crating range index: {}", rangeIndex);
 
         this.store.put(rangeIndex, value);

@@ -55,6 +55,11 @@ public class RangeUtils {
     public static String createRangeIndex(final Object key, final Object value, final String rangeField) {
         final Object rangeFieldValue = getRangeFieldValue(value, rangeField);
 
+        return getString(key, rangeFieldValue, new IntIntZero());
+    }
+
+    private static String getString(Object key, Object rangeFieldValue, BaseRangeIndex baseRangeIndex) {
+
         if (key instanceof Integer && rangeFieldValue instanceof Integer) {
             return String.format("%s_%s", padZeros((Integer) key), padZeros((Integer) rangeFieldValue));
         } else if (key instanceof Integer && rangeFieldValue instanceof Long) {
