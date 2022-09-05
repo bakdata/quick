@@ -14,39 +14,16 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.type;
+package com.bakdata.quick.common.type.registry;
 
-import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import lombok.Value;
-import org.apache.kafka.common.serialization.Serde;
-import org.jetbrains.annotations.Nullable;
 
-/**
- * POJO for topic data.
- *
- * @param <K> key type
- * @param <V> value type
- */
 @Value
-public class QuickTopicData<K, V> {
-    String name;
-    TopicWriteType writeType;
-    QuickData<K> keyData;
-    QuickData<V> valueData;
-
-    /**
-     * Topic Data for key or value.
-     *
-     * @param <T> type
-     */
-    @Value
-    public static class QuickData<T> {
-        QuickTopicType type;
-        Serde<T> serde;
-        TypeResolver<T> resolver;
-        @Nullable
-        ParsedSchema parsedSchema;
-    }
+public class TypeResolverSchema<K> {
+    TypeResolver<K> typeResolver;
+    @Nullable
+    ParsedSchema parsedSchema;
 }

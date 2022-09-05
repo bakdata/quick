@@ -19,15 +19,17 @@ package com.bakdata.quick.mirror.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ProtoRangeQueryTest;
-import com.squareup.wire.Message;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class RangeUtilsTest {
+class RangePadderTest {
 
     private static final int INT_ZERO = 0;
     private static final int ONE_DIGIT_INT_NUMBER = 1;
@@ -49,8 +51,10 @@ class RangeUtilsTest {
     @MethodSource("integerKeyAvroValueAndRangeIndexProvider")
     void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final AvroRangeQueryTest avroRecord,
         final String range_index) {
-        final RangeUtils<Integer, AvroRangeQueryTest> objectObjectRangeUtils = new RangeUtils<>(RANGE_FIELD);
-        assertThat(objectObjectRangeUtils.createRangeIndex(key, avroRecord)).isEqualTo(range_index);
+        final RangePadder<Integer, AvroRangeQueryTest> rangePadder =
+            new RangePadder<>(QuickTopicType.INTEGER, QuickTopicType.AVRO, new AvroSchema(avroRecord.getSchema()),
+                RANGE_FIELD);
+        assertThat(rangePadder.createRangeIndex(key, avroRecord)).isEqualTo(range_index);
     }
 
     @ParameterizedTest
@@ -58,7 +62,10 @@ class RangeUtilsTest {
     void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key,
         final ProtoRangeQueryTest protoMessage,
         final String range_index) {
-        final RangeUtils<Long, ProtoRangeQueryTest> objectObjectRangeUtils = new RangeUtils<>(RANGE_FIELD);
+        final RangePadder<Long, ProtoRangeQueryTest> objectObjectRangeUtils =
+            new RangePadder<>(QuickTopicType.LONG, QuickTopicType.PROTOBUF,
+                new ProtobufSchema(protoMessage.getDescriptorForType()),
+                RANGE_FIELD);
         assertThat(objectObjectRangeUtils.createRangeIndex(key, protoMessage)).isEqualTo(range_index);
     }
 

@@ -16,14 +16,17 @@
 
 package com.bakdata.quick.mirror;
 
+import com.bakdata.quick.common.exception.MirrorException;
+import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.base.QuickTopology;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
-import com.bakdata.quick.mirror.range.RangeUtils;
+import com.bakdata.quick.mirror.range.RangePadder;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.micronaut.http.HttpStatus;
 import java.time.Duration;
-import java.util.Objects;
 import lombok.Builder;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -96,11 +99,18 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
                 // key serde is string because the store saves zero padded range index string as keys
                 builder.addStateStore(
                     Stores.keyValueStoreBuilder(this.createStore(this.rangeStoreName), Serdes.String(), valueSerDe));
-                final RangeUtils<K, V> rangeUtils = new RangeUtils<>(this.rangeField);
+
+                final QuickTopicType keyType = this.getTopicData().getKeyData().getType();
+                final QuickTopicType valueType = this.getTopicData().getValueData().getType();
+                final ParsedSchema parsedSchema = this.getTopicData().getValueData().getParsedSchema();
+                if (parsedSchema == null) {
+                    throw new MirrorException("", HttpStatus.BAD_REQUEST);
+                }
+
+                final RangePadder<K, V> rangePadder = new RangePadder<>(keyType, valueType, parsedSchema, this.rangeField);
 
                 stream.process(
-                    () -> new MirrorRangeProcessor<>(this.rangeStoreName, Objects.requireNonNull(this.rangeField),
-                        rangeUtils),
+                    () -> new MirrorRangeProcessor<>(this.rangeStoreName, rangePadder),
                     Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
             }
             return builder.build();

@@ -21,12 +21,14 @@ import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
+import lombok.Getter;
 
 /**
  * A resolver for Protobuf messages.
  */
 public class ProtobufResolver implements TypeResolver<Message> {
     private final JsonFormat.Parser parser;
+    @Getter
     private final Descriptors.Descriptor descriptor;
 
     public ProtobufResolver(final Descriptors.Descriptor descriptor) {
