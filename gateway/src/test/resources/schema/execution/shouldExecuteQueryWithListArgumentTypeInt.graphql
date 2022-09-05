@@ -1,0 +1,3 @@
+type Query {
+    getURL(id: [Int]): [String] @topic(name: "url-topic", keyArgument: "id")
+}

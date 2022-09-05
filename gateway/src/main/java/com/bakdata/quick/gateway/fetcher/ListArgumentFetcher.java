@@ -19,10 +19,12 @@ package com.bakdata.quick.gateway.fetcher;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A Data Fetcher that fetchers a list of values in a mirror's key value store.
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
  * <h2>Example:</h2>
  * <pre>{@code
  * type Query {
- *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic") # <- query list fetcher
+ *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic", keyArgument: "purchaseId") # <- query list fetcher
  * }
  *
  * type Purchase  {
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
  * <p>
  * The gateway receives a list of purchase-IDs and sends them to the mirror and should receive a list of purchases.
  */
+@Slf4j
 public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
     private final String argument;
     private final DataFetcherClient<V> dataFetcherClient;
@@ -72,20 +75,25 @@ public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
         final Object arguments = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
 
-        final List<V> results = this.dataFetcherClient.fetchResults((List<String>) arguments);
+        List<V> results = null;
+        if (arguments instanceof List) {
+            final List<String> stringArgument =
+                ((Collection<?>) arguments).stream().map(Object::toString).collect(Collectors.toList());
+            log.trace("Preparing list arguments {} to fetch from the data fetcher client (Mirror)", stringArgument);
+            results = this.dataFetcherClient.fetchResults(stringArgument);
+        }
 
-        // got null but schema doesn't allow null
-        // semantically, there is no difference between null and an empty list for us in this case
-        // we therefore continue gracefully by simply returning a list and not throwing an exception
         if (results == null && !this.isNullable) {
+            log.trace("Result is null, but schema does not allow null. Gracefully returning an empty list.");
             return Collections.emptyList();
         }
 
-        // null elements are not allowed, so we have to filter them
         if (results != null && !this.hasNullableElements) {
+            log.trace("Null elements are not allowed, Filtering the results.");
             return results.stream().filter(Objects::nonNull).collect(Collectors.toList());
         }
 
+        log.trace("Returning the list argument fetcher results: {}", results);
         return results;
     }
 }

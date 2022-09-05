@@ -1,0 +1,6 @@
+{
+    findProducts(productId: [123, 456]) {
+        productId
+        name
+    }
+}
