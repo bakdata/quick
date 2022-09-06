@@ -119,10 +119,10 @@ class QuickTopicTypeServiceTest {
 
     private static Stream<Arguments> topicDataArguments(final Function<QuickTopicType, TopicData> creator) {
         return Stream.of(
-//            Arguments.of(creator.apply(QuickTopicType.DOUBLE), null, null),
-//            Arguments.of(creator.apply(QuickTopicType.INTEGER), null, null),
-//            Arguments.of(creator.apply(QuickTopicType.STRING), null, null),
-//            Arguments.of(creator.apply(QuickTopicType.LONG), null, null),
+            Arguments.of(creator.apply(QuickTopicType.DOUBLE), null, null),
+            Arguments.of(creator.apply(QuickTopicType.INTEGER), null, null),
+            Arguments.of(creator.apply(QuickTopicType.STRING), null, null),
+            Arguments.of(creator.apply(QuickTopicType.LONG), null, null),
             Arguments.of(creator.apply(QuickTopicType.AVRO), new AvroSchema(ChartRecord.getClassSchema()),
                 new AvroSchemaProvider()),
             Arguments.of(creator.apply(QuickTopicType.PROTOBUF),
