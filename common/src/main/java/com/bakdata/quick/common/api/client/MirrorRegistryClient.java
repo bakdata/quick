@@ -19,6 +19,7 @@ package com.bakdata.quick.common.api.client;
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
+import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.config.TopicRegistryConfig;
 import com.bakdata.quick.common.exception.NotFoundException;
@@ -105,11 +106,10 @@ public class MirrorRegistryClient implements TopicRegistryClient {
 
     private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
                                                                       final HttpClient client) {
-        final KnownTypeResolver<TopicData> typeResolver =
-            new KnownTypeResolver<>(TopicData.class, client.objectMapper());
-        final String serviceName = topicRegistryConfig.getServiceName();
-        return new DefaultMirrorClient<>(serviceName, client, MirrorConfig.directAccess(), typeResolver,
-            new DefaultMirrorRequestManager(client));
+        final KnownTypeResolver<TopicData> typeResolver = new KnownTypeResolver<>(
+            TopicData.class, client.objectMapper());
+        final MirrorHost mirrorHost = new MirrorHost(topicRegistryConfig.getServiceName(), MirrorConfig.directAccess());
+        return new DefaultMirrorClient<>(mirrorHost, client, typeResolver, new DefaultMirrorRequestManager(client));
     }
 
     private Single<TopicData> getSelf() {

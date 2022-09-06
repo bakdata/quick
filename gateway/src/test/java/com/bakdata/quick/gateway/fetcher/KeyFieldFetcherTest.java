@@ -27,11 +27,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class KeyFieldFetcherTest {
@@ -40,6 +42,13 @@ class KeyFieldFetcherTest {
     private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
     private final String host = String.format("localhost:%s", this.server.getPort());
     private final MirrorConfig mirrorConfig = MirrorConfig.directAccess();
+
+    @BeforeEach
+    void initRouterAndMirror() throws JsonProcessingException {
+        // mapping from partition to host for initializing PartitionRouter
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(0, this.host, 1, this.host));
+        this.server.enqueue(new MockResponse().setBody(routerBody));
+    }
 
     @Test
     void shouldFetchModificationValue() throws Exception {
@@ -122,9 +131,8 @@ class KeyFieldFetcherTest {
             .prices(List.of(3, 4, 5))
             .build();
 
-
-        this.server.enqueue(
-            new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
+        this.server.enqueue(new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(product1))));
+        this.server.enqueue(new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(product2))));
 
         final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
         final KeyFieldFetcher<?> queryFetcher =

@@ -14,22 +14,17 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.util;
+package com.bakdata.quick.gateway.fetcher;
 
-import com.bakdata.quick.common.resolver.TypeResolver;
-import lombok.Value;
-import org.apache.kafka.common.serialization.Serde;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 
-/**
- * A wrapper for key serde and value type resolver.
- * The wrapper is needed in order to return a single value from FetcherFactory.
- *
- * @param <K> key type
- * @param <V> value type
- */
-@Value
-public class KeySerdeValueResolverWrapper<K, V> {
+public class TestUtils {
 
-    Serde<K> keySerde;
-    TypeResolver<V> valueTypeResolver;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    public static String generateBodyForRouterWith(final Map<Integer, String> elements) throws JsonProcessingException {
+        return MAPPER.writeValueAsString(elements);
+    }
 }

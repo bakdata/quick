@@ -16,21 +16,19 @@
 
 package com.bakdata.quick.common.api.client;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-
 /**
- * Responsible for managing requests send to the Mirror.
+ * A collection of constants for managing headers.
  */
-public interface MirrorRequestManager {
+public class HeaderConstants {
 
-    /**
-     * Submits a request and processes the response.
-     *
-     * @param url A URL for which a request is made
-     * @return a response body if successful; null if resource has not been found
-     */
-    ResponseWrapper makeRequest(final String url);
+    // The X-Cache-Update header is set when there is a need to update the
+    // partition-host mapping in the {@link com.bakdata.quick.common.api.client.routing.PartitionRouter}.
+    // The need arises when a replica of the mirror is added or removed.
+    public static final String UPDATE_PARTITION_HOST_MAPPING_HEADER = "X-Cache-Update";
+    // The constant below indicates the existence of a header.
+    // See: https://stackoverflow.com/a/65241869 for more details.
+    public static final String HEADER_EXISTS = "?1";
 
-    @Nullable
-    <T> T processResponse(final ResponseWrapper responseWrapper, final ParserFunction<T> parser);
+    private HeaderConstants() {
+    }
 }
