@@ -40,7 +40,6 @@ public class PartitionRouter<K> implements Router<K> {
     private final Serde<K> keySerde;
     private final PartitionFinder partitionFinder;
     private Map<Integer, MirrorHost> partitionToMirrorHost;
-    private final Set<String> distinctHosts;
     private List<MirrorHost> distinctMirrorHosts;
 
     /**
@@ -57,14 +56,14 @@ public class PartitionRouter<K> implements Router<K> {
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
         this.partitionToMirrorHost = this.convertHostStringToMirrorHost(partitionToHost);
-        this.distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
         this.distinctMirrorHosts = this.findDistinctHosts();
     }
 
     private List<MirrorHost> findDistinctHosts() {
+        final Set<String> distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
         return this.partitionToMirrorHost.values()
             .stream()
-            .filter(mirrorHost -> this.distinctHosts.add(mirrorHost.getHost()))
+            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getHost()))
             .collect(Collectors.toList());
     }
 
@@ -96,7 +95,6 @@ public class PartitionRouter<K> implements Router<K> {
 
     @Override
     public void updateRoutingInfo(final Map<Integer, String> updatedRoutingInfo) {
-        this.distinctHosts.clear();
         this.partitionToMirrorHost = this.convertHostStringToMirrorHost(updatedRoutingInfo);
         this.distinctMirrorHosts = this.findDistinctHosts();
     }
