@@ -21,7 +21,7 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.base.QuickTopology;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
-import com.bakdata.quick.mirror.range.RangePadder;
+import com.bakdata.quick.mirror.range.RangeIndexer;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
@@ -107,10 +107,10 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
                     throw new MirrorException("", HttpStatus.BAD_REQUEST);
                 }
 
-                final RangePadder<K, V> rangePadder = new RangePadder<>(keyType, valueType, parsedSchema, this.rangeField);
+                final RangeIndexer<K, V> rangeIndexer = new RangeIndexer<>(keyType, valueType, parsedSchema, this.rangeField);
 
                 stream.process(
-                    () -> new MirrorRangeProcessor<>(this.rangeStoreName, rangePadder),
+                    () -> new MirrorRangeProcessor<>(this.rangeStoreName, rangeIndexer),
                     Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
             }
             return builder.build();

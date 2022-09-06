@@ -29,7 +29,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class RangePadderTest {
+class RangeIndexerTest {
 
     private static final int INT_ZERO = 0;
     private static final int ONE_DIGIT_INT_NUMBER = 1;
@@ -51,10 +51,10 @@ class RangePadderTest {
     @MethodSource("integerKeyAvroValueAndRangeIndexProvider")
     void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final AvroRangeQueryTest avroRecord,
         final String range_index) {
-        final RangePadder<Integer, AvroRangeQueryTest> rangePadder =
-            new RangePadder<>(QuickTopicType.INTEGER, QuickTopicType.AVRO, new AvroSchema(avroRecord.getSchema()),
+        final RangeIndexer<Integer, AvroRangeQueryTest> rangeIndexer =
+            new RangeIndexer<>(QuickTopicType.INTEGER, QuickTopicType.AVRO, new AvroSchema(avroRecord.getSchema()),
                 RANGE_FIELD);
-        assertThat(rangePadder.createRangeIndex(key, avroRecord)).isEqualTo(range_index);
+        assertThat(rangeIndexer.createIndex(key, avroRecord)).isEqualTo(range_index);
     }
 
     @ParameterizedTest
@@ -62,11 +62,11 @@ class RangePadderTest {
     void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key,
         final ProtoRangeQueryTest protoMessage,
         final String range_index) {
-        final RangePadder<Long, ProtoRangeQueryTest> objectObjectRangeUtils =
-            new RangePadder<>(QuickTopicType.LONG, QuickTopicType.PROTOBUF,
+        final RangeIndexer<Long, ProtoRangeQueryTest> objectObjectRangeUtils =
+            new RangeIndexer<>(QuickTopicType.LONG, QuickTopicType.PROTOBUF,
                 new ProtobufSchema(protoMessage.getDescriptorForType()),
                 RANGE_FIELD);
-        assertThat(objectObjectRangeUtils.createRangeIndex(key, protoMessage)).isEqualTo(range_index);
+        assertThat(objectObjectRangeUtils.createIndex(key, protoMessage)).isEqualTo(range_index);
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {

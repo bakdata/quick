@@ -30,12 +30,16 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 import org.jetbrains.annotations.NotNull;
 
-//@Slf4j
-public class RangePadder<K, V> {
+/**
+ * Creates range indexes for a Mirror's state store
+ */
+@Slf4j
+public class RangeIndexer<K, V> {
     @NonNull
     private final ZeroPadder keyZeroPadder;
     @NonNull
@@ -45,14 +49,37 @@ public class RangePadder<K, V> {
 
     private final String rangeField;
 
-    public RangePadder(final QuickTopicType keyType, final QuickTopicType valueType,
+    /**
+     * Creates the zero padder for the key and sets the range field value extractor based on the schema type.
+     * It then reads the range field type form the schema and sets the value zero padder for the range field.
+     */
+    public RangeIndexer(final QuickTopicType keyType, final QuickTopicType valueType,
         final ParsedSchema parsedSchema, final String rangeField) {
         this.rangeField = rangeField;
         this.keyZeroPadder = createKeyZeroPadder(keyType);
         this.valueZeroPadder = this.createValueZeroPadder(valueType, parsedSchema);
     }
 
-    public String createRangeIndex(final K key, final V value) {
+    /**
+     * Creates the range index for a given key over a specific range field First the value is converted to Avro generic
+     * record or Protobuf message. Then the value is extracted from the schema. Depending on the type (integer or long)
+     * of the key and value zero paddings are appended to the left side of the key and value, and they are contaminated
+     * with an <b>_</b>.
+     * <p>
+     * Imagine the incoming record has a key of type integer with the value 1. The value is a proto schema with the
+     * following schema:
+     *
+     * <pre>{@code
+     * message ProtoRangeQueryTest {
+     *   int32 userId = 1;
+     *   int32 timestamp = 2;
+     * }
+     *  }</pre>
+     * <p>
+     * And the <i>range field</i> is <i>timestamp</i> with the value of 5. The returned value would be
+     * 0000000001_0000000005
+     */
+    public String createIndex(final K key, final V value) {
         if (this.rangeFieldValueExtractor == null) {
             throw new MirrorTopologyException("Supported values are Avro and Protobuf");
         }
@@ -64,8 +91,10 @@ public class RangePadder<K, V> {
     @NonNull
     private static ZeroPadder<? extends Number> createKeyZeroPadder(final QuickTopicType topicType) {
         if (topicType == QuickTopicType.INTEGER) {
+            log.trace("Creating integer zero padder for key");
             return new IntPadder();
         } else if (topicType == QuickTopicType.LONG) {
+            log.trace("Creating long zero padder for key");
             return new LongPadder();
         }
         throw new MirrorTopologyException("Key value should be either integer or mirror");
@@ -88,8 +117,10 @@ public class RangePadder<K, V> {
     private ZeroPadder<? extends Number> getZeroPadderForAvroSchema(final Schema avroSchema) {
         final Type fieldType = avroSchema.getField(this.rangeField).schema().getType();
         if (fieldType == Type.INT) {
+            log.trace("Creating integer zero padder for avro value");
             return new IntPadder();
         } else if (fieldType == Type.LONG) {
+            log.trace("Creating long zero padder for avro value");
             return new LongPadder();
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
@@ -100,8 +131,10 @@ public class RangePadder<K, V> {
         final Descriptors.Descriptor descriptor = parsedSchema.toDescriptor();
         final JavaType fieldType = descriptor.findFieldByName(this.rangeField).getJavaType();
         if (fieldType == JavaType.INT) {
+            log.trace("Creating integer zero padder for protobuf value");
             return new IntPadder();
         } else if (fieldType == JavaType.LONG) {
+            log.trace("Creating long zero padder for protobuf value");
             return new LongPadder();
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");

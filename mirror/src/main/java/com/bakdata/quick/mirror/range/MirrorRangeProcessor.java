@@ -32,13 +32,13 @@ import org.apache.kafka.streams.state.KeyValueStore;
 @Slf4j
 public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
     private final String storeName;
-    private final RangePadder<K, V> rangePadder;
+    private final RangeIndexer<K, V> rangeIndexer;
     @Nullable
     private KeyValueStore<String, V> store = null;
 
-    public MirrorRangeProcessor(final String storeName, final RangePadder<K, V> rangePadder) {
+    public MirrorRangeProcessor(final String storeName, final RangeIndexer<K, V> rangeIndexer) {
         this.storeName = storeName;
-        this.rangePadder = rangePadder;
+        this.rangeIndexer = rangeIndexer;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
             throw new IllegalStateException("MirrorProcessor was not initialized.");
         }
 
-        final String rangeIndex = this.rangePadder.createRangeIndex(key, value);
+        final String rangeIndex = this.rangeIndexer.createIndex(key, value);
 
         log.debug("crating range index: {}", rangeIndex);
 
