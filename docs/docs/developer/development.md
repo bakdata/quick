@@ -45,8 +45,9 @@ define the dependencies. The list of dependencies can be found under the
 
 The manager API is specified in [the `openapi` directory](https://github.com/bakdata/quick/tree/master/openapi/spec).
 We use the [OpenAPI generator](https://github.com/OpenAPITools/openapi-generator) (Version 4.3.1) to generate our
-[python client](https://github.com/bakdata/quick-cli/tree/master/quick_client). To download the OpenAPI JAR, please 
-visit the [OpenAPI installation documentation](https://openapi-generator.tech/docs/installation/#jar).
+[python client](https://github.com/bakdata/quick-cli/tree/master/quick_client). 
+To download the OpenAPI JAR, 
+please visit the [OpenAPI installation documentation](https://openapi-generator.tech/docs/installation/#jar).
 
 ```shell
 java -jar openapi-generator-cli.jar generate \
