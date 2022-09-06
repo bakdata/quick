@@ -25,8 +25,6 @@ import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.SchemaConfig;
-import com.bakdata.quick.common.resolver.GenericAvroResolver;
-import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.schema.SchemaFetcher;
 import com.bakdata.quick.common.schema.SchemaFormat;
 import com.bakdata.quick.common.schema.SchemaRegistryFetcher;
@@ -48,7 +46,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import org.apache.avro.Schema;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,12 +81,6 @@ class QuickTopicTypeServiceTest {
 
         final Single<QuickTopicData<K, V>> quickData = typeService.getTopicData(topicData.getName());
         final QuickTopicData.QuickData<V> valueData = quickData.blockingGet().getValueData();
-        if(valueData.getResolver().getClass() == GenericAvroResolver.class){
-            final TypeResolver<V> resolver = valueData.getResolver();
-            final GenericAvroResolver resolver1 = (GenericAvroResolver) resolver;
-            final Schema schema1 = resolver1.getSchema();
-            System.out.println(schema1);
-        }
         assertThat(valueData.getType()).isEqualTo(topicData.getValueType());
         assertThat(valueData.getResolver()).isNotNull();
         assertThat(valueData.getSerde()).isNotNull();
