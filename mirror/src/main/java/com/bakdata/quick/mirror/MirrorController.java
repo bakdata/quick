@@ -18,6 +18,7 @@ package com.bakdata.quick.mirror;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.mirror.service.QueryService;
+import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
@@ -47,7 +48,7 @@ public class MirrorController<K, V> {
      * Fetches values for the given id.
      */
     @Get("/{key}")
-    public Single<MirrorValue<V>> get(@PathVariable("key") final String keyString) {
+    public Single<HttpResponse<MirrorValue<V>>> get(@PathVariable("key") final String keyString) {
         log.debug("Request for id {}", keyString);
         return this.queryService.get(keyString);
     }
@@ -59,7 +60,7 @@ public class MirrorController<K, V> {
      * @return list of values for given keys
      */
     @Get("/keys")
-    public Single<MirrorValue<List<V>>> getList(@QueryValue() final List<String> ids) {
+    public Single<HttpResponse<MirrorValue<List<V>>>> getList(@QueryValue() final List<String> ids) {
         log.debug("Request for ids {}", ids);
         return this.queryService.getValues(ids);
     }
@@ -68,7 +69,8 @@ public class MirrorController<K, V> {
      * Fetches all values stores by this mirror.
      */
     @Get
-    public Single<MirrorValue<List<V>>> getAll() {
+    public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
+        log.debug("Request for all existing keys.");
         return this.queryService.getAll();
     }
 }

@@ -46,6 +46,13 @@ class MirrorValueParser<V> {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Extracts value from the underlying input stream.
+     *
+     * @param inputStream an input stream
+     * @return Value that has been parsed from a json node
+     * @throws IOException an instance of IOException if input stream can't be converted to a JsonNode.
+     */
     public MirrorValue<V> deserialize(final InputStream inputStream) throws IOException {
         final JsonNode jsonNode = this.objectMapper.readTree(inputStream);
         final JsonNode value = jsonNode.get(FIELD_NAME);
@@ -55,6 +62,14 @@ class MirrorValueParser<V> {
         return new MirrorValue<>(this.parseValue(value));
     }
 
+    /**
+     * Has a similar functionality to {@link MirrorValueParser#deserialize(InputStream)}
+     * but is adjusted to work with lists.
+     *
+     * @param inputStream an input stream
+     * @return a list of values that have been parsed from the corresponding json nodes
+     * @throws IOException an instance of IOException if input stream can't be converted to a JsonNode.
+     */
     public MirrorValue<List<V>> deserializeList(final InputStream inputStream) throws IOException {
         final JsonNode jsonNode = this.objectMapper.readTree(inputStream);
         final JsonNode valueNode = jsonNode.get(FIELD_NAME);
