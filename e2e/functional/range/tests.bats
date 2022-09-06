@@ -60,7 +60,7 @@ setup() {
 teardown() {
     if [[ "${#BATS_TEST_NAMES[@]}" -eq "$BATS_TEST_NUMBER" ]]; then
         quick gateway delete ${GATEWAY}
-        #TODO: Uncomment the topic deletion
+        #TODO: Uncomment the topic deletion after the Range Mirror implementation is ready
         # quick topic delete ${TOPIC}
     fi
 }

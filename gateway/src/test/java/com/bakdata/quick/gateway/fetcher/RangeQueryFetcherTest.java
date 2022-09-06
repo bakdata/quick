@@ -50,26 +50,26 @@ class RangeQueryFetcherTest {
 
     @Test
     void shouldFetchListWhenListArgumentOfTypeString() throws JsonProcessingException {
-        final UserRequest userRequest = UserRequest.builder()
-            .userId(1)
-            .timestamp(1)
-            .requests(3)
-            .build();
-
-        final UserRequest userRequest2 = UserRequest.builder()
-            .userId(1)
-            .timestamp(2)
-            .requests(5)
-            .build();
+        final List<?> userRequests = List.of(
+            UserRequest.builder()
+                .userId(1)
+                .timestamp(1)
+                .requests(Request.builder().count(10).successful(8).build())
+                .build(),
+            UserRequest.builder()
+                .userId(1)
+                .timestamp(2)
+                .requests(Request.builder().count(10).successful(8).build())
+                .build()
+        );
 
         this.server.enqueue(
-            new MockResponse().setBody(
-                this.mapper.writeValueAsString(new MirrorValue<>(List.of(userRequest, userRequest2)))));
+            new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(userRequests))));
 
-        final DataFetcherClient<UserRequest> fetcherClient = this.createClient(UserRequest.class);
+        final DataFetcherClient<UserRequest> fetcherClient = this.createClient();
 
         final RangeQueryFetcher<?> rangeQueryFetcher =
-            new RangeQueryFetcher<>("userId", fetcherClient, "timestampFrom","timestampTo", isNullable);
+            new RangeQueryFetcher<>("userId", fetcherClient, "timestampFrom", "timestampTo", isNullable);
 
         final Map<String, Object> arguments = Map.of("userId", "1", "timestampFrom", "1", "timestampTo", "2");
 
@@ -77,7 +77,7 @@ class RangeQueryFetcherTest {
             .localContext(arguments).build();
 
         final List<?> actual = rangeQueryFetcher.get(env);
-        assertThat(actual).isEqualTo(List.of(userRequest, userRequest2));
+        assertThat(actual).isEqualTo(userRequests);
     }
 
     @Test
@@ -88,7 +88,7 @@ class RangeQueryFetcherTest {
         Mockito.when(fetcherClient.fetchRange(anyString(), anyString(), anyString())).thenReturn(null);
 
         final RangeQueryFetcher<?> rangeQueryFetcher =
-            new RangeQueryFetcher<>("userId", fetcherClient, "timestampFrom","timestampTo", false);
+            new RangeQueryFetcher<>("userId", fetcherClient, "timestampFrom", "timestampTo", false);
 
         final Map<String, Object> arguments = Map.of("userId", "1", "timestampFrom", "1", "timestampTo", "2");
 
@@ -101,8 +101,8 @@ class RangeQueryFetcherTest {
     }
 
     @NotNull
-    private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
-        final TypeResolver<T> resolver = new KnownTypeResolver<>(clazz, this.mapper);
+    private MirrorDataFetcherClient<UserRequest> createClient() {
+        final TypeResolver<UserRequest> resolver = new KnownTypeResolver<>(UserRequest.class, this.mapper);
         return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, resolver);
     }
 
@@ -111,6 +111,14 @@ class RangeQueryFetcherTest {
     private static class UserRequest {
         int userId;
         int timestamp;
-        int requests;
+        Request requests;
     }
+
+    @Value
+    @Builder
+    private static class Request {
+        int count;
+        int successful;
+    }
+
 }
