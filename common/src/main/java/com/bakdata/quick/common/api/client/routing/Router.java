@@ -18,9 +18,10 @@ package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Strategy for finding a host that keeps information about a specific key, i.e. a partition of a topic
+ * Strategy for finding a host that keeps the information about a specific key, i.e., a partition of a topic
  *
  * @param <K> key type
  */
@@ -40,4 +41,11 @@ public interface Router<K> {
      * @return a list of hosts
      */
     List<MirrorHost> getAllHosts();
+
+    /**
+     * Updates the current routing information with a provided routing information.
+     *
+     * @param updatedRoutingInfo new routing information
+     */
+    void updateRoutingInfo(Map<Integer, String> updatedRoutingInfo);
 }

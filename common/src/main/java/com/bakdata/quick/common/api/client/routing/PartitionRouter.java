@@ -18,9 +18,12 @@ package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
-import java.util.ArrayList;
+import com.bakdata.quick.common.exception.MirrorException;
+import io.micronaut.http.HttpStatus;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -36,7 +39,8 @@ public class PartitionRouter<K> implements Router<K> {
     private final String topic;
     private final Serde<K> keySerde;
     private final PartitionFinder partitionFinder;
-    private final Map<Integer, MirrorHost> partitionToMirrorHost;
+    private Map<Integer, MirrorHost> partitionToMirrorHost;
+    private List<MirrorHost> distinctMirrorHosts;
 
     /**
      * A constructor with the default partitioner that is retrieved from a static method.
@@ -52,6 +56,15 @@ public class PartitionRouter<K> implements Router<K> {
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
         this.partitionToMirrorHost = this.convertHostStringToMirrorHost(partitionToHost);
+        this.distinctMirrorHosts = this.findDistinctHosts();
+    }
+
+    private List<MirrorHost> findDistinctHosts() {
+        final Set<String> distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
+        return this.partitionToMirrorHost.values()
+            .stream()
+            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getHost()))
+            .collect(Collectors.toList());
     }
 
     private Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
@@ -65,7 +78,9 @@ public class PartitionRouter<K> implements Router<K> {
         final int partition =
             this.partitionFinder.getForSerializedKey(serializedKey, this.partitionToMirrorHost.size());
         if (!this.partitionToMirrorHost.containsKey(partition)) {
-            throw new IllegalStateException("Router has not been initialized properly.");
+            throw new MirrorException(String.format(
+                "No MirrorHost found for partition: %d", partition
+            ), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return this.partitionToMirrorHost.get(partition);
     }
@@ -73,8 +88,14 @@ public class PartitionRouter<K> implements Router<K> {
     @Override
     public List<MirrorHost> getAllHosts() {
         if (this.partitionToMirrorHost.isEmpty()) {
-            throw new IllegalStateException("Router has not been initialized properly.");
+            throw new MirrorException("Partition to MirrorHost mapping is empty.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ArrayList<>(this.partitionToMirrorHost.values());
+        return this.distinctMirrorHosts;
+    }
+
+    @Override
+    public void updateRoutingInfo(final Map<Integer, String> updatedRoutingInfo) {
+        this.partitionToMirrorHost = this.convertHostStringToMirrorHost(updatedRoutingInfo);
+        this.distinctMirrorHosts = this.findDistinctHosts();
     }
 }

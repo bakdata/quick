@@ -23,7 +23,6 @@ import io.reactivex.subscribers.TestSubscriber;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
@@ -31,7 +30,6 @@ import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
-@Slf4j
 class MultiSubscriptionFetcherTest {
 
     @Test

@@ -37,8 +37,8 @@ import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
 
 /**
- * MirrorClient that has access to information about partition-host mapping. This enables it to efficiently
- * route requests in case when there is more than one mirror replica.
+ * MirrorClient that has access to information about partition-host mapping.
+ * This information enables it to efficiently route requests in the case when there is more than one mirror replica.
  *
  * @param <K> key type
  * @param <V> value type
@@ -49,6 +49,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     private static final TypeReference<Map<Integer, String>> MAP_TYPE_REFERENCE = new TypeReference<>() {
     };
 
+    private final String topicName;
     private final StreamsStateHost streamsStateHost;
     private final HttpClient client;
     private final MirrorValueParser<V> parser;
@@ -57,45 +58,58 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     private final List<MirrorHost> knownHosts;
 
     /**
-     * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
+     * Next to its default task of instantiation PartitionHost, it takes responsibility for
+     * creating several business objects and initializing the PartitionRouter with a mapping
+     * retrieved from StreamController.
      *
-     * @param topicName       the name of the topic
-     * @param mirrorHost      host to use
+     * @param mirrorHost      mirror host to use
      * @param client          http client
      * @param keySerde        the serde for the key
      * @param valueResolver   the value's {@link TypeResolver}
      * @param partitionFinder strategy for finding partitions
      */
-    public PartitionedMirrorClient(final String topicName, final MirrorHost mirrorHost, final HttpClient client,
+    public PartitionedMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
                                    final Serde<K> keySerde, final TypeResolver<V> valueResolver,
                                    final PartitionFinder partitionFinder) {
+        this.topicName = mirrorHost.getHost();
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
         this.client = client;
         this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
-        this.requestManager = new DefaultMirrorRequestManager(client);
+        this.requestManager = new MirrorRequestManagerWithFallback(client, mirrorHost);
         log.info("Initializing partition router for the mirror at: {} and the topic: {}.",
-            this.streamsStateHost.getHost(), topicName);
+            this.streamsStateHost.getHost(), this.topicName);
         final Map<Integer, String> response = this.makeRequestForPartitionHostMapping();
-        this.router = new PartitionRouter<>(keySerde, topicName, partitionFinder, response);
+        this.router = new PartitionRouter<>(keySerde, this.topicName, partitionFinder, response);
         this.knownHosts = this.router.getAllHosts();
     }
 
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        final MirrorHost currentKeyHost = router.findHost(key);
-        return this.requestManager.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()),
-            this.parser::deserialize);
+        final MirrorHost currentKeyHost = this.router.findHost(key);
+        log.debug("Host {} will answer the request for the key: {}.", currentKeyHost.getHost(), key);
+        final ResponseWrapper response = this.requestManager
+            .makeRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()));
+        if (response.isUpdateCacheHeaderSet()) {
+            log.debug("The update header has been set. Updating router info.");
+            this.updateRouterInfo();
+        }
+        return this.requestManager.processResponse(response, this.parser::deserialize);
     }
 
     @Override
     public List<V> fetchAll() {
         final List<V> valuesFromAllHosts = new ArrayList<>();
+        log.debug("Fetching the values for all possible keys that are distributed across {} hosts.",
+            this.knownHosts.size());
         for (final MirrorHost host : this.knownHosts) {
+            log.debug("Fetching the value from the following host: {}", host.getHost());
+            final ResponseWrapper response = this.requestManager.makeRequest(host.forAll());
             final List<V> valuesFromSingleHost =
-                Objects.requireNonNullElse(this.requestManager.sendRequest(host.forAll(), this.parser::deserializeList),
+                Objects.requireNonNullElse(this.requestManager.processResponse(response, this.parser::deserializeList),
                     Collections.emptyList());
             valuesFromAllHosts.addAll(valuesFromSingleHost);
+            log.debug("Fetched {} values.", valuesFromSingleHost.size());
         }
         return valuesFromAllHosts;
     }
@@ -103,6 +117,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
+        log.debug("Fetching values for {} keys.", keys.size());
         return keys.stream().map(this::fetchValue).collect(Collectors.toList());
     }
 
@@ -119,7 +134,8 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
      */
     private Map<Integer, String> makeRequestForPartitionHostMapping() {
         final String url = this.streamsStateHost.getPartitionToHostUrl();
-        try (final ResponseBody responseBody = this.requestManager.makeRequest(url)) {
+        try (final ResponseBody responseBody = Objects.requireNonNull(
+            this.requestManager.makeRequest(url)).getResponseBody()) {
             if (responseBody == null) {
                 throw new MirrorException("Response body was null.", HttpStatus.INTERNAL_SERVER_ERROR);
             }
@@ -135,5 +151,12 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
             throw new MirrorException("There was a problem handling the response: ",
                 HttpStatus.INTERNAL_SERVER_ERROR, exception);
         }
+    }
+
+    private void updateRouterInfo() {
+        log.debug("Updating partition - router mapping for the mirror at: {} and the topic: {}.",
+            this.streamsStateHost.getHost(), this.topicName);
+        final Map<Integer, String> updatedPartitionHostInfo = this.makeRequestForPartitionHostMapping();
+        this.router.updateRoutingInfo(updatedPartitionHostInfo);
     }
 }
