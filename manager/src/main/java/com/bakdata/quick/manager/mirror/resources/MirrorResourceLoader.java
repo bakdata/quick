@@ -174,11 +174,11 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
             builder.put("--retention-time", retentionTime.toString());
         }
         if (Objects.nonNull(rangeField)) {
-            builder.put("--rangeField", rangeField);
+            builder.put("--range-field", rangeField);
         }
         if (Objects.isNull(rangeField) && !point) {
             throw new BadArgumentException(
-                "At least one query type (--rangeField <Field> or --point) should be defined");
+                "At least one query type (--range-field <Field> or --point) should be defined");
         }
 
         log.debug("Creating CLI arguments for the mirror deployment: {}", builder.build().toString());

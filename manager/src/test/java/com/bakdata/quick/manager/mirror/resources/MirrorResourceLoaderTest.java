@@ -316,7 +316,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .hasSize(3)
                     .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
                     .contains("--point=" + "true")
-                    .contains("--rangeField=" + rangeFiled);
+                    .contains("--range-field=" + rangeFiled);
             });
     }
 
@@ -351,7 +351,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
                     .contains("--point=" + "true")
                     .contains("--retention-time=" + retentionTime)
-                    .contains("--rangeField=" + rangeFiled);
+                    .contains("--range-field=" + rangeFiled);
             });
     }
 
@@ -384,7 +384,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .hasSize(3)
                     .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
                     .contains("--point=" + "false")
-                    .contains("--rangeField=" + rangeFiled);
+                    .contains("--range-field=" + rangeFiled);
             });
     }
 
@@ -401,7 +401,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
 
         assertThatThrownBy(() -> this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR)).isInstanceOf(
                 BadArgumentException.class)
-            .hasMessageContaining("At least one query type (--rangeField <Field> or --point) should be defined");
+            .hasMessageContaining("At least one query type (--range-field <Field> or --point) should be defined");
     }
 
     @Test
