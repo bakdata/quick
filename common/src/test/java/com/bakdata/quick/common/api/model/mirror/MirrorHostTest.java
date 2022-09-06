@@ -39,7 +39,7 @@ class MirrorHostTest {
     void shouldConstructCorrectUrlForKeysRequest() {
         final MirrorHost mirrorHost = new MirrorHost("test-for-keys", new MirrorConfig());
         final String actual = mirrorHost.forKeys(List.of("test-1", "test-2", "test-3"));
-        final String url = "http://%s-test-for-keys/%s?ids=test-1,test-2,test-3";
+        final String url = "http://%s-test-for-keys/%s/keys?ids=test-1,test-2,test-3";
         assertThat(actual).isEqualTo(String.format(url, MIRROR_HOST_PREFIX, MIRROR_HOST_PATH));
     }
 
