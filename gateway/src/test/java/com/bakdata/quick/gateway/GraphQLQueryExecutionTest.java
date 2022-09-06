@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Value;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -142,14 +143,42 @@ class GraphQLQueryExecutionTest {
         assertThat(data.get("userRequests"))
             .isNotNull()
             .hasSize(3)
-            .satisfies(userRequest -> {
-                assertThat(userRequest.get(0).get("requests")).isEqualTo(5);
+            .satisfies(userRequest -> assertThat(userRequest.get(0).get("requests")).isEqualTo(5))
+            .satisfies(userRequest -> assertThat(userRequest.get(1).get("requests")).isEqualTo(10))
+            .satisfies(userRequest -> assertThat(userRequest.get(2).get("requests")).isEqualTo(8));
+    }
 
-            }).satisfies(userRequest -> {
-                assertThat(userRequest.get(1).get("requests")).isEqualTo(10);
-            }).satisfies(userRequest -> {
-                assertThat(userRequest.get(2).get("requests")).isEqualTo(8);
-            });
+    @Test
+    @Disabled
+    void shouldExecuteRangeOnField(final TestInfo testInfo) throws IOException {
+        final String name = testInfo.getTestMethod().orElseThrow().getName();
+        final Path schemaPath = workingDirectory.resolve(name + ".graphql");
+        final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
+
+        final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
+        final GraphQL graphQL = GraphQL.newGraphQL(schema).build();
+
+        final DataFetcherClient<?> dataFetcherClient = this.supplier.getClients().get("info-topic");
+
+        final List<?> productInfo = List.of(
+            ProductInfo.builder().info(Info.builder().key(1).timestamp(1).build()).build(),
+            ProductInfo.builder().info(Info.builder().key(1).timestamp(2).build()).build(),
+            ProductInfo.builder().info(Info.builder().key(1).timestamp(3).build()).build()
+        );
+
+        when(dataFetcherClient.fetchRange("1", "1", "3")).thenAnswer(invocation -> productInfo);
+
+        final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
+
+        assertThat(executionResult.getErrors()).isEmpty();
+
+        final Map<String, List<Map<String, Object>>> data = executionResult.getData();
+        assertThat(data.get("product"))
+            .isNotNull()
+            .hasSize(3)
+            .satisfies(userRequest -> assertThat(userRequest.get(0).get("requests")).isEqualTo(5))
+            .satisfies(userRequest -> assertThat(userRequest.get(1).get("requests")).isEqualTo(10))
+            .satisfies(userRequest -> assertThat(userRequest.get(2).get("requests")).isEqualTo(8));
     }
 
     @Test
@@ -355,6 +384,12 @@ class GraphQLQueryExecutionTest {
             new TopicData("user-request-range", TopicWriteType.MUTABLE, QuickTopicType.INTEGER, QuickTopicType.AVRO,
                 "")
         ).blockingAwait();
+
+        this.registryClient.register(
+            "info-topic",
+            new TopicData("info-topic", TopicWriteType.MUTABLE, QuickTopicType.INTEGER, QuickTopicType.AVRO,
+                "")
+        ).blockingAwait();
     }
 
     @Value
@@ -387,5 +422,18 @@ class GraphQLQueryExecutionTest {
         int userId;
         int timestamp;
         int requests;
+    }
+
+    @Value
+    @Builder
+    private static class ProductInfo {
+        Info info;
+    }
+
+    @Value
+    @Builder
+    private static class Info {
+        int key;
+        int timestamp;
     }
 }

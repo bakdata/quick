@@ -52,7 +52,7 @@ import java.util.Objects;
  *
  * @see com.bakdata.quick.gateway.fetcher.RangeQueryFetcher
  */
-public class RangeFetcherRule implements DataFetcherRule{
+public class RangeFetcherRule implements DataFetcherRule {
     @Override
     public List<DataFetcherSpecification> extractDataFetchers(final TopicDirectiveContext context) {
         Objects.requireNonNull(context.getTopicDirective().getKeyArgument());
@@ -75,7 +75,6 @@ public class RangeFetcherRule implements DataFetcherRule{
             && context.getTopicDirective().hasRangeFrom()
             && context.getTopicDirective().hasRangeTo()
             && context.isListType()
-            && context.getEnvironment().getElement().getArguments().size() == 3
-            && context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE);
+            && context.getEnvironment().getElement().getArguments().size() == 3;
     }
 }

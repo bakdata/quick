@@ -83,9 +83,9 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public V fetchValue(final K key) {
-        final MirrorHost currentKeyHost = this.router.findHost(key);
-        return this.requestManager.sendRequest(Objects.requireNonNull(currentKeyHost).forKey(key.toString()),
-            this.parser::deserialize);
+        final MirrorHost currentKeyHost = Objects.requireNonNull(this.router.findHost(key),
+            String.format("Could not find the a Mirror host for key %s", key));
+        return this.requestManager.sendRequest(currentKeyHost.forKey(key.toString()), this.parser::deserialize);
     }
 
     @Override
@@ -109,9 +109,10 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public List<V> fetchRange(final K key, final String from, final String to) {
-        final MirrorHost currentKeyHost = this.router.findHost(key);
-        return this.requestManager.sendRequest(
-            Objects.requireNonNull(currentKeyHost).forRange(key.toString(), from, to), this.parser::deserializeList);
+        final MirrorHost currentKeyHost = Objects.requireNonNull(this.router.findHost(key),
+            String.format("Could not find the a Mirror host for key %s", key));
+        return this.requestManager.sendRequest(currentKeyHost.forRange(key.toString(), from, to),
+            this.parser::deserializeList);
     }
 
     @Override

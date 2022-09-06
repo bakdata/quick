@@ -23,7 +23,10 @@ import graphql.language.ObjectTypeDefinition;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ValidationUtility {
+public final class ValidationUtility {
+
+    private ValidationUtility() {
+    }
 
     public static Optional<String> makeCheckForKeyArgument(final TopicDirectiveContext context) {
         if (context.getTopicDirective().getKeyArgument() != null) {

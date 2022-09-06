@@ -279,6 +279,25 @@ class GraphQLSchemaGeneratorTest {
     }
 
     @Test
+    void shouldConvertQueryWithRangeOnField(final TestInfo testInfo) throws IOException {
+        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
+
+        final List<GraphQLArgument> topicDirectiveArguments =
+            GraphQLTestUtil.getTopicDirectiveArgumentsFromField("ProductInfo", "info", schema);
+
+        assertThat(topicDirectiveArguments)
+            .hasSize(4)
+            .extracting(GraphQLArgument::getName)
+            .containsExactly("name", "keyArgument", "rangeFrom", "rangeTo");
+
+        assertThat(topicDirectiveArguments)
+            .hasSize(4)
+            .extracting(GraphQLArgument::getValue)
+            .containsExactly("info-topic", "key", "timestampFrom", "timestampTo");
+    }
+
+    @Test
     void shouldConvertQueryAllWithComplexType(final TestInfo testInfo) throws IOException {
         final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
 
