@@ -83,6 +83,9 @@ class QuickCodeQualityPlugin : Plugin<Project> {
         project.plugins.apply(CheckstylePlugin::class)
         project.configure<CheckstyleExtension> {
             this.toolVersion = CHECKSTYLE_VERSION
+            this.isIgnoreFailures = false
+            this.maxErrors = 0
+            this.maxWarnings = 0
         }
 
         tasks.withType(Checkstyle::class) {
