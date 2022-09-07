@@ -4,11 +4,11 @@ This part describes _Range Queries_, which are supported in Quick from version 0
 
 ## Introduction
 
-Imagine a scenario where a clothing company wants to count the number of purchases a specific client made
-in a month. The client receives a promo code if the amount exceeds a given value. To determine the number
-of purchases in a particular month, the company could theoretically fetch all entries from the appropriate Kafka topic
-and then filter them according to the users and dates. However, it would be easier to be able to specify a desired
-range of dates and receive the corresponding records immediately. <br />
+Imagine a scenario where a company wants to find out purchases a specific customer was not satisfied with to grant them 
+a promo code if the amount exceeds a given value. To determine the number
+of disappointing purchases, the company could theoretically fetch all entries from the appropriate Kafka topic
+and then filter them according to the users and ratings. However, it would be easier to be able to specify a desired
+range of rating considered bad (say, from 1 to 4) and receive the corresponding records immediately. <br />
 For another example, let's say you have a product with a unique id and a version number. With each new release of the
 product, you update the version number. Now you want to check if improving the product (new version)
 led to increased sales. With the default fetching strategy in Quick (a so-called Point Query),
@@ -26,14 +26,33 @@ To be able to integrate the Range Queries into your application, you must take t
 The consecutive subsections will describe these steps in detail. <br />
 To present the idea of Range Queries we will extend the schema presented before with the following type:
 ```graphql title="schema.gql"
-type UserPurchase {
+type UserReview {
     userId: Int!
     purchaseId: String!
-    timestamp: Int
+    rating: Int
 }
 ```
-We also assume that you have already created a context and a gateway. If not, please consult the appropriate
-parts of this documentation. <br />
+Assuming that you have already created a context and a gateway. Using the REST API of the ingest service,
+you can send some ratings into Quick:
+```shell
+ curl --request POST --url "$QUICK_URL/ingest/user-rating-range" \
+  --header "content-type:application/json" \
+  --header "X-API-Key:$QUICK_API_KEY"\
+  --data "@./ratings.json"
+```
+
+Here is an example of the `products.json` file:
+??? "Example `ratings.json`"
+```json title="ratings.json"
+   [
+      {
+      },
+      {
+      },
+      {
+      }
+   ]
+```
 
 [//]: # "TODO: Add an exemplary json with 5 purchases whose timestamp span 3 months. Moreover, add a command that
 enable the ingestion of the data"
@@ -45,13 +64,13 @@ A Range Mirror is a special mirror with an index structure that allows the execu
 You can create one using the Quick CLI. You do this by executing the topic creation command, however,
 with some additional options:
 ```
-quick topic user-purchase-range --key string --value schema --schema gateway.UserPurchase --rangeField timestamp --point
+quick topic create user-rating-range --key string --value schema --schema example.UserReview --rangeField rating --point
 ```
 In comparison to the previous form of the command, you can see two new elements (options) here: `--rangeField`
 and `--point`. <br />
 `--rangeField` is an optional field. Specifying it enables you to create a Range Mirror and carry out Range Queries.
 `--rangeField` must be linked with a specific field over which you want your Range Queries to be executed. In the example above,
-the option is linked to the `timestamp` field. <br />
+the option is linked to the `rating` field. <br />
 `--point` is a parameter that tells Quick to use the current mirror implementation to perform Point Queries.
 By default, Quick creates Point Index. Thus, you don't have to specify the `-point` option explicitly. You can also completely drop
 the possibility of performing Point Queries by providing the `--no-point` option.
@@ -63,8 +82,8 @@ for which Range Queries can be executed:
 2. The field type over which you want to execute queries has to be a `Long` or `Int`.
 
 When you execute the command (`quick topic ...`), a request is sent to the manager, which prepares
-the deployment of a Range Mirror called `purchase-range`. This mirror creates two indexes:
-1. Range Index over the topic key (here the `userId`) and `timestamp`.
+the deployment of a Range Mirror called `rating-range`. This mirror creates two indexes:
+1. Range Index over the topic key (here the `userId`) and `rating`.
 2. Point Index only over the topic key (`userId`). <br />
    Range Processor for Mirrors section provides more details about these indices.
 
@@ -76,20 +95,20 @@ you could proceed as follows:
 
 ```graphql
 type Query {
-    userPurchases(
+    userRatings(
         userId: Int
-        timestampFrom: Int
-        timestampTo: Int
-    ): [UserPurchase] @topic(name: "user-purchase-range", 
+        ratingFrom: Int
+        ratingTo: Int
+    ): [UserRating] @topic(name: "user-rating-range", 
                              keyArgument: "userId", 
-                             rangeFrom: "timestampFrom", 
-                             rangeTo: "timestampTo")
+                             rangeFrom: "ratingFrom", 
+                             rangeTo: "ratingTo")
 }
 
-type UserPurchase {
+type UserRating {
     userId: Int!
     purchaseId: String!
-    timestamp: Int
+    rating: Int
 }
 ``` 
 The example above indicates that fields of a query refer to the fields over which the Range Index is built.
@@ -97,16 +116,17 @@ Thus, the Query definition consists of the key field (`userId`) and two fields t
 The names of fields over which the range is created follow the schema _field**From**_, _field**To**_,
 where _field_ is the field declared in the topic creation command (Step 1). <br />
 When you execute a Range Query, you expect to receive a list of entries. In the example, the return type of the query
-is a list of _UserPurchase_. <br /> 
+is a list of _UserRating_. <br /> 
 The last element of the query definition is a topic (the same that you defined in the first step).
 
 ## 3. Execute the query
 
-Say you want to find the last month's purchases of a specific client (with the `id=1`). 
-Assuming that today is 6.09.2022, you create a range from 1659795226 to 1662473626 (GMT) as follows:
+Say you want to find the purchases the client with `id=1` was unsatisfied with.  
+Assuming that a disappointing purchase is one that has a rating lower than 5, you can execute the following
+query to obtain the results.
 ```graphql
 {
-    userRequests(userId: 1, timestampFrom: 1659795226, timestampTo: 1662473626)  {
+    userRequests(userId: 1, ratingFrom: 1, ratingTo: 4)  {
         purchaseId
     }
 }
