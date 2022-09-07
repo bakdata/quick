@@ -1,3 +1,4 @@
+# Invalid Schema
 type Query {
     product(key: Int, timestampFrom: Int, timestampTo: Int): ProductInfo!
 }
