@@ -36,7 +36,7 @@ import lombok.Value;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -48,23 +48,33 @@ class RangeQueryFetcherTest {
     private final MirrorConfig mirrorConfig = MirrorConfig.directAccess();
     private final String host = String.format("localhost:%s", this.server.getPort());
 
+    @BeforeEach
+    void initRouterAndMirror() throws JsonProcessingException {
+        // mapping from partition to host for initializing PartitionRouter
+        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(1, this.host, 2, this.host));
+        this.server.enqueue(new MockResponse().setBody(routerBody));
+    }
+
     @Test
-    void shouldFetchListWhenListArgumentOfTypeString() throws JsonProcessingException {
-        final List<?> userRequests = List.of(
-            UserRequest.builder()
-                .userId(1)
-                .timestamp(1)
-                .requests(Request.builder().count(10).successful(8).build())
-                .build(),
-            UserRequest.builder()
-                .userId(1)
-                .timestamp(2)
-                .requests(Request.builder().count(10).successful(8).build())
-                .build()
+    void shouldFetchRange() throws JsonProcessingException {
+        final UserRequest userRequest1 = UserRequest.builder()
+            .userId(1)
+            .timestamp(1)
+            .requests(Request.builder().count(10).successful(8).build())
+            .build();
+        final UserRequest userRequest2 = UserRequest.builder()
+            .userId(1)
+            .timestamp(2)
+            .requests(Request.builder().count(10).successful(8).build())
+            .build();
+
+        final List<UserRequest> userRequests = List.of(
+            userRequest1,
+            userRequest2
         );
 
-        this.server.enqueue(
-            new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(userRequests))));
+        final String userRequestJson = this.mapper.writeValueAsString(new MirrorValue<>(userRequests));
+        this.server.enqueue(new MockResponse().setBody(userRequestJson));
 
         final DataFetcherClient<UserRequest> fetcherClient = this.createClient();
 
@@ -100,7 +110,6 @@ class RangeQueryFetcherTest {
         assertThat(actual).isEqualTo(Collections.emptyList());
     }
 
-    @NotNull
     private MirrorDataFetcherClient<UserRequest> createClient() {
         final TypeResolver<UserRequest> resolver = new KnownTypeResolver<>(UserRequest.class, this.mapper);
         return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, resolver);
@@ -120,5 +129,4 @@ class RangeQueryFetcherTest {
         int count;
         int successful;
     }
-
 }

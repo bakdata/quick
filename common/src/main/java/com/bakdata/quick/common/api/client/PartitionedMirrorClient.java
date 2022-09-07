@@ -37,8 +37,8 @@ import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
 
 /**
- * MirrorClient that has access to information about partition-host mapping.
- * This information enables it to efficiently route requests in the case when there is more than one mirror replica.
+ * MirrorClient that has access to information about partition-host mapping. This information enables it to efficiently
+ * route requests in the case when there is more than one mirror replica.
  *
  * @param <K> key type
  * @param <V> value type
@@ -58,19 +58,18 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     private final List<MirrorHost> knownHosts;
 
     /**
-     * Next to its default task of instantiation PartitionHost, it takes responsibility for
-     * creating several business objects and initializing the PartitionRouter with a mapping
-     * retrieved from StreamController.
+     * Next to its default task of instantiation PartitionHost, it takes responsibility for creating several business
+     * objects and initializing the PartitionRouter with a mapping retrieved from StreamController.
      *
-     * @param mirrorHost      mirror host to use
-     * @param client          http client
-     * @param keySerde        the serde for the key
-     * @param valueResolver   the value's {@link TypeResolver}
+     * @param mirrorHost mirror host to use
+     * @param client http client
+     * @param keySerde the serde for the key
+     * @param valueResolver the value's {@link TypeResolver}
      * @param partitionFinder strategy for finding partitions
      */
     public PartitionedMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
-                                   final Serde<K> keySerde, final TypeResolver<V> valueResolver,
-                                   final PartitionFinder partitionFinder) {
+        final Serde<K> keySerde, final TypeResolver<V> valueResolver,
+        final PartitionFinder partitionFinder) {
         this.topicName = mirrorHost.getHost();
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
         this.client = client;
@@ -126,8 +125,13 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     public List<V> fetchRange(final K key, final String from, final String to) {
         final MirrorHost currentKeyHost = Objects.requireNonNull(this.router.findHost(key),
             String.format("Could not find the a Mirror host for key %s", key));
-        return this.requestManager.sendRequest(currentKeyHost.forRange(key.toString(), from, to),
-            this.parser::deserializeList);
+        final ResponseWrapper response = this.requestManager
+            .makeRequest(Objects.requireNonNull(currentKeyHost).forRange(key.toString(), from, to));
+        if (response.isUpdateCacheHeaderSet()) {
+            log.debug("The update header has been set. Updating router info.");
+            this.updateRouterInfo();
+        }
+        return this.requestManager.processResponse(response, this.parser::deserializeList);
     }
 
     @Override
@@ -149,11 +153,9 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
             }
             final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper()
                 .readValue(responseBody.byteStream(), MAP_TYPE_REFERENCE);
-            if (log.isInfoEnabled()) {
-                log.info("Collected information about the partitions and hosts."
-                        + " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
-                    (int) partitionHostMappingResponse.values().stream().distinct().count());
-            }
+            log.info("Collected information about the partitions and hosts."
+                    + " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
+                (int) partitionHostMappingResponse.values().stream().distinct().count());
             return partitionHostMappingResponse;
         } catch (final IOException exception) {
             throw new MirrorException("There was a problem handling the response: ",
