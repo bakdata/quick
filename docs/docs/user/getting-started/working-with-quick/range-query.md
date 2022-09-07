@@ -5,15 +5,16 @@ This part describes _Range Queries_, which are supported in Quick from version 0
 ## Introduction
 
 Imagine a scenario where a clothing company wants to count the number of purchases a specific client made
-in a month. The client receives a promo code if the amount exceeds a specific value. To determine the number
-of purchases in a particular month, the company could theoretically fetch all entries from the Kafka topic and then
-filter them according to the users and dates. However, it would be easier to be able to specify a from-to range
-and receive the desired records immediately. <br />
-For another example, let's say you have a product with a given id and a version number. With each new release of the
+in a month. The client receives a promo code if the amount exceeds a given value. To determine the number
+of purchases in a particular month, the company could theoretically fetch all entries from the appropriate Kafka topic
+and then filter them according to the users and dates. However, it would be easier to be able to specify a desired
+range of dates and receive the corresponding records immediately. <br />
+For another example, let's say you have a product with a unique id and a version number. With each new release of the
 product, you update the version number. Now you want to check if improving the product (new version)
-led to increased sales. With the typical Point Queries, you could only check the number of sold pieces of the current version.
-Again you could fetch all entries and filter them, but it would be nice to have the possibility to choose the desired
-version range and receive the desired data swiftly. <br />
+led to increased sales. With the default fetching strategy in Quick (a so-called Point Query),
+you could only check the number of sold pieces of the current version.
+Again, a possible solution would be to fetch all entries and filter them, but having the possibility to choose the desired
+version range and receive the desired data swiftly is more convenient. <br />
 To facilitate such tasks, Quick introduces Range Queries which enable
 the retrieval of values from a given topic according to a specific range of a particular value.
 
@@ -48,8 +49,8 @@ quick topic user-purchase-range --key string --value schema --schema gateway.Use
 ```
 In comparison to the previous form of the command, you can see two new elements (options) here: `--rangeField`
 and `--point`. <br />
-`--rangeField` is an optional field. Specifying it enables you to carry out Range Queries. `--rangeField` must be
-linked with a specific field over which you want your Range Queries to be executed. In the example above,
+`--rangeField` is an optional field. Specifying it enables you to create a Range Mirror and carry out Range Queries.
+`--rangeField` must be linked with a specific field over which you want your Range Queries to be executed. In the example above,
 the option is linked to the `timestamp` field. <br />
 `--point` is a parameter that tells Quick to use the current mirror implementation to perform Point Queries.
 By default, Quick creates Point Index. Thus, you don't have to specify the `-point` option explicitly. You can also completely drop
