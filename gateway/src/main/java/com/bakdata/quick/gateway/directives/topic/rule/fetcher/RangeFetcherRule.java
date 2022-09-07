@@ -21,6 +21,8 @@ import com.bakdata.quick.gateway.DataFetcherSpecification;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
+import graphql.schema.GraphQLTypeUtil;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -74,7 +76,8 @@ public class RangeFetcherRule implements DataFetcherRule {
         return context.getTopicDirective().hasKeyArgument()
             && context.getTopicDirective().hasRangeFrom()
             && context.getTopicDirective().hasRangeTo()
-            && context.isListType()
-            && context.getEnvironment().getElement().getArguments().size() == 3;
+            && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE)
+            && context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE)
+            && GraphQLTypeUtil.isList(context.getEnvironment().getElement().getType());
     }
 }

@@ -65,6 +65,8 @@ public class ListArgumentFetcherRule implements DataFetcherRule {
     @Override
     public boolean isValid(final TopicDirectiveContext context) {
         return context.getTopicDirective().hasKeyArgument()
+            && !context.getTopicDirective().hasRangeFrom()
+            && !context.getTopicDirective().hasRangeTo()
             && context.isListType()
             && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE)
             && GraphQLTypeUtil.isList(context.getEnvironment().getElement().getType());

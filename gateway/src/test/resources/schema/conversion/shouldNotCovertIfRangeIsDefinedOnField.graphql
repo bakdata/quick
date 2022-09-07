@@ -1,0 +1,12 @@
+type Query {
+    product(key: Int, timestampFrom: Int, timestampTo: Int): ProductInfo!
+}
+
+type ProductInfo {
+    info: [Info!] @topic(name: "info-topic", keyArgument: "key", rangeFrom: "timestampFrom", rangeTo: "timestampTo")
+}
+
+type Info {
+    key: Int
+    timestamp: Int!
+}

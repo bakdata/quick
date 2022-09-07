@@ -1,7 +1,0 @@
-{
-    product(key: 1, timestampFrom: 1, timestampTo: 3)  {
-        info {
-            key
-        }
-    }
-}

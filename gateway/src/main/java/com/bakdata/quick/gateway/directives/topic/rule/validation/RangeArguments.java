@@ -50,8 +50,10 @@ import java.util.Optional;
 public class RangeArguments implements ValidationRule {
     @Override
     public Optional<String> validate(final TopicDirectiveContext context) {
-        if (checkIfItIsRange(context)) {
-            if (!context.getTopicDirective().hasKeyArgument()) {
+        if (hasRangeFromAndRangeTo(context)) {
+            if (!context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE)) {
+                return Optional.of("Range queries is only supported on Query types.");
+            } else if (!context.getTopicDirective().hasKeyArgument()) {
                 return Optional.of("You must define a keyArgument.");
             } else if (!context.isListType()) {
                 return Optional.of("The return type of range queries should be a list.");
@@ -63,7 +65,7 @@ public class RangeArguments implements ValidationRule {
         return Optional.of("Both rangeFrom and rangeTo arguments should be set.");
     }
 
-    private static boolean checkIfItIsRange(final TopicDirectiveContext context) {
+    private static boolean hasRangeFromAndRangeTo(final TopicDirectiveContext context) {
         return context.getTopicDirective().hasRangeFrom()
             && context.getTopicDirective().hasRangeTo();
     }
