@@ -23,10 +23,6 @@ runs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    - name: Run build to check if there are any checkstyle issues
-      shell: bash
-      run: ./gradlew build
-    
     - name: Run unit tests
       shell: bash
       run: ./gradlew unitTest
