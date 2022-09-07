@@ -22,9 +22,11 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ProtoRangeQueryTest;
+import com.google.protobuf.Message;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import java.util.stream.Stream;
+import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -49,24 +51,24 @@ class RangeIndexerTest {
 
     @ParameterizedTest
     @MethodSource("integerKeyAvroValueAndRangeIndexProvider")
-    void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final AvroRangeQueryTest avroRecord,
+    void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final GenericRecord avroRecord,
         final String range_index) {
-        final RangeIndexer<Integer, AvroRangeQueryTest> rangeIndexer =
-            new RangeIndexer<>(QuickTopicType.INTEGER, QuickTopicType.AVRO, new AvroSchema(avroRecord.getSchema()),
-                RANGE_FIELD);
+        final RangeIndexer<Integer, GenericRecord, Long> rangeIndexer =
+            RangeIndexer.createRangeIndexer(QuickTopicType.INTEGER, QuickTopicType.AVRO,
+                new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
+
         assertThat(rangeIndexer.createIndex(key, avroRecord)).isEqualTo(range_index);
     }
 
     @ParameterizedTest
     @MethodSource("longKeyProtobufValueAndRangeIndexProvider")
     void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key,
-        final ProtoRangeQueryTest protoMessage,
+        final Message protoMessage,
         final String range_index) {
-        final RangeIndexer<Long, ProtoRangeQueryTest> objectObjectRangeUtils =
-            new RangeIndexer<>(QuickTopicType.LONG, QuickTopicType.PROTOBUF,
-                new ProtobufSchema(protoMessage.getDescriptorForType()),
-                RANGE_FIELD);
-        assertThat(objectObjectRangeUtils.createIndex(key, protoMessage)).isEqualTo(range_index);
+        final RangeIndexer<Long, Message, Integer> rangeIndexer =
+            RangeIndexer.createRangeIndexer(QuickTopicType.LONG, QuickTopicType.PROTOBUF,
+                new ProtobufSchema(protoMessage.getDescriptorForType()), RANGE_FIELD);
+        assertThat(rangeIndexer.createIndex(key, protoMessage)).isEqualTo(range_index);
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {

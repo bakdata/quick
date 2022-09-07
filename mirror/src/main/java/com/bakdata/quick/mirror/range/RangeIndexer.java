@@ -33,31 +33,51 @@ import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
+import org.apache.avro.generic.GenericRecord;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Creates range indexes for a Mirror's state store
  */
 @Slf4j
-public class RangeIndexer<K, V> {
+public class RangeIndexer<K, V, F extends Number> {
     @NonNull
-    private final ZeroPadder keyZeroPadder;
+    private final ZeroPadder<K> keyZeroPadder;
     @NonNull
-    private final ZeroPadder valueZeroPadder;
+    private final ZeroPadder<F> valueZeroPadder;
     @Nullable
-    private RangeFieldValueExtractor rangeFieldValueExtractor;
+    private final RangeFieldValueExtractor<V, F> rangeFieldValueExtractor;
 
     private final String rangeField;
 
-    /**
-     * Creates the zero padder for the key and sets the range field value extractor based on the schema type.
-     * It then reads the range field type form the schema and sets the value zero padder for the range field.
-     */
-    public RangeIndexer(final QuickTopicType keyType, final QuickTopicType valueType,
-        final ParsedSchema parsedSchema, final String rangeField) {
+    private RangeIndexer(@NonNull final ZeroPadder<K> keyZeroPadder, @NonNull final ZeroPadder<F> valueZeroPadder,
+        @Nullable final RangeFieldValueExtractor<V, F> rangeFieldValueExtractor, final String rangeField) {
+        this.keyZeroPadder = keyZeroPadder;
+        this.valueZeroPadder = valueZeroPadder;
+        this.rangeFieldValueExtractor = rangeFieldValueExtractor;
         this.rangeField = rangeField;
-        this.keyZeroPadder = createKeyZeroPadder(keyType);
-        this.valueZeroPadder = this.createValueZeroPadder(valueType, parsedSchema);
+    }
+
+    /**
+     * Creates the zero padder for the key and sets the range field value extractor based on the schema type. It then
+     * reads the range field type form the schema and sets the value zero padder for the range field.
+     */
+    public static <K, V, F extends Number> RangeIndexer<K, V, F> createRangeIndexer(
+        final QuickTopicType keyType,
+        final QuickTopicType valueType,
+        final ParsedSchema parsedSchema,
+        final String rangeField) {
+
+        final ZeroPadder<K> keyZeroPadder = createKeyZeroPadder(keyType);
+        final ZeroPadder<F> valueZeroPadder = createValueZeroPadder(valueType, parsedSchema, rangeField);
+        if (valueType == QuickTopicType.AVRO) {
+            final RangeFieldValueExtractor avroExtractor = new AvroExtractor<>(valueZeroPadder.getPadderClass());
+            return new RangeIndexer<>(keyZeroPadder, valueZeroPadder, avroExtractor, rangeField);
+        } else if (valueType == QuickTopicType.PROTOBUF) {
+            final RangeFieldValueExtractor protoExtractor = new ProtoExtractor<>(valueZeroPadder.getPadderClass());
+            return new RangeIndexer<>(keyZeroPadder, valueZeroPadder, protoExtractor, rangeField);
+        }
+        throw new MirrorTopologyException("Key value should be either integer or mirror");
     }
 
     /**
@@ -83,59 +103,61 @@ public class RangeIndexer<K, V> {
         if (this.rangeFieldValueExtractor == null) {
             throw new MirrorTopologyException("Supported values are Avro and Protobuf");
         }
-        final Object rangeFieldValue = this.rangeFieldValueExtractor.extractValue(value, this.rangeField);
+        final F rangeFieldValue = this.rangeFieldValueExtractor.extractValue(value, this.rangeField);
 
         return String.format("%s_%s", this.keyZeroPadder.padZero(key), this.valueZeroPadder.padZero(rangeFieldValue));
     }
 
     @NonNull
-    private static ZeroPadder<? extends Number> createKeyZeroPadder(final QuickTopicType topicType) {
+    private static <K> ZeroPadder<K> createKeyZeroPadder(final QuickTopicType topicType) {
         if (topicType == QuickTopicType.INTEGER) {
             log.trace("Creating integer zero padder for key");
-            return new IntPadder();
+            return (ZeroPadder<K>) new IntPadder();
         } else if (topicType == QuickTopicType.LONG) {
             log.trace("Creating long zero padder for key");
-            return new LongPadder();
+            return (ZeroPadder<K>) new LongPadder();
         }
         throw new MirrorTopologyException("Key value should be either integer or mirror");
     }
 
     @NonNull
-    private ZeroPadder<? extends Number> createValueZeroPadder(final QuickTopicType topicType,
-        final ParsedSchema parsedSchema) {
+    private static <F extends Number> ZeroPadder<F> createValueZeroPadder(final QuickTopicType topicType,
+        final ParsedSchema parsedSchema, final String rangeField) {
         if (topicType == QuickTopicType.AVRO) {
-            this.rangeFieldValueExtractor = new AvroExtractor();
-            return this.getZeroPadderForAvroSchema((Schema) parsedSchema.rawSchema());
+            return getZeroPadderForAvroSchema((Schema) parsedSchema.rawSchema(), rangeField);
         } else if (topicType == QuickTopicType.PROTOBUF) {
-            this.rangeFieldValueExtractor = new ProtoExtractor();
-            return this.getZeroPadderForProtobufSchema((ProtobufSchema) parsedSchema);
+            return getZeroPadderForProtobufSchema((ProtobufSchema) parsedSchema, rangeField);
         }
         throw new MirrorTopologyException("Supported values are Avro and Protobuf");
     }
 
     @NotNull
-    private ZeroPadder<? extends Number> getZeroPadderForAvroSchema(final Schema avroSchema) {
-        final Type fieldType = avroSchema.getField(this.rangeField).schema().getType();
+    private static <F extends Number> ZeroPadder<F> getZeroPadderForAvroSchema(
+        final Schema avroSchema,
+        final String rangeField) {
+        final Type fieldType = avroSchema.getField(rangeField).schema().getType();
         if (fieldType == Type.INT) {
             log.trace("Creating integer zero padder for avro value");
-            return new IntPadder();
+            return (ZeroPadder<F>) new IntPadder();
         } else if (fieldType == Type.LONG) {
             log.trace("Creating long zero padder for avro value");
-            return new LongPadder();
+            return (ZeroPadder<F>) new LongPadder();
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
     }
 
     @NotNull
-    private ZeroPadder<? extends Number> getZeroPadderForProtobufSchema(final ProtobufSchema parsedSchema) {
+    private static <V, F extends Number> ZeroPadder<F> getZeroPadderForProtobufSchema(
+        final ProtobufSchema parsedSchema,
+        final String rangeField) {
         final Descriptors.Descriptor descriptor = parsedSchema.toDescriptor();
-        final JavaType fieldType = descriptor.findFieldByName(this.rangeField).getJavaType();
+        final JavaType fieldType = descriptor.findFieldByName(rangeField).getJavaType();
         if (fieldType == JavaType.INT) {
             log.trace("Creating integer zero padder for protobuf value");
-            return new IntPadder();
+            return (ZeroPadder<F>) new IntPadder();
         } else if (fieldType == JavaType.LONG) {
             log.trace("Creating long zero padder for protobuf value");
-            return new LongPadder();
+            return (ZeroPadder<F>) new LongPadder();
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
     }

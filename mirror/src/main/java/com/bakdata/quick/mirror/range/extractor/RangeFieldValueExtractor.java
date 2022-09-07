@@ -16,6 +16,6 @@
 
 package com.bakdata.quick.mirror.range.extractor;
 
-public interface RangeFieldValueExtractor<T>{
-    Object extractValue(final T schema, final String rangeField);
+public interface RangeFieldValueExtractor<V , F>{
+    F extractValue(final V schema, final String rangeField);
 }

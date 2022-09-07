@@ -17,28 +17,21 @@
 package com.bakdata.quick.mirror.range;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
 
-/**
- * Processor for putting filling up Kafka state store for range queries.
- *
- * @param <K> key type
- * @param <V> value type
- */
-@Slf4j
-public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
+public class RangeMirrorProcessor <K, V> implements Processor<K, V, Void, Void> {
     private final String storeName;
-    private final RangeIndexer<K, V, ?> rangeIndexer;
-    @Nullable
-    private KeyValueStore<String, V> store = null;
 
-    public MirrorRangeProcessor(final String storeName, final RangeIndexer<K, V, ?> rangeIndexer) {
+    private final String rangeField;
+    @Nullable
+    private KeyValueStore<K, V> store = null;
+
+    public RangeMirrorProcessor(final String storeName, final String rangeField) {
         this.storeName = storeName;
-        this.rangeIndexer = rangeIndexer;
+        this.rangeField = rangeField;
     }
 
     @Override
@@ -55,10 +48,10 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
             throw new IllegalStateException("MirrorProcessor was not initialized.");
         }
 
-        final String rangeIndex = this.rangeIndexer.createIndex(key, value);
-
-        log.debug("crating range index: {}", rangeIndex);
-
-        this.store.put(rangeIndex, value);
+        if (value == null) {
+            this.store.delete(key);
+        } else {
+            this.store.put(key, value);
+        }
     }
 }

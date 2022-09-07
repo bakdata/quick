@@ -106,9 +106,8 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
                 if (parsedSchema == null) {
                     throw new MirrorException("", HttpStatus.BAD_REQUEST);
                 }
-
-                final RangeIndexer<K, V> rangeIndexer = new RangeIndexer<>(keyType, valueType, parsedSchema, this.rangeField);
-
+                final RangeIndexer<K, V, ?> rangeIndexer =
+                    RangeIndexer.createRangeIndexer(keyType, valueType, parsedSchema, this.rangeField);
                 stream.process(
                     () -> new MirrorRangeProcessor<>(this.rangeStoreName, rangeIndexer),
                     Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);

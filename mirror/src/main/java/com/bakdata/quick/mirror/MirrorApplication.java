@@ -83,7 +83,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     private Duration retentionTime;
 
     @Nullable
-    @Option(names = "--rangeField", description = "The field which the Mirror builds its range index on")
+    @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;
 
     @Setter // Only for testing

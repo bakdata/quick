@@ -23,14 +23,21 @@ import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.generic.GenericRecord;
 
 @Slf4j
-public class AvroExtractor implements RangeFieldValueExtractor<GenericRecord> {
+public class AvroExtractor<F> implements RangeFieldValueExtractor<GenericRecord, F> {
+
+    private final Class<F> fieldClass;
+
+    public AvroExtractor(final Class<F> fieldClass) {
+        this.fieldClass = fieldClass;
+    }
+
     @Override
-    public Object extractValue(final GenericRecord schema, final String rangeField) {
+    public F extractValue(final GenericRecord schema, final String rangeField) {
         try {
             log.trace("Record value of type Avro Generic Record");
             final Object rangeFieldValue = schema.get(rangeField);
             log.trace("Extracted range field value is: {}", rangeFieldValue);
-            return rangeFieldValue;
+            return fieldClass.cast(rangeFieldValue);
         } catch (final AvroRuntimeException exception) {
             final String message = String.format("Could not find range field with name %s", rangeField);
             throw new MirrorException(message, HttpStatus.BAD_REQUEST);

@@ -26,4 +26,9 @@ public class LongPadder implements ZeroPadder<Long> {
         final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_LONG_LENGTH));
         return decimalFormat.format(number);
     }
+
+    @Override
+    public Class<Long> getPadderClass() {
+        return Long.class;
+    }
 }

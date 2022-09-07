@@ -18,4 +18,6 @@ package com.bakdata.quick.mirror.range.padder;
 
 public interface ZeroPadder<T> {
     String padZero(final T number);
+
+    Class<T> getPadderClass();
 }

@@ -26,4 +26,9 @@ public class IntPadder implements ZeroPadder<Integer> {
         final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_INTEGER_LENGTH));
         return decimalFormat.format(number);
     }
+
+    @Override
+    public Class<Integer> getPadderClass() {
+        return Integer.class;
+    }
 }

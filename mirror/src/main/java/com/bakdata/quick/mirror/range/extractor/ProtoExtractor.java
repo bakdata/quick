@@ -24,9 +24,15 @@ import io.micronaut.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ProtoExtractor implements RangeFieldValueExtractor<Message> {
+public class ProtoExtractor<F> implements RangeFieldValueExtractor<Message, F> {
+    private final Class<F> fieldClass;
+
+    public ProtoExtractor(final Class<F> fieldClass) {
+        this.fieldClass = fieldClass;
+    }
+
     @Override
-    public Object extractValue(final Message schema, final String rangeField) {
+    public F extractValue(final Message schema, final String rangeField) {
         log.trace("Record value of type Protobuf Message");
 
         final FieldDescriptor fieldDescriptor = schema.getDescriptorForType().findFieldByName(rangeField);
@@ -37,6 +43,6 @@ public class ProtoExtractor implements RangeFieldValueExtractor<Message> {
 
         final Object rangeFieldValue = schema.getField(fieldDescriptor);
         log.trace("Extracted range field value is: {}", rangeFieldValue);
-        return rangeFieldValue;
+        return this.fieldClass.cast(rangeFieldValue);
     }
 }
