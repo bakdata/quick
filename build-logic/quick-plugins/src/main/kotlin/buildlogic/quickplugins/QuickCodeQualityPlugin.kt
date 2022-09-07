@@ -86,10 +86,12 @@ class QuickCodeQualityPlugin : Plugin<Project> {
             this.isIgnoreFailures = false
             this.maxErrors = 0
             this.maxWarnings = 0
+
         }
 
         tasks.withType(Checkstyle::class) {
             group = CODE_QUALITY_GROUP
+            source = fileTree("src/main/java")
         }
     }
 
