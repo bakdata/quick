@@ -34,6 +34,9 @@ type UserPurchase {
 We also assume that you have already created a context and a gateway. If not, please consult the appropriate
 parts of this documentation. <br />
 
+[//]: # "TODO: Add an exemplary json with 5 purchases whose timestamp span 3 months. Moreover, add a command that
+enable the ingestion of the data"
+
 ## 1. Deploy a Range Mirror
 
 To use Range Queries, you must create a so-called _Range Mirror_.
@@ -109,10 +112,6 @@ Assuming that today is 6.09.2022, you create a range from 1659795226 to 16624736
 ```
 Upon successful execution of a query, you should receive the list of purchase ids, which enables you to count
 the total amount of purchases made by the client within the given timeframe.
-
-## Processing Range Queries
-
-This section gives an overview on how Range Queries are executed and how Range Index is built.
 
 ## FAQ
 
