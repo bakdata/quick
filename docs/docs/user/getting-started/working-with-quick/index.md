@@ -10,8 +10,9 @@ This guide looks into different aspects when working with Quick by following an 
 - The [ingest service](ingest-data.md) lets you get data into the platform through a REST API.
 - In [Querying data](query-data.md), you connect your gateway and topics.
   This lets you query the data of topics and create relationships between them.
-- In [Range Queries](range-query.md), you can learn how to use Range Queries, which is a new feature available
-  from version 0.8 that enables you to retrieve values from a given topic according to a specific range of a particular field.
+- In [Range Queries](range-query.md), you can learn how to use Range Queries, which is a new feature available from 
+  version 0.8 that enables you to retrieve values from a given topic according to a specific range of a particular 
+  field.
 - The guide closes this section with [subscriptions](subscriptions.md).
   They let you receive real-time updates from the gateway.
 
