@@ -132,7 +132,7 @@ public class KafkaTopicService implements TopicService {
         final Completable kafkaTopicCreation = this.createKafkaTopic(name);
         final Completable mirrorCreation = this.createMirror(name, topicCreationData.getRetentionTime(),
             topicCreationData.isPoint(),
-            topicCreationData.getRangeFiled());
+            topicCreationData.getRangeField());
 
         // default to mutable topic write type
         final TopicWriteType writeType =

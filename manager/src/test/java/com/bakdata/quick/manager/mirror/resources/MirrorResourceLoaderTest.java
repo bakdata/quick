@@ -289,7 +289,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
 
     @Test
     void shouldSetRangeFieldForMirrorDeployment() {
-        final String rangeFiled = "timestamp";
+        final String rangeField = "timestamp";
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             DEFAULT_NAME,
             DEFAULT_TOPIC_NAME,
@@ -297,7 +297,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             null,
             null,
             true,
-            rangeFiled);
+            rangeField);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
         final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
@@ -316,14 +316,14 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .hasSize(3)
                     .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
                     .contains("--point=" + "true")
-                    .contains("--range-field=" + rangeFiled);
+                    .contains("--range-field=" + rangeField);
             });
     }
 
     @Test
     void shouldSetRetentionTimeAndRangeFieldForMirrorDeployment() {
         final Duration retentionTime = Duration.ofHours(1);
-        final String rangeFiled = "timestamp";
+        final String rangeField = "timestamp";
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             DEFAULT_NAME,
             DEFAULT_TOPIC_NAME,
@@ -331,7 +331,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             null,
             retentionTime,
             true,
-            rangeFiled);
+            rangeField);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
         final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
@@ -351,13 +351,13 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
                     .contains("--point=" + "true")
                     .contains("--retention-time=" + retentionTime)
-                    .contains("--range-field=" + rangeFiled);
+                    .contains("--range-field=" + rangeField);
             });
     }
 
     @Test
     void shouldSetOnlyRangeFieldForMirrorDeployment() {
-        final String rangeFiled = "timestamp";
+        final String rangeField = "timestamp";
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             DEFAULT_NAME,
             DEFAULT_TOPIC_NAME,
@@ -365,7 +365,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             null,
             null,
             false,
-            rangeFiled);
+            rangeField);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
         final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
@@ -384,7 +384,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .hasSize(3)
                     .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
                     .contains("--point=" + "false")
-                    .contains("--range-field=" + rangeFiled);
+                    .contains("--range-field=" + rangeField);
             });
     }
 
