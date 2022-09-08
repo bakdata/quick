@@ -18,6 +18,9 @@ package com.bakdata.quick.mirror.range.padder;
 
 import java.text.DecimalFormat;
 
+/**
+ * Implements the {@link ZeroPadder} interface for integer.
+ */
 public class IntPadder implements ZeroPadder<Integer> {
     private static final int MAX_INTEGER_LENGTH = 10;
 

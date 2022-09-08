@@ -36,6 +36,12 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
     @Nullable
     private KeyValueStore<String, V> store = null;
 
+    /**
+     * Standard constructor.
+     *
+     * @param storeName The name of the range store
+     * @param rangeIndexer Creates and prepares the range index format
+     */
     public MirrorRangeProcessor(final String storeName, final RangeIndexer<K, V, ?> rangeIndexer) {
         this.storeName = storeName;
         this.rangeIndexer = rangeIndexer;

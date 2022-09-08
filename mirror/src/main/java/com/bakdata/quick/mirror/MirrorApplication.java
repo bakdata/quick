@@ -242,7 +242,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         // query the topic registry for getting information about the topic and set it during runtime
         final String inputTopic = this.getInputTopics().get(0);
         final Single<QuickTopicData<K, V>> topicDataFuture = this.topicTypeService.getTopicData(inputTopic);
-        Single<QuickTopicType> valueType = this.topicTypeService.getValueType(inputTopic);
         final QuickTopicData<K, V> topicData = topicDataFuture
             .onErrorResumeNext(e -> {
                 final String message = String.format("Could not find %s in registry: %s", inputTopic, e.getMessage());

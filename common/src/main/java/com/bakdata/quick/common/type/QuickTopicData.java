@@ -18,10 +18,11 @@ package com.bakdata.quick.common.type;
 
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import lombok.Value;
 import org.apache.kafka.common.serialization.Serde;
-import org.jetbrains.annotations.Nullable;
+
 
 /**
  * POJO for topic data.

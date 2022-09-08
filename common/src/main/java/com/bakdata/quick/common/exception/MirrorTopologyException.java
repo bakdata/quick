@@ -16,13 +16,9 @@
 
 package com.bakdata.quick.common.exception;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import lombok.Getter;
-
-@Getter
 public class MirrorTopologyException extends RuntimeException {
 
-    public MirrorTopologyException(@Nullable final String message) {
+    public MirrorTopologyException(final String message) {
         super(message);
     }
 }

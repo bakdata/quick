@@ -17,31 +17,47 @@
 package com.bakdata.quick.mirror.range.extractor;
 
 
-import com.bakdata.quick.common.exception.MirrorException;
+import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
-import io.micronaut.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Implements the extraction logic for a Protobuf message.
+ *
+ * @param <F> Type of the field value
+ */
 @Slf4j
-public class ProtoExtractor<F> implements RangeFieldValueExtractor<Message, F> {
+public class ProtoValueExtractor<F> implements RangeFieldValueExtractor<Message, F> {
     private final Class<F> fieldClass;
 
-    public ProtoExtractor(final Class<F> fieldClass) {
+    /**
+     * Standard constructor.
+     *
+     * @param fieldClass Class of the field
+     */
+    public ProtoValueExtractor(final Class<F> fieldClass) {
         this.fieldClass = fieldClass;
     }
 
+    /**
+     * Extracts the value from a Protobuf message for a given field name.
+     *
+     * @param message The Protobuf message
+     * @param rangeField The name of the field to get extracted
+     * @return The field value
+     */
     @Override
-    public F extractValue(final Message schema, final String rangeField) {
+    public F extractValue(final Message message, final String rangeField) {
         log.trace("Record value of type Protobuf Message");
 
-        final FieldDescriptor fieldDescriptor = schema.getDescriptorForType().findFieldByName(rangeField);
+        final FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(rangeField);
         if (fieldDescriptor == null) {
-            final String message = String.format("Could not find range field with name %s", rangeField);
-            throw new MirrorException(message, HttpStatus.BAD_REQUEST);
+            final String errorMessage = String.format("Could not find range field with name %s", rangeField);
+            throw new MirrorTopologyException(errorMessage);
         }
 
-        final Object rangeFieldValue = schema.getField(fieldDescriptor);
+        final Object rangeFieldValue = message.getField(fieldDescriptor);
         log.trace("Extracted range field value is: {}", rangeFieldValue);
         return this.fieldClass.cast(rangeFieldValue);
     }

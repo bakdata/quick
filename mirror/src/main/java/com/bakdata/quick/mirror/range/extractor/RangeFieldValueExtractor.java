@@ -16,6 +16,12 @@
 
 package com.bakdata.quick.mirror.range.extractor;
 
-public interface RangeFieldValueExtractor<V , F>{
+/**
+ * An extractor for retrieving values from schemas.
+ *
+ * @param <V> Type of the schema
+ * @param <F> Type of the field in the schema
+ */
+public interface RangeFieldValueExtractor<V, F> {
     F extractValue(final V schema, final String rangeField);
 }
