@@ -55,7 +55,7 @@ public class FetcherFactory {
      */
     @VisibleForTesting
     public FetcherFactory(final KafkaConfig kafkaConfig, final ObjectMapper objectMapper,
-                          final ClientSupplier clientSupplier, final TopicTypeService topicTypeService) {
+        final ClientSupplier clientSupplier, final TopicTypeService topicTypeService) {
         this.kafkaConfig = kafkaConfig;
         this.objectMapper = objectMapper;
         this.clientSupplier = clientSupplier;
@@ -69,14 +69,14 @@ public class FetcherFactory {
      */
     @Inject
     public FetcherFactory(final KafkaConfig kafkaConfig,
-                          final HttpClient client, final MirrorConfig mirrorConfig,
-                          final TopicTypeService topicTypeService) {
+        final HttpClient client, final MirrorConfig mirrorConfig,
+        final TopicTypeService topicTypeService) {
         this(kafkaConfig, client.objectMapper(),
             new DefaultClientSupplier(client, topicTypeService, mirrorConfig), topicTypeService);
     }
 
     public <K, V> DataFetcher<Publisher<V>> subscriptionFetcher(final String topic, final String operationName,
-                                                                @Nullable final String argument) {
+        @Nullable final String argument) {
         final Lazy<QuickTopicData<K, V>> topicData = this.getTopicData(topic);
         return new SubscriptionFetcher<>(this.kafkaConfig, topicData, operationName, argument);
     }
@@ -87,19 +87,19 @@ public class FetcherFactory {
     }
 
     public <V> DataFetcher<List<V>> queryListFetcher(final String topic, final boolean isNullable,
-                                                     final boolean hasNullableElements) {
+        final boolean hasNullableElements) {
         final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
         return new QueryListFetcher<>(client, isNullable, hasNullableElements);
     }
 
     public <V> DataFetcher<List<V>> listArgumentFetcher(final String topic, final String argument,
-                                                        final boolean isNullable, final boolean hasNullableElements) {
+        final boolean isNullable, final boolean hasNullableElements) {
         final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
         return new ListArgumentFetcher<>(argument, client, isNullable, hasNullableElements);
     }
 
-    public <V> DataFetcher<List<V>> rangeFetcher(final String topic, final String argument, final String rangeFrom, final
-        String rangeTo, final boolean isNullable) {
+    public <V> DataFetcher<List<V>> rangeFetcher(final String topic, final String argument, final String rangeFrom,
+        final String rangeTo, final boolean isNullable) {
         final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
         return new RangeQueryFetcher<>(argument, client, rangeFrom, rangeTo, isNullable);
     }
@@ -110,7 +110,7 @@ public class FetcherFactory {
      * @see MutationFetcher
      */
     public <K, V> DataFetcher<V> mutationFetcher(final String topic, final String keyArgumentName,
-                                                 final String valueArgumentName) {
+        final String valueArgumentName) {
         final Lazy<QuickTopicData<K, V>> data = this.getTopicDataWithTopicTypeService(topic);
         return new MutationFetcher<>(topic,
             keyArgumentName,
@@ -130,7 +130,7 @@ public class FetcherFactory {
     }
 
     public <K, V> SubscriptionProvider<K, V> subscriptionProvider(final String topic, final String operationName,
-                                                                  @Nullable final String argument) {
+        @Nullable final String argument) {
         return new KafkaSubscriptionProvider<>(this.kafkaConfig, this.getTopicData(topic), operationName,
             argument);
     }

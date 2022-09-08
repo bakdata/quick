@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Utilities to validate the topic directive
+ * Utilities to validate the topic directive.
  */
 public final class ValidationUtility {
 
@@ -32,7 +32,7 @@ public final class ValidationUtility {
     }
 
     /**
-     * Checks if the keyArgument of a topic directive is valid or not
+     * Checks if the keyArgument of a topic directive is valid or not.
      *
      * @param context Topic directive context
      * @return Optional empty if the keyArgument is valid

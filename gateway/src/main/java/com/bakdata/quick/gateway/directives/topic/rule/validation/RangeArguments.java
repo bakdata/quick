@@ -24,6 +24,7 @@ import java.util.Optional;
  * Validation for range queries. These rules should apply: 1. The Parent container should be a Query and not
  * Mutation/Subscription 2. Both rangeFrom and rangeTo fields should exist in the topic directive 3. A valid keyArgument
  * should exist in the topic directive 4. The return type of the query should be list
+ *
  * <p>
  * <h2>Valid schema:</h2>
  * <pre>{@code

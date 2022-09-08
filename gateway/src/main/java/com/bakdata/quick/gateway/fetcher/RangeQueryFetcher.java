@@ -33,6 +33,15 @@ public class RangeQueryFetcher<T> implements DataFetcher<List<T>> {
     private final DataFetcherClient<T> dataFetcherClient;
     private final boolean isNullable;
 
+    /**
+     * Standard constructor.
+     *
+     * @param argument name of the argument to extract key from
+     * @param dataFetcherClient underlying HTTP mirror client
+     * @param rangeFrom name of the range from field
+     * @param rangeTo name of the range to field
+     * @param isNullable true if list itself can be null
+     */
     public RangeQueryFetcher(final String argument,
         final DataFetcherClient<T> dataFetcherClient,
         final String rangeFrom, final String rangeTo, final boolean isNullable) {

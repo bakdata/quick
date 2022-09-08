@@ -129,9 +129,11 @@ public final class TopicDirective implements QuickDirective {
     public boolean hasKeyField() {
         return this.keyField != null;
     }
+
     public boolean hasRangeFrom() {
         return this.rangeFrom != null;
     }
+
     public boolean hasRangeTo() {
         return this.rangeTo != null;
     }

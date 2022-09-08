@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
  *   }
  * }
  * </pre>
+ *
  * <p>
  * There, the gateway must fetch all purchases from the corresponding mirror as there is no argument. This is done by
  * this data fetcher.
