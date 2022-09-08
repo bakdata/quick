@@ -34,10 +34,11 @@ quick:
     update-managed-images: true
     create-topic-registry: true
   applications:
-    resources:
-      memory:
-        limit: 1G
-        request: 256Mi
-      cpu:
-        limit: 1
-        request: 0.1
+    spec:
+      resources:
+        memory:
+          limit: 1G
+          request: 256Mi
+        cpu:
+          limit: 1
+          request: 0.1

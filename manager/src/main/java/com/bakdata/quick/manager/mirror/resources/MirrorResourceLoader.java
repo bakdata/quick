@@ -19,11 +19,12 @@ package com.bakdata.quick.manager.mirror.resources;
 import static com.bakdata.quick.manager.mirror.resources.MirrorResources.MIRROR_IMAGE;
 
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.util.CliArgHandler;
+import com.bakdata.quick.manager.config.ApplicationSpecificationConfig;
 import com.bakdata.quick.manager.config.DeploymentConfig;
 import com.bakdata.quick.manager.k8s.ImageConfig;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
-import com.bakdata.quick.manager.k8s.ResourceConfig;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
 import com.bakdata.quick.manager.k8s.resource.ResourceLoader;
 import com.google.common.collect.ImmutableMap;
@@ -35,6 +36,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.context.Context;
 
 /**
@@ -44,28 +46,29 @@ import org.thymeleaf.context.Context;
  * It fills out the Kubernetes template files with the given arguments.
  */
 @Singleton
+@Slf4j
 public class MirrorResourceLoader implements ResourceLoader<MirrorResources, MirrorCreationData> {
 
     private final KubernetesResources kubernetesResources;
     private final DeploymentConfig deploymentConfig;
-    private final ResourceConfig resourceConfig;
+    private final ApplicationSpecificationConfig appSpecConfig;
 
     /**
      * Default constructor.
      *
      * @param kubernetesResources underlying engine for loading k8s resources
      * @param deploymentConfig config for deploying new resources
-     * @param resourceConfig config for setting resources for new deployments
+     * @param appSpecConfig config for setting resources for new deployments
      */
     public MirrorResourceLoader(final KubernetesResources kubernetesResources,
-        final DeploymentConfig deploymentConfig, final ResourceConfig resourceConfig) {
+        final DeploymentConfig deploymentConfig, final ApplicationSpecificationConfig appSpecConfig) {
         this.kubernetesResources = kubernetesResources;
         this.deploymentConfig = deploymentConfig;
-        this.resourceConfig = resourceConfig;
+        this.appSpecConfig = appSpecConfig;
     }
 
     /**
-     * Creates resources that can be deployed.
+     * Creates Mirror resources that can be deployed.
      *
      * <p>
      * This function creates all the Kubernetes resources that a mirror needs for its deployment. Deployment and Service
@@ -85,10 +88,13 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
         final boolean hasFixedTag = mirrorCreationData.getTag() != null;
 
         final List<String> arguments = CliArgHandler.convertArgs(
-            createArgs(mirrorCreationData.getTopicName(), mirrorCreationData.getRetentionTime()));
+            createCliArguments(mirrorCreationData.getTopicName(),
+                mirrorCreationData.getRetentionTime(),
+                mirrorCreationData.isPoint(),
+                mirrorCreationData.getRangeField()));
 
         final MirrorDeployment deployment = new MirrorDeployment(
-            this.createMirrorDeployment(deploymentName, arguments, config, this.resourceConfig, hasFixedTag));
+            this.createMirrorDeployment(deploymentName, arguments, config, this.appSpecConfig, hasFixedTag));
 
         final MirrorService service = new MirrorService(this.createMirrorService(deploymentName));
 
@@ -96,7 +102,7 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
     }
 
     /**
-     * Creates resources that can be used to delete them remotely.
+     * Creates Mirror resources that can be used to delete them remotely.
      *
      * <p>
      * This function is responsible for creating a dummy {@link MirrorResources} object with the given name. After
@@ -112,30 +118,27 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
     }
 
     public static String getDeploymentName(final String name) {
-        return  ResourcePrefix.MIRROR.getPrefix() + name;
+        return ResourcePrefix.MIRROR.getPrefix() + name;
     }
 
     /**
-     * Creates a k8s mirror deployment.
+     * Creates a k8s Mirror deployment.
      *
      * @param deploymentName deployment name
      * @param arguments additional arguments passed to the app through the CLI
      * @param imageConfig configuration for the deployed image
-     * @param resourceConfig memory + cpu requests and limits to use
+     * @param appSpecConfig memory + cpu requests and limits to use
      * @param hasFixedTag true if tag is manually set by user
      */
     private Deployment createMirrorDeployment(final String deploymentName, final List<String> arguments,
-        final ImageConfig imageConfig, final ResourceConfig resourceConfig, final boolean hasFixedTag) {
+        final ImageConfig imageConfig, final ApplicationSpecificationConfig appSpecConfig, final boolean hasFixedTag) {
         final Context root = new Context();
         root.setVariable("name", deploymentName);
         root.setVariable("args", arguments);
         root.setVariable("image", imageConfig.asImageString());
-        // todo set release name correctly
-        root.setVariable("releaseName", "quick-dev");
         root.setVariable("replicas", imageConfig.getReplicas());
-        // todo set pull policy through image config
-        root.setVariable("pullPolicy", "Always");
-        root.setVariable("resourceConfig", resourceConfig);
+        root.setVariable("pullPolicy", appSpecConfig.getImagePullPolicy().getPolicyName());
+        root.setVariable("resourceConfig", appSpecConfig.getResources());
         root.setVariable("hasFixedTag", hasFixedTag);
         return this.kubernetesResources.loadResource(root, "mirror/deployment", Deployment.class);
     }
@@ -149,13 +152,36 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
         return this.kubernetesResources.loadResource(root, "mirror/service", Service.class);
     }
 
-    private static Map<String, String> createArgs(final String topic, @Nullable final Duration retentionTime) {
+    /**
+     * Sets the args for the mirror deployment. Throws {@link BadArgumentException} if no query type (range or point) is
+     * defined.
+     *
+     * @param topic the input topic name
+     * @param retentionTime retention time
+     * @param rangeField the field where the range index should be build on
+     * @return an immutable map of command option and the value
+     */
+    private static Map<String, String> createCliArguments(final String topic,
+        @Nullable final Duration retentionTime,
+        final boolean point,
+        @Nullable final String rangeField) {
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
             .put("--input-topics", topic);
+
+        builder.put("--point", Boolean.toString(point));
 
         if (Objects.nonNull(retentionTime)) {
             builder.put("--retention-time", retentionTime.toString());
         }
+        if (Objects.nonNull(rangeField)) {
+            builder.put("--range-field", rangeField);
+        }
+        if (Objects.isNull(rangeField) && !point) {
+            throw new BadArgumentException(
+                "At least one query type (--range-field <Field> or --point) should be defined");
+        }
+
+        log.debug("Creating CLI arguments for the mirror deployment: {}", builder.build().toString());
         return builder.build();
     }
 }

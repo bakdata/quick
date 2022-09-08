@@ -17,7 +17,9 @@
 package com.bakdata.quick.manager.k8s;
 
 import com.bakdata.quick.manager.TestUtil;
+import com.bakdata.quick.manager.config.ApplicationSpecificationConfig;
 import com.bakdata.quick.manager.config.DeploymentConfig;
+import com.bakdata.quick.manager.config.HardwareResource;
 import com.bakdata.quick.manager.k8s.middleware.Middleware;
 import com.bakdata.quick.manager.k8s.middleware.MiddlewareList;
 import com.bakdata.quick.manager.k8s.resource.QuickResource;
@@ -50,7 +52,7 @@ public abstract class KubernetesTest {
 
     private DeploymentConfig deploymentConfig = null;
     private KubernetesManagerClient managerClient = null;
-    private ResourceConfig resourceConfig = null;
+    private ApplicationSpecificationConfig appSpecConfig = null;
 
     /**
      * Set up new k8s server and config.
@@ -63,7 +65,7 @@ public abstract class KubernetesTest {
             new DeploymentConfig(DOCKER_REGISTRY, DEFAULT_IMAGE_TAG, 1, Optional.of("quick.host.io"), true,
                 "websecure");
         this.managerClient = new KubernetesManagerClient(this.client);
-        this.resourceConfig = TestUtil.newResourceConfig();
+        this.appSpecConfig = TestUtil.newAppSpec();
     }
 
     @AfterEach
@@ -78,7 +80,7 @@ public abstract class KubernetesTest {
     public static class ServiceConfig {
         final DeploymentConfig config;
         final KubernetesManagerClient client;
-        final ResourceConfig resourceConfig;
+        final HardwareResource hardwareResource;
     }
 
     /**
@@ -125,7 +127,7 @@ public abstract class KubernetesTest {
     }
 
     protected static Optional<HasMetadata> findResource(final QuickResources quickResources,
-                                                        final ResourceKind resourceKind) {
+        final ResourceKind resourceKind) {
         return quickResources.listResources().stream().map(QuickResource::getResource)
             .filter(metadata -> resourceKind.getResourceKind().equals(metadata.getKind())).findFirst();
     }

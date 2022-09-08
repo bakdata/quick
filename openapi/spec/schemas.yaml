@@ -83,6 +83,11 @@ components:
           $ref: '#/components/schemas/GatewaySchema'
         retentionTime:
           type: string # ISO-8601
+        point:
+          type: boolean
+          default: true
+        rangeField:
+          type: string
 
     SchemaData:
       type: object
@@ -109,6 +114,11 @@ components:
           type: string
         retentionTime:
           type: string # ISO-8601
+        point:
+          type: boolean
+          default: true
+        rangeField:
+          type: string
       required:
         - name
         - topicName

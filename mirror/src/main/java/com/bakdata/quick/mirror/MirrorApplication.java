@@ -91,6 +91,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         defaultValue = "true")
     private boolean isPoint;
 
+
     /**
      * Constructor.
      *
