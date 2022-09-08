@@ -34,5 +34,5 @@ public class TopicCreationData implements CreationData {
     Duration retentionTime;
     boolean point;
     @Nullable
-    String rangeFiled;
+    String rangeField;
 }
