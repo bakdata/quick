@@ -52,7 +52,7 @@ public class RangeArguments implements ValidationRule {
     public Optional<String> validate(final TopicDirectiveContext context) {
         if (hasRangeFromAndRangeTo(context)) {
             if (!context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE)) {
-                return Optional.of("Range queries is only supported on Query types.");
+                return Optional.of("Range queries are only supported on Query types.");
             } else if (!context.getTopicDirective().hasKeyArgument()) {
                 return Optional.of("You must define a keyArgument.");
             } else if (!context.isListType()) {
