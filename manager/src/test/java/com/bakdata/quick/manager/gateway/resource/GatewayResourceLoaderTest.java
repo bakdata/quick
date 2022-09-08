@@ -58,7 +58,7 @@ class GatewayResourceLoaderTest extends KubernetesTest {
     @BeforeEach
     void setUp() {
         this.loader = new GatewayResourceLoader(new KubernetesResources(), this.getDeploymentConfig(),
-            TestUtil.newResourceConfig(), NAMESPACE);
+            TestUtil.newAppSpec(), NAMESPACE);
     }
 
     @Test
@@ -243,7 +243,7 @@ class GatewayResourceLoaderTest extends KubernetesTest {
             useSsl, ingressEntrypoint);
 
         final GatewayResourceLoader customLoader = new GatewayResourceLoader(new KubernetesResources(),
-            customConfig, TestUtil.newResourceConfig(), NAMESPACE);
+            customConfig, TestUtil.newAppSpec(), NAMESPACE);
         final GatewayResources gatewayResources =
             customLoader.forCreation(gatewayCreationData, ResourcePrefix.GATEWAY);
         final Optional<HasMetadata> hasMetadata =

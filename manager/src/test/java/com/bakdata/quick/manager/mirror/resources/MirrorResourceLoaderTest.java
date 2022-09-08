@@ -17,10 +17,12 @@
 package com.bakdata.quick.manager.mirror.resources;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.manager.TestUtil;
 import com.bakdata.quick.manager.k8s.ImageConfig;
 import com.bakdata.quick.manager.k8s.KubernetesResources;
@@ -58,7 +60,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
     void setUp() {
         this.loader = new MirrorResourceLoader(new KubernetesResources(),
             this.getDeploymentConfig(),
-            TestUtil.newResourceConfig());
+            TestUtil.newAppSpec());
     }
 
     @Test
@@ -70,7 +72,9 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             DEFAULT_TOPIC_NAME,
             3,
             null,
-            Duration.of(1, ChronoUnit.MINUTES));
+            Duration.of(1, ChronoUnit.MINUTES),
+            true,
+            null);
 
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -165,6 +169,8 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             topicName,
             1,
             null,
+            null,
+            true,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -202,6 +208,8 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             DEFAULT_TOPIC_NAME,
             1,
             customTag,
+            null,
+            true,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -228,6 +236,8 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             DEFAULT_TOPIC_NAME,
             5,
             null,
+            null,
+            true,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -252,7 +262,9 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             DEFAULT_TOPIC_NAME,
             1,
             null,
-            retentionTime);
+            retentionTime,
+            true,
+            null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
         final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
@@ -268,10 +280,128 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .hasSize(1)
                     .first()
                     .extracting(Container::getArgs, LIST)
-                    .isNotEmpty()
+                    .hasSize(3)
                     .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
+                    .contains("--point=" + "true")
                     .contains("--retention-time=" + retentionTime);
             });
+    }
+
+    @Test
+    void shouldSetRangeFieldForMirrorDeployment() {
+        final String rangeField = "timestamp";
+        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
+            DEFAULT_NAME,
+            DEFAULT_TOPIC_NAME,
+            1,
+            null,
+            null,
+            true,
+            rangeField);
+        final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
+
+        final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
+
+        assertThat(hasMetadata)
+            .isPresent()
+            .get(InstanceOfAssertFactories.type(Deployment.class))
+            .satisfies(deployment -> {
+
+                final PodSpec podSpec = deployment.getSpec().getTemplate().getSpec();
+                assertThat(podSpec.getContainers())
+                    .isNotNull()
+                    .hasSize(1)
+                    .first()
+                    .extracting(Container::getArgs, LIST)
+                    .hasSize(3)
+                    .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
+                    .contains("--point=" + "true")
+                    .contains("--range-field=" + rangeField);
+            });
+    }
+
+    @Test
+    void shouldSetRetentionTimeAndRangeFieldForMirrorDeployment() {
+        final Duration retentionTime = Duration.ofHours(1);
+        final String rangeField = "timestamp";
+        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
+            DEFAULT_NAME,
+            DEFAULT_TOPIC_NAME,
+            1,
+            null,
+            retentionTime,
+            true,
+            rangeField);
+        final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
+
+        final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
+
+        assertThat(hasMetadata)
+            .isPresent()
+            .get(InstanceOfAssertFactories.type(Deployment.class))
+            .satisfies(deployment -> {
+
+                final PodSpec podSpec = deployment.getSpec().getTemplate().getSpec();
+                assertThat(podSpec.getContainers())
+                    .isNotNull()
+                    .hasSize(1)
+                    .first()
+                    .extracting(Container::getArgs, LIST)
+                    .hasSize(4)
+                    .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
+                    .contains("--point=" + "true")
+                    .contains("--retention-time=" + retentionTime)
+                    .contains("--range-field=" + rangeField);
+            });
+    }
+
+    @Test
+    void shouldSetOnlyRangeFieldForMirrorDeployment() {
+        final String rangeField = "timestamp";
+        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
+            DEFAULT_NAME,
+            DEFAULT_TOPIC_NAME,
+            1,
+            null,
+            null,
+            false,
+            rangeField);
+        final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
+
+        final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
+
+        assertThat(hasMetadata)
+            .isPresent()
+            .get(InstanceOfAssertFactories.type(Deployment.class))
+            .satisfies(deployment -> {
+
+                final PodSpec podSpec = deployment.getSpec().getTemplate().getSpec();
+                assertThat(podSpec.getContainers())
+                    .isNotNull()
+                    .hasSize(1)
+                    .first()
+                    .extracting(Container::getArgs, LIST)
+                    .hasSize(3)
+                    .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
+                    .contains("--point=" + "false")
+                    .contains("--range-field=" + rangeField);
+            });
+    }
+
+    @Test
+    void shouldThrowBadArgumentExceptionWhenNoQueryTypeIsDefined() {
+        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
+            DEFAULT_NAME,
+            DEFAULT_TOPIC_NAME,
+            1,
+            null,
+            null,
+            false,
+            null);
+
+        assertThatThrownBy(() -> this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR)).isInstanceOf(
+                BadArgumentException.class)
+            .hasMessageContaining("At least one query type (--range-field <Field> or --point) should be defined");
     }
 
     @Test
@@ -281,6 +411,8 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             DEFAULT_TOPIC_NAME,
             3,
             "snapshot",
+            null,
+            true,
             null);
 
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
@@ -332,6 +464,8 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             topicName,
             1,
             null,
+            null,
+            true,
             null);
 
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);

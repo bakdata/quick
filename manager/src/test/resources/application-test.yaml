@@ -10,6 +10,9 @@ endpoints:
     enabled: false
 
 quick:
+  manager:
+    update-managed-images: false
+    create-topic-registry: false
   kafka:
     bootstrap-server: dummy:9092
     schema-registry-url: http://test:8081
@@ -17,3 +20,13 @@ quick:
   service:
     ingest: test-ingest
     gateway: test-gateway
+
+  applications:
+    spec:
+      resources:
+        memory:
+          limit: 1G
+          request: 256Mi
+        cpu:
+          limit: 1
+          request: 0.1

@@ -100,7 +100,6 @@ public final class KubernetesResources {
         root.setVariable("name", jobName);
         root.setVariable("image", image);
         root.setVariable("args", arguments);
-        root.setVariable("releaseName", "quick-dev");
         root.setVariable("pullPolicy", "Always");
         return this.loadResource(root, "streamsApp/deletion-job", Job.class);
     }

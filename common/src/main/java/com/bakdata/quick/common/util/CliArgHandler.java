@@ -56,7 +56,7 @@ public final class CliArgHandler {
     /**
      * Converts arbitrary key value pairs and a kafka config into cli args.
      *
-     * @param args        arguments to convert
+     * @param args arguments to convert
      * @param kafkaConfig bootstrap server and schema registry url
      * @return list containing strings formatted "--key=value" and "--brokers=XX" and "--schema-registry-url=XX"
      */

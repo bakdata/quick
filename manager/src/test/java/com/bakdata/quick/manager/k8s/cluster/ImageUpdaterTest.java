@@ -51,7 +51,7 @@ class ImageUpdaterTest extends KubernetesTest {
         final GatewayResourceLoader loader =
             new GatewayResourceLoader(new KubernetesResources(),
                 this.getDeploymentConfig(),
-                this.getResourceConfig(),
+                this.getAppSpecConfig(),
                 NAMESPACE);
 
         final GatewayService gatewayService = new KubernetesGatewayService(
@@ -90,7 +90,7 @@ class ImageUpdaterTest extends KubernetesTest {
         final GatewayResourceLoader loader =
             new GatewayResourceLoader(new KubernetesResources(),
                 this.getDeploymentConfig(),
-                this.getResourceConfig(),
+                this.getAppSpecConfig(),
                 NAMESPACE);
 
         final GatewayService gatewayService = new KubernetesGatewayService(
@@ -130,7 +130,7 @@ class ImageUpdaterTest extends KubernetesTest {
         final GatewayResourceLoader loader =
             new GatewayResourceLoader(new KubernetesResources(),
                 this.getDeploymentConfig(),
-                this.getResourceConfig(),
+                this.getAppSpecConfig(),
                 NAMESPACE);
 
         final GatewayService gatewayService = new KubernetesGatewayService(
@@ -167,7 +167,7 @@ class ImageUpdaterTest extends KubernetesTest {
         final MirrorResourceLoader loader =
             new MirrorResourceLoader(new KubernetesResources(),
                 this.getDeploymentConfig(),
-                this.getResourceConfig());
+                this.getAppSpecConfig());
 
         final MirrorService mirrorService = new KubernetesMirrorService(new KubernetesResources(),
             this.getManagerClient(), this.getDeploymentConfig(), loader);
@@ -177,6 +177,8 @@ class ImageUpdaterTest extends KubernetesTest {
             "service",
             1,
             null, // use default tag
+            null,
+            true,
             null);
 
         mirrorService.createMirror(mirrorCreationData).blockingAwait();
@@ -206,7 +208,7 @@ class ImageUpdaterTest extends KubernetesTest {
         final MirrorResourceLoader loader =
             new MirrorResourceLoader(new KubernetesResources(),
                 this.getDeploymentConfig(),
-                this.getResourceConfig());
+                this.getAppSpecConfig());
 
         final MirrorService mirrorService = new KubernetesMirrorService(new KubernetesResources(),
             this.getManagerClient(), this.getDeploymentConfig(), loader);
@@ -215,6 +217,8 @@ class ImageUpdaterTest extends KubernetesTest {
             "service",
             1,
             null, // use default tag
+            null,
+            true,
             null);
         mirrorService.createMirror(mirrorCreationData1).blockingAwait();
 
@@ -223,6 +227,8 @@ class ImageUpdaterTest extends KubernetesTest {
             "service2",
             1,
             null, // use default tag
+            null,
+            true,
             null);
         mirrorService.createMirror(mirrorCreationData2).blockingAwait();
 
@@ -249,7 +255,7 @@ class ImageUpdaterTest extends KubernetesTest {
         final MirrorResourceLoader loader =
             new MirrorResourceLoader(new KubernetesResources(),
                 this.getDeploymentConfig(),
-                this.getResourceConfig());
+                this.getAppSpecConfig());
 
         final MirrorService mirrorService = new KubernetesMirrorService(new KubernetesResources(),
             this.getManagerClient(), this.getDeploymentConfig(), loader);
@@ -258,6 +264,8 @@ class ImageUpdaterTest extends KubernetesTest {
             "service",
             1,
             FIXED_TAG, // use default tag
+            null,
+            true,
             null);
         mirrorService.createMirror(mirrorCreationData).blockingAwait();
 

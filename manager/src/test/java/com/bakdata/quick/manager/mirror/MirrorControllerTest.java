@@ -51,14 +51,15 @@ class MirrorControllerTest {
 
     @Test
     void shouldCreateMirrorWithDefaultReplica() {
-        when(this.service.createMirror(any()))
-            .thenReturn(Completable.complete());
+        when(this.service.createMirror(any())).thenReturn(Completable.complete());
 
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             NAME,
             NAME,
             DEFAULT_REPLICA,
             TAG,
+            null,
+            true,
             null);
 
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));
@@ -68,14 +69,15 @@ class MirrorControllerTest {
 
     @Test
     void shouldCreateMirrorWithQueryValues() {
-        when(this.service.createMirror(any()))
-            .thenReturn(Completable.complete());
+        when(this.service.createMirror(any())).thenReturn(Completable.complete());
 
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             NAME,
             NAME,
             REPLICAS,
             TAG,
+            null,
+            true,
             null);
 
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));
