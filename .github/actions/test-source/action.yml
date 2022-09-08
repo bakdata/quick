@@ -23,10 +23,18 @@ runs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
+    - name: checkstyle main
+      shell: bash
+      run: ./gradlew checkstyleMain
+
+    - name: checkstyle test
+      shell: bash
+      run: ./gradlew checkstyleTest
+
     - name: Run unit tests
       shell: bash
       run: ./gradlew unitTest
-
+      
     - name: Run integration tests
       shell: bash
       run: |
