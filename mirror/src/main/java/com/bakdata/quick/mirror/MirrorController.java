@@ -18,6 +18,7 @@ package com.bakdata.quick.mirror;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.mirror.service.QueryService;
+import com.bakdata.quick.mirror.service.RangeQueryService;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -38,10 +39,12 @@ import lombok.extern.slf4j.Slf4j;
 @Controller("/mirror")
 public class MirrorController<K, V> {
     private final QueryService<V> queryService;
+    private final RangeQueryService<V> rangeQueryService;
 
     @Inject
-    public MirrorController(final QueryService<V> queryService) {
+    public MirrorController(final QueryService<V> queryService, final RangeQueryService<V> rangeQueryService) {
         this.queryService = queryService;
+        this.rangeQueryService = rangeQueryService;
     }
 
     /**
@@ -72,5 +75,15 @@ public class MirrorController<K, V> {
     public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
         log.debug("Request for all existing keys.");
         return this.queryService.getAll();
+    }
+
+    /**
+     * Fetches a .
+     */
+    @Get("/{key}")
+    public Single<HttpResponse<MirrorValue<List<V>>>> getRange(@PathVariable("key") final String keyString,
+        @QueryValue() final String from, @QueryValue() final String to) {
+        log.debug("Request for range with key {} from {} to {}", keyString, from, to);
+        return this.rangeQueryService.getRange(keyString, from, to);
     }
 }

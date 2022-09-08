@@ -16,25 +16,11 @@
 
 package com.bakdata.quick.mirror.service;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import lombok.Value;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.state.HostInfo;
+import com.bakdata.quick.common.api.model.mirror.MirrorValue;
+import io.micronaut.http.HttpResponse;
+import io.reactivex.Single;
+import java.util.List;
 
-/**
- * Context for holding information about Kafka state.
- */
-@Value
-public class QueryServiceContext {
-    KafkaStreams streams;
-    HostInfo hostInfo;
-    String storeName;
-    String rangeField;
-    QuickTopicData<?, ?> topicData;
-
-    @SuppressWarnings("unchecked")
-    <K, V> QuickTopicData<K, V> getTopicData() {
-        return (QuickTopicData<K, V>) this.topicData;
-    }
-
+public interface RangeQueryService<V> {
+    Single<HttpResponse<MirrorValue<List<V>>>> getRange(final String key, final String from, final String to);
 }

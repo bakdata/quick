@@ -33,7 +33,6 @@ import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
-import org.apache.avro.generic.GenericRecord;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -70,11 +69,13 @@ public class RangeIndexer<K, V, F extends Number> {
 
         final ZeroPadder<K> keyZeroPadder = createKeyZeroPadder(keyType);
         final ZeroPadder<F> valueZeroPadder = createValueZeroPadder(valueType, parsedSchema, rangeField);
+        final Class<F> fieldPadderClass = valueZeroPadder.getPadderClass();
+
         if (valueType == QuickTopicType.AVRO) {
-            final RangeFieldValueExtractor avroExtractor = new AvroExtractor<>(valueZeroPadder.getPadderClass());
+            final RangeFieldValueExtractor avroExtractor = new AvroExtractor<>(fieldPadderClass);
             return new RangeIndexer<>(keyZeroPadder, valueZeroPadder, avroExtractor, rangeField);
         } else if (valueType == QuickTopicType.PROTOBUF) {
-            final RangeFieldValueExtractor protoExtractor = new ProtoExtractor<>(valueZeroPadder.getPadderClass());
+            final RangeFieldValueExtractor protoExtractor = new ProtoExtractor<>(fieldPadderClass);
             return new RangeIndexer<>(keyZeroPadder, valueZeroPadder, protoExtractor, rangeField);
         }
         throw new MirrorTopologyException("Key value should be either integer or mirror");
@@ -106,6 +107,16 @@ public class RangeIndexer<K, V, F extends Number> {
         final F rangeFieldValue = this.rangeFieldValueExtractor.extractValue(value, this.rangeField);
 
         return String.format("%s_%s", this.keyZeroPadder.padZero(key), this.valueZeroPadder.padZero(rangeFieldValue));
+    }
+
+    public String createIndex(final K key, final String from) {
+        final Class<F> valuePadderClass = this.valueZeroPadder.getPadderClass();
+        final String paddedValue;
+        final F field = valuePadderClass.cast(from);
+        paddedValue = this.valueZeroPadder.padZero(field);
+        final String paddedKey = this.keyZeroPadder.padZero(key);
+
+        return String.format("%s_%s", paddedKey, paddedValue);
     }
 
     @NonNull

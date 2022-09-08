@@ -73,7 +73,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
      */
     @Inject
     public KafkaQueryService(final QueryContextProvider contextProvider,
-                             final HttpClient client) {
+        final HttpClient client) {
         final QueryServiceContext context = contextProvider.get();
         this.client = client;
         final QuickTopicData<K, V> topicData = context.getTopicData();
@@ -124,7 +124,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             throw new NotFoundException(String.format("Key %s does not exist in %s", rawKey, this.topicName));
         }
 
-        return Single.just(HttpResponse.created(new MirrorValue<>(value)).status(200));
+        return Single.just(HttpResponse.created(new MirrorValue<>(value)).status(HttpStatus.OK));
     }
 
     @Override
@@ -135,15 +135,42 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             .map(this::transformValuesAndCreateHttpResponse);
     }
 
+    @Override
+    public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
+        // For now, we only consider the local state!
+        final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
+        return Flowable.fromIterable(store::all)
+            .map(keyValue -> keyValue.value)
+            .toList()
+            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)).status(HttpStatus.OK));
+
+    }
+
+    private HttpResponse<MirrorValue<V>> fetch(final HostInfo replicaHostInfo, final K key) {
+        final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
+        final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
+        final DefaultMirrorClient<K, V> mirrorClient =
+            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
+                new DefaultMirrorRequestManager(this.client));
+
+        final V value = mirrorClient.fetchValue(key);
+
+        if (value == null) {
+            throw new NotFoundException("Key not found");
+        }
+        return HttpResponse.created(new MirrorValue<>(value))
+            .header(HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS)
+            .status(HttpStatus.OK);
+    }
+
     /**
-     * Transforms a list of HttpResponses of MirrorValue of a specific type into
-     * a single HttpResponse of MirrorValue with a list of values of that type.
-     * Furthermore, if a header is present in one of the HttpResponses (function argument), an HTTP Header
-     * that informs about the Cache-Miss is set. Because of this possibility, the function returns MutableHttpResponse
-     * and not just HttpResponse.
+     * Transforms a list of HttpResponses of MirrorValue of a specific type into a single HttpResponse of MirrorValue
+     * with a list of values of that type. Furthermore, if a header is present in one of the HttpResponses (function
+     * argument), an HTTP Header that informs about the Cache-Miss is set. Because of this possibility, the function
+     * returns MutableHttpResponse and not just HttpResponse.
      *
-     * @param listOfResponses a list of HttpResponses obtained from multiple calls to get(key),
-     *                        see getValues for the details
+     * @param listOfResponses a list of HttpResponses obtained from multiple calls to get(key), see getValues for the
+     * details
      * @return MutableHttpResponse, possibly with a Cache-Miss Header set
      */
     private MutableHttpResponse<MirrorValue<List<V>>> transformValuesAndCreateHttpResponse(
@@ -155,40 +182,12 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             .map(response -> response.body().getValue())
             .collect(Collectors.toList());
         final MutableHttpResponse<MirrorValue<List<V>>> responseWithoutHeader =
-            HttpResponse.created(new MirrorValue<>(values)).status(200);
+            HttpResponse.created(new MirrorValue<>(values)).status(HttpStatus.OK);
         if (headerSet) {
             return responseWithoutHeader.header(
                 HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS);
         } else {
             return responseWithoutHeader;
         }
-    }
-
-    @Override
-    public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
-        // For now, we only consider the local state!
-        final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
-        return Flowable.fromIterable(store::all)
-            .map(keyValue -> keyValue.value)
-            .toList()
-            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)).status(200));
-
-    }
-
-    private HttpResponse<MirrorValue<V>> fetch(final HostInfo replicaHostInfo, final K key) {
-        final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
-        final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
-        final DefaultMirrorClient<K, V> mirrorClient =
-            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
-                new DefaultMirrorRequestManager(this.client));
-        // TODO: don't bother deserializing
-        final V value = mirrorClient.fetchValue(key);
-
-        if (value == null) {
-            throw new NotFoundException("Key not found");
-        }
-        return HttpResponse.created(new MirrorValue<>(value))
-            .header(HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS)
-            .status(200);
     }
 }

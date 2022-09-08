@@ -65,7 +65,6 @@ import picocli.CommandLine.Option;
 public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     public static final String MIRROR_STORE = "mirror-store";
     public static final String RETENTION_STORE = "retention-store";
-    public static final String RANGE_STORE = "range-store";
 
     // injectable parameter
     private final TopicTypeService topicTypeService;
@@ -125,12 +124,9 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         return MirrorTopology.<K, V>builder()
             .topologyData(this.getTopologyData())
             .storeName(MIRROR_STORE)
-            .rangeStoreName(RANGE_STORE)
             .retentionTime(this.retentionTime)
             .retentionStoreName(RETENTION_STORE)
             .storeType(this.storeType)
-            .isPoint(this.isPoint)
-            .rangeField(this.rangeField)
             .build()
             .createTopology(streamsBuilder);
     }
@@ -194,6 +190,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             this.getStreams(),
             this.hostConfig.toInfo(),
             MIRROR_STORE,
+            this.rangeField,
             quickTopicData
         );
         this.contextProvider.setQueryContext(serviceContext);
@@ -241,7 +238,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         // query the topic registry for getting information about the topic and set it during runtime
         final String inputTopic = this.getInputTopics().get(0);
         final Single<QuickTopicData<K, V>> topicDataFuture = this.topicTypeService.getTopicData(inputTopic);
-        Single<QuickTopicType> valueType = this.topicTypeService.getValueType(inputTopic);
         final QuickTopicData<K, V> topicData = topicDataFuture
             .onErrorResumeNext(e -> {
                 final String message = String.format("Could not find %s in registry: %s", inputTopic, e.getMessage());
