@@ -51,7 +51,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
     @BeforeEach
     void setUp() {
         final ApplicationResourceLoader loader =
-            new ApplicationResourceLoader(new KubernetesResources(), this.kafkaConfig, this.getResourceConfig(),
+            new ApplicationResourceLoader(new KubernetesResources(), this.kafkaConfig, this.getAppSpecConfig(),
                 this.getDeploymentConfig());
         this.service = new KubernetesApplicationService(new KubernetesResources(),
             this.getManagerClient(), loader);

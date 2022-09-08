@@ -14,25 +14,26 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.model.manager.creation;
+package com.bakdata.quick.manager.config;
 
-import com.bakdata.quick.common.api.model.TopicWriteType;
-import com.bakdata.quick.common.api.model.manager.GatewaySchema;
-import edu.umd.cs.findbugs.annotations.Nullable;
-import java.time.Duration;
-import lombok.Value;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
- * POJO for data when creating a new topic.
+ * Defines the image pull policies of the manager resources.
+ *
+ * @see ApplicationSpecificationConfig
  */
-@Value
-public class TopicCreationData implements CreationData {
-    TopicWriteType writeType;
-    GatewaySchema valueSchema;
-    GatewaySchema keySchema;
-    @Nullable
-    Duration retentionTime;
-    boolean point;
-    @Nullable
-    String rangeField;
+public enum ImagePullPolicy {
+    IF_NOT_PRESENT("IfNotPresent"),
+    ALWAYS("Always"),
+    NEVER("Never");
+
+    @Getter
+    @JsonValue
+    private final String policyName;
+
+    ImagePullPolicy(final String policyName) {
+        this.policyName = policyName;
+    }
 }
