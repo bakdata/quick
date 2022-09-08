@@ -526,7 +526,7 @@ class GraphQLSchemaGeneratorTest {
 
     @Test
     void shouldNotCovertIfRangeIsDefinedOnField(final TestInfo testInfo) throws  IOException {
-        this.assertQuickDirectiveExceptionMessage(testInfo, "Range queries is only supported on Query types.");
+        this.assertQuickDirectiveExceptionMessage(testInfo, "Range queries are only supported on Query types.");
     }
 
     @Test
