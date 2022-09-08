@@ -63,7 +63,6 @@ Here is an example of the `ratings.json` file:
 
 ]
 ```
-
 ## 1. Deploy a Range Mirror
 
 To use Range Queries, you must create a so-called _Range Mirror_.
@@ -82,7 +81,7 @@ the option is linked to the `rating` field. <br />
 Point Queries are queries that are executed by default in Quick (thus, you don't have to specify the `-point` option explicitly)
 and return a single value for a given key. <br />
 You can also completely drop the possibility of performing Point Queries by providing the `--no-point` option. <br />
-`--point` and `--rangeField` are not exclusive. You can have the possibility to execute both Point and Range Queries
+`--point` and `--rangeField` are not exclusive. You have the possibility to execute both Point and Range Queries
 in your application.
 
 There are some constraints upon the values (values that you provide with the `--value` option)
@@ -95,8 +94,7 @@ When you execute the command (`quick topic ...`), a request is sent to the manag
 the deployment of a Range Mirror called `rating-range`. This mirror creates two indexes:
 1. Range Index over the topic key (here the `userId`) and `rating`.
 2. Point Index only over the topic key (`userId`). <br />
-   Range Processor for Mirrors section provides more details about these indices.
-
+   If you are interested in details of Range Query processing, you can visit ...
 
 ## 2. Define a range in the GraphQL Query type
 
@@ -125,7 +123,7 @@ The example above indicates that fields of a query refer to the fields over whic
 Thus, the Query definition consists of the key field (`userId`) and two fields that refer to the range.
 The names of fields over which the range is created follow the schema _field**From**_, _field**To**_,
 where _field_ is the field declared in the topic creation command (Step 1). <br />
-When you execute a Range Query, you expect to receive a list of entries. In the example, the return type of the query
+When you execute a Range Query, you expect to receive a list of entries. As you can see, the return type of the query
 is a list of _UserRating_. <br /> 
 The last element of the query definition is a topic (the same that you defined in the first step).
 
@@ -136,13 +134,15 @@ Assuming that a disappointing purchase is one that has a rating lower than 5, yo
 query to obtain the results.
 ```graphql
 {
-    userRequests(userId: 1, ratingFrom: 1, ratingTo: 4)  {
+    userRatings(userId: 123, ratingFrom: 1, ratingTo: 4)  {
         purchaseId
     }
 }
 ```
-Upon successful execution of a query, you should receive the list of purchase ids, which enables you to count
-the total amount of purchases made by the client within the given timeframe.
+Upon successful execution of a query, you should receive the following list of ratings:
+```json title="ratings.json"
+
+```
 
 ## Limitations
 
