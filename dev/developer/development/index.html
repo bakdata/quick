@@ -1249,10 +1249,12 @@ define the dependencies. The list of dependencies can be found under the
 <h2 id="openapi">OpenAPI<a class="headerlink" href="#openapi" title="Permanent link">&para;</a></h2>
 <p>The manager API is specified in <a href="https://github.com/bakdata/quick/tree/master/openapi/spec">the <code>openapi</code> directory</a>.
 We use the <a href="https://github.com/OpenAPITools/openapi-generator">OpenAPI generator</a> (Version 4.3.1) to generate our
-<a href="https://github.com/bakdata/quick-cli/tree/master/quick_client">python client</a>.</p>
+<a href="https://github.com/bakdata/quick-cli/tree/master/quick_client">python client</a>. 
+To download the OpenAPI JAR, 
+please visit the <a href="https://openapi-generator.tech/docs/installation/#jar">OpenAPI installation documentation</a>.</p>
 <div class="highlight"><pre><span></span><code>java -jar openapi-generator-cli.jar generate <span class="se">\</span>
 -i quick/openapi/spec/Quick-Manager-v1.yaml <span class="se">\</span>
--g python <span class="se">\ </span>
+-g python <span class="se">\</span>
 -o quick-cli/ <span class="se">\</span>
 -p<span class="o">=</span><span class="nv">generateSourceCodeOnly</span><span class="o">=</span>true,packageName<span class="o">=</span>quick_client <span class="se">\</span>
 --global-property <span class="nv">apiTests</span><span class="o">=</span>false,modelTests<span class="o">=</span>false,modelDocs<span class="o">=</span><span class="nb">false</span>
