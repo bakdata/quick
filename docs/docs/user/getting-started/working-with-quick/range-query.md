@@ -6,7 +6,7 @@ of disappointing purchases, the company could theoretically fetch all entries fr
 and filter them according to the users and ratings. However, it would be easier to specify the desired
 range of ratings considered flawed (from 1 to 4) and receive the corresponding records immediately. <br />
 For another example, let's say you have a product with a unique id and a version number. With each new release of the
-product, you update the version number. Now you want to check if improving the product (latest version)
+product, you update the version number. Now you want to check if improving the product (the latest version)
 led to increased sales. With the default fetching strategy in Quick (a so-called Point Query),
 you could only check the number of sold pieces of the current version.
 Again, a possible solution would be to fetch all entries and filter them, but having the possibility to choose the desired
@@ -20,7 +20,7 @@ To be able to integrate the Range Queries into your application, you must take t
 3. Execute the query.
 
 The consecutive subsections will describe these steps in detail. <br />
-To present the idea of Range Queries we will extend the schema presented before with the following type:
+To present the idea of Range Queries, we will extend the schema presented before with the following type:
 ```graphql title="schema.gql"
 type UserReview {
     userId: Int!
@@ -81,18 +81,18 @@ the option is linked to the `rating` field. <br />
 Point Queries are queries that are executed by default in Quick (thus, you don't have to specify the `-point` option explicitly)
 and return a single value for a given key. <br />
 You can also completely drop the possibility of performing Point Queries by providing the `--no-point` option. <br />
-`--point` and `--rangeField` are not exclusive. You have the possibility to execute both Point and Range Queries
+`--point` and `--rangeField` are not exclusive. You can execute both Point and Range Queries
 in your application.
 
 There are some constraints upon the values (values that you provide with the `--value` option)
 for which Range Queries can be executed:
-1. The value has to be a complex type, i.e., Avro or Proto. The reason is the Range Index built over
+1. The value has to be a complex type, i.e., Avro or Proto. The reason is the Range Index is built over
    the topic key and a field.
 2. The field type over which you want to execute queries has to be a `Long` or `Int`.
 
 When you execute the command (`quick topic ...`), a request is sent to the manager, which prepares
 the deployment of a Range Mirror called `rating-range`. This mirror creates two indexes:
-1. Range Index over the topic key (here the `userId`) and `rating`.
+1. Range Index over the topic key (here, the `userId`) and `rating`.
 2. Point Index only over the topic key (`userId`). <br />
    If you are interested in details of Range Query processing, you can visit ...
 
@@ -125,12 +125,12 @@ The names of fields over which the range is created follow the schema _field**Fr
 where _field_ is the field declared in the topic creation command (Step 1). <br />
 When you execute a Range Query, you expect to receive a list of entries. As you can see, the return type of the query
 is a list of _UserRating_. <br /> 
-The last element of the query definition is a topic (the same that you defined in the first step).
+The last element of the query definition is a topic (the same one that you defined in the first step).
 
 ## 3. Execute the query
 
 Say you want to find the purchases the client with `id=1` was unsatisfied with.  
-Assuming that a disappointing purchase is one that has a rating lower than 5, you can execute the following
+Assuming that a disappointing purchase has a rating lower than 5, you can execute the following
 query to obtain the results.
 ```graphql
 {
@@ -140,8 +140,17 @@ query to obtain the results.
 }
 ```
 Upon successful execution of a query, you should receive the following list of ratings:
-```json title="ratings.json"
-
+```json
+{
+    "userRatings" : [
+        {
+            "purchaseId" : 456
+        },
+        {
+            "purchaseId" : 789
+        }
+    ]
+}
 ```
 
 ## Limitations
@@ -149,8 +158,8 @@ Upon successful execution of a query, you should receive the following list of r
 The following listing describes the limitations of the current implementation of Range Queries:
 
 1. Is it not possible to define ranges over several fields. 
-2. A range can be only defined on a field whose type is `Int` or `Long`.
-3. It is not possible to dynamically change the field with which the current Range Mirror is associated.
+2. A range can only be defined on a field whose type is `Int` or `Long`.
+3. It is impossible to dynamically change the field with which the current Range Mirror is associated.
 
 
 
