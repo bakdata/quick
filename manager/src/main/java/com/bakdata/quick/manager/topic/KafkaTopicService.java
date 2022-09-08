@@ -73,18 +73,18 @@ public class KafkaTopicService implements TopicService {
      * Injectable constructor.
      *
      * @param topicRegistryClient client for interacting with Quick's topic registry
-     * @param gatewayClient client for interacting with Quick's gateways
-     * @param graphQLConverter converter from GraphQL schema to Kafka schema
-     * @param mirrorService service for creating mirrors
-     * @param gatewayService service for interacting with deployed gateway
-     * @param topicConfig configuration for Kafka topics
-     * @param kafkaConfig configuration for Kafka
+     * @param gatewayClient       client for interacting with Quick's gateways
+     * @param graphQLConverter    converter from GraphQL schema to Kafka schema
+     * @param mirrorService       service for creating mirrors
+     * @param gatewayService      service for interacting with deployed gateway
+     * @param topicConfig         configuration for Kafka topics
+     * @param kafkaConfig         configuration for Kafka
      */
 
     public KafkaTopicService(final TopicRegistryClient topicRegistryClient, final GatewayClient gatewayClient,
-        final GraphQLConverter graphQLConverter, final MirrorService mirrorService,
-        final GatewayService gatewayService, final QuickTopicConfig topicConfig,
-        final KafkaConfig kafkaConfig) {
+                             final GraphQLConverter graphQLConverter, final MirrorService mirrorService,
+                             final GatewayService gatewayService, final QuickTopicConfig topicConfig,
+                             final KafkaConfig kafkaConfig) {
         this.topicRegistryClient = topicRegistryClient;
         this.gatewayClient = gatewayClient;
         this.graphQLConverter = graphQLConverter;
@@ -108,7 +108,7 @@ public class KafkaTopicService implements TopicService {
     @SuppressWarnings("RxReturnValueIgnored")
     @Override
     public Completable createTopic(final String name, final QuickTopicType keyType, final QuickTopicType valueType,
-        final TopicCreationData topicCreationData) {
+                                   final TopicCreationData topicCreationData) {
         log.info("Create new topic {} with data {}", name, topicCreationData);
         // we don't need the cache, so make sure we get the current information
         this.schemaRegistryClient.reset();
@@ -202,9 +202,9 @@ public class KafkaTopicService implements TopicService {
     }
 
     private Completable createMirror(final String topicName,
-        @Nullable final Duration retentionTime,
-        final boolean point,
-        @Nullable final String rangeField) {
+                                     @Nullable final Duration retentionTime,
+                                     final boolean point,
+                                     @Nullable final String rangeField) {
         return Completable.defer(() -> {
             log.debug("Create mirror for topic {}", topicName);
             final MirrorCreationData mirrorCreationData = new MirrorCreationData(topicName,
@@ -237,10 +237,10 @@ public class KafkaTopicService implements TopicService {
 
     private Completable checkKafka(final String name) {
         return Single.fromCallable(() -> {
-                try (final AdminClient adminClient = AdminClient.create(this.kafkaConfig.asProps())) {
-                    return adminClient.listTopics().names();
-                }
-            })
+            try (final AdminClient adminClient = AdminClient.create(this.kafkaConfig.asProps())) {
+                return adminClient.listTopics().names();
+            }
+        })
             .flatMap(Single::fromFuture)
             .map(topics -> topics.contains(name))
             .flatMapCompletable(exists ->
@@ -261,7 +261,7 @@ public class KafkaTopicService implements TopicService {
     }
 
     private Completable registerSchema(final String topic, final Optional<QuickSchemas> schemas,
-        final KeyValueEnum keyValue) {
+                                       final KeyValueEnum keyValue) {
         // if there is no schema, we can just return
         if (schemas.isEmpty()) {
             return Completable.complete();
