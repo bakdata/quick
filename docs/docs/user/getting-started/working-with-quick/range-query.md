@@ -1,22 +1,18 @@
 # Range Queries
 
-This part describes _Range Queries_, which are supported in Quick from version 0.8.
-
-## Introduction
-
-Imagine a scenario where a company wants to find out purchases a specific customer was not satisfied with to grant them 
+Imagine a scenario where a company wants to analyze purchases a specific customer was unsatisfied with to grant them
 a promo code if the amount exceeds a given value. To determine the number
 of disappointing purchases, the company could theoretically fetch all entries from the appropriate Kafka topic
-and then filter them according to the users and ratings. However, it would be easier to be able to specify a desired
-range of rating considered bad (say, from 1 to 4) and receive the corresponding records immediately. <br />
+and filter them according to the users and ratings. However, it would be easier to specify the desired
+range of ratings considered flawed (from 1 to 4) and receive the corresponding records immediately. <br />
 For another example, let's say you have a product with a unique id and a version number. With each new release of the
-product, you update the version number. Now you want to check if improving the product (new version)
+product, you update the version number. Now you want to check if improving the product (latest version)
 led to increased sales. With the default fetching strategy in Quick (a so-called Point Query),
 you could only check the number of sold pieces of the current version.
 Again, a possible solution would be to fetch all entries and filter them, but having the possibility to choose the desired
 version range and receive the desired data swiftly is more convenient. <br />
 To facilitate such tasks, Quick introduces Range Queries which enable
-the retrieval of values from a given topic according to a specific range of a particular value.
+the retrieval of values from a given topic according to a specific range of a particular field.
 
 To be able to integrate the Range Queries into your application, you must take the following steps:
 1. Deploy a Range Mirror.
@@ -32,8 +28,8 @@ type UserReview {
     rating: Int
 }
 ```
-Assuming that you have already created a context and a gateway. Using the REST API of the ingest service,
-you can send some ratings into Quick:
+Assuming that you have already created a context and a gateway (named `example`), you can send some ratings into Quick using the REST API
+of the ingest service:
 ```shell
  curl --request POST --url "$QUICK_URL/ingest/user-rating-range" \
   --header "content-type:application/json" \
@@ -41,21 +37,32 @@ you can send some ratings into Quick:
   --data "@./ratings.json"
 ```
 
-Here is an example of the `products.json` file:
-??? "Example `ratings.json`"
+Here is an example of the `ratings.json` file:
 ```json title="ratings.json"
-   [
-      {
-      },
-      {
-      },
-      {
-      }
-   ]
-```
+[
+    {
+        "userId" : 123,
+        "purchaseId" : 123,
+        "rating": 7
+    },
+    {
+        "userId" : 123,
+        "purchaseId" : 456,
+        "rating": 2
+    },
+    {
+        "userId" : 123,
+        "purchaseId" : 789,
+        "rating": 4
+    },
+    {
+        "userId" : 456,
+        "purchaseId" : 321,
+        "rating": 7
+    }
 
-[//]: # "TODO: Add an exemplary json with 5 purchases whose timestamp span 3 months. Moreover, add a command that
-enable the ingestion of the data"
+]
+```
 
 ## 1. Deploy a Range Mirror
 
@@ -66,14 +73,17 @@ with some additional options:
 ```
 quick topic create user-rating-range --key string --value schema --schema example.UserReview --rangeField rating --point
 ```
-In comparison to the previous form of the command, you can see two new elements (options) here: `--rangeField`
+In comparison to the previous form of the command, you can see two new elements (options): `--rangeField`
 and `--point`. <br />
 `--rangeField` is an optional field. Specifying it enables you to create a Range Mirror and carry out Range Queries.
 `--rangeField` must be linked with a specific field over which you want your Range Queries to be executed. In the example above,
 the option is linked to the `rating` field. <br />
-`--point` is a parameter that tells Quick to use the current mirror implementation to perform Point Queries.
-By default, Quick creates Point Index. Thus, you don't have to specify the `-point` option explicitly. You can also completely drop
-the possibility of performing Point Queries by providing the `--no-point` option.
+`--point` is a parameter that tells Quick to use the current mirror implementation to perform so-called Point Queries.
+Point Queries are queries that are executed by default in Quick (thus, you don't have to specify the `-point` option explicitly)
+and return a single value for a given key. <br />
+You can also completely drop the possibility of performing Point Queries by providing the `--no-point` option. <br />
+`--point` and `--rangeField` are not exclusive. You can have the possibility to execute both Point and Range Queries
+in your application.
 
 There are some constraints upon the values (values that you provide with the `--value` option)
 for which Range Queries can be executed:
@@ -134,22 +144,13 @@ query to obtain the results.
 Upon successful execution of a query, you should receive the list of purchase ids, which enables you to count
 the total amount of purchases made by the client within the given timeframe.
 
-## FAQ
+## Limitations
 
-The following listing contains several questions about Range Queries that might arise to you.
+The following listing describes the limitations of the current implementation of Range Queries:
 
-**Q**: Is it possible to define ranges over several fields? <br />
-**A**: Currently, this is not supported.
-
-**Q**: Can I define a range over a complex field, i.e., a field defined by the `type` keyword? <br />
-**A**: Currently, only the field with the `Int` and `Long` types are supported.
-
-**Q**: Do I have to create a mirror and a range mirror separately? <br />
-**A**: You just have to execute the topic command once. The different endpoints for both Point Queries and Range Queries will be created behind the scenes.
-
-**Q**: Can I dynamically change the field with which the Range Mirror is associated? <br />
-**A**: No, changing the field that was once assigned is impossible. You must create a new Range Mirror if you
-want to change the target field.
+1. Is it not possible to define ranges over several fields. 
+2. A range can be only defined on a field whose type is `Int` or `Long`.
+3. It is not possible to dynamically change the field with which the current Range Mirror is associated.
 
 
 
