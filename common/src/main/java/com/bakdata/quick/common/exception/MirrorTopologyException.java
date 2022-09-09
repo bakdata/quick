@@ -16,8 +16,16 @@
 
 package com.bakdata.quick.common.exception;
 
+/**
+ * An internal exception for the mirror. It is Thrown whenever something goes wrong in mirror.
+ */
 public class MirrorTopologyException extends RuntimeException {
 
+    /**
+     * New instance with an error message.
+     *
+     * @param message Exception message
+     */
     public MirrorTopologyException(final String message) {
         super(message);
     }
