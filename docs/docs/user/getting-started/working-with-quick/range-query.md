@@ -136,14 +136,17 @@ type UserRating {
 ``` 
 The example above indicates that fields of a query refer to the fields over which the Range Index is built.
 Thus, the Query definition consists of the key field (`userId`) and two fields that refer to the range.
-The names of fields over which the range is created follow the schema _field**From**_, _field**To**_, where _field_ 
-is the field declared in the topic creation command (Step 1).
+In this example, the names of fields over which the range is created follow the schema _field**From**_, _field**To**_, 
+where _field_ is the field declared in the topic creation command (Step 1).
+Please note that following this convention isn't mandatory.
 <br />
 When you execute a Range Query, you expect to receive a list of entries.
 As you can see, the return type of the 
 query is a list of _UserRating_.
 <br /> 
-The last element of the query definition is a topic (the same one that you defined in the first step).
+The last element of the query definition is a topic directive which contains two new elements: `rangeFrom` and 
+`rangeTo`.
+The values assigned to these two parameters are used to create a desired range for the query.
 
 ## 3. Execute the query
 
