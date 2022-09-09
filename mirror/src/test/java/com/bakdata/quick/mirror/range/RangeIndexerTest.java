@@ -27,6 +27,7 @@ import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import java.util.stream.Stream;
 import org.apache.avro.generic.GenericRecord;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -69,6 +70,16 @@ class RangeIndexerTest {
             RangeIndexer.createRangeIndexer(QuickTopicType.LONG, QuickTopicType.PROTOBUF,
                 new ProtobufSchema(protoMessage.getDescriptorForType()), RANGE_FIELD);
         assertThat(rangeIndexer.createIndex(key, protoMessage)).isEqualTo(range_index);
+    }
+
+    @Test
+    void shouldCreateRangeIndexOn() {
+        final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
+        final RangeIndexer<Integer, GenericRecord, Long> rangeIndexer =
+            RangeIndexer.createRangeIndexer(QuickTopicType.INTEGER, QuickTopicType.AVRO,
+                new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
+
+        assertThat(rangeIndexer.createIndex(1, "1")).isEqualTo("0000000000_0000000000000000001");
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {
