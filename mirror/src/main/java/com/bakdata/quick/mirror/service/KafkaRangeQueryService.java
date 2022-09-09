@@ -16,25 +16,35 @@
 
 package com.bakdata.quick.mirror.service;
 
+import com.bakdata.quick.common.api.client.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
+import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
+import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.InternalErrorException;
+import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.range.RangeIndexer;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
@@ -42,16 +52,16 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 @Slf4j
 public class KafkaRangeQueryService<K, V> implements RangeQueryService<V> {
 
-//    private final HttpClient client;
+    private final HttpClient client;
     private final KafkaStreams streams;
-//    private final HostInfo hostInfo;
+    private final HostInfo hostInfo;
     private final String storeName;
-//    private final String topicName;
     private final Serializer<K> keySerializer;
-//    private final TypeResolver<V> valueResolver;
     private final TypeResolver<K> keyResolver;
+    private final TypeResolver<V> valueResolver;
     private final StoreQueryParameters<ReadOnlyKeyValueStore<String, V>> storeQueryParameters;
     private final RangeIndexer<K, V, ?> rangeIndexer;
+    @Nullable
     private final ParsedSchema parsedSchema;
     private final String rangeField;
 
@@ -61,25 +71,22 @@ public class KafkaRangeQueryService<K, V> implements RangeQueryService<V> {
      * @param contextProvider query service data
      */
     @Inject
-    public KafkaRangeQueryService(
-        final QueryContextProvider contextProvider,
-        final HttpClient client) {
+    public KafkaRangeQueryService(final QueryContextProvider contextProvider, final HttpClient client) {
         final QueryServiceContext context = contextProvider.get();
-//        this.client = client;
+        this.client = client;
         final QuickTopicData<K, V> topicData = context.getTopicData();
+        this.hostInfo = context.getHostInfo();
         this.streams = context.getStreams();
-//        this.hostInfo = context.getHostInfo();
         this.storeName = context.getStoreName();
         this.parsedSchema = context.getTopicData().getValueData().getParsedSchema();
         this.rangeField = "context.getRangeField()";
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
-//        this.valueResolver = topicData.getValueData().getResolver();
+        this.valueResolver = topicData.getValueData().getResolver();
 
         this.rangeIndexer = RangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
-            topicData.getValueData().getType(), this.parsedSchema, this.rangeField);
+            topicData.getValueData().getType(), Objects.requireNonNull(this.parsedSchema), this.rangeField);
 
-//        this.topicName = topicData.getName();
         this.storeQueryParameters =
             StoreQueryParameters.fromNameAndType(this.storeName, QueryableStoreTypes.keyValueStore());
     }
@@ -104,10 +111,11 @@ public class KafkaRangeQueryService<K, V> implements RangeQueryService<V> {
         }
 
         // forward request if a different application is responsible for the rawKey
-//        if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
-//            log.info("Forward request to {}", metadata.activeHost());
-//            return Single.fromCallable(() -> this.fetch(metadata.activeHost(), rawKey)).subscribeOn(Schedulers.io());
-//        }
+        if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
+            log.info("Forward request to {}", metadata.activeHost());
+            return Single.fromCallable(() -> this.fetchRange(metadata.activeHost(), key, from, to))
+                .subscribeOn(Schedulers.io());
+        }
 
         final ReadOnlyKeyValueStore<String, V> store = this.streams.store(this.storeQueryParameters);
 
@@ -128,5 +136,27 @@ public class KafkaRangeQueryService<K, V> implements RangeQueryService<V> {
         }
 
         return Single.just(HttpResponse.created(new MirrorValue<>(values)).status(HttpStatus.OK));
+    }
+
+    private HttpResponse<MirrorValue<List<V>>> fetchRange(final HostInfo replicaHostInfo,
+        final K key, final String from, final String to) {
+
+        final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
+        final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
+
+        final DefaultMirrorClient<K, V> mirrorClient =
+            new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
+                new DefaultMirrorRequestManager(this.client));
+
+        // TODO: Replace this with fetch range after merging the other PR
+        log.trace("{}, {}, {}", key, from, to);
+        final List<V> value = mirrorClient.fetchAll();
+
+        if (value == null) {
+            throw new NotFoundException("Key not found");
+        }
+        return HttpResponse.created(new MirrorValue<>(value))
+            .header(HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS)
+            .status(HttpStatus.OK);
     }
 }

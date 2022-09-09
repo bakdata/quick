@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.service;
 
 import com.bakdata.quick.common.type.QuickTopicData;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;
@@ -29,7 +30,8 @@ public class QueryServiceContext {
     KafkaStreams streams;
     HostInfo hostInfo;
     String storeName;
-//    String rangeField;
+    @Nullable
+    String rangeField;
     QuickTopicData<?, ?> topicData;
 
     @SuppressWarnings("unchecked")

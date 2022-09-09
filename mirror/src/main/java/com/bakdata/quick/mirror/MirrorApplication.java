@@ -33,7 +33,6 @@ import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.service.QueryContextProvider;
 import com.bakdata.quick.mirror.service.QueryServiceContext;
-import com.google.errorprone.annotations.Keep;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
@@ -66,6 +65,7 @@ import picocli.CommandLine.Option;
 public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     public static final String MIRROR_STORE = "mirror-store";
     public static final String RETENTION_STORE = "retention-store";
+    public static final String RANGE_STORE = "range-store";
 
     // injectable parameter
     private final TopicTypeService topicTypeService;
@@ -83,11 +83,9 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     private Duration retentionTime;
 
     @Nullable
-    @Keep
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;
 
-    @Keep
     @Setter // Only for testing
     @Option(names = "--point", description = "Determines if a point index should be built or not",
         defaultValue = "true")
@@ -128,9 +126,12 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         return MirrorTopology.<K, V>builder()
             .topologyData(this.getTopologyData())
             .storeName(MIRROR_STORE)
+            .rangeStoreName(RANGE_STORE)
             .retentionTime(this.retentionTime)
             .retentionStoreName(RETENTION_STORE)
             .storeType(this.storeType)
+            .isPoint(this.isPoint)
+            .rangeField(this.rangeField)
             .build()
             .createTopology(streamsBuilder);
     }
@@ -194,7 +195,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             this.getStreams(),
             this.hostConfig.toInfo(),
             MIRROR_STORE,
-//            this.rangeField,
+            this.rangeField,
             quickTopicData
         );
         this.contextProvider.setQueryContext(serviceContext);

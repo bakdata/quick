@@ -73,13 +73,13 @@ class RangeIndexerTest {
     }
 
     @Test
-    void shouldCreateRangeIndexOn() {
+    void shouldCreateRangeIndexOnKeyAndString() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
         final RangeIndexer<Integer, GenericRecord, Long> rangeIndexer =
             RangeIndexer.createRangeIndexer(QuickTopicType.INTEGER, QuickTopicType.AVRO,
                 new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
 
-        assertThat(rangeIndexer.createIndex(1, "1")).isEqualTo("0000000000_0000000000000000001");
+        assertThat(rangeIndexer.createIndex(1, "1")).isEqualTo("0000000001_0000000000000000001");
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {
