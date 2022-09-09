@@ -58,7 +58,7 @@ class ApplicationResourceLoaderTest extends KubernetesTest {
         this.loader =
             new ApplicationResourceLoader(new KubernetesResources(),
                 this.kafkaConfig,
-                TestUtil.newResourceConfig(), this.getDeploymentConfig());
+                TestUtil.newAppSpec(), this.getDeploymentConfig());
     }
 
     @Test

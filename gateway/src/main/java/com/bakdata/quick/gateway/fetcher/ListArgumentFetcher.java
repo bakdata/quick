@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
  * <h2>Example:</h2>
  * <pre>{@code
  * type Query {
- *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic", keyArgument: "purchaseId") # <- query list fetcher
+ *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic", keyArgument: "purchaseId")
  * }
  *
  * type Purchase  {
@@ -70,7 +70,6 @@ public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
 
     @Override
     @Nullable
-    @SuppressWarnings("unchecked")
     public List<V> get(final DataFetchingEnvironment environment) {
         final Object arguments = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));

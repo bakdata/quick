@@ -16,13 +16,17 @@
 
 package com.bakdata.quick.common.exception;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import lombok.Getter;
-
-@Getter
+/**
+ * An internal exception for the mirror. It is Thrown whenever something goes wrong in mirror.
+ */
 public class MirrorTopologyException extends RuntimeException {
 
-    public MirrorTopologyException(@Nullable final String message) {
+    /**
+     * New instance with an error message.
+     *
+     * @param message Exception message
+     */
+    public MirrorTopologyException(final String message) {
         super(message);
     }
 }

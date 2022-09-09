@@ -16,7 +16,7 @@
 
 package com.bakdata.quick.mirror;
 
-import com.bakdata.quick.common.exception.MirrorException;
+import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.base.QuickTopology;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
@@ -25,8 +25,8 @@ import com.bakdata.quick.mirror.range.RangeIndexer;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
-import io.micronaut.http.HttpStatus;
 import java.time.Duration;
+import java.util.Objects;
 import lombok.Builder;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -91,53 +91,70 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
         // if the user set a retention time, we use a special mirror processor that schedules a job for it
         if (this.retentionTime == null) {
             if (this.isPoint) {
-                builder.addStateStore(
-                    Stores.keyValueStoreBuilder(this.createStore(this.storeName), keySerDe, valueSerDe));
-                stream.process(() -> new MirrorProcessor<>(this.storeName), Named.as(PROCESSOR_NAME), this.storeName);
+                return this.createPointTopology(builder, keySerDe, valueSerDe, stream);
             }
             if (this.rangeField != null) {
-                // key serde is string because the store saves zero padded range index string as keys
-                builder.addStateStore(
-                    Stores.keyValueStoreBuilder(this.createStore(this.rangeStoreName), Serdes.String(), valueSerDe));
-
-                final QuickTopicType keyType = this.getTopicData().getKeyData().getType();
-                final QuickTopicType valueType = this.getTopicData().getValueData().getType();
-                final ParsedSchema parsedSchema = this.getTopicData().getValueData().getParsedSchema();
-                if (parsedSchema == null) {
-                    throw new MirrorException("", HttpStatus.BAD_REQUEST);
-                }
-                final RangeIndexer<K, V, ?> rangeIndexer =
-                    RangeIndexer.createRangeIndexer(keyType, valueType, parsedSchema, this.rangeField);
-                stream.process(
-                    () -> new MirrorRangeProcessor<>(this.rangeStoreName, rangeIndexer),
-                    Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
+                return this.createRangeTopology(builder, valueSerDe, stream, this.rangeField);
             }
-            return builder.build();
+            throw new MirrorTopologyException("The mirror is neither for point or range indexes.");
         } else {
-            // key serde is long because the store saves the timestamps as keys
-            // value serde is key serde because the store save the keys as values
-            final KeyValueBytesStoreSupplier retentionStore = Stores.inMemoryKeyValueStore(this.retentionStoreName);
-            final long millisRetentionTime = this.retentionTime.toMillis();
-            builder.addStateStore(Stores.keyValueStoreBuilder(retentionStore, Serdes.Long(), keySerDe));
-            stream.process(() -> new RetentionMirrorProcessor<>(
-                    this.storeName,
-                    millisRetentionTime,
-                    this.retentionStoreName
-                ),
-                Named.as(PROCESSOR_NAME),
-                this.storeName,
-                this.retentionStoreName
-            );
-            final Topology topology = builder.build();
-            topology.addSink(
-                RETENTION_SINK,
-                this.getTopicData().getName(),
-                Serdes.Long().serializer(),
-                keySerDe.serializer(),
-                PROCESSOR_NAME
-            );
-            return topology;
+            return this.createRetentionTopology(builder, keySerDe, stream);
         }
+    }
+
+    private Topology createPointTopology(final StreamsBuilder builder, final Serde<K> keySerDe,
+        final Serde<V> valueSerDe,
+        final KStream<K, V> stream) {
+        builder.addStateStore(
+            Stores.keyValueStoreBuilder(this.createStore(this.storeName), keySerDe, valueSerDe));
+        stream.process(() -> new MirrorProcessor<>(this.storeName), Named.as(PROCESSOR_NAME), this.storeName);
+        return builder.build();
+    }
+
+    private Topology createRangeTopology(final StreamsBuilder builder, final Serde<V> valueSerDe,
+        final KStream<K, V> stream, final String rangeField) {
+        // key serde is string because the store saves zero padded range index string as keys
+        builder.addStateStore(
+            Stores.keyValueStoreBuilder(this.createStore(this.rangeStoreName), Serdes.String(), valueSerDe));
+
+        final QuickTopicType keyType = this.getTopicData().getKeyData().getType();
+        final QuickTopicType valueType = this.getTopicData().getValueData().getType();
+        final ParsedSchema parsedSchema = this.getTopicData().getValueData().getParsedSchema();
+        if (parsedSchema == null) {
+            throw new MirrorTopologyException("Could not get the parsed schema.");
+        }
+        final RangeIndexer<K, V, ?> rangeIndexer =
+            RangeIndexer.createRangeIndexer(keyType, valueType, parsedSchema, rangeField);
+        stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, rangeIndexer),
+            Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
+        return builder.build();
+    }
+
+    private Topology createRetentionTopology(final StreamsBuilder builder, final Serde<K> keySerDe,
+        final KStream<K, V> stream) {
+        // key serde is long because the store saves the timestamps as keys
+        // value serde is key serde because the store save the keys as values
+        final KeyValueBytesStoreSupplier retentionStore = Stores.inMemoryKeyValueStore(this.retentionStoreName);
+        final long millisRetentionTime = Objects.requireNonNull(this.retentionTime).toMillis();
+        builder.addStateStore(Stores.keyValueStoreBuilder(retentionStore, Serdes.Long(), keySerDe));
+        stream.process(() -> new RetentionMirrorProcessor<>(
+                this.storeName,
+                millisRetentionTime,
+                this.retentionStoreName
+            ),
+            Named.as(PROCESSOR_NAME),
+            this.storeName,
+            this.retentionStoreName
+        );
+        final Topology topology = builder.build();
+        topology.addSink(
+            RETENTION_SINK,
+            this.getTopicData().getName(),
+            Serdes.Long().serializer(),
+            keySerDe.serializer(),
+            PROCESSOR_NAME
+        );
+        return topology;
     }
 
     private KeyValueBytesStoreSupplier createStore(final String name) {

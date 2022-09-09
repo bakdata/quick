@@ -21,9 +21,12 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import lombok.Value;
 
+/**
+ * Tuple containing the type resolver and the parsed schema.
+ */
 @Value
-public class TypeResolverSchema<K> {
-    TypeResolver<K> typeResolver;
+public class TypeResolverSchema<T> {
+    TypeResolver<T> typeResolver;
     @Nullable
     ParsedSchema parsedSchema;
 }

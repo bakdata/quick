@@ -16,6 +16,11 @@
 
 package com.bakdata.quick.mirror.range.padder;
 
+/**
+ * Pads zeros to the left number.
+ *
+ * @param <T> Type of the number
+ */
 public interface ZeroPadder<T> {
     String padZero(final T number);
 

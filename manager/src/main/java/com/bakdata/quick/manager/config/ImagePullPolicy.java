@@ -14,24 +14,26 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range.padder;
+package com.bakdata.quick.manager.config;
 
-import java.text.DecimalFormat;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
- * Implements the {@link ZeroPadder} interface for integer.
+ * Defines the image pull policies of the manager resources.
+ *
+ * @see ApplicationSpecificationConfig
  */
-public class IntPadder implements ZeroPadder<Integer> {
-    private static final int MAX_INTEGER_LENGTH = 10;
+public enum ImagePullPolicy {
+    IF_NOT_PRESENT("IfNotPresent"),
+    ALWAYS("Always"),
+    NEVER("Never");
 
-    @Override
-    public String padZero(final Integer number) {
-        final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_INTEGER_LENGTH));
-        return decimalFormat.format(number);
-    }
+    @Getter
+    @JsonValue
+    private final String policyName;
 
-    @Override
-    public Class<Integer> getPadderClass() {
-        return Integer.class;
+    ImagePullPolicy(final String policyName) {
+        this.policyName = policyName;
     }
 }

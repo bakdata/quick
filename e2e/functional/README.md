@@ -7,7 +7,7 @@ There are three scenarios tested: </br>
 **NOTE:** Subscription tests are currently skipped by bats. (WIP)
 
 ## Prerequisite
-You can specify the quick-cli version when you are building the image through the argument `QUICK_CLI_VERSION`. The default version is `0.4.0` 
+You can specify the quick-cli version when you are building the image through the argument `QUICK_CLI_VERSION`. The default version is `0.7.0` 
 
 ```bash
 docker build --build-arg QUICK_CLI_VERSION=<Version> -t quick-e2e-test-runner:<TAG> .

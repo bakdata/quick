@@ -72,7 +72,7 @@ class RangeIndexerTest {
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {
-        final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1).build();
+        final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
         return Stream.of(
             arguments(INT_ZERO, avroRecord, "0000000000_0000000000000000001"),
             arguments(ONE_DIGIT_INT_NUMBER, avroRecord, "0000000001_0000000000000000001"),

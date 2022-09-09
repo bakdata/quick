@@ -41,9 +41,9 @@ import reactor.core.publisher.Mono;
  * Data fetcher for subscribing to multiple topics.
  *
  * <p>
- * This data fetcher works by subscribing to multiple topics with a {@link KafkaSubscriptionProvider}.
- * When a new query comes in, it subscribes to the Kafka Subscriber for all selected fields.
- * Whenever a subscriber emits an event, the data for the other selected fields is fetched through the mirror.
+ * This data fetcher works by subscribing to multiple topics with a {@link KafkaSubscriptionProvider}. When a new query
+ * comes in, it subscribes to the Kafka Subscriber for all selected fields. Whenever a subscriber emits an event, the
+ * data for the other selected fields is fetched through the mirror.
  */
 @Slf4j
 public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<String, Object>>> {
@@ -54,8 +54,8 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      * A cache for all field values.
      *
      * <p>
-     * The subscriptions update the values, so that we only need to fetch the values from the mirror in case the
-     * kafka didn't yield a value for this field yet.
+     * The subscriptions update the values, so that we only need to fetch the values from the mirror in case the kafka
+     * didn't yield a value for this field yet.
      */
     private final AsyncLoadingCache<FieldKey<?>, Object> fieldCache;
     private final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders;
@@ -64,25 +64,25 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
     /**
      * Default constructor.
      *
-     * @param fieldDataFetcherClients    map of fields to their fetching clients
+     * @param fieldDataFetcherClients map of fields to their fetching clients
      * @param fieldSubscriptionProviders map of field to their subscription providers
      */
     public MultiSubscriptionFetcher(final Map<String, DataFetcherClient<?>> fieldDataFetcherClients,
-                                    final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders) {
+        final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders) {
         this(fieldDataFetcherClients, fieldSubscriptionProviders, MultiSubscriptionFetcher::getSelectedFields);
     }
 
     /**
      * Constructor with custom field selection for testing purposes.
      *
-     * @param fieldDataFetcherClients    map of fields to their fetching clients
+     * @param fieldDataFetcherClients map of fields to their fetching clients
      * @param fieldSubscriptionProviders map of field to their subscription providers
-     * @param fieldSelector              function extracting the selected fields of a GraphQL environment
+     * @param fieldSelector function extracting the selected fields of a GraphQL environment
      */
     @VisibleForTesting
     MultiSubscriptionFetcher(final Map<String, DataFetcherClient<?>> fieldDataFetcherClients,
-                             final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders,
-                             final FieldSelector fieldSelector) {
+        final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders,
+        final FieldSelector fieldSelector) {
         this.fieldDataFetcherClients = fieldDataFetcherClients;
         this.fieldSubscriptionProviders = fieldSubscriptionProviders;
         this.fieldSelector = fieldSelector;
@@ -102,9 +102,9 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      *
      * <p>
      * Nested types are qualified by their parent and then a /, i.e., parent/child (see
-     * {@link graphql.schema.DataFetchingFieldSelectionSet}).
-     * In this setting, we're only interested in the first level of fields. Deeper levels are expected to be part of
-     * the returned Kafka value itself. Therefore, child wouldn't be part of the returned list.
+     * {@link graphql.schema.DataFetchingFieldSelectionSet}). In this setting, we're only interested in the first level
+     * of fields. Deeper levels are expected to be part of the returned Kafka value itself. Therefore, child wouldn't be
+     * part of the returned list.
      *
      * @param environment environment of the current request
      * @return list of root field names returned by this fetcher
@@ -128,18 +128,19 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      *     We can also cache it since we get all updates.</il>
      * </ol>
      *
-     * @param namedRecord         the record we got from Kafka
+     * @param namedRecord the record we got from Kafka
      * @param selectedFields the fields selected by this query
      * @return a map representing the selected object
      */
     private Mono<Map<String, Object>> createComplexType(final NamedRecord<?, ?> namedRecord,
-                                                        final List<String> selectedFields) {
+        final List<String> selectedFields) {
         // map holding the data for current key
         final Map<String, Object> complexType = new HashMap<>();
         complexType.put(namedRecord.getFieldName(), namedRecord.getConsumerRecord().value());
 
         final FieldKey<?> key = new FieldKey<>(namedRecord.getFieldName(), namedRecord.getConsumerRecord().key());
-        final CompletableFuture<?> recordValue = CompletableFuture.completedFuture(namedRecord.getConsumerRecord().value());
+        final CompletableFuture<?> recordValue =
+            CompletableFuture.completedFuture(namedRecord.getConsumerRecord().value());
         log.info("Update {} with {}", key, namedRecord.getConsumerRecord().value());
         this.fieldCache.put(key, recordValue);
 
@@ -171,7 +172,7 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
     }
 
     private Flux<? extends NamedRecord<?, ?>> combineElementStreams(final List<String> selectedFields,
-                                                                    final DataFetchingEnvironment env) {
+        final DataFetchingEnvironment env) {
         final List<Flux<? extends NamedRecord<?, ?>>> fluxes = selectedFields.stream()
             .map(name -> {
                 final SubscriptionProvider<?, ?> kafkaSubscriber = this.fieldSubscriptionProviders.get(name);

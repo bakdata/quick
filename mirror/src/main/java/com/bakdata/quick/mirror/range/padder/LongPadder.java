@@ -18,6 +18,9 @@ package com.bakdata.quick.mirror.range.padder;
 
 import java.text.DecimalFormat;
 
+/**
+ * Pads zeros to the left of a long number.
+ */
 public class LongPadder implements ZeroPadder<Long> {
     private static final int MAX_LONG_LENGTH = 19;
 
