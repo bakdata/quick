@@ -98,6 +98,7 @@ public final class RangeIndexer<K, V, F extends Number> {
         return String.format("%s_%s", this.keyZeroPadder.padZero(key), this.valueZeroPadder.padZero(rangeFieldValue));
     }
 
+    @SuppressWarnings("unchecked")
     private static <K> ZeroPadder<K> createKeyZeroPadder(final QuickTopicType topicType) {
         if (topicType == QuickTopicType.INTEGER) {
             log.trace("Creating integer zero padder for key");
@@ -119,6 +120,7 @@ public final class RangeIndexer<K, V, F extends Number> {
         throw new MirrorTopologyException("Supported values are Avro and Protobuf");
     }
 
+    @SuppressWarnings("unchecked")
     private static <F extends Number> ZeroPadder<F> getZeroPadderForAvroSchema(
         final Schema avroSchema,
         final String rangeField) {
@@ -133,7 +135,8 @@ public final class RangeIndexer<K, V, F extends Number> {
         throw new MirrorTopologyException("Range field value should be either integer or long");
     }
 
-    private static <V, F extends Number> ZeroPadder<F> getZeroPadderForProtobufSchema(
+    @SuppressWarnings("unchecked")
+    private static <F extends Number> ZeroPadder<F> getZeroPadderForProtobufSchema(
         final ProtobufSchema parsedSchema,
         final String rangeField) {
         final Descriptors.Descriptor descriptor = parsedSchema.toDescriptor();
