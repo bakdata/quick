@@ -21,9 +21,16 @@ import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import java.util.Optional;
 
 /**
- * Validation for range queries. These rules should apply: 1. The Parent container should be a Query and not
- * Mutation/Subscription 2. Both rangeFrom and rangeTo fields should exist in the topic directive 3. A valid keyArgument
- * should exist in the topic directive 4. The return type of the query should be list
+ * Validation for range queries.
+ *
+ * <p>
+ * These rules should apply:
+ * <ol>
+ * <li> The Parent container should be a Query and not Mutation/Subscription
+ * <li> Both rangeFrom and rangeTo fields should exist in the topic directive
+ * <li> A valid keyArgument should exist in the topic directive
+ * <li> The return type of the query should be list
+ * </ol>
  *
  * <p>
  * <h2>Valid schema:</h2>

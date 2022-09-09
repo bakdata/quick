@@ -124,11 +124,13 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public List<V> fetchRange(final K key, final String from, final String to) {
         final MirrorHost currentKeyHost = Objects.requireNonNull(this.router.findHost(key),
-            String.format("Could not find the a Mirror host for key %s", key));
+            String.format("Could not find the a Mirror host %s for key %s", this.topicName, key));
         final ResponseWrapper response = this.requestManager
             .makeRequest(Objects.requireNonNull(currentKeyHost).forRange(key.toString(), from, to));
         if (response.isUpdateCacheHeaderSet()) {
-            log.debug("The update header has been set. Updating router info.");
+            log.debug("The update header has been set for host {} and key {}. Updating router info.",
+                this.topicName,
+                key);
             this.updateRouterInfo();
         }
         return this.requestManager.processResponse(response, this.parser::deserializeList);
@@ -153,9 +155,11 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
             }
             final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper()
                 .readValue(responseBody.byteStream(), MAP_TYPE_REFERENCE);
-            log.info("Collected information about the partitions and hosts."
-                    + " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
-                (int) partitionHostMappingResponse.values().stream().distinct().count());
+            if (log.isInfoEnabled()) {
+                log.info("Collected information about the partitions and hosts."
+                        + " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
+                    (int) partitionHostMappingResponse.values().stream().distinct().count());
+            }
             return partitionHostMappingResponse;
         } catch (final IOException exception) {
             throw new MirrorException("There was a problem handling the response: ",
