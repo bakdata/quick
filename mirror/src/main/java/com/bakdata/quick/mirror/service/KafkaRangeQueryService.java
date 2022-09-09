@@ -35,7 +35,6 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
@@ -43,13 +42,13 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 @Slf4j
 public class KafkaRangeQueryService<K, V> implements RangeQueryService<V> {
 
-    private final HttpClient client;
+//    private final HttpClient client;
     private final KafkaStreams streams;
-    private final HostInfo hostInfo;
+//    private final HostInfo hostInfo;
     private final String storeName;
-    private final String topicName;
+//    private final String topicName;
     private final Serializer<K> keySerializer;
-    private final TypeResolver<V> valueResolver;
+//    private final TypeResolver<V> valueResolver;
     private final TypeResolver<K> keyResolver;
     private final StoreQueryParameters<ReadOnlyKeyValueStore<String, V>> storeQueryParameters;
     private final RangeIndexer<K, V, ?> rangeIndexer;
@@ -66,21 +65,21 @@ public class KafkaRangeQueryService<K, V> implements RangeQueryService<V> {
         final QueryContextProvider contextProvider,
         final HttpClient client) {
         final QueryServiceContext context = contextProvider.get();
-        this.client = client;
+//        this.client = client;
         final QuickTopicData<K, V> topicData = context.getTopicData();
         this.streams = context.getStreams();
-        this.hostInfo = context.getHostInfo();
+//        this.hostInfo = context.getHostInfo();
         this.storeName = context.getStoreName();
         this.parsedSchema = context.getTopicData().getValueData().getParsedSchema();
-        this.rangeField = context.getRangeField();
+        this.rangeField = "context.getRangeField()";
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
-        this.valueResolver = topicData.getValueData().getResolver();
+//        this.valueResolver = topicData.getValueData().getResolver();
 
         this.rangeIndexer = RangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
             topicData.getValueData().getType(), this.parsedSchema, this.rangeField);
 
-        this.topicName = topicData.getName();
+//        this.topicName = topicData.getName();
         this.storeQueryParameters =
             StoreQueryParameters.fromNameAndType(this.storeName, QueryableStoreTypes.keyValueStore());
     }

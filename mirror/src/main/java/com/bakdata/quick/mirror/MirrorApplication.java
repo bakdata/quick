@@ -33,6 +33,7 @@ import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.service.QueryContextProvider;
 import com.bakdata.quick.mirror.service.QueryServiceContext;
+import com.google.errorprone.annotations.Keep;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
@@ -82,9 +83,11 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     private Duration retentionTime;
 
     @Nullable
+    @Keep
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;
 
+    @Keep
     @Setter // Only for testing
     @Option(names = "--point", description = "Determines if a point index should be built or not",
         defaultValue = "true")
@@ -191,7 +194,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             this.getStreams(),
             this.hostConfig.toInfo(),
             MIRROR_STORE,
-            this.rangeField,
+//            this.rangeField,
             quickTopicData
         );
         this.contextProvider.setQueryContext(serviceContext);

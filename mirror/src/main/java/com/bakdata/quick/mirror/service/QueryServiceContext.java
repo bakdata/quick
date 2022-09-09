@@ -29,12 +29,11 @@ public class QueryServiceContext {
     KafkaStreams streams;
     HostInfo hostInfo;
     String storeName;
-    String rangeField;
+//    String rangeField;
     QuickTopicData<?, ?> topicData;
 
     @SuppressWarnings("unchecked")
     <K, V> QuickTopicData<K, V> getTopicData() {
         return (QuickTopicData<K, V>) this.topicData;
     }
-
 }
