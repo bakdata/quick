@@ -32,4 +32,5 @@ public interface QueryService<V> {
     Single<HttpResponse<MirrorValue<List<V>>>> getValues(final List<String> keys);
 
     Single<HttpResponse<MirrorValue<List<V>>>> getAll();
+    Single<HttpResponse<MirrorValue<List<V>>>> getRange(final String key, final String from, final String to);
 }

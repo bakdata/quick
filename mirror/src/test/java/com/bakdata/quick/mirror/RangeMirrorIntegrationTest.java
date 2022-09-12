@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.bakdata.quick.common.TestConfigUtils;
 import com.bakdata.quick.common.TestTopicTypeService;
+import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
@@ -29,9 +30,12 @@ import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.service.QueryContextProvider;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerializer;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.restassured.RestAssured;
 import jakarta.inject.Inject;
@@ -41,6 +45,7 @@ import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.SendKeyValuesTransactional;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.junit.jupiter.api.AfterAll;
@@ -52,6 +57,8 @@ import org.junit.jupiter.api.Test;
 @Property(name = "pod.ip", value = "127.0.0.1")
 @Property(name = "quick.schema.enable.all", value = "true") // Required so that JSON support for all types is enabled
 public class RangeMirrorIntegrationTest {
+    @Inject
+    private ObjectMapper objectMapper;
     public static final String INPUT_TOPIC = "rang-input";
     @Inject
     HostConfig hostConfig;
@@ -76,13 +83,21 @@ public class RangeMirrorIntegrationTest {
     }
 
     @Test
-    void shouldReceiveCorrectValueFromMirrorApplication2() throws InterruptedException {
+    void shouldReceiveCorrectValueFromMirrorApplication() throws InterruptedException, JsonProcessingException {
         sendValuesToKafka();
         final MirrorApplication<Integer, AvroRangeQueryTest> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();
 
         Thread.sleep(3000);
+
+        final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
+        final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
+        final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
+
+        final MirrorValue<List<GenericRecord>>
+            items = new MirrorValue<>(List.of(avroRecord, avroRecord2, avroRecord3));
+        final String expected = this.objectMapper.writeValueAsString(items);
 
         await()
             .atMost(Duration.ofSeconds(12))
@@ -93,9 +108,10 @@ public class RangeMirrorIntegrationTest {
                     .when()
                     .get("http://" + this.hostConfig.toConnectionString() + "/mirror/range/{id}", 1)
                     .then()
-                    .statusCode(200)
-        // TODO: Change body
-                    .body(equalTo("{\"value\":\"value1\"}")));
+                    .statusCode(HttpStatus.OK.getCode())
+                    .body(equalTo(expected)));
+
+        app.close();
         app.getStreams().cleanUp();
         runThread.interrupt();
     }
