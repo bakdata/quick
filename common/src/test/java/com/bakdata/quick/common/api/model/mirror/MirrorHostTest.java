@@ -32,7 +32,8 @@ class MirrorHostTest {
         final MirrorHost mirrorHost = new MirrorHost("test-for-key", new MirrorConfig());
         final String actual = mirrorHost.forKey("give-me-key");
         final String url = "http://%s-test-for-key/%s/give-me-key";
-        assertThat(actual).isEqualTo(String.format(url, MIRROR_HOST_PREFIX, MIRROR_HOST_PATH));
+        final String expected = String.format(url, MIRROR_HOST_PREFIX, MIRROR_HOST_PATH);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
@@ -40,7 +41,8 @@ class MirrorHostTest {
         final MirrorHost mirrorHost = new MirrorHost("test-for-keys", new MirrorConfig());
         final String actual = mirrorHost.forKeys(List.of("test-1", "test-2", "test-3"));
         final String url = "http://%s-test-for-keys/%s/keys?ids=test-1,test-2,test-3";
-        assertThat(actual).isEqualTo(String.format(url, MIRROR_HOST_PREFIX, MIRROR_HOST_PATH));
+        final String expected = String.format(url, MIRROR_HOST_PREFIX, MIRROR_HOST_PATH);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
@@ -48,15 +50,17 @@ class MirrorHostTest {
         final MirrorHost mirrorHost = new MirrorHost("test-for-all", new MirrorConfig());
         final String actual = mirrorHost.forAll();
         final String url = "http://%s-test-for-all/%s";
-        assertThat(actual).isEqualTo(String.format(url, MIRROR_HOST_PREFIX, MIRROR_HOST_PATH));
+        final String expected = String.format(url, MIRROR_HOST_PREFIX, MIRROR_HOST_PATH);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
     void shouldConstructCorrectUrlForRangeRequest() {
         final MirrorHost mirrorHost = new MirrorHost("test-for-rage", new MirrorConfig());
         final String actual = mirrorHost.forRange("test-key", "range-field-from", "range-field-to");
-        final String url = "http://%s-test-for-rage/%s/%s?from=%s&to=%s";
-        assertThat(actual).isEqualTo(
-            String.format(url, MIRROR_HOST_PREFIX, MIRROR_HOST_PATH, "test-key", "range-field-from", "range-field-to"));
+        final String url = "http://%s-test-for-rage/%s/range/%s?from=%s&to=%s";
+        final String expected =
+            String.format(url, MIRROR_HOST_PREFIX, MIRROR_HOST_PATH, "test-key", "range-field-from", "range-field-to");
+        assertThat(actual).isEqualTo(expected);
     }
 }

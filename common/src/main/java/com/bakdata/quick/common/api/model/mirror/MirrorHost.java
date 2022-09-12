@@ -74,7 +74,7 @@ public class MirrorHost {
      * Generates a URL for fetching a range of keys.
      */
     public String forRange(final String key, final String from, final String to) {
-        return String.format("http://%s%s/%s/%s?from=%s&to=%s", this.config.getPrefix(), this.host,
+        return String.format("http://%s%s/%s/range/%s?from=%s&to=%s", this.config.getPrefix(), this.host,
             this.config.getPath(), key, from, to);
     }
 
