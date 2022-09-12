@@ -16,11 +16,9 @@
 
 package com.bakdata.quick.mirror;
 
-import static io.restassured.RestAssured.when;
 import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Mockito.mock;
 
 import com.bakdata.quick.common.TestConfigUtils;
 import com.bakdata.quick.common.TestTopicTypeService;
@@ -28,17 +26,14 @@ import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.base.HostConfig;
-import com.bakdata.quick.mirror.service.KafkaQueryService;
-import com.bakdata.quick.mirror.service.KafkaRangeQueryService;
 import com.bakdata.quick.mirror.service.QueryContextProvider;
-import com.bakdata.quick.mirror.service.QueryService;
-import com.bakdata.quick.mirror.service.RangeQueryService;
+import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerializer;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
-import io.micronaut.http.HttpStatus;
-import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.restassured.RestAssured;
 import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.List;
@@ -47,7 +42,7 @@ import net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.SendKeyValuesTransactional;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,15 +50,15 @@ import org.junit.jupiter.api.Test;
 @IntegrationTest
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
-class MirrorApplicationIntegrationTest {
-    public static final String INPUT_TOPIC = "input";
+@Property(name = "quick.schema.enable.all", value = "true") // Required so that JSON support for all types is enabled
+public class RangeMirrorIntegrationTest {
+    public static final String INPUT_TOPIC = "rang-input";
     @Inject
     HostConfig hostConfig;
     @Inject
     ApplicationContext applicationContext;
     @Inject
     QueryContextProvider queryContextProvider;
-
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
@@ -81,9 +76,9 @@ class MirrorApplicationIntegrationTest {
     }
 
     @Test
-    void shouldReceiveCorrectValueFromMirrorApplication() throws InterruptedException {
+    void shouldReceiveCorrectValueFromMirrorApplication2() throws InterruptedException {
         sendValuesToKafka();
-        final MirrorApplication<String, String> app = this.setUpApp();
+        final MirrorApplication<Integer, AvroRangeQueryTest> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();
 
@@ -92,49 +87,60 @@ class MirrorApplicationIntegrationTest {
         await()
             .atMost(Duration.ofSeconds(12))
             .untilAsserted(
-                () -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
+                () -> RestAssured.given()
+                    .queryParam("from", "1")
+                    .queryParam("to", "3")
+                    .when()
+                    .get("http://" + this.hostConfig.toConnectionString() + "/mirror/range/{id}", 1)
                     .then()
-                    .statusCode(HttpStatus.OK.getCode())
+                    .statusCode(200)
+        // TODO: Change body
                     .body(equalTo("{\"value\":\"value1\"}")));
-        app.close();
         app.getStreams().cleanUp();
         runThread.interrupt();
     }
 
     private static void sendValuesToKafka() throws InterruptedException {
-        final List<KeyValue<String, String>> keyValueList = List.of(new KeyValue<>("key1", "value1"),
-            new KeyValue<>("key2", "value2"),
-            new KeyValue<>("key3", "value3"));
-        final SendKeyValuesTransactional<String, String> sendRequest = SendKeyValuesTransactional
+        final AvroRangeQueryTest avroRecord1 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
+        final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
+        final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
+
+        final List<KeyValue<Integer, AvroRangeQueryTest>> keyValueList = List.of(
+            new KeyValue<>(1, avroRecord1),
+            new KeyValue<>(1, avroRecord2),
+            new KeyValue<>(1, avroRecord3));
+
+        final SendKeyValuesTransactional<Integer, AvroRangeQueryTest> sendRequest = SendKeyValuesTransactional
             .inTransaction(INPUT_TOPIC, keyValueList)
-            .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
-            .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
+            .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class)
+            .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, SpecificAvroSerializer.class)
             .with("schema.registry.url", schemaRegistry.getUrl())
             .build();
 
         kafkaCluster.send(sendRequest);
     }
 
-    private MirrorApplication<String, String> setUpApp() {
-        final MirrorApplication<String, String> app = new MirrorApplication<>(
-            this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
+    private MirrorApplication<Integer, AvroRangeQueryTest> setUpApp() {
+        final MirrorApplication<Integer, AvroRangeQueryTest> app = new MirrorApplication<>(
+            this.applicationContext, getTopicTypeService(), TestConfigUtils.newQuickTopicConfig(),
             this.hostConfig, this.queryContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());
         app.setProductive(false);
         app.setSchemaRegistryUrl(schemaRegistry.getUrl());
-        app.setPoint(true);
+        app.setPoint(false);
+        app.setRangeField("timestamp");
         return app;
     }
 
-    private static TopicTypeService topicTypeService() {
+    private static TopicTypeService getTopicTypeService() {
         return TestTopicTypeService.builder()
             .urlSupplier(schemaRegistry::getUrl)
-            .keyType(QuickTopicType.STRING)
-            .valueType(QuickTopicType.STRING)
+            .keyType(QuickTopicType.INTEGER)
+            .valueType(QuickTopicType.AVRO)
             .keySchema(null)
-            .valueSchema(null)
+            .valueSchema(AvroRangeQueryTest.getClassSchema())
             .build();
     }
 }

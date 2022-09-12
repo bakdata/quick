@@ -92,6 +92,17 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     }
 
     @Override
+    @Nullable
+    public List<V> fetchRange(final K key, final String from, final String rangeTo) {
+        final ResponseWrapper response = this.mirrorRequestManager.makeRequest(
+            this.host.forRange(key.toString(), from, rangeTo)
+        );
+        return Objects.requireNonNullElse(
+            this.mirrorRequestManager.processResponse(response, this.parser::deserializeList),
+            Collections.emptyList());
+    }
+
+    @Override
     public boolean exists(final K key) {
         return this.fetchValue(key) != null;
     }

@@ -54,6 +54,17 @@ public interface MirrorClient<K, V> {
     List<V> fetchValues(final List<K> keys);
 
     /**
+     * Fetches a range of a given key from the mirror topic.
+     *
+     * @param key a key to be fetched
+     * @param from lower bound of the range field
+     * @param to higher bound of the range field
+     * @return a list of values.
+     */
+    @Nullable
+    List<V> fetchRange(final K key, final String from, final String to);
+
+    /**
      * checks if a key exists in mirror topic.
      *
      * @return True/False if key exists in mirror topic

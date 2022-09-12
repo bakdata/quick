@@ -82,6 +82,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Option(names = "--retention-time", description = "Retention time defined in ISO_8601")
     private Duration retentionTime;
 
+    @Setter // Only for testing
     @Nullable
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;

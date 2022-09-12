@@ -28,8 +28,8 @@ import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.range.RangeIndexer;
-import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
@@ -61,9 +61,6 @@ public class KafkaRangeQueryService<K, V> implements RangeQueryService<V> {
     private final TypeResolver<V> valueResolver;
     private final StoreQueryParameters<ReadOnlyKeyValueStore<String, V>> storeQueryParameters;
     private final RangeIndexer<K, V, ?> rangeIndexer;
-    @Nullable
-    private final ParsedSchema parsedSchema;
-    private final String rangeField;
 
     /**
      * Injectable constructor.
@@ -78,14 +75,16 @@ public class KafkaRangeQueryService<K, V> implements RangeQueryService<V> {
         this.hostInfo = context.getHostInfo();
         this.streams = context.getStreams();
         this.storeName = context.getStoreName();
-        this.parsedSchema = context.getTopicData().getValueData().getParsedSchema();
-        this.rangeField = "context.getRangeField()";
+        final ParsedSchema parsedSchema = context.getTopicData().getValueData().getParsedSchema();
+        final String rangeField = context.getRangeField();
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
         this.valueResolver = topicData.getValueData().getResolver();
 
         this.rangeIndexer = RangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
-            topicData.getValueData().getType(), Objects.requireNonNull(this.parsedSchema), this.rangeField);
+            topicData.getValueData().getType(),
+            Objects.requireNonNull(parsedSchema),
+            Objects.requireNonNull(rangeField));
 
         this.storeQueryParameters =
             StoreQueryParameters.fromNameAndType(this.storeName, QueryableStoreTypes.keyValueStore());
@@ -148,9 +147,8 @@ public class KafkaRangeQueryService<K, V> implements RangeQueryService<V> {
             new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
                 new DefaultMirrorRequestManager(this.client));
 
-        // TODO: Replace this with fetch range after merging the other PR
-        log.trace("{}, {}, {}", key, from, to);
-        final List<V> value = mirrorClient.fetchAll();
+        log.debug("Fetching range for key {}, from {}, to {}", key, from, to);
+        final List<V> value = mirrorClient.fetchRange(key, from, to);
 
         if (value == null) {
             throw new NotFoundException("Key not found");

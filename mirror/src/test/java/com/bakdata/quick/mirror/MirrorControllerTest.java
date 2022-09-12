@@ -16,9 +16,11 @@
 
 package com.bakdata.quick.mirror;
 
+import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -26,7 +28,10 @@ import static org.mockito.Mockito.mock;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.service.KafkaQueryService;
+import com.bakdata.quick.mirror.service.KafkaRangeQueryService;
 import com.bakdata.quick.mirror.service.QueryService;
+import com.bakdata.quick.mirror.service.RangeQueryService;
+import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ChartRecord;
 import com.bakdata.quick.testutil.ProtoTestRecord;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,8 +48,10 @@ import java.util.List;
 import java.util.stream.Stream;
 import lombok.Value;
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @MicronautTest
@@ -58,6 +65,8 @@ class MirrorControllerTest {
     private HostConfig hostConfig;
     @Inject
     private QueryService<?> queryService;
+    @Inject
+    private RangeQueryService<?> rangeQueryService;
 
     @ParameterizedTest
     @MethodSource("keys")
@@ -84,7 +93,7 @@ class MirrorControllerTest {
         await().atMost(Duration.ofSeconds(10))
             .untilAsserted(() ->
                 when()
-                    .get("http://" + this.hostConfig.toConnectionString() + "/mirror/keys?ids=1,2,3")
+                    .get("http://" + this.hostConfig.toConnectionString() + "/mirror/keys?keys=1,2,3")
                     .then()
                     .statusCode(HttpStatus.OK.getCode())
                     .body(equalTo(expected))
@@ -115,7 +124,7 @@ class MirrorControllerTest {
         doReturn(Single.just(item)).when(this.queryService).getAll();
 
         final String expected = this.objectMapper.writeValueAsString(item);
-        await().atMost(Duration.ofSeconds(10))
+        await()
             .untilAsserted(() ->
                 when()
                     .get("http://" + this.hostConfig.toConnectionString() + "/mirror")
@@ -125,9 +134,37 @@ class MirrorControllerTest {
             );
     }
 
+    @Test
+    void shouldReturnValuesForRange() throws JsonProcessingException {
+        final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
+        final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
+        final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
+        final MirrorValue<List<GenericRecord>> items = new MirrorValue<>(List.of(avroRecord, avroRecord2, avroRecord3));
+        doReturn(Single.just(items)).when(this.rangeQueryService).getRange("1", "1", "3");
+
+        final String expected = this.objectMapper.writeValueAsString(items);
+
+        await()
+            .untilAsserted(() ->
+                given()
+                    .queryParam("from", 1)
+                    .queryParam("to", 3)
+                    .when()
+                    .get("http://" + this.hostConfig.toConnectionString() + "/mirror/range/{key}", 1)
+                    .then()
+                    .statusCode(HttpStatus.OK.getCode())
+                    .body(equalTo(expected))
+            );
+    }
+
     @MockBean(KafkaQueryService.class)
     QueryService queryService() {
         return mock(QueryService.class);
+    }
+
+    @MockBean(KafkaRangeQueryService.class)
+    RangeQueryService rangeQueryService() {
+        return mock(RangeQueryService.class);
     }
 
     private static Stream<Argument<?>> keys() {
@@ -147,6 +184,18 @@ class MirrorControllerTest {
 
     private static Message newProtoRecord() {
         return ProtoTestRecord.newBuilder().setId("test").setValue(59).build();
+    }
+
+    private static Stream<Arguments> rangeValues() {
+        return Stream.of(
+            arguments(1, AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build(),
+                "0000000000_0000000000000000001"),
+            arguments(1, AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build(),
+                "0000000000_0000000000000000002"),
+            arguments(1, AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build(),
+                "0000000000_0000000000000000003")
+
+        );
     }
 
     @Value
