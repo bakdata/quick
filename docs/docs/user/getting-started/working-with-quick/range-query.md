@@ -148,7 +148,7 @@ As you can see, the return type of the
 query is a list of _UserRating_.  
 The last element of the query definition is a topic directive which contains two new elements: `rangeFrom` and 
 `rangeTo`.
-The values assigned to these two parameters are used to create a desired range for the query.
+The values assigned to these two parameters are used to create a desired range for a specific field.
 
 ## 3. Execute the query
 
