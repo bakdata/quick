@@ -14,9 +14,9 @@ Consider the following entries that are saved in a topic:
 
 | key (UserId) | value                                                  |
 |:------------:|--------------------------------------------------------|
-|      1       | {timestamp: 1, serviceId: 2, requests: 10, success: 8} |
-|      1       | {timestamp: 2, serviceId: 3, requests: 5, success: 3}  |
-|      2       | {timestamp: 1, serviceId: 4, requests: 7, success: 2}  |
+|      `1`       | `{timestamp: 1, serviceId: 2, requests: 10, success: 8}` |
+|      `1`       | `{timestamp: 2, serviceId: 3, requests: 5, success: 3}`  |
+|      `2`       | `{timestamp: 1, serviceId: 4, requests: 7, success: 2}`  |
 
 The table indicates that there are two entries for the `key=1`.
 The second entry is newer, meaning its value is the current one in the store.
