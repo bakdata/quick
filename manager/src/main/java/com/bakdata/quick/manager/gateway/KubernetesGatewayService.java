@@ -85,8 +85,24 @@ public class KubernetesGatewayService implements GatewayService {
 
     @Override
     public Completable createGateway(final GatewayCreationData gatewayCreationData) {
-        return Single.fromCallable(() -> this.loader.forCreation(gatewayCreationData, ResourcePrefix.GATEWAY))
-            .flatMapCompletable(this.kubernetesManagerClient::deploy);
+        if (gatewayCreationData.getSchema() == null) {
+            log.debug("Creating gateway without provided schema.");
+            return Single.fromCallable(() -> this.loader.forCreation(gatewayCreationData, ResourcePrefix.GATEWAY))
+                .flatMapCompletable(this.kubernetesManagerClient::deploy);
+        } else {
+            final String graphQLSchema = gatewayCreationData.getSchema();
+            log.debug("Creating gateway with the following schema: {}", graphQLSchema);
+            final GatewayCreationData creationDataWithoutSchema = new GatewayCreationData(
+                gatewayCreationData.getName(), gatewayCreationData.getReplicas(),
+                gatewayCreationData.getTag(), null
+            );
+            return Single.fromCallable(() -> this.loader.forCreation(
+                creationDataWithoutSchema, ResourcePrefix.GATEWAY))
+                .flatMapCompletable(this.kubernetesManagerClient::deploy)
+                .andThen(Completable.defer(() -> this.updateSchema(
+                    gatewayCreationData.getName(), graphQLSchema
+                )));
+        }
     }
 
     @Override
@@ -97,6 +113,7 @@ public class KubernetesGatewayService implements GatewayService {
 
     @Override
     public Completable updateSchema(final String name, final String graphQLSchema) {
+        log.debug("Updating schema...");
         // Check if the gateway exists or not
         final Completable resourceExists =
             this.kubernetesManagerClient.checkDeploymentExistence(ResourcePrefix.GATEWAY, name);

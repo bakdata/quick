@@ -38,6 +38,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import jakarta.inject.Singleton;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.context.Context;
 
 /**
@@ -47,6 +48,7 @@ import org.thymeleaf.context.Context;
  * It fills out the Kubernetes template files with the given arguments.
  */
 @Singleton
+@Slf4j
 public class GatewayResourceLoader implements ResourceLoader<GatewayResources, GatewayCreationData> {
     private final KubernetesResources kubernetesResources;
     private final DeploymentConfig deploymentConfig;
@@ -234,6 +236,7 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
         final Context root = new Context();
         root.setVariable("name", name);
         if (schema != null) {
+            log.debug("Writing the following schema: {}", schema);
             root.setVariable("schema", schema);
         }
         return this.kubernetesResources.loadResource(root, "gateway/config-map", ConfigMap.class);
