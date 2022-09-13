@@ -206,6 +206,9 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
     @Test
     void shouldCreateConfigmapWithSchema() {
         final String schema = "type Query { test: Int }";
+
+        Mockito.when(this.gatewayClient.updateSchema(GATEWAY_NAME, new SchemaData(schema)))
+            .thenReturn(Completable.complete());
         this.createGateway(GATEWAY_NAME, 1, null, schema);
 
         final List<ConfigMap> configMaps = this.getConfigMaps();
