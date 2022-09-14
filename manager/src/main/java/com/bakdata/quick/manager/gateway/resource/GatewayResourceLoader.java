@@ -36,8 +36,11 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import jakarta.inject.Singleton;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.context.Context;
 
@@ -236,9 +239,29 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
         final Context root = new Context();
         root.setVariable("name", name);
         if (schema != null) {
-            log.debug("Writing the following schema: {}", schema);
-            root.setVariable("schema", schema);
+            final String reformattedSchema = this.formatSchemaForYaml(schema);
+            log.debug("Writing the following schema: {}", reformattedSchema);
+            root.setVariable("schema", reformattedSchema);
         }
         return this.kubernetesResources.loadResource(root, "gateway/config-map", ConfigMap.class);
+    }
+
+    private String formatSchemaForYaml(final String schema) {
+        final StringBuilder formattedSchema = new StringBuilder();
+        final String regexForRemovingLeadingSpaces = "^\\s+";
+        final String withoutLeadingSpaces = schema.replaceAll(regexForRemovingLeadingSpaces, "");
+        final List<String> splitLines = Arrays.stream(withoutLeadingSpaces.split("\\R"))
+            .filter(str -> !str.isEmpty())
+            .collect(Collectors.toList());
+        formattedSchema.append(splitLines.get(0));
+        formattedSchema.append("\n");
+        int index = 1;
+        while (index != splitLines.size()) {
+            formattedSchema.append("    ");
+            formattedSchema.append(splitLines.get(index));
+            formattedSchema.append("\n");
+            index++;
+        }
+        return formattedSchema.toString();
     }
 }

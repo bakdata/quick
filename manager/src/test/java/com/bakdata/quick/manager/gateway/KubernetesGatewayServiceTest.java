@@ -205,7 +205,31 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
 
     @Test
     void shouldCreateConfigmapWithSchema() {
-        final String schema = "type Query { test: Int }";
+        final String schema = "              type Query {\n" +
+            "findPurchase(purchaseId: String): Purchase @topic(name: \"purchase\", keyArgument: \"purchaseId\")\n" +
+            "allPurchases: [Purchase!] @topic(name: \"purchase\")  }\n" +
+            "\n" +
+            "\n" +
+            "type Subscription {\n" +
+            "purchases: Purchase @topic(name: \"purchase\")  }\n" +
+            "\n" +
+            "type Purchase {\n" +
+            "purchaseId: String!\n" +
+            "productId: Int!\n" +
+            "userId: Int!\n" +
+            "product: Product @topic(name: \"product\", keyField: \"productId\")\n" +
+            "amount: Int\n" +
+            "price: Price  }\n" +
+            "\n" +
+            "type Product {\n" +
+            "productId: Int!\n" +
+            "name: String\n" +
+            "description: String \n" +
+            "price: Price  }\n" +
+            "\n" +
+            "type Price {\n" +
+            "total: Float\n" +
+            "currency: String  }\n";
 
         Mockito.when(this.gatewayClient.updateSchema(GATEWAY_NAME, new SchemaData(schema)))
             .thenReturn(Completable.complete());
