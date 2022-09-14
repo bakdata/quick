@@ -23,6 +23,7 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.QuickTopicConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
+import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
@@ -31,8 +32,10 @@ import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.CliArgHandler;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
-import com.bakdata.quick.mirror.service.QueryContextProvider;
-import com.bakdata.quick.mirror.service.QueryServiceContext;
+import com.bakdata.quick.mirror.service.MirrorIndexType;
+import com.bakdata.quick.mirror.service.context.IndexProperties;
+import com.bakdata.quick.mirror.service.context.QueryContextProvider;
+import com.bakdata.quick.mirror.service.context.QueryServiceContext;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
@@ -43,6 +46,7 @@ import jakarta.inject.Singleton;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -191,12 +195,29 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Override
     protected void runStreamsApplication() {
         final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
+        final QueryServiceContext serviceContext;
+        final Map<MirrorIndexType, IndexProperties> indexProperties;
 
-        final QueryServiceContext serviceContext = new QueryServiceContext(
+        if (this.isPoint && this.rangeField != null) {
+            indexProperties = Map.of(
+                MirrorIndexType.POINT, new IndexProperties(MIRROR_STORE, null),
+                MirrorIndexType.RANGE, new IndexProperties(RANGE_STORE, this.rangeField)
+            );
+        } else if (!this.isPoint && this.rangeField != null) {
+            indexProperties = Map.of(
+                MirrorIndexType.RANGE, new IndexProperties(RANGE_STORE, this.rangeField)
+            );
+        } else if (this.isPoint) {
+            indexProperties = Map.of(
+                MirrorIndexType.POINT, new IndexProperties(MIRROR_STORE, null)
+            );
+        } else {
+            throw new MirrorTopologyException("Unsupported");
+        }
+        serviceContext = new QueryServiceContext(
             this.getStreams(),
             this.hostConfig.toInfo(),
-            MIRROR_STORE,
-            this.rangeField,
+            indexProperties,
             quickTopicData
         );
         this.contextProvider.setQueryContext(serviceContext);

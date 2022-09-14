@@ -14,10 +14,14 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.service;
+package com.bakdata.quick.mirror.service.context;
 
+import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.mirror.service.MirrorIndexType;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.micronaut.http.HttpStatus;
+import java.util.Map;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;
@@ -29,13 +33,25 @@ import org.apache.kafka.streams.state.HostInfo;
 public class QueryServiceContext {
     KafkaStreams streams;
     HostInfo hostInfo;
-    String storeName;
-    @Nullable
-    String rangeField;
+    Map<MirrorIndexType, IndexProperties> rangePropertiesMap;
     QuickTopicData<?, ?> topicData;
 
     @SuppressWarnings("unchecked")
-    <K, V> QuickTopicData<K, V> getTopicData() {
+    public <K, V> QuickTopicData<K, V> getTopicData() {
         return (QuickTopicData<K, V>) this.topicData;
+    }
+
+    /**
+     * Gets the state store name for a given {@link MirrorIndexType}.
+     *
+     * @param mirrorIndexType Type of the index
+     * @return Name of the state store
+     */
+    public String getStoreNameOfType(final MirrorIndexType mirrorIndexType) {
+        if (this.rangePropertiesMap.containsKey(mirrorIndexType)) {
+            return this.rangePropertiesMap.get(mirrorIndexType).getStoreName();
+        } else {
+            throw new MirrorException("Could not retrieve index properties", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

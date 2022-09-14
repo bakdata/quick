@@ -87,7 +87,7 @@ class MirrorControllerTest {
         await().atMost(Duration.ofSeconds(10))
             .untilAsserted(() ->
                 when()
-                    .get("http://" + this.hostConfig.toConnectionString() + "/mirror/keys?keys=1,2,3")
+                    .get("http://" + this.hostConfig.toConnectionString() + "/mirror/keys?ids=1,2,3")
                     .then()
                     .statusCode(HttpStatus.OK.getCode())
                     .body(equalTo(expected))

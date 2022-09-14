@@ -20,22 +20,24 @@ import static io.restassured.RestAssured.when;
 import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Mockito.mock;
 
 import com.bakdata.quick.common.TestConfigUtils;
 import com.bakdata.quick.common.TestTopicTypeService;
+import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.base.HostConfig;
-import com.bakdata.quick.mirror.service.QueryContextProvider;
+import com.bakdata.quick.mirror.service.context.QueryContextProvider;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.restassured.RestAssured;
 import jakarta.inject.Inject;
-import java.time.Duration;
 import java.util.List;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig;
@@ -45,19 +47,23 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 @IntegrationTest
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
-class MirrorApplicationIntegrationTest {
+class PointMirrorApplicationIntegrationTest {
     public static final String INPUT_TOPIC = "input";
+
     @Inject
-    HostConfig hostConfig;
+    private ObjectMapper objectMapper;
     @Inject
-    ApplicationContext applicationContext;
+    private HostConfig hostConfig;
     @Inject
-    QueryContextProvider queryContextProvider;
+    private ApplicationContext applicationContext;
+    @Inject
+    private QueryContextProvider queryContextProvider;
 
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
@@ -76,7 +82,7 @@ class MirrorApplicationIntegrationTest {
     }
 
     @Test
-    void shouldReceiveCorrectValueFromMirrorApplication() throws InterruptedException {
+    void shouldReceiveCorrectValueFromMirrorApplicationForGivenKey() throws InterruptedException {
         sendValuesToKafka();
         final MirrorApplication<String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
@@ -85,12 +91,64 @@ class MirrorApplicationIntegrationTest {
         Thread.sleep(3000);
 
         await()
-            .atMost(Duration.ofSeconds(12))
             .untilAsserted(
                 () -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
                     .then()
                     .statusCode(HttpStatus.OK.getCode())
                     .body(equalTo("{\"value\":\"value1\"}")));
+        app.close();
+        app.getStreams().cleanUp();
+        runThread.interrupt();
+    }
+
+    @Test
+    @Disabled
+    void shouldReceiveAllValuesFromMirrorApplication() throws InterruptedException, JsonProcessingException {
+        sendValuesToKafka();
+        final MirrorApplication<String, String> app = this.setUpApp();
+        final Thread runThread = new Thread(app);
+        runThread.start();
+
+        Thread.sleep(3000);
+
+        final MirrorValue<List<String>> items = new MirrorValue<>(List.of("value1", "value2", "value3"));
+        final String expected = this.objectMapper.writeValueAsString(items);
+
+        await()
+            .untilAsserted(
+                () -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror")
+                    .then()
+                    .statusCode(HttpStatus.OK.getCode())
+                    .body(equalTo(expected)));
+        app.close();
+        app.getStreams().cleanUp();
+        runThread.interrupt();
+    }
+
+    @Test
+    @Disabled
+    void shouldReceiveListOfValuesFromMirrorApplication() throws InterruptedException, JsonProcessingException {
+        sendValuesToKafka();
+        final MirrorApplication<String, String> app = this.setUpApp();
+        final Thread runThread = new Thread(app);
+        runThread.start();
+
+        Thread.sleep(3000);
+
+        final MirrorValue<List<String>> items = new MirrorValue<>(List.of("value2", "value3"));
+        final String expected = this.objectMapper.writeValueAsString(items);
+
+        await()
+            .untilAsserted(
+                () ->
+                    RestAssured
+                        .given()
+                        .queryParam("ids", List.of("key2", "key3"))
+                        .when()
+                        .get("http://" + this.hostConfig.toConnectionString() + "/mirror/keys")
+                        .then()
+                        .statusCode(HttpStatus.OK.getCode())
+                        .body(equalTo(expected)));
         app.close();
         app.getStreams().cleanUp();
         runThread.interrupt();

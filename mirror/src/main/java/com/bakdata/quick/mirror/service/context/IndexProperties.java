@@ -14,24 +14,19 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.service;
+package com.bakdata.quick.mirror.service.context;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import io.micronaut.http.HttpResponse;
-import io.reactivex.Single;
-import java.util.List;
+
+import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.Value;
 
 /**
- * Service for querying kafka backend.
+ * Contains index properties.
  *
- * @param <V> value type
  */
-public interface QueryService<V> {
-    Single<HttpResponse<MirrorValue<V>>> get(final String key);
-
-    Single<HttpResponse<MirrorValue<List<V>>>> getValues(final List<String> keys);
-
-    Single<HttpResponse<MirrorValue<List<V>>>> getAll();
-
-    Single<HttpResponse<MirrorValue<List<V>>>> getRange(final String key, final String from, final String to);
+@Value
+public class IndexProperties {
+    String storeName;
+    @Nullable
+    String rangeField;
 }

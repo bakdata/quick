@@ -100,7 +100,7 @@ public final class RangeIndexer<K, V, F extends Number> {
     }
 
     /**
-     * Creates the range index for a given key and a value string type
+     * Creates the range index for a given key and a value string type.
      */
     @SuppressWarnings("unchecked")
     public String createIndex(final K key, final String value) {

@@ -16,11 +16,10 @@
 
 package com.bakdata.quick.mirror.service;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import io.micronaut.http.HttpResponse;
-import io.reactivex.Single;
-import java.util.List;
-
-public interface RangeQueryService<V> {
-    Single<HttpResponse<MirrorValue<List<V>>>> getRange(final String key, final String from, final String to);
+/**
+ * Mirror's index types.
+ */
+public enum MirrorIndexType {
+    RANGE,
+    POINT
 }

@@ -18,7 +18,6 @@ package com.bakdata.quick.mirror;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.mirror.service.QueryService;
-import com.bakdata.quick.mirror.service.RangeQueryService;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -57,13 +56,13 @@ public class MirrorController<K, V> {
     /**
      * Fetches values for given ids in body.
      *
-     * @param keys the ids to fetch
+     * @param ids the ids to fetch
      * @return list of values for given keys
      */
     @Get("/keys")
-    public Single<HttpResponse<MirrorValue<List<V>>>> getList(@QueryValue() final List<String> keys) {
-        log.debug("Request for keys {}", keys);
-        return this.queryService.getValues(keys);
+    public Single<HttpResponse<MirrorValue<List<V>>>> getList(@QueryValue() final List<String> ids) {
+        log.debug("Request for keys {}", ids);
+        return this.queryService.getValues(ids);
     }
 
     /**

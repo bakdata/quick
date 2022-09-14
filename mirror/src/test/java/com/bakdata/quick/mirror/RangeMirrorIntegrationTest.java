@@ -27,7 +27,7 @@ import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.base.HostConfig;
-import com.bakdata.quick.mirror.service.QueryContextProvider;
+import com.bakdata.quick.mirror.service.context.QueryContextProvider;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -95,8 +95,7 @@ public class RangeMirrorIntegrationTest {
         final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
         final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
 
-        final MirrorValue<List<GenericRecord>>
-            items = new MirrorValue<>(List.of(avroRecord, avroRecord2, avroRecord3));
+        final MirrorValue<List<GenericRecord>> items = new MirrorValue<>(List.of(avroRecord, avroRecord2, avroRecord3));
         final String expected = this.objectMapper.writeValueAsString(items);
 
         await()
