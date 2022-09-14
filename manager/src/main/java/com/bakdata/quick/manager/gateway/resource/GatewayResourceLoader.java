@@ -36,8 +36,6 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import jakarta.inject.Singleton;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -247,21 +245,6 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
     }
 
     private String formatSchemaForYaml(final String schema) {
-        final StringBuilder formattedSchema = new StringBuilder();
-        final String regexForRemovingLeadingSpaces = "^\\s+";
-        final String withoutLeadingSpaces = schema.replaceAll(regexForRemovingLeadingSpaces, "");
-        final List<String> splitLines = Arrays.stream(withoutLeadingSpaces.split("\\R"))
-            .filter(str -> !str.isEmpty())
-            .collect(Collectors.toList());
-        formattedSchema.append(splitLines.get(0));
-        formattedSchema.append("\n");
-        int index = 1;
-        while (index != splitLines.size()) {
-            formattedSchema.append("    ");
-            formattedSchema.append(splitLines.get(index));
-            formattedSchema.append("\n");
-            index++;
-        }
-        return formattedSchema.toString();
+        return schema.lines().map(line -> "  " + line).collect(Collectors.joining());
     }
 }
