@@ -1,0 +1,20 @@
+type Query {
+  findPurchase(purchaseId: String): Purchase @topic(name: "purchase", keyArgument: "purchaseId")
+        allPurchases: [Purchase!] @topic(name: "purchase")  }
+type Subscription {
+purchases: Purchase @topic(name: "purchase")  }
+type Purchase {
+purchaseId: String!
+productId: Int!
+userId: Int!
+product: Product @topic(name: "product", keyField: "productId")
+amount: Int
+price: Price  }
+type Product {
+productId: Int!
+name: String
+description: String
+price: Price  }
+type Price {
+total: Float
+currency: String  }

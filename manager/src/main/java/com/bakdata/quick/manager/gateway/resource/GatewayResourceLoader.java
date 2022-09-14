@@ -238,7 +238,7 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
         root.setVariable("name", name);
         if (schema != null) {
             final String reformattedSchema = this.formatSchemaForYaml(schema);
-            log.debug("Writing the following schema: {}", reformattedSchema);
+            log.debug("Creating gateway config map with the following schema: {}", reformattedSchema);
             root.setVariable("schema", reformattedSchema);
         }
         return this.kubernetesResources.loadResource(root, "gateway/config-map", ConfigMap.class);

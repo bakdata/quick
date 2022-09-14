@@ -54,12 +54,12 @@ public class KubernetesGatewayService implements GatewayService {
      * Injectable constructor.
      *
      * @param kubernetesManagerClient client for interacting with the k8s API
-     * @param gatewayClient client for communicating with gateways
-     * @param loader the resource loader
+     * @param gatewayClient           client for communicating with gateways
+     * @param loader                  the resource loader
      */
     public KubernetesGatewayService(final KubernetesManagerClient kubernetesManagerClient,
-        final GatewayClient gatewayClient, final GraphQLConverter graphQLConverter,
-        final GatewayResourceLoader loader) {
+                                    final GatewayClient gatewayClient, final GraphQLConverter graphQLConverter,
+                                    final GatewayResourceLoader loader) {
         this.kubernetesManagerClient = kubernetesManagerClient;
         this.gatewayClient = gatewayClient;
         this.graphQLConverter = graphQLConverter;
@@ -85,9 +85,8 @@ public class KubernetesGatewayService implements GatewayService {
 
     @Override
     public Completable createGateway(final GatewayCreationData gatewayCreationData) {
-            log.debug("Creating gateway without provided schema.");
-            return Single.fromCallable(() -> this.loader.forCreation(gatewayCreationData, ResourcePrefix.GATEWAY))
-                .flatMapCompletable(this.kubernetesManagerClient::deploy);
+        return Single.fromCallable(() -> this.loader.forCreation(gatewayCreationData, ResourcePrefix.GATEWAY))
+            .flatMapCompletable(this.kubernetesManagerClient::deploy);
     }
 
     @Override
@@ -98,7 +97,7 @@ public class KubernetesGatewayService implements GatewayService {
 
     @Override
     public Completable updateSchema(final String name, final String graphQLSchema) {
-        log.debug("Updating schema...");
+        log.debug("Updating schema of the gateway {}", name);
         // Check if the gateway exists or not
         final Completable resourceExists =
             this.kubernetesManagerClient.checkDeploymentExistence(ResourcePrefix.GATEWAY, name);

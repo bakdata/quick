@@ -37,15 +37,21 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.reactivex.Completable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.mockito.Mockito;
 
 class KubernetesGatewayServiceTest extends KubernetesTest {
+
+    private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "graphql");
     private static final String GATEWAY_IMAGE = "quick-gateway";
     private static final String GATEWAY_NAME = "test-gateway";
     private static final String DEPLOYMENT_NAME = "quick-gateway-test-gateway";
@@ -204,31 +210,10 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
     }
 
     @Test
-    void shouldCreateConfigmapWithSchema() {
-        final String schema = "type Query {\n" +
-            "  findPurchase(purchaseId: String): Purchase @topic(name: \"purchase\", keyArgument: \"purchaseId\")\n" +
-            "        allPurchases: [Purchase!] @topic(name: \"purchase\")  }\n" +
-            "type Subscription {\n" +
-            "purchases: Purchase @topic(name: \"purchase\")  }\n" +
-            "type Purchase {\n" +
-            "purchaseId: String!\n" +
-            "productId: Int!\n" +
-            "userId: Int!\n" +
-            "product: Product @topic(name: \"product\", keyField: \"productId\")\n" +
-            "amount: Int\n" +
-            "price: Price  }\n" +
-            "type Product {\n" +
-            "productId: Int!\n" +
-            "name: String\n" +
-            "description: String \n" +
-            "price: Price  }\n" +
-            "type Price {\n" +
-            "total: Float\n" +
-            "currency: String  }";
+    void shouldCreateConfigmapWithSchema(final TestInfo testInfo) throws IOException {
+        final String file = this.getSchema(testInfo);
 
-        Mockito.when(this.gatewayClient.updateSchema(GATEWAY_NAME, new SchemaData(schema)))
-            .thenReturn(Completable.complete());
-        this.createGateway(GATEWAY_NAME, 1, null, schema);
+        this.createGateway(GATEWAY_NAME, 1, null, file);
 
         final List<ConfigMap> configMaps = this.getConfigMaps();
         assertThat(configMaps)
@@ -237,7 +222,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
             .extracting(ConfigMap::getData, InstanceOfAssertFactories.map(String.class, String.class))
             .containsOnlyKeys("schema.graphql")
             .extractingByKey("schema.graphql", InstanceOfAssertFactories.STRING)
-            .containsIgnoringWhitespaces(schema);
+            .containsIgnoringWhitespaces(file);
     }
 
 
@@ -370,5 +355,9 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         final Throwable throwable =
             this.gatewayService.createGateway(creationData).blockingGet();
         Optional.ofNullable(throwable).ifPresent(Assertions::fail);
+    }
+
+    private String getSchema(final TestInfo testInfo) throws IOException {
+        return Files.readString(workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
     }
 }
