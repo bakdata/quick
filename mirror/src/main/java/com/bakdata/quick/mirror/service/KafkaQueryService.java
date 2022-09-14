@@ -110,12 +110,10 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             final String rangeField = rangeIndexProperties.getRangeField();
             final ParsedSchema parsedSchema = this.context.getTopicData().getValueData().getParsedSchema();
 
-            if (parsedSchema != null && rangeField != null) {
-                this.rangeIndexer = RangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
-                    topicData.getValueData().getType(),
-                    Objects.requireNonNull(parsedSchema),
-                    Objects.requireNonNull(rangeField));
-            }
+            this.rangeIndexer = RangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
+                topicData.getValueData().getType(),
+                Objects.requireNonNull(parsedSchema),
+                Objects.requireNonNull(rangeField));
         }
     }
 
