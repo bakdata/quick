@@ -27,48 +27,57 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Rule for list argument fetcher.
+ * Rule for range query fetcher.
  *
  * <p>
  * <h2>Example:</h2>
  * <pre>{@code
  * type Query {
- *  findPurchases(purchaseId: [ID]): [Purchase] @topic(name: "purchase-topic", keyArgument: "purchaseId")
+ *     userRequests(
+ *         userId: Int
+ *         timestampFrom: Int
+ *         timestampTo: Int
+ *     ): [UserRequests] @topic(name: "user-request-range",
+ *                              keyArgument: "userId",
+ *                              rangeFrom: "timestampFrom",
+ *                              rangeTo: "timestampTo")
  * }
  *
- * type Purchase  {
- *  purchaseId: ID!,
- *  productId: ID!,
+ * type UserRequests {
+ *     userId: Int
+ *     serviceId: Int
+ *     timestamp: Int
+ *     requests: Int
+ *     success: Int
  * }
  * }</pre>
  *
- * @see com.bakdata.quick.gateway.fetcher.ListArgumentFetcher
+ * @see com.bakdata.quick.gateway.fetcher.RangeQueryFetcher
  */
-public class ListArgumentFetcherRule implements DataFetcherRule {
+public class RangeFetcherRule implements DataFetcherRule {
     @Override
     public List<DataFetcherSpecification> extractDataFetchers(final TopicDirectiveContext context) {
-        final List<DataFetcherSpecification> specifications = new ArrayList<>();
-
         Objects.requireNonNull(context.getTopicDirective().getKeyArgument());
-        final DataFetcher<?> dataFetcher = context.getFetcherFactory().listArgumentFetcher(
+        Objects.requireNonNull(context.getTopicDirective().getRangeFrom());
+        Objects.requireNonNull(context.getTopicDirective().getRangeTo());
+        final DataFetcher<?> dataFetcher = context.getFetcherFactory().rangeFetcher(
             context.getTopicDirective().getTopicName(),
             context.getTopicDirective().getKeyArgument(),
-            context.isNullable(),
-            context.isHasNullableElements()
+            context.getTopicDirective().getRangeFrom(),
+            context.getTopicDirective().getRangeTo(),
+            context.isNullable()
         );
         final FieldCoordinates coordinates = this.currentCoordinates(context);
-        specifications.add(DataFetcherSpecification.of(coordinates, dataFetcher));
-
-        return specifications;
+        return List.of(DataFetcherSpecification.of(coordinates, dataFetcher));
     }
 
     @Override
     public boolean isValid(final TopicDirectiveContext context) {
         return context.getTopicDirective().hasKeyArgument()
-            && !context.getTopicDirective().hasRangeFrom()
-            && !context.getTopicDirective().hasRangeTo()
-            && context.isListType()
+            && context.getTopicDirective().hasRangeFrom()
+            && context.getTopicDirective().hasRangeTo()
             && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE)
+            && context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE)
             && GraphQLTypeUtil.isList(context.getEnvironment().getElement().getType());
     }
 }

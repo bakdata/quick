@@ -57,7 +57,7 @@ public class DeferFetcher implements DataFetcher<DataFetcherResult<Object>> {
     private static final Object PLACEHOLDER = new Object();
 
     /**
-     * Retrieves an argument from the user query.
+     * Retrieves the value of an argument from the user query.
      *
      * <p>
      * With this, arguments passed through with this class are handled correctly.

@@ -40,27 +40,27 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     /**
      * Constructor for the client.
      *
-     * @param topicName     name of the topic the mirror is deployed
-     * @param client        http client
-     * @param mirrorConfig  configuration of the mirror host
+     * @param topicName name of the topic the mirror is deployed
+     * @param client http client
+     * @param mirrorConfig configuration of the mirror host
      * @param valueResolver the value's {@link TypeResolver}
      * @param requestManager a manager for sending requests to the mirror and processing responses
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-                               final TypeResolver<V> valueResolver, final MirrorRequestManager requestManager) {
+        final TypeResolver<V> valueResolver, final MirrorRequestManager requestManager) {
         this(new MirrorHost(topicName, mirrorConfig), client, valueResolver, requestManager);
     }
 
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
      *
-     * @param mirrorHost   host to use
-     * @param client       http client
+     * @param mirrorHost host to use
+     * @param client http client
      * @param typeResolver the value's {@link TypeResolver}
      * @param requestManager a manager for sending requests to the mirror and processing responses
      */
     public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final TypeResolver<V> typeResolver,
-                               final MirrorRequestManager requestManager) {
+        final MirrorRequestManager requestManager) {
         this.host = mirrorHost;
         this.parser = new MirrorValueParser<>(typeResolver, client.objectMapper());
         this.mirrorRequestManager = requestManager;

@@ -67,4 +67,7 @@ public interface DataFetcherClient<V> {
      */
     @Nullable
     List<V> fetchList();
+
+    @Nullable
+    List<V> fetchRange(final String id, final String from, final String to);
 }

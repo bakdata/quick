@@ -20,6 +20,7 @@ import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.ingest.KafkaIngestService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.GraphQLException;
@@ -71,7 +72,7 @@ public class MutationFetcher<K, V> implements DataFetcher<V> {
 
     @Override
     @Nullable
-    public V get(final DataFetchingEnvironment environment) throws Exception {
+    public V get(final DataFetchingEnvironment environment) throws JsonProcessingException {
         log.debug("Incoming request: Ingest payload for topic {}", this.topic);
 
         final Optional<?> keyInputArgument = DeferFetcher.getArgument(this.keyInputArgumentName, environment);

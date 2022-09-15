@@ -1,3 +1,4 @@
+# Invalid Schema
 type Product {
     id: ID!
     name: String!

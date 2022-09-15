@@ -1,3 +1,4 @@
+# Invalid Schema
 type Query {
     getProduct(productId: ID): ProductInfo
 }

@@ -1,0 +1,19 @@
+# Invalid Schema
+type Query {
+    userRequests(
+        userId: Int
+        timestampFrom: Int
+        timestampTo: Int
+    ): [UserRequests]
+    @topic(name: "user-request-range",
+        keyArgument: "userId",
+        rangeTo: "timestampTo")
+}
+
+type UserRequests {
+    userId: Int
+    serviceId: Int
+    timestamp: Int
+    requests: Int
+    success: Int
+}
