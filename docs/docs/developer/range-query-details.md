@@ -6,10 +6,13 @@ For the introduction of range queries, see:
 
 ## Kafka state store
 
-To arrive at a good understanding of range queries, it's worth considering how Kafka Streams state store works
-behind the scenes.
-By default, it uses RocksDB as an internal key-value cache.
-Since it's a key-value store, all keys are unique, and storing different values for the same key is impossible.
+To arrive at a good understanding of range queries,
+it's worth considering how Kafka Streams state store works behind the scenes.
+A state store in Kafka can either be a persistent state store (by default RocksDB)
+or in-memory state store.
+Regardless of the type of the chosen state store, their functionality is the same. 
+In any case, it's a key-value store, which means that all keys are unique,
+and storing different values for the same key is impossible.
 Consider the following entries that are saved in a topic:
 
 | key (UserId) | value                                                  |
@@ -18,27 +21,27 @@ Consider the following entries that are saved in a topic:
 |      `1`       | `{timestamp: 2, serviceId: 3, requests: 5, success: 3}`  |
 |      `2`       | `{timestamp: 1, serviceId: 4, requests: 7, success: 2}`  |
 
-The table indicates that there are two entries for the `key=1`.
-The second entry is newer, meaning its value is the current one in the store.
-Suppose you query the store with `key=1`.
-In that case, you get `{timestamp: 2, serviceId: 
+The table indicates that there are two entries for the `key=1`. The second entry is newer,
+meaning its value is the current one in the store.
+Suppose you query the store with `key=1`. In that case, you get `{timestamp: 2, serviceId: 
 3, requests: 5, success: 3}`, and there is no possibility to access the earlier value.
-Because of the intrinsic nature of state stores,
+Because of the intrinsic nature of state stores, 
 providing a possibility to access previous values (making a range query that encompasses more than one value 
 associated with `key=1`) demands a change in the key representation. 
 
 ## Range processor for range queries
 
-To circumvent the limitation of a key-value store and be able to perform range queries, Quick uses an alternative 
-approach to deal with keys.
-Each key is a flattened string with a combination of the topic key and the value for which the 
-range queries are requested.
-The keys are padded (depending on the type `Int` 11 digits or `Long` 20 digits) with 
-zeros to keep the lexicographic order.
+To circumvent the limitation of a key-value store and be able to perform range queries,
+Quick uses an alternative approach to deal with keys. 
+Each key is a flattened string with a combination of the topic key and the value
+for which the range queries are requested.
+The keys are padded (depending on the type `Int` 11 digits or `Long` 20 digits) 
+with zeros to keep the lexicographic order.
 The general format of the key in the state store is: 
 `<zero_paddings><topicKeyValue>_<zero_paddings><rangeFieldValue>`.  
-Following the example from the table: If we've a topic with `userId` as its key and want to create a range over the 
-`timestamp`, the key in the state store for the first entry looks like this:
+Following the example from the table: If we've a topic with `userId` as its key
+and want to create a range over the `timestamp`,
+the key in the state store for the first entry looks like this:
 ``` 
 00000000001_00000000001
 ```

@@ -1,26 +1,28 @@
 # Range queries
 
-Imagine a scenario where a company wants to analyze purchases a specific customer was unsatisfied with to grant them 
-a promo code if the amount exceeds a given value.
-To find the number of disappointing purchases, the company could theoretically fetch all entries from the 
-appropriate Kafka topic and filter them according to the users and ratings.
-However, it would be easier to specify the desired range of ratings considered flawed (from 1 to 4) and receive the 
-corresponding records immediately.  
+Imagine a scenario where a company wants to analyze the purchases a specific customer was unsatisfied with.
+If the amount exceeds a specific value, the customer is given a promo code.
+To find the number of disappointing purchases, the company could theoretically fetch all entries
+from the appropriate Kafka topic and filter them according to the users and ratings.
+However, it would be easier to specify the desired range of ratings considered flawed
+(say, from 1 to 4 on a 10 point grading scale) and receive the corresponding records immediately.  
 For another example, say you have a product with a unique id and a version number.
-With each new release of the product, you update the version number.
-You want to check if improving the product (the latest version) led to increased sales.
-With the default fetching strategy in Quick (a so-called point query), you could only check the number of sold 
-pieces with the latest version because the records with the same id are overwritten.
+With each new release of the product, you update the version number. You want to check if improving the product
+(the latest version) led to increased sales.
+With the default fetching strategy in Quick (a so-called point query),
+you could only check the number of sold pieces with the latest version
+because the records with the same id are overwritten.
 Thus, you don't have access to the entries that refer to earlier versions.
 Again, a possible solution would be to fetch all entries and filter them.
-However, having the possibility to choose the desired version range and receiving the desired data is more convenient.  
+However, having the possibility to choose the desired version range and receiving the desired data is more convenient. 
 To facilitate such tasks, Quick introduces range queries which enable the retrieval of values from a given topic 
 according to a specific range of particular fields.
 
 To be able to integrate the range queries into your application, you must take the following steps:
-1. Deploy a mirror with a range index.
-2. Define a range in the GraphQL query type.
-3. Execute the query.
+
+1. Deploy a mirror with a range index.  
+2. Define a range in the GraphQL query type.  
+3. Execute the query.  
 
 The following subsections will describe these steps in detail.
 To present the idea of range queries, we will extend the schema presented before with the following type:
@@ -31,9 +33,8 @@ type UserReview {
     rating: Int
 }
 ```
-Assuming that you have already created a context and a gateway (named `example`), you can send some ratings into 
-Quick using the REST API
-of the ingest service:
+Assuming that you have already created a context and a gateway (named `example`),
+you can send some ratings into Quick using the REST API of the ingest service:
 ```shell
  curl --request POST --url "$QUICK_URL/ingest/user-rating-range" \
   --header "content-type:application/json" \
@@ -77,7 +78,7 @@ Here is an example of the `ratings.json` file:
     }
 ]
 ```
-## 1. Deploy a mirror with a range index
+## Deploy a mirror with a range index
 
 To use range queries, you must create a mirror with a range index.
 A range index is a structure that enables the execution of range queries.
@@ -86,12 +87,12 @@ additional options:
 ```
 quick topic create user-rating-range --key int --value schema --schema example.UserReview --range-field rating --point
 ```
-In comparison to the previous form of the command, you can see two new elements (options): `--range-field`
-and `--point`.  
+In comparison to the previous form of the command, you can see two new elements (options):  
+`--range-field` and `--point`.  
 `--range-field` is an optional field.
 Specifying it enables you to create a range index, and consequently carry out range queries. 
-`--range-field` must be linked with a specific field over which you want your range queries to be executed. In the 
-example above, the option is linked to the `rating` field.  
+`--range-field` must be linked with a specific field over which you want your range queries to be executed.
+In the example above, the option is linked to the `rating` field.  
 `--point` is a parameter that tells Quick to use the current mirror implementation to perform so-called point 
 queries. Point queries are queries that are executed by default in Quick (thus, you don't have to specify the 
 `-point` option explicitly) and return a single value for a given key.  
@@ -99,26 +100,28 @@ You can also completely drop the possibility of performing point queries by prov
 `--point` and `--range-field` are not exclusive.
 You can execute both point and range queries in your application.
 
-There are some constraints upon the values (values that you provide with the `--value` option) for which range 
-queries can be executed:
-1. The value has to be a complex type, i.e., Avro or Proto. The reason is the Range Index is built over the topic 
-   key and a field.
+There are some constraints upon the values (values that you provide with the `--value` option)
+for which range queries can be executed:
+
+1. The value has to be a complex type, i.e., Avro or Proto. The reason is the range andex is built over the topic 
+   key and a field.  
 2. The field type over which you want to execute queries has to be a `Long` or `Int`.
 
-When you execute the command (`quick topic ...`), a request is sent to the manager, which prepares
-the deployment of a mirror called `rating-range` with a range index.
+When you execute the command (`quick topic ...`), a request is sent to the manager,
+which prepares the deployment of a mirror called `rating-range` with a range index.
 Two indexes are created behind the scenes:
-1. Range Index over the topic key (here, the `userId`) and `rating`.
-2. Point Index only over the topic key (`userId`).
+
+1. Range index over the topic key (here, the `userId`) and `rating`.  
+2. Point index only over the topic key (`userId`).
 
 If you are interested in details of range query processing,
 you can visit [Range queries details](https://bakdata.github.io/quick/0.7/developer/range-queries-details/)
 in the Developer guide section.
 
-## 2. Define a range in the GraphQL query type
+## Define a range in the GraphQL query type
 
-The second step is defining a range in the GraphQL query type. Using the UserPurchase type mentioned above, you 
-could proceed as follows:
+The second step is defining a range in the GraphQL query type. Using the UserPurchase type mentioned above,
+you could proceed as follows:
 
 ```graphql
 type Query {
@@ -138,23 +141,22 @@ type UserRating {
     rating: Int
 }
 ``` 
-The example above indicates that fields of a query refer to the fields over which the Range Index is built.
+The example above indicates that fields of a query refer to the fields over which the range index is built.
 Thus, the query definition consists of the key field (`userId`) and two fields that refer to the range.
 In this example, the names of fields over which the range is created follow the schema _field**From**_, _field**To**_, 
 where _field_ is the field declared in the topic creation command (Step 1).
 Please note that following this convention isn't mandatory.  
 When you execute a range query, you expect to receive a list of entries.
-As you can see, the return type of the 
-query is a list of _UserRating_.  
+As you can see, the return type of the query is a list of _UserRating_.  
 The last element of the query definition is a topic directive which contains two new elements: `rangeFrom` and 
 `rangeTo`.
 The values assigned to these two parameters are used to create a desired range for a specific field.
 
-## 3. Execute the query
+## Execute the query
 
 Say you want to find the purchases the client with `id=1` was unsatisfied with.
-Assuming that a disappointing purchase has a rating lower than 5, you can execute the following query to obtain the 
-results.
+Assuming that a disappointing purchase has a rating lower than 5,
+you can execute the following query to obtain the results.
 ```graphql
 {
     userRatings(userId: 123, ratingFrom: 1, ratingTo: 4)  {
