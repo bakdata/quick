@@ -32,7 +32,7 @@ public class MirrorHost {
     /**
      * Default constructor.
      *
-     * @param host   the host of the mirror. This can be a service name or an IP.
+     * @param host the host of the mirror. This can be a service name or an IP.
      * @param config mirror config to use. This can set the service prefix and REST path.
      */
     public MirrorHost(final String host, final MirrorConfig config) {
@@ -68,6 +68,14 @@ public class MirrorHost {
         final String url = String.format("http://%s%s/%s", this.config.getPrefix(), this.host, this.config.getPath());
         log.trace("Preparing Mirror URL: {}", url);
         return url;
+    }
+
+    /**
+     * Generates a URL for fetching a range of keys.
+     */
+    public String forRange(final String key, final String from, final String to) {
+        return String.format("http://%s%s/%s/range/%s?from=%s&to=%s", this.config.getPrefix(), this.host,
+            this.config.getPath(), key, from, to);
     }
 
     /**

@@ -39,8 +39,6 @@ import org.junit.jupiter.api.io.TempDir;
  * In contrast to files in the test resource directory, they cannot be accessed by the class loader.
  */
 @MicronautTest
-@Property(name = "quick.kafka.bootstrap-server", value = "dummy:1234")
-@Property(name = "quick.kafka.schema-registry-url", value = "http://dummy")
 @Property(name = "quick.definition.path", value = "/definition/schema.graphql")
 class GatewayInitializerTest {
 

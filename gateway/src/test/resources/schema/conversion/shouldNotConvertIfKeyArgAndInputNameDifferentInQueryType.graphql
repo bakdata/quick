@@ -1,3 +1,4 @@
+# Invalid Schema
 type Query {
     getClick(id: ID): Long @topic(name: "click-topic", keyArgument: "aDifferentKeyArgument")
 }

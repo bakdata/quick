@@ -92,7 +92,6 @@ class QueryListFetcherTest {
 
     @Test
     void shouldFetchListOfStrings() throws Exception {
-
         final List<String> list = List.of("abc", "def");
         final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
         this.server.enqueue(new MockResponse().setBody(listJson));

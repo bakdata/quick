@@ -65,7 +65,7 @@ public class QueryFetcherRule implements DataFetcherRule {
 
     @Override
     public boolean isValid(final TopicDirectiveContext context) {
-        return context.getTopicDirective().getKeyArgument() != null
+        return context.getTopicDirective().hasKeyArgument()
             && !context.isListType()
             && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE);
     }

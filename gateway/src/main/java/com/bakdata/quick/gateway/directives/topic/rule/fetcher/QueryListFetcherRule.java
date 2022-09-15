@@ -42,7 +42,7 @@ import java.util.List;
  *
  * @see com.bakdata.quick.gateway.fetcher.QueryListFetcher
  */
-public class QueryListFetchRule implements DataFetcherRule {
+public class QueryListFetcherRule implements DataFetcherRule {
 
     @Override
     public List<DataFetcherSpecification> extractDataFetchers(final TopicDirectiveContext context) {

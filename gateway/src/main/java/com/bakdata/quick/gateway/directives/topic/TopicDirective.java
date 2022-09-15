@@ -37,7 +37,9 @@ import lombok.Getter;
  * directive @topic(
  *     name: String!,
  *     keyArgument: String,
- *     keyField: String
+ *     keyField: String,
+ *     rangeFrom: String,
+ *     rangeTo: String
  * ) on FIELD_DEFINITION
  * }</pre>
  */
@@ -49,6 +51,8 @@ public final class TopicDirective implements QuickDirective {
     private static final String TOPIC_NAME_ARG_NAME = "name";
     private static final String KEY_ARGUMENT_ARG_NAME = "keyArgument";
     private static final String KEY_FIELD_ARG_NAME = "keyField";
+    private static final String RANGE_FROM_ARG_NAME = "rangeFrom";
+    private static final String RANGE_TO_ARG_NAME = "rangeTo";
 
     static {
         DEFINITION = DirectiveDefinition.newDirectiveDefinition()
@@ -68,6 +72,16 @@ public final class TopicDirective implements QuickDirective {
                     .name(KEY_FIELD_ARG_NAME)
                     .type(STRING)
                     .build())
+            .inputValueDefinition(
+                InputValueDefinition.newInputValueDefinition()
+                    .name(RANGE_FROM_ARG_NAME)
+                    .type(STRING)
+                    .build())
+            .inputValueDefinition(
+                InputValueDefinition.newInputValueDefinition()
+                    .name(RANGE_TO_ARG_NAME)
+                    .type(STRING)
+                    .build())
             .directiveLocation(
                 DirectiveLocation.newDirectiveLocation()
                     .name(FIELD_DEFINITION.name())
@@ -80,13 +94,19 @@ public final class TopicDirective implements QuickDirective {
     private final String keyArgument;
     @Nullable
     private final String keyField;
+    @Nullable
+    private final String rangeFrom;
+    @Nullable
+    private final String rangeTo;
 
     private TopicDirective(final String topicName, @Nullable final String keyArgument,
-        @Nullable final String keyField) {
+        @Nullable final String keyField, @Nullable final String rangeFrom, @Nullable final String rangeTo) {
         Objects.requireNonNull(topicName);
         this.topicName = topicName;
         this.keyArgument = keyArgument;
         this.keyField = keyField;
+        this.rangeFrom = rangeFrom;
+        this.rangeTo = rangeTo;
     }
 
     /**
@@ -97,7 +117,9 @@ public final class TopicDirective implements QuickDirective {
             "Topic name in topic directive must be set");
         final String keyArgument = QuickDirective.extractArgument(arguments, KEY_ARGUMENT_ARG_NAME);
         final String keyField = QuickDirective.extractArgument(arguments, KEY_FIELD_ARG_NAME);
-        return new TopicDirective(topicName, keyArgument, keyField);
+        final String rangeFrom = QuickDirective.extractArgument(arguments, RANGE_FROM_ARG_NAME);
+        final String rangeTo = QuickDirective.extractArgument(arguments, RANGE_TO_ARG_NAME);
+        return new TopicDirective(topicName, keyArgument, keyField, rangeFrom, rangeTo);
     }
 
     public boolean hasKeyArgument() {
@@ -106,5 +128,13 @@ public final class TopicDirective implements QuickDirective {
 
     public boolean hasKeyField() {
         return this.keyField != null;
+    }
+
+    public boolean hasRangeFrom() {
+        return this.rangeFrom != null;
+    }
+
+    public boolean hasRangeTo() {
+        return this.rangeTo != null;
     }
 }

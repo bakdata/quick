@@ -1,0 +1,20 @@
+[
+  {
+    "userId": 123,
+    "serviceId": "abc",
+    "requests": 5,
+    "success": 2
+  },
+  {
+    "userId": 123,
+    "serviceId": "def",
+    "requests": 8,
+    "success": 4
+  },
+  {
+    "userId": 123,
+    "serviceId": "def",
+    "requests": 6,
+    "success": 5
+  }
+]
