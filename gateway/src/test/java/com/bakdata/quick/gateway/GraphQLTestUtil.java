@@ -18,19 +18,22 @@ package com.bakdata.quick.gateway;
 
 import static org.mockito.Mockito.mock;
 
-import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
+import com.bakdata.quick.gateway.directives.topic.TopicDirective;
 import com.bakdata.quick.gateway.fetcher.ClientSupplier;
+import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLSchema;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Getter;
 
 public final class GraphQLTestUtil {
     private GraphQLTestUtil() {}
-
 
     public static DataFetcher<?> getFieldDataFetcher(final String objectName, final String fieldName,
         final GraphQLSchema schema) {
@@ -48,6 +51,15 @@ public final class GraphQLTestUtil {
             .filter(definition -> fieldName.equals(definition.getName()))
             .findFirst()
             .orElseThrow();
+    }
+
+    public static List<GraphQLArgument> getTopicDirectiveArgumentsFromField(final String objectName,
+        final String fieldName,
+        final GraphQLSchema schema) {
+        return getFieldDefinition(objectName, fieldName, schema)
+            .getDirective(TopicDirective.DIRECTIVE_NAME)
+            .getArguments().stream().filter(graphQLArgument -> graphQLArgument.getValue() != null)
+            .collect(Collectors.toList());
     }
 
     static final class TestClientSupplier implements ClientSupplier {

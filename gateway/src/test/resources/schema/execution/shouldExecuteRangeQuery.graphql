@@ -1,0 +1,5 @@
+{
+    userRequests(userId: 1, timestampFrom: 1, timestampTo: 3)  {
+        requests
+    }
+}

@@ -18,18 +18,15 @@ package com.bakdata.quick.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.micronaut.context.annotation.Property;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import com.bakdata.quick.common.ConfigUtils;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-@MicronautTest
-@Property(name = "quick.schema.path", value = "/test/path/schema.graphql")
-@Property(name = "quick.kafka.bootstrap-server", value = "dummy:1234")
-@Property(name = "quick.kafka.schema-registry-url", value = "http://dummy")
 class GatewayConfigTest {
     @Test
-    void createConfig(final GatewayConfig config) {
+    void createConfig() {
+        final Map<String, Object> properties = Map.of("quick.schema.path", "/test/path/schema.graphql");
+        final GatewayConfig config = ConfigUtils.createWithProperties(properties, GatewayConfig.class);
         assertThat(config.getPath()).isEqualTo("/test/path/schema.graphql");
     }
-
 }

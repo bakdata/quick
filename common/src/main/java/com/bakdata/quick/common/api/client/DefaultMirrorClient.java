@@ -40,27 +40,27 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     /**
      * Constructor for the client.
      *
-     * @param topicName     name of the topic the mirror is deployed
-     * @param client        http client
-     * @param mirrorConfig  configuration of the mirror host
+     * @param topicName name of the topic the mirror is deployed
+     * @param client http client
+     * @param mirrorConfig configuration of the mirror host
      * @param valueResolver the value's {@link TypeResolver}
      * @param requestManager a manager for sending requests to the mirror and processing responses
      */
     public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-                               final TypeResolver<V> valueResolver, final MirrorRequestManager requestManager) {
+        final TypeResolver<V> valueResolver, final MirrorRequestManager requestManager) {
         this(new MirrorHost(topicName, mirrorConfig), client, valueResolver, requestManager);
     }
 
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.
      *
-     * @param mirrorHost   host to use
-     * @param client       http client
+     * @param mirrorHost host to use
+     * @param client http client
      * @param typeResolver the value's {@link TypeResolver}
      * @param requestManager a manager for sending requests to the mirror and processing responses
      */
     public DefaultMirrorClient(final MirrorHost mirrorHost, final HttpClient client, final TypeResolver<V> typeResolver,
-                               final MirrorRequestManager requestManager) {
+        final MirrorRequestManager requestManager) {
         this.host = mirrorHost;
         this.parser = new MirrorValueParser<>(typeResolver, client.objectMapper());
         this.mirrorRequestManager = requestManager;
@@ -86,6 +86,17 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     public List<V> fetchValues(final List<K> keys) {
         final List<String> collect = keys.stream().map(Object::toString).collect(Collectors.toList());
         final ResponseWrapper response = this.mirrorRequestManager.makeRequest(this.host.forKeys(collect));
+        return Objects.requireNonNullElse(
+            this.mirrorRequestManager.processResponse(response, this.parser::deserializeList),
+            Collections.emptyList());
+    }
+
+    @Override
+    @Nullable
+    public List<V> fetchRange(final K key, final String from, final String rangeTo) {
+        final ResponseWrapper response = this.mirrorRequestManager.makeRequest(
+            this.host.forRange(key.toString(), from, rangeTo)
+        );
         return Objects.requireNonNullElse(
             this.mirrorRequestManager.processResponse(response, this.parser::deserializeList),
             Collections.emptyList());

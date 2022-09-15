@@ -42,7 +42,7 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
  *
  * <p>
  * Consider the following schema:
- * <pre>
+ * <pre>{@code
  *   type Query {
  *       findPurchase(purchaseId: ID): Purchase @topic(name: "purchase", keyArgument: "purchaseId")
  *   }
@@ -56,7 +56,7 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
  *   type Product {
  *       ...
  *   }
- * </pre>
+ * }</pre>
  *
  * <p>
  * First, the data fetcher connected with findPurchase is called and returns a Purchase object with a missing product
@@ -73,8 +73,8 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
      * Constructor.
      *
      * @param objectMapper json handler
-     * @param argument     name of the argument to extract key from
-     * @param client       underlying HTTP mirror client
+     * @param argument name of the argument to extract key from
+     * @param client underlying HTTP mirror client
      */
     public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument, final DataFetcherClient<T> client) {
         this.objectMapper = objectMapper;

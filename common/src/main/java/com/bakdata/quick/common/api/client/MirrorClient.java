@@ -29,7 +29,7 @@ import java.util.List;
 public interface MirrorClient<K, V> {
 
     /**
-     * fetches the value of the given key from the mirror topic.
+     * Fetches the value of the given key from the mirror topic.
      *
      * @param key a key to be fetched
      * @return a list of values. If the requested mirror responds with a NOT_FOUND code the function returns null.
@@ -38,14 +38,14 @@ public interface MirrorClient<K, V> {
     V fetchValue(final K key);
 
     /**
-     * fetches all the values of a mirror topic.
+     * Fetches all the values of a mirror topic.
      *
      * @return returns a list of all values in a topic. null.
      */
     List<V> fetchAll();
 
     /**
-     * fetches the values of a list of keys from the mirror topic.
+     * Fetches the values of a list of keys from the mirror topic.
      *
      * @param keys list of keys to be fetched
      * @return a list of values. If the requested mirror responds with a NOT_FOUND code the function returns null.
@@ -54,7 +54,18 @@ public interface MirrorClient<K, V> {
     List<V> fetchValues(final List<K> keys);
 
     /**
-     * checks if a key exists in mirror topic.
+     * Fetches a range of a given key from the mirror topic.
+     *
+     * @param key a key to be fetched
+     * @param from lower bound of the range field
+     * @param to higher bound of the range field
+     * @return a list of values.
+     */
+    @Nullable
+    List<V> fetchRange(final K key, final String from, final String to);
+
+    /**
+     * Checks if a key exists in mirror topic.
      *
      * @return True/False if key exists in mirror topic
      */

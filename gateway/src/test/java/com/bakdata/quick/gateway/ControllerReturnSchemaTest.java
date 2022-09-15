@@ -26,14 +26,13 @@ import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import com.bakdata.quick.common.type.QuickTopicType;
-import io.micronaut.context.annotation.Property;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpMethod;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.BlockingHttpClient;
-import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -43,8 +42,7 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@Property(name = "quick.kafka.bootstrap-server", value = "dummy:1234")
-@Property(name = "quick.kafka.schema-registry-url", value = "http://dummy")
+
 @MicronautTest
 class ControllerReturnSchemaTest {
 
@@ -118,5 +116,4 @@ class ControllerReturnSchemaTest {
                     .startsWith("Type nope does not exist")
             );
     }
-
 }

@@ -1,0 +1,8 @@
+query {
+    userRequests(userId: 123, timestampFrom:1, timestampTo:3) {
+        userId
+        serviceId
+        requests
+        success
+    }
+}
