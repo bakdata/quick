@@ -19,16 +19,16 @@ setup() {
     fi
 }
 
-@test "should deploy product-gateway" {
-    run quick gateway create ${GATEWAY}
+@test "should deploy product-gateway with a given schema" {
+    run quick gateway create -s schema-query-single.gql ${GATEWAY}
     echo "$output"
     sleep 30
     [ "$status" -eq 0 ]
     [ "$output" = "Create gateway ${GATEWAY} (this may take a few seconds)" ]
 }
 
-@test "should apply schema to product-gateway" {
-    run quick gateway apply ${GATEWAY} -f schema-query-single.gql
+@test "should apply a different schema to product-gateway" {
+    run quick gateway apply ${GATEWAY} -f schema-query-all.gql
     echo "$output"
     [ "$status" -eq 0 ]
     [ "$output" = "Applied schema to gateway ${GATEWAY}" ]

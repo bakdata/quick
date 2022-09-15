@@ -199,7 +199,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
 
     @Test
     void shouldCreateConfigMap() {
-        this.createGateway(GATEWAY_NAME, 1, null);
+        this.createGateway(GATEWAY_NAME, 1, null, null);
 
         final List<ConfigMap> configMaps = this.getConfigMaps();
         assertThat(configMaps)
@@ -358,6 +358,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
     }
 
     private String getSchema(final TestInfo testInfo) throws IOException {
-        return Files.readString(workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
+        return Files.readString(workingDirectory.resolve(
+            testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
     }
 }

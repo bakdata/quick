@@ -51,6 +51,8 @@ import org.thymeleaf.context.Context;
 @Singleton
 @Slf4j
 public class GatewayResourceLoader implements ResourceLoader<GatewayResources, GatewayCreationData> {
+
+    private static final String DEFAULT_INDENTATION = "  ";
     private final KubernetesResources kubernetesResources;
     private final DeploymentConfig deploymentConfig;
     private final ApplicationSpecificationConfig appSpecConfig;
@@ -245,6 +247,6 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
     }
 
     private String formatSchemaForYaml(final String schema) {
-        return schema.lines().map(line -> "  " + line).collect(Collectors.joining());
+        return schema.lines().map(line -> DEFAULT_INDENTATION + line).collect(Collectors.joining());
     }
 }
