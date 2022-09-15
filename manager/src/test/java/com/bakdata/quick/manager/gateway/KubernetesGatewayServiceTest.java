@@ -198,7 +198,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
     }
 
     @Test
-    void shouldCreateConfigMap() {
+    void shouldCreateConfigMapWithNoSchema() {
         this.createGateway(GATEWAY_NAME, 1, null, null);
 
         final List<ConfigMap> configMaps = this.getConfigMaps();
