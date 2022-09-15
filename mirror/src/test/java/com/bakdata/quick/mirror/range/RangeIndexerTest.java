@@ -52,48 +52,51 @@ class RangeIndexerTest {
     @ParameterizedTest
     @MethodSource("integerKeyAvroValueAndRangeIndexProvider")
     void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final GenericRecord avroRecord,
-        final String range_index) {
+        final String rangeIndex) {
         final RangeIndexer<Integer, GenericRecord, Long> rangeIndexer =
             RangeIndexer.createRangeIndexer(QuickTopicType.INTEGER, QuickTopicType.AVRO,
                 new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
 
-        assertThat(rangeIndexer.createIndex(key, avroRecord)).isEqualTo(range_index);
+        assertThat(rangeIndexer.createIndex(key, avroRecord)).isEqualTo(rangeIndex);
     }
 
     @ParameterizedTest
     @MethodSource("longKeyProtobufValueAndRangeIndexProvider")
-    void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key,
-        final Message protoMessage,
-        final String range_index) {
+    void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key, final Message protoMessage,
+        final String rangeIndex) {
         final RangeIndexer<Long, Message, Integer> rangeIndexer =
             RangeIndexer.createRangeIndexer(QuickTopicType.LONG, QuickTopicType.PROTOBUF,
                 new ProtobufSchema(protoMessage.getDescriptorForType()), RANGE_FIELD);
-        assertThat(rangeIndexer.createIndex(key, protoMessage)).isEqualTo(range_index);
+        assertThat(rangeIndexer.createIndex(key, protoMessage)).isEqualTo(rangeIndex);
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
         return Stream.of(
+            arguments(Integer.MIN_VALUE, avroRecord, String.format("%s_0000000000000000001", Integer.MIN_VALUE)),
             arguments(INT_ZERO, avroRecord, "0000000000_0000000000000000001"),
             arguments(ONE_DIGIT_INT_NUMBER, avroRecord, "0000000001_0000000000000000001"),
             arguments(TWO_DIGIT_INT_NUMBER, avroRecord, "0000000012_0000000000000000001"),
             arguments(THREE_DIGIT_INT_NUMBER, avroRecord, "0000000123_0000000000000000001"),
             arguments(FOUR_DIGIT_INT_NUMBER, avroRecord, "0000001234_0000000000000000001"),
             arguments(TEN_DIGIT_INT_NUMBER, avroRecord, "1000000000_0000000000000000001"),
-            arguments(TEN_DIGIT_MINUS_INT_NUMBER, avroRecord, "-1000000000_0000000000000000001")
+            arguments(TEN_DIGIT_MINUS_INT_NUMBER, avroRecord, "-1000000000_0000000000000000001"),
+            arguments(Integer.MAX_VALUE, avroRecord, String.format("%s_0000000000000000001", Integer.MAX_VALUE))
         );
     }
 
     static Stream<Arguments> longKeyProtobufValueAndRangeIndexProvider() {
-        final ProtoRangeQueryTest protoMessage = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1).build();
+        final ProtoRangeQueryTest protoMessage = ProtoRangeQueryTest.newBuilder().setUserId(1L).setTimestamp(1).build();
         return Stream.of(
+            arguments(Long.MIN_VALUE, protoMessage, String.format("%s_0000000001", Long.MIN_VALUE)),
             arguments(LONG_ZERO, protoMessage, "0000000000000000000_0000000001"),
             arguments(ONE_DIGIT_LONG_NUMBER, protoMessage, "0000000000000000001_0000000001"),
             arguments(TWO_DIGIT_LONG_NUMBER, protoMessage, "0000000000000000012_0000000001"),
             arguments(THREE_DIGIT_LONG_NUMBER, protoMessage, "0000000000000000123_0000000001"),
             arguments(FOUR_DIGIT_LONG_NUMBER, protoMessage, "0000000000000001234_0000000001"),
             arguments(NINETEEN_DIGIT_LONG_NUMBER, protoMessage, "1000000000000000000_0000000001"),
-            arguments(NINETEEN_DIGIT_MINUS_LONG_NUMBER, protoMessage, "-1000000000000000000_0000000001")
-        );
+            arguments(NINETEEN_DIGIT_MINUS_LONG_NUMBER, protoMessage, "-1000000000000000000_0000000001"),
+            arguments(Long.MAX_VALUE, protoMessage, String.format("%s_0000000001", Long.MAX_VALUE))
+            );
     }
 }

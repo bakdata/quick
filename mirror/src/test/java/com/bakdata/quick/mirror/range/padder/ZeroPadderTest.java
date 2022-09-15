@@ -60,25 +60,29 @@ class ZeroPadderTest {
 
     static Stream<Arguments> integerNumberProvider() {
         return Stream.of(
+            arguments(Integer.MIN_VALUE, String.valueOf(Integer.MIN_VALUE)),
             arguments(INT_ZERO, "0000000000"),
             arguments(ONE_DIGIT_INT_NUMBER, "0000000001"),
             arguments(TWO_DIGIT_INT_NUMBER, "0000000012"),
             arguments(THREE_DIGIT_INT_NUMBER, "0000000123"),
             arguments(FOUR_DIGIT_INT_NUMBER, "0000001234"),
             arguments(TEN_DIGIT_INT_NUMBER, "1000000000"),
-            arguments(TEN_DIGIT_MINUS_INT_NUMBER, "-1000000000")
-        );
+            arguments(TEN_DIGIT_MINUS_INT_NUMBER, "-1000000000"),
+            arguments(Integer.MAX_VALUE, String.valueOf(Integer.MAX_VALUE))
+            );
     }
 
     static Stream<Arguments> longNumberProvider() {
         return Stream.of(
+            arguments(Long.MIN_VALUE, String.valueOf(Long.MIN_VALUE)),
             arguments(LONG_ZERO, "0000000000000000000"),
             arguments(ONE_DIGIT_LONG_NUMBER, "0000000000000000001"),
             arguments(TWO_DIGIT_LONG_NUMBER, "0000000000000000012"),
             arguments(THREE_DIGIT_LONG_NUMBER, "0000000000000000123"),
             arguments(FOUR_DIGIT_LONG_NUMBER, "0000000000000001234"),
             arguments(NINETEEN_DIGIT_LONG_NUMBER, "1000000000000000000"),
-            arguments(NINETEEN_DIGIT_MINUS_LONG_NUMBER, "-1000000000000000000")
+            arguments(NINETEEN_DIGIT_MINUS_LONG_NUMBER, "-1000000000000000000"),
+            arguments(Long.MAX_VALUE, String.valueOf(Long.MAX_VALUE))
         );
     }
 }
