@@ -61,6 +61,11 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
             throw new IllegalStateException("MirrorProcessor was not initialized.");
         }
 
+        if (value == null) {
+            log.warn("Skipping range index creation for key {}. Because the value is null.", key);
+            return;
+        }
+
         final String rangeIndex = this.rangeIndexer.createIndex(key, value);
 
         log.debug("crating range index: {}", rangeIndex);
