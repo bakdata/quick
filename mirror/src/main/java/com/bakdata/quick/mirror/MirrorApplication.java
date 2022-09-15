@@ -64,6 +64,7 @@ import picocli.CommandLine.Option;
  * @param <K> key type
  * @param <V> value type
  */
+@Setter
 @Singleton
 @Slf4j
 public class MirrorApplication<K, V> extends KafkaStreamsApplication {
@@ -81,17 +82,15 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     // CLI Arguments
     @Option(names = "--store-type", description = "Kafka Store to use. Choices: ${COMPLETION-CANDIDATES}",
         defaultValue = "inmemory")
-    private final StoreType storeType = StoreType.INMEMORY;
+    private StoreType storeType = StoreType.INMEMORY;
     @Nullable
     @Option(names = "--retention-time", description = "Retention time defined in ISO_8601")
     private Duration retentionTime;
 
-    @Setter // Only for testing
     @Nullable
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;
 
-    @Setter // Only for testing
     @Option(names = "--point", description = "Determines if a point index should be built or not",
         defaultValue = "true")
     private boolean isPoint;

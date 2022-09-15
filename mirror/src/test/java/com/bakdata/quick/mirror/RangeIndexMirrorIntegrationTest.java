@@ -56,7 +56,7 @@ import org.junit.jupiter.api.Test;
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
 @Property(name = "quick.schema.enable.all", value = "true") // Required so that JSON support for all types is enabled
-public class RangeMirrorIntegrationTest {
+public class RangeIndexMirrorIntegrationTest {
     @Inject
     private ObjectMapper objectMapper;
     public static final String INPUT_TOPIC = "rang-input";
@@ -83,7 +83,8 @@ public class RangeMirrorIntegrationTest {
     }
 
     @Test
-    void shouldReceiveCorrectValueFromMirrorApplication() throws InterruptedException, JsonProcessingException {
+    void shouldReceiveCorrectValueFromMirrorApplicationWithRangeIndex()
+        throws InterruptedException, JsonProcessingException {
         sendValuesToKafka();
         final MirrorApplication<Integer, AvroRangeQueryTest> app = this.setUpApp();
         final Thread runThread = new Thread(app);

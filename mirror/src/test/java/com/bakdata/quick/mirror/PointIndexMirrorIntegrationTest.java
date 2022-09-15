@@ -47,13 +47,12 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 @IntegrationTest
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
-class PointMirrorApplicationIntegrationTest {
+class PointIndexMirrorIntegrationTest {
     public static final String INPUT_TOPIC = "input";
 
     @Inject
@@ -82,61 +81,37 @@ class PointMirrorApplicationIntegrationTest {
     }
 
     @Test
-    void shouldReceiveCorrectValueFromMirrorApplicationForGivenKey() throws InterruptedException {
+    void shouldReceiveCorrectValueFromMirrorApplicationWithPointIndex()
+        throws InterruptedException, JsonProcessingException {
         sendValuesToKafka();
         final MirrorApplication<String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();
 
         Thread.sleep(3000);
+
+        final MirrorValue<String> mirrorValue = new MirrorValue<>("value1");
+        final String expectedValue = this.objectMapper.writeValueAsString(mirrorValue);
 
         await()
             .untilAsserted(
                 () -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
                     .then()
                     .statusCode(HttpStatus.OK.getCode())
-                    .body(equalTo("{\"value\":\"value1\"}")));
-        app.close();
-        app.getStreams().cleanUp();
-        runThread.interrupt();
-    }
+                    .body(equalTo(expectedValue)));
 
-    @Test
-    @Disabled
-    void shouldReceiveAllValuesFromMirrorApplication() throws InterruptedException, JsonProcessingException {
-        sendValuesToKafka();
-        final MirrorApplication<String, String> app = this.setUpApp();
-        final Thread runThread = new Thread(app);
-        runThread.start();
-
-        Thread.sleep(3000);
-
-        final MirrorValue<List<String>> items = new MirrorValue<>(List.of("value1", "value2", "value3"));
-        final String expected = this.objectMapper.writeValueAsString(items);
+        final MirrorValue<List<String>> allMirrorValues = new MirrorValue<>(List.of("value1", "value2", "value3"));
+        final String expectedFetchAll = this.objectMapper.writeValueAsString(allMirrorValues);
 
         await()
             .untilAsserted(
                 () -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror")
                     .then()
                     .statusCode(HttpStatus.OK.getCode())
-                    .body(equalTo(expected)));
-        app.close();
-        app.getStreams().cleanUp();
-        runThread.interrupt();
-    }
+                    .body(equalTo(expectedFetchAll)));
 
-    @Test
-    @Disabled
-    void shouldReceiveListOfValuesFromMirrorApplication() throws InterruptedException, JsonProcessingException {
-        sendValuesToKafka();
-        final MirrorApplication<String, String> app = this.setUpApp();
-        final Thread runThread = new Thread(app);
-        runThread.start();
-
-        Thread.sleep(3000);
-
-        final MirrorValue<List<String>> items = new MirrorValue<>(List.of("value2", "value3"));
-        final String expected = this.objectMapper.writeValueAsString(items);
+        final MirrorValue<List<String>> mirrorValueList = new MirrorValue<>(List.of("value2", "value3"));
+        final String expectedList = this.objectMapper.writeValueAsString(mirrorValueList);
 
         await()
             .untilAsserted(
@@ -148,7 +123,8 @@ class PointMirrorApplicationIntegrationTest {
                         .get("http://" + this.hostConfig.toConnectionString() + "/mirror/keys")
                         .then()
                         .statusCode(HttpStatus.OK.getCode())
-                        .body(equalTo(expected)));
+                        .body(equalTo(expectedList)));
+
         app.close();
         app.getStreams().cleanUp();
         runThread.interrupt();
