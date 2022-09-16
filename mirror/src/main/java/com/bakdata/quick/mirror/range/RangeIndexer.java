@@ -27,10 +27,13 @@ import com.bakdata.quick.mirror.range.padder.ZeroPadder;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.micronaut.core.util.StringUtils;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Type;
 
 /**
  * Creates range indexes for a Mirror's state store.
@@ -63,10 +66,12 @@ public final class RangeIndexer<K, V, F extends Number> {
 
         final ZeroPadder<K> keyZeroPadder = createKeyZeroPadder(keyType);
         final ZeroPadder<F> valueZeroPadder = createValueZeroPadder(valueType, parsedSchema, rangeField);
-        if (valueType == QuickTopicType.AVRO) {
+        if (parsedSchema.schemaType().equals(AvroSchema.TYPE)) {
+            log.debug("Type Avro detected");
             final RangeFieldValueExtractor avroExtractor = new AvroValueExtractor<>(valueZeroPadder.getPadderClass());
             return new RangeIndexer<>(keyZeroPadder, valueZeroPadder, avroExtractor, rangeField);
-        } else if (valueType == QuickTopicType.PROTOBUF) {
+        } else if (parsedSchema.schemaType().equals(ProtobufSchema.TYPE)) {
+            log.debug("Type Protobuf detected");
             final RangeFieldValueExtractor protoExtractor = new ProtoValueExtractor<>(valueZeroPadder.getPadderClass());
             return new RangeIndexer<>(keyZeroPadder, valueZeroPadder, protoExtractor, rangeField);
         }
@@ -138,9 +143,9 @@ public final class RangeIndexer<K, V, F extends Number> {
 
     private static <F extends Number> ZeroPadder<F> createValueZeroPadder(final QuickTopicType topicType,
         final ParsedSchema parsedSchema, final String rangeField) {
-        if (topicType == QuickTopicType.AVRO) {
+        if (parsedSchema.schemaType().equals(AvroSchema.TYPE)) {
             return getZeroPadderForAvroSchema((Schema) parsedSchema.rawSchema(), rangeField);
-        } else if (topicType == QuickTopicType.PROTOBUF) {
+        } else if (parsedSchema.schemaType().equals(ProtobufSchema.TYPE)) {
             return getZeroPadderForProtobufSchema((ProtobufSchema) parsedSchema, rangeField);
         }
         throw new MirrorTopologyException("Supported values are Avro and Protobuf");
@@ -150,13 +155,20 @@ public final class RangeIndexer<K, V, F extends Number> {
     private static <F extends Number> ZeroPadder<F> getZeroPadderForAvroSchema(
         final Schema avroSchema,
         final String rangeField) {
-        final Schema.Type fieldType = avroSchema.getField(rangeField).schema().getType();
-        if (fieldType == Schema.Type.INT) {
-            log.trace("Creating integer zero padder for avro value");
-            return (ZeroPadder<F>) new IntPadder();
-        } else if (fieldType == Schema.Type.LONG) {
-            log.trace("Creating long zero padder for avro value");
-            return (ZeroPadder<F>) new LongPadder();
+        final Optional<Schema> fieldType = avroSchema.getField(rangeField).schema().getTypes().stream()
+            .filter(schema -> schema.getType() == Type.INT || schema.getType() == Type.LONG).findFirst();
+
+        log.debug("Field Type is {}", fieldType);
+        if (fieldType.isPresent()) {
+            final Schema.Type supportedType = fieldType.get().getType();
+            log.debug("Supported Type is {}", fieldType);
+            if (supportedType == Schema.Type.INT) {
+                log.trace("Creating integer zero padder for avro value");
+                return (ZeroPadder<F>) new IntPadder();
+            } else if (supportedType == Schema.Type.LONG) {
+                log.trace("Creating long zero padder for avro value");
+                return (ZeroPadder<F>) new LongPadder();
+            }
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
     }

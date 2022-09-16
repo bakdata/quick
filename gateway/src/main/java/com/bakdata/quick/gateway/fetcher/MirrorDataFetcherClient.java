@@ -40,19 +40,19 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     /**
      * Constructor for client.
      *
-     * @param host             host url of the mirror
-     * @param client           http client
-     * @param mirrorConfig     configuration for the mirror
+     * @param host host url of the mirror
+     * @param client http client
+     * @param mirrorConfig configuration for the mirror
      * @param typeResolverLazy a lazy for the value resolver
      */
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-                                   final Lazy<TypeResolver<V>> typeResolverLazy) {
+        final Lazy<TypeResolver<V>> typeResolverLazy) {
         this.mirrorClient =
             new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, typeResolverLazy.get()));
     }
 
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-                                   final TypeResolver<V> valueResolver) {
+        final TypeResolver<V> valueResolver) {
         this(host, client, mirrorConfig, new Lazy<>(() -> valueResolver));
     }
 
@@ -80,13 +80,15 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     @Override
     @Nullable
     public List<V> fetchRange(final String id, final String from, final String to) {
+        log.debug("Preparing to send request for fetching a range with key {} from {} to {}  from the Mirror", id, from,
+            to);
         return this.mirrorClient.get().fetchRange(id, from, to);
     }
 
     private PartitionedMirrorClient<String, V> createMirrorClient(final String host,
-                                                                  final MirrorConfig mirrorConfig,
-                                                                  final HttpClient client,
-                                                                  final TypeResolver<V> valueResolver) {
+        final MirrorConfig mirrorConfig,
+        final HttpClient client,
+        final TypeResolver<V> valueResolver) {
         final MirrorHost mirrorHost = new MirrorHost(host, mirrorConfig);
         return new PartitionedMirrorClient<>(mirrorHost, client, Serdes.String(),
             valueResolver, new DefaultPartitionFinder());

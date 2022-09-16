@@ -8,6 +8,8 @@ type Query {
         keyArgument: "userId",
         rangeFrom: "timestampFrom",
         rangeTo: "timestampTo")
+
+#    getUser(userId: Int): UserRequests @topic(name: "user-request-range", keyArgument: "userId")
 }
 
 type UserRequests {

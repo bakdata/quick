@@ -68,7 +68,7 @@ import picocli.CommandLine.Option;
 @Singleton
 @Slf4j
 public class MirrorApplication<K, V> extends KafkaStreamsApplication {
-    public static final String MIRROR_STORE = "mirror-store";
+    public static final String POINT_STORE = "mirror-store";
     public static final String RETENTION_STORE = "retention-store";
     public static final String RANGE_STORE = "range-store";
 
@@ -126,10 +126,11 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     public Topology createTopology() {
+        log.debug("Creating Mirror topology with properties isPoint {} rangeField {}", this.isPoint, this.rangeField);
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
         return MirrorTopology.<K, V>builder()
             .topologyData(this.getTopologyData())
-            .storeName(MIRROR_STORE)
+            .storeName(POINT_STORE)
             .rangeStoreName(RANGE_STORE)
             .retentionTime(this.retentionTime)
             .retentionStoreName(RETENTION_STORE)
@@ -198,17 +199,20 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         final Map<MirrorIndexType, IndexProperties> indexProperties;
 
         if (this.isPoint && this.rangeField != null) {
+            log.debug("Creating index property for point and range");
             indexProperties = Map.of(
-                MirrorIndexType.POINT, new IndexProperties(MIRROR_STORE, null),
+                MirrorIndexType.POINT, new IndexProperties(POINT_STORE, null),
                 MirrorIndexType.RANGE, new IndexProperties(RANGE_STORE, this.rangeField)
             );
         } else if (!this.isPoint && this.rangeField != null) {
+            log.debug("Creating index property only for range");
             indexProperties = Map.of(
                 MirrorIndexType.RANGE, new IndexProperties(RANGE_STORE, this.rangeField)
             );
         } else if (this.isPoint) {
+            log.debug("Creating index property only for point");
             indexProperties = Map.of(
-                MirrorIndexType.POINT, new IndexProperties(MIRROR_STORE, null)
+                MirrorIndexType.POINT, new IndexProperties(POINT_STORE, null)
             );
         } else {
             throw new MirrorTopologyException("Unsupported");

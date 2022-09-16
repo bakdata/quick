@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror;
+package com.bakdata.quick.mirror.point;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.kafka.streams.processor.api.Processor;

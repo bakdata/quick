@@ -4,7 +4,6 @@
 CONTENT_TYPE="content-type:application/json"
 API_KEY="X-API-Key:${X_API_KEY}"
 TOPIC="user-request-range"
-TYPE="UserRequests"
 GATEWAY="range-gateway-test"
 INGEST_URL="${HOST}/ingest/${TOPIC}"
 GRAPHQL_URL="${HOST}/gateway/${GATEWAY}/graphql"
@@ -19,7 +18,7 @@ setup() {
     fi
 }
 
-@test "should deploy product-gateway" {
+@test "should deploy range-gateway" {
     run quick gateway create ${GATEWAY}
     echo "$output"
     sleep 30
@@ -57,10 +56,10 @@ setup() {
     [ "$result" = "$expected" ]
 }
 
-teardown() {
-    if [[ "${#BATS_TEST_NAMES[@]}" -eq "$BATS_TEST_NUMBER" ]]; then
-        quick gateway delete ${GATEWAY}
+# teardown() {
+    # if [[ "${#BATS_TEST_NAMES[@]}" -eq "$BATS_TEST_NUMBER" ]]; then
+        # quick gateway delete ${GATEWAY}
         #TODO: Uncomment the topic deletion after the Range Mirror implementation is ready
         # quick topic delete ${TOPIC}
-    fi
-}
+    # fi
+# }

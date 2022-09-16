@@ -115,8 +115,7 @@ public class QuickTopicTypeService implements TopicTypeService {
         // get schema and configure the resolver with it
         return this.registryFetcher.getSchema(subject)
             .doOnError(e -> log.error("No schema found for subject {}", subject, e))
-            .map(schema -> new TypeResolverSchema<>(this.conversionProvider.getTypeResolver(type, schema),
-                schema));
+            .map(schema -> new TypeResolverSchema<>(this.conversionProvider.getTypeResolver(type, schema), schema));
     }
 
     private <K, V> Single<QuickTopicData<K, V>> fromTopicData(final TopicData topicData) {
@@ -135,8 +134,7 @@ public class QuickTopicTypeService implements TopicTypeService {
                 resolver.getParsedSchema()));
 
         // create value data
-        final Single<TypeResolverSchema<V>> valueResolver =
-            this.createResolver(valueType, VALUE.asSubject(topic));
+        final Single<TypeResolverSchema<V>> valueResolver = this.createResolver(valueType, VALUE.asSubject(topic));
         final Single<QuickData<V>> valueData =
             valueResolver.map(resolver -> new QuickData<>(valueType, valueSerde, resolver.getTypeResolver(),
                 resolver.getParsedSchema()));

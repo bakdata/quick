@@ -98,11 +98,16 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.topicName = topicData.getName();
 
         final Map<MirrorIndexType, IndexProperties> rangePropertiesMap = this.context.getRangePropertiesMap();
+
+        log.debug("Range Properties Map is: {}", rangePropertiesMap);
+
         if (rangePropertiesMap.containsKey(MirrorIndexType.POINT)) {
+            log.debug("Initializing KafkaQueryService for point index");
             final String pointStoreName = rangePropertiesMap.get(MirrorIndexType.POINT).getStoreName();
             this.pointStoreQueryParameters =
                 StoreQueryParameters.fromNameAndType(pointStoreName, QueryableStoreTypes.keyValueStore());
-        } else if (rangePropertiesMap.containsKey(MirrorIndexType.RANGE)) {
+        } if (rangePropertiesMap.containsKey(MirrorIndexType.RANGE)) {
+            log.debug("Initializing KafkaQueryService for range index");
             final IndexProperties rangeIndexProperties = rangePropertiesMap.get(MirrorIndexType.RANGE);
             final String rangeStoreName = rangeIndexProperties.getStoreName();
             this.rangeStoreQueryParameters =
@@ -184,6 +189,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final K key = this.keyResolver.fromString(rawKey);
         final KeyQueryMetadata metadata;
         final String rangeStoreName = this.context.getStoreNameOfType(MirrorIndexType.RANGE);
+
+        log.debug("range store name is: {}", rangeStoreName);
         try {
             metadata = this.streams.queryMetadataForKey(rangeStoreName, key, this.keySerializer);
         } catch (final IllegalStateException exception) {
@@ -220,6 +227,9 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final String fromIndex = this.rangeIndexer.createIndex(key, from);
         final String toIndex = this.rangeIndexer.createIndex(key, to);
 
+        log.debug("Index from is: {}", fromIndex);
+        log.debug("Index to is: {}", toIndex);
+
         final List<V> values = new ArrayList<>();
 
         try (final KeyValueIterator<String, V> iterator = rangeStore.range(fromIndex, toIndex)) {
@@ -227,6 +237,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
                 values.add(iterator.next().value);
             }
         }
+
+        log.debug("Fetched range from state store: {}", values);
 
         return Single.just(HttpResponse.created(new MirrorValue<>(values)).status(HttpStatus.OK));
     }

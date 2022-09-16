@@ -20,6 +20,7 @@ import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.base.QuickTopology;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.point.MirrorProcessor;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
 import com.bakdata.quick.mirror.range.RangeIndexer;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
@@ -28,6 +29,7 @@ import io.confluent.kafka.schemaregistry.ParsedSchema;
 import java.time.Duration;
 import java.util.Objects;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -45,6 +47,7 @@ import org.apache.kafka.streams.state.Stores;
  * @param <K> key type
  * @param <V> value type
  */
+@Slf4j
 public class MirrorTopology<K, V> extends QuickTopology<K, V> {
     public static final String RETENTION_SINK = "same-topic-sink";
     private static final String PROCESSOR_NAME = "mirror-processor";
@@ -91,27 +94,28 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
         // if the user set a retention time, we use a special mirror processor that schedules a job for it
         if (this.retentionTime == null) {
             if (this.isPoint) {
-                return this.createPointTopology(builder, keySerDe, valueSerDe, stream);
+                log.debug("Building point topology");
+                this.createPointTopology(builder, keySerDe, valueSerDe, stream);
             }
             if (this.rangeField != null) {
-                return this.createRangeTopology(builder, valueSerDe, stream, this.rangeField);
+                log.debug("Building range topology");
+                this.createRangeTopology(builder, valueSerDe, stream, this.rangeField);
             }
-            throw new MirrorTopologyException("The mirror is neither for point or range indexes.");
+            return builder.build();
         } else {
             return this.createRetentionTopology(builder, keySerDe, stream);
         }
     }
 
-    private Topology createPointTopology(final StreamsBuilder builder, final Serde<K> keySerDe,
+    private void createPointTopology(final StreamsBuilder builder, final Serde<K> keySerDe,
         final Serde<V> valueSerDe,
         final KStream<K, V> stream) {
         builder.addStateStore(
             Stores.keyValueStoreBuilder(this.createStore(this.storeName), keySerDe, valueSerDe));
         stream.process(() -> new MirrorProcessor<>(this.storeName), Named.as(PROCESSOR_NAME), this.storeName);
-        return builder.build();
     }
 
-    private Topology createRangeTopology(final StreamsBuilder builder, final Serde<V> valueSerDe,
+    private void createRangeTopology(final StreamsBuilder builder, final Serde<V> valueSerDe,
         final KStream<K, V> stream, final String rangeField) {
         // key serde is string because the store saves zero padded range index string as keys
         builder.addStateStore(
@@ -123,11 +127,14 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
         if (parsedSchema == null) {
             throw new MirrorTopologyException("Could not get the parsed schema.");
         }
+        log.debug("keyType is {}", keyType);
+        log.debug("valueType is {}", valueType);
+        log.debug("parsedSchema is {}", parsedSchema);
+
         final RangeIndexer<K, V, ?> rangeIndexer =
             RangeIndexer.createRangeIndexer(keyType, valueType, parsedSchema, rangeField);
         stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, rangeIndexer),
             Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
-        return builder.build();
     }
 
     private Topology createRetentionTopology(final StreamsBuilder builder, final Serde<K> keySerDe,
