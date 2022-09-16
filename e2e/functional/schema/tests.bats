@@ -27,13 +27,6 @@ setup() {
     [ "$output" = "Create gateway ${GATEWAY} (this may take a few seconds)" ]
 }
 
-@test "should apply a different schema to product-gateway" {
-    run quick gateway apply ${GATEWAY} -f schema-query-all.gql
-    echo "$output"
-    [ "$status" -eq 0 ]
-    [ "$output" = "Applied schema to gateway ${GATEWAY}" ]
-}
-
 @test "should create product-topic with schema" {
     run quick topic create ${TOPIC} --key-type long --value-type schema --schema "${GATEWAY}.${TYPE}"
     echo "$output"
