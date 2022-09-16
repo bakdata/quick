@@ -32,7 +32,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
 @Slf4j
 public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
     private final String storeName;
-    private final RangeIndexer<K, V, ?> rangeIndexer;
+    private final RangeIndexer<K, V> defaultRangeIndexer;
     @Nullable
     private KeyValueStore<String, V> store = null;
 
@@ -40,11 +40,11 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
      * Standard constructor.
      *
      * @param storeName The name of the range store
-     * @param rangeIndexer Creates and prepares the range index format
+     * @param defaultRangeIndexer Creates and prepares the range index format
      */
-    public MirrorRangeProcessor(final String storeName, final RangeIndexer<K, V, ?> rangeIndexer) {
+    public MirrorRangeProcessor(final String storeName, final RangeIndexer<K, V> defaultRangeIndexer) {
         this.storeName = storeName;
-        this.rangeIndexer = rangeIndexer;
+        this.defaultRangeIndexer = defaultRangeIndexer;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
             return;
         }
 
-        final String rangeIndex = this.rangeIndexer.createIndex(key, value);
+        final String rangeIndex = this.defaultRangeIndexer.createIndex(key, value);
 
         log.debug("crating range index: {}", rangeIndex);
 

@@ -16,9 +16,20 @@
 
 package com.bakdata.quick.mirror.range;
 
+import io.micronaut.core.util.StringUtils;
+
 /**
- * Creates the range index in the {@link MirrorRangeProcessor}.
+ * No operation range indexer. This indexer is used whenever a Mirror with range index needs to be deleted. The
+ * {@link io.confluent.kafka.schemaregistry.ParsedSchema} object is null when the deletion of the Mirror starts,
+ * therefore we need a dummy range indexer to pass to the processor during the deletion.
+ *
+ * @param <K> Type of the key
+ * @param <V> Type of the value
  */
-public interface RangeIndexer<K, V> {
-    String createIndex(final K key, final V value);
+public class NoOpRangeIndexer<K, V> implements RangeIndexer<K, V> {
+
+    @Override
+    public String createIndex(final K key, final V value) {
+        return StringUtils.EMPTY_STRING;
+    }
 }

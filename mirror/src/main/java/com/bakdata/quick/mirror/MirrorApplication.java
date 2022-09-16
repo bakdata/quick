@@ -132,6 +132,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .storeType(this.storeType)
             .isPoint(this.isPoint)
             .rangeField(this.rangeField)
+            .isCleanup(this.cleanUp)
             .build()
             .createTopology(streamsBuilder);
     }
@@ -277,7 +278,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .errorTopic(this.errorTopic)
             .topicData(new QuickTopicData<>(this.getInputTopics().get(0), TopicWriteType.MUTABLE, data, data))
             .build();
-
     }
 
     @Override
