@@ -30,6 +30,7 @@ import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.micronaut.core.util.StringUtils;
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
@@ -60,12 +61,11 @@ public final class RangeIndexer<K, V, F extends Number> {
      */
     public static <K, V, F extends Number> RangeIndexer<K, V, F> createRangeIndexer(
         final QuickTopicType keyType,
-        final QuickTopicType valueType,
         final ParsedSchema parsedSchema,
         final String rangeField) {
 
         final ZeroPadder<K> keyZeroPadder = createKeyZeroPadder(keyType);
-        final ZeroPadder<F> valueZeroPadder = createValueZeroPadder(valueType, parsedSchema, rangeField);
+        final ZeroPadder<F> valueZeroPadder = createValueZeroPadder(parsedSchema, rangeField);
         if (parsedSchema.schemaType().equals(AvroSchema.TYPE)) {
             log.debug("Type Avro detected");
             final RangeFieldValueExtractor avroExtractor = new AvroValueExtractor<>(valueZeroPadder.getPadderClass());
@@ -141,8 +141,8 @@ public final class RangeIndexer<K, V, F extends Number> {
         throw new MirrorTopologyException("Key value should be either integer or mirror");
     }
 
-    private static <F extends Number> ZeroPadder<F> createValueZeroPadder(final QuickTopicType topicType,
-        final ParsedSchema parsedSchema, final String rangeField) {
+    private static <F extends Number> ZeroPadder<F> createValueZeroPadder(final ParsedSchema parsedSchema,
+        final String rangeField) {
         if (parsedSchema.schemaType().equals(AvroSchema.TYPE)) {
             return getZeroPadderForAvroSchema((Schema) parsedSchema.rawSchema(), rangeField);
         } else if (parsedSchema.schemaType().equals(ProtobufSchema.TYPE)) {
@@ -152,23 +152,18 @@ public final class RangeIndexer<K, V, F extends Number> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <F extends Number> ZeroPadder<F> getZeroPadderForAvroSchema(
-        final Schema avroSchema,
+    private static <F extends Number> ZeroPadder<F> getZeroPadderForAvroSchema(final Schema avroSchema,
         final String rangeField) {
-        final Optional<Schema> fieldType = avroSchema.getField(rangeField).schema().getTypes().stream()
-            .filter(schema -> schema.getType() == Type.INT || schema.getType() == Type.LONG).findFirst();
+        final Schema.Type fieldType = getAvroFieldType(avroSchema, rangeField);
 
         log.debug("Field Type is {}", fieldType);
-        if (fieldType.isPresent()) {
-            final Schema.Type supportedType = fieldType.get().getType();
-            log.debug("Supported Type is {}", fieldType);
-            if (supportedType == Schema.Type.INT) {
-                log.trace("Creating integer zero padder for avro value");
-                return (ZeroPadder<F>) new IntPadder();
-            } else if (supportedType == Schema.Type.LONG) {
-                log.trace("Creating long zero padder for avro value");
-                return (ZeroPadder<F>) new LongPadder();
-            }
+
+        if (fieldType == Schema.Type.INT) {
+            log.trace("Creating integer zero padder for avro value");
+            return (ZeroPadder<F>) new IntPadder();
+        } else if (fieldType == Schema.Type.LONG) {
+            log.trace("Creating long zero padder for avro value");
+            return (ZeroPadder<F>) new LongPadder();
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
     }
@@ -187,5 +182,20 @@ public final class RangeIndexer<K, V, F extends Number> {
             return (ZeroPadder<F>) new LongPadder();
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
+    }
+
+    private static Schema.Type getAvroFieldType(final Schema avroSchema, final String fieldName) {
+        final Schema fieldSchema = avroSchema.getField(fieldName).schema();
+        if (fieldSchema.getType() == Schema.Type.UNION) {
+            final List<Schema> fieldTypes = fieldSchema.getTypes();
+            final Optional<Schema> intLongSchema = fieldTypes
+                .stream().filter(schema -> schema.getType() == Schema.Type.INT || schema.getType() == Schema.Type.LONG)
+                .findFirst();
+            return intLongSchema
+                .orElseThrow(() -> new MirrorTopologyException("The schema field should be int or long"))
+                .getType();
+        } else {
+            return fieldSchema.getType();
+        }
     }
 }

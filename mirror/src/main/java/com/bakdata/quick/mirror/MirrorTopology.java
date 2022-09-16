@@ -122,17 +122,15 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
             Stores.keyValueStoreBuilder(this.createStore(this.rangeStoreName), Serdes.String(), valueSerDe));
 
         final QuickTopicType keyType = this.getTopicData().getKeyData().getType();
-        final QuickTopicType valueType = this.getTopicData().getValueData().getType();
         final ParsedSchema parsedSchema = this.getTopicData().getValueData().getParsedSchema();
         if (parsedSchema == null) {
             throw new MirrorTopologyException("Could not get the parsed schema.");
         }
         log.debug("keyType is {}", keyType);
-        log.debug("valueType is {}", valueType);
         log.debug("parsedSchema is {}", parsedSchema);
 
         final RangeIndexer<K, V, ?> rangeIndexer =
-            RangeIndexer.createRangeIndexer(keyType, valueType, parsedSchema, rangeField);
+            RangeIndexer.createRangeIndexer(keyType, parsedSchema, rangeField);
         stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, rangeIndexer),
             Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
     }

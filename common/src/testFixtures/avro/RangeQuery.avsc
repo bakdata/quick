@@ -10,6 +10,10 @@
     {
       "name": "timestamp",
       "type": "long"
+    },
+    {
+      "name": "age",
+      "type": ["null", "int"], "default": null
     }
   ]
 }

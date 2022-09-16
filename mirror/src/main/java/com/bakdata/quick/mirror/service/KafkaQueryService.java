@@ -106,7 +106,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             final String pointStoreName = rangePropertiesMap.get(MirrorIndexType.POINT).getStoreName();
             this.pointStoreQueryParameters =
                 StoreQueryParameters.fromNameAndType(pointStoreName, QueryableStoreTypes.keyValueStore());
-        } if (rangePropertiesMap.containsKey(MirrorIndexType.RANGE)) {
+        }
+        if (rangePropertiesMap.containsKey(MirrorIndexType.RANGE)) {
             log.debug("Initializing KafkaQueryService for range index");
             final IndexProperties rangeIndexProperties = rangePropertiesMap.get(MirrorIndexType.RANGE);
             final String rangeStoreName = rangeIndexProperties.getStoreName();
@@ -116,7 +117,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             final ParsedSchema parsedSchema = this.context.getTopicData().getValueData().getParsedSchema();
 
             this.rangeIndexer = RangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
-                topicData.getValueData().getType(),
                 Objects.requireNonNull(parsedSchema),
                 Objects.requireNonNull(rangeField));
         }

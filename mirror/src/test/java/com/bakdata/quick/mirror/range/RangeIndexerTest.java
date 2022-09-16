@@ -55,7 +55,7 @@ class RangeIndexerTest {
     void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final GenericRecord avroRecord,
         final String rangeIndex) {
         final RangeIndexer<Integer, GenericRecord, Long> rangeIndexer =
-            RangeIndexer.createRangeIndexer(QuickTopicType.INTEGER, QuickTopicType.AVRO,
+            RangeIndexer.createRangeIndexer(QuickTopicType.INTEGER,
                 new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
 
         assertThat(rangeIndexer.createIndex(key, avroRecord)).isEqualTo(rangeIndex);
@@ -66,7 +66,7 @@ class RangeIndexerTest {
     void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key, final Message protoMessage,
         final String rangeIndex) {
         final RangeIndexer<Long, Message, Integer> rangeIndexer =
-            RangeIndexer.createRangeIndexer(QuickTopicType.LONG, QuickTopicType.PROTOBUF,
+            RangeIndexer.createRangeIndexer(QuickTopicType.LONG,
                 new ProtobufSchema(protoMessage.getDescriptorForType()), RANGE_FIELD);
         assertThat(rangeIndexer.createIndex(key, protoMessage)).isEqualTo(rangeIndex);
     }
@@ -75,10 +75,21 @@ class RangeIndexerTest {
     void shouldCreateRangeIndexOnKeyAndString() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
         final RangeIndexer<Integer, GenericRecord, Long> rangeIndexer =
-            RangeIndexer.createRangeIndexer(QuickTopicType.INTEGER, QuickTopicType.AVRO,
+            RangeIndexer.createRangeIndexer(QuickTopicType.INTEGER,
                 new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
 
         assertThat(rangeIndexer.createIndex(1, "1")).isEqualTo("0000000001_0000000000000000001");
+    }
+
+    @Test
+    void shouldCreateRangeIndexOnNullableFieldWithKeyAndString() {
+        final AvroRangeQueryTest avroRecord =
+            AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).setAge(45).build();
+        final RangeIndexer<Integer, GenericRecord, Integer> rangeIndexer =
+            RangeIndexer.createRangeIndexer(QuickTopicType.INTEGER,
+                new AvroSchema(avroRecord.getSchema()), "age");
+
+        assertThat(rangeIndexer.createIndex(1, "45")).isEqualTo("0000000001_0000000045");
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {
@@ -108,6 +119,6 @@ class RangeIndexerTest {
             arguments(NINETEEN_DIGIT_LONG_NUMBER, protoMessage, "1000000000000000000_0000000001"),
             arguments(NINETEEN_DIGIT_MINUS_LONG_NUMBER, protoMessage, "-1000000000000000000_0000000001"),
             arguments(Long.MAX_VALUE, protoMessage, String.format("%s_0000000001", Long.MAX_VALUE))
-            );
+        );
     }
 }
