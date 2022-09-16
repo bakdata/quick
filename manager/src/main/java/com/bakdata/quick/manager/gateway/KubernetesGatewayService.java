@@ -97,7 +97,7 @@ public class KubernetesGatewayService implements GatewayService {
 
     @Override
     public Completable updateSchema(final String name, final String graphQLSchema) {
-        log.debug("Updating schema of the gateway {}", name);
+        log.debug("Updating schema of the gateway {} with {}", name, graphQLSchema);
         // Check if the gateway exists or not
         final Completable resourceExists =
             this.kubernetesManagerClient.checkDeploymentExistence(ResourcePrefix.GATEWAY, name);
