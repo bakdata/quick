@@ -55,21 +55,8 @@ public class PartitionRouter<K> implements Router<K> {
         this.topic = topic;
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
-        this.partitionToMirrorHost = this.convertHostStringToMirrorHost(partitionToHost);
+        this.partitionToMirrorHost = convertHostStringToMirrorHost(partitionToHost);
         this.distinctMirrorHosts = this.findDistinctHosts();
-    }
-
-    private List<MirrorHost> findDistinctHosts() {
-        final Set<String> distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
-        return this.partitionToMirrorHost.values()
-            .stream()
-            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getHost()))
-            .collect(Collectors.toList());
-    }
-
-    private Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
-        return partitionToHost.entrySet().stream().collect(
-            Collectors.toMap(Map.Entry::getKey, e -> new MirrorHost(e.getValue(), MirrorConfig.directAccess())));
     }
 
     @Override
@@ -95,7 +82,20 @@ public class PartitionRouter<K> implements Router<K> {
 
     @Override
     public void updateRoutingInfo(final Map<Integer, String> updatedRoutingInfo) {
-        this.partitionToMirrorHost = this.convertHostStringToMirrorHost(updatedRoutingInfo);
+        this.partitionToMirrorHost = convertHostStringToMirrorHost(updatedRoutingInfo);
         this.distinctMirrorHosts = this.findDistinctHosts();
+    }
+
+    private List<MirrorHost> findDistinctHosts() {
+        final Set<String> distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
+        return this.partitionToMirrorHost.values()
+            .stream()
+            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getHost()))
+            .collect(Collectors.toList());
+    }
+
+    private static Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
+        return partitionToHost.entrySet().stream().collect(
+            Collectors.toMap(Map.Entry::getKey, e -> new MirrorHost(e.getValue(), MirrorConfig.directAccess())));
     }
 }

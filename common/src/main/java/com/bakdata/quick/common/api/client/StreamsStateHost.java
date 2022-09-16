@@ -18,12 +18,14 @@ package com.bakdata.quick.common.api.client;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Provides information about the host that enables access to the endpoint
- * that delivers info about Kafka Streams app state.
+ * Provides information about the host that enables access to the endpoint that delivers info about Kafka Streams app
+ * state.
  */
-public class StreamsStateHost {
+@Slf4j
+public final class StreamsStateHost {
 
     private final String host;
     private final MirrorConfig config;
@@ -31,7 +33,7 @@ public class StreamsStateHost {
     /**
      * Private constructor for creating StreamsStateHost.
      *
-     * @param host   the host of the mirror. This can be a service name or an IP.
+     * @param host the host of the mirror. This can be a service name or an IP.
      * @param config mirror config to use. This can set the service prefix and REST path.
      */
     private StreamsStateHost(final String host, final MirrorConfig config) {
@@ -47,7 +49,7 @@ public class StreamsStateHost {
      */
     public static StreamsStateHost fromMirrorHost(final MirrorHost mirrorHost) {
         final String host = mirrorHost.getHost();
-        final MirrorConfig mirrorConfig = MirrorConfig.directAccessToStreamsState();
+        final MirrorConfig mirrorConfig = mirrorHost.getConfig();
         return new StreamsStateHost(host, mirrorConfig);
     }
 
@@ -55,16 +57,13 @@ public class StreamsStateHost {
      * Generates a URL for fetching partition info.
      */
     public String getPartitionToHostUrl() {
-        return String.format("http://%s/%s/%s", this.host, this.config.getPath(),
-            MirrorConfig.DEFAULT_PARTITION_INFO_PATH);
+        final String url = String.format("http://%s%s/streams/partitions", this.config.getPrefix(), this.host);
+        log.debug("Preparing StreamStateHost URL: {}", url);
+        return url;
     }
 
-    /**
-     * Returns host-info.
-     *
-     * @return a string containing host info
-     */
-    public String getHost() {
-        return this.host;
+    @Override
+    public String toString() {
+        return String.format("http://%s%s/", this.config.getPrefix(), this.host);
     }
 }
