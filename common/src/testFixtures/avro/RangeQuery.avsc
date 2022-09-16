@@ -13,7 +13,11 @@
     },
     {
       "name": "age",
-      "type": ["null", "int"], "default": null
+      "type": [
+        "null",
+        "int"
+      ],
+      "default": null
     }
   ]
 }

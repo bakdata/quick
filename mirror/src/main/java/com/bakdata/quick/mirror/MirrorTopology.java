@@ -21,7 +21,9 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.base.QuickTopology;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.point.MirrorProcessor;
+import com.bakdata.quick.mirror.range.DefaultRangeIndexer;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
+import com.bakdata.quick.mirror.range.NoOpRangeIndexer;
 import com.bakdata.quick.mirror.range.RangeIndexer;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -63,6 +65,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
     @Nullable
     private final Duration retentionTime;
     private final StoreType storeType;
+    private final boolean isCleanup;
 
     /**
      * Constructor used by builder.
@@ -71,7 +74,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
     public MirrorTopology(final QuickTopologyData<K, V> topologyData, final String storeName,
         final String rangeStoreName, final boolean isPoint, @Nullable final String rangeField,
         @Nullable final Duration retentionTime,
-        final String retentionStoreName, final StoreType storeType) {
+        final String retentionStoreName, final StoreType storeType, final boolean isCleanup) {
         super(topologyData);
         this.storeName = storeName;
         this.rangeStoreName = rangeStoreName;
@@ -80,6 +83,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
         this.retentionTime = retentionTime;
         this.retentionStoreName = retentionStoreName;
         this.storeType = storeType;
+        this.isCleanup = isCleanup;
     }
 
     /**
@@ -124,15 +128,21 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
         final QuickTopicType keyType = this.getTopicData().getKeyData().getType();
         final ParsedSchema parsedSchema = this.getTopicData().getValueData().getParsedSchema();
         if (parsedSchema == null) {
+            if (this.isCleanup) {
+                log.trace("Parsed schema is null and cleanup flag is set to true.");
+                final RangeIndexer<K, V> opRangeIndexer = new NoOpRangeIndexer<>();
+                stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, opRangeIndexer),
+                    Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
+            }
             throw new MirrorTopologyException("Could not get the parsed schema.");
+        } else {
+            log.debug("keyType is {}", keyType);
+            log.debug("parsedSchema is {}", parsedSchema);
+            final RangeIndexer<K, V> defaultRangeIndexer =
+                DefaultRangeIndexer.createRangeIndexer(keyType, parsedSchema, rangeField);
+            stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, defaultRangeIndexer),
+                Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
         }
-        log.debug("keyType is {}", keyType);
-        log.debug("parsedSchema is {}", parsedSchema);
-
-        final RangeIndexer<K, V, ?> rangeIndexer =
-            RangeIndexer.createRangeIndexer(keyType, parsedSchema, rangeField);
-        stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, rangeIndexer),
-            Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
     }
 
     private Topology createRetentionTopology(final StreamsBuilder builder, final Serde<K> keySerDe,
