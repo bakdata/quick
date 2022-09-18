@@ -15,6 +15,7 @@
 | Environment Variable  | Required         | Description                                             |
 |-----------------------|------------------|---------------------------------------------------------|
 | `QUICK_MIRROR_PREFIX` | :material-close: | Prefix of Kubernetes deployments for mirror deployments |
+| `QUICK_MIRROR_PATH`   | :material-close: | REST subpath where the mirror's API is running          |
 
 
 ## Schema

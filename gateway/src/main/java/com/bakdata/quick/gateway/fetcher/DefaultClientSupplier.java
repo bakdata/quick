@@ -45,8 +45,7 @@ final class DefaultClientSupplier implements ClientSupplier {
     private <T> DataFetcherClient<T> doCreateClient(final String topic) {
         final Lazy<TypeResolver<T>> quickTopicTypeLazy = new Lazy<>(() -> this.getQuickTopicTypeLazy(topic));
         return new MirrorDataFetcherClient<>(
-            topic,
-            this.client,
+            topic, this.client,
             this.mirrorConfig,
             quickTopicTypeLazy
         );

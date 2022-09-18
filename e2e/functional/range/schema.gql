@@ -9,7 +9,7 @@ type Query {
         rangeFrom: "timestampFrom",
         rangeTo: "timestampTo")
 
-    getUser(userId: Int): UserRequests @topic(name: "user-request-range", keyArgument: "userId")
+#    getUser(userId: Int): UserRequests @topic(name: "user-request-range", keyArgument: "userId")
 }
 
 type UserRequests {

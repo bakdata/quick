@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @Slf4j
 public class MirrorHost {
-    private static final String DEFAULT_MIRROR_HOST_PATH = "mirror";
     private final String host;
     private final MirrorConfig config;
 
@@ -46,7 +45,7 @@ public class MirrorHost {
      */
     public String forKey(final String key) {
         final String url =
-            String.format("http://%s%s/%s/%s", this.config.getPrefix(), this.host, DEFAULT_MIRROR_HOST_PATH, key);
+            String.format("http://%s%s/%s/%s", this.config.getPrefix(), this.host, this.config.getPath(), key);
         log.trace("Preparing Mirror URL: {}", url);
         return url;
     }
@@ -57,8 +56,7 @@ public class MirrorHost {
     public String forKeys(final Iterable<String> keys) {
         final String ids = String.join(",", keys);
         final String url =
-            String.format("http://%s%s/%s/keys?ids=%s", this.config.getPrefix(), this.host, DEFAULT_MIRROR_HOST_PATH,
-                ids);
+            String.format("http://%s%s/%s/keys?ids=%s", this.config.getPrefix(), this.host, this.config.getPath(), ids);
         log.trace("Preparing Mirror URL: {}", url);
         return url;
     }
@@ -67,8 +65,7 @@ public class MirrorHost {
      * Generates a URL for fetching all keys in a topic.
      */
     public String forAll() {
-        final String url =
-            String.format("http://%s%s/%s", this.config.getPrefix(), this.host, DEFAULT_MIRROR_HOST_PATH);
+        final String url = String.format("http://%s%s/%s", this.config.getPrefix(), this.host, this.config.getPath());
         log.trace("Preparing Mirror URL: {}", url);
         return url;
     }
@@ -78,13 +75,15 @@ public class MirrorHost {
      */
     public String forRange(final String key, final String from, final String to) {
         final String url = String.format("http://%s%s/%s/range/%s?from=%s&to=%s", this.config.getPrefix(), this.host,
-            DEFAULT_MIRROR_HOST_PATH, key, from, to);
+            this.config.getPath(), key, from, to);
         log.debug("Preparing Mirror URL for range: {}", url);
         return url;
     }
 
-    @Override
-    public String toString() {
+    /**
+     * Generates a URL without any keys.
+     */
+    public String plainUrl() {
         return String.format("http://%s%s/", this.config.getPrefix(), this.host);
     }
 }
