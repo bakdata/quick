@@ -44,7 +44,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
      */
     public MirrorRequestManagerWithFallback(final HttpClient client, final MirrorHost fallbackServiceHost) {
         this.client = client;
-        this.fallbackServiceHost = fallbackServiceHost.plainUrl();
+        this.fallbackServiceHost = fallbackServiceHost.toString();
         this.delegate = new DefaultMirrorRequestManager(client);
     }
 
@@ -82,7 +82,8 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
     private ResponseWrapper getResponseFromFallbackService(final String initialUrl, final Request initialRequest) {
         final String keyInfo = String.join("/", initialRequest.url().pathSegments());
         final String newUrl = this.fallbackServiceHost + keyInfo;
-        log.info("Host at {} is unavailable. Forwarding the request to {}", initialUrl, newUrl);
+        log.info("Host at {} is unavailable.", initialUrl);
+        log.info("Forwarding the request to {}", newUrl);
         final Request fallbackRequest = new Request.Builder().url(newUrl).get().build();
         try {
             final Response fallbackResponse = this.client.newCall(fallbackRequest).execute();
