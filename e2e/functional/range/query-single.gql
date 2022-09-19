@@ -1,0 +1,6 @@
+query {
+    getUser(userId: 123) {
+        purchaseId
+        rating
+    }
+}

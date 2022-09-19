@@ -3,7 +3,7 @@
 
 CONTENT_TYPE="content-type:application/json"
 API_KEY="X-API-Key:${X_API_KEY}"
-TOPIC="user-request-range"
+TOPIC="user-rating-range"
 GATEWAY="range-gateway-test"
 INGEST_URL="${HOST}/ingest/${TOPIC}"
 GRAPHQL_URL="${HOST}/gateway/${GATEWAY}/graphql"
@@ -33,9 +33,7 @@ setup() {
     [ "$output" = "Applied schema to gateway ${GATEWAY}" ]
 }
 
-#TODO: Remove skip after implementing the Mirror and query service
 @test "should create user-request-range topic with key integer and value schema" {
-    skip
     run quick topic create ${TOPIC} --key-type integer --value-type schema --schema "${GATEWAY}.${TYPE}" --range-field timestamp --point
     echo "$output"
     [ "$status" -eq 0 ]
@@ -43,23 +41,27 @@ setup() {
 }
 
 @test "should ingest valid data in user-request-range" {
-    skip
-    curl --request POST --url "${INGEST_URL}" --header "${CONTENT_TYPE}" --header "${API_KEY}" --data "@./user-requests.json"
+    curl --request POST --url "${INGEST_URL}" --header "${CONTENT_TYPE}" --header "${API_KEY}" --data "@./user-ratings.json"
 }
 
 @test "should retrieve range of inserted items" {
-    skip
     sleep 30
-    result="$(${GRAPHQL_CLI} < query-single.gql | jq -j .userRequests)"
+    result="$(${GRAPHQL_CLI} < query-range.gql | jq -j .userRatings)"
+    expected="$(cat result-range.json)"
+    echo "$result"
+    [ "$result" = "$expected" ]
+}
+
+@test "should retrieve id from point index" {
+    result="$(${GRAPHQL_CLI} < query-single.gql | jq -j .getUser)"
     expected="$(cat result-single.json)"
     echo "$result"
     [ "$result" = "$expected" ]
 }
 
-# teardown() {
-    # if [[ "${#BATS_TEST_NAMES[@]}" -eq "$BATS_TEST_NUMBER" ]]; then
-        # quick gateway delete ${GATEWAY}
-        #TODO: Uncomment the topic deletion after the Range Mirror implementation is ready
-        # quick topic delete ${TOPIC}
-    # fi
-# }
+teardown() {
+    if [[ "${#BATS_TEST_NAMES[@]}" -eq "$BATS_TEST_NUMBER" ]]; then
+        quick gateway delete ${GATEWAY}
+        quick topic delete ${TOPIC}
+    fi
+}

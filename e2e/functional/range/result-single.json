@@ -1,0 +1,8 @@
+{
+  "key": 123,
+  "value": {
+    "userId": 123,
+    "purchaseId": 789,
+    "rating": 4
+  }
+}

@@ -1,8 +1,5 @@
-query {
-    userRequests(userId: 123, timestampFrom:1, timestampTo:3) {
-        userId
-        serviceId
-        requests
-        success
+{
+    userRatings(userId: 123, ratingFrom: 1, ratingTo: 4)  {
+        purchaseId
     }
 }

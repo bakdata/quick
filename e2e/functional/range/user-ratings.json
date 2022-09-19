@@ -1,0 +1,34 @@
+[
+  {
+    "key": 123,
+    "value": {
+      "userId": 123,
+      "purchaseId": 123,
+      "rating": 7
+    }
+  },
+  {
+    "key": 123,
+    "value": {
+      "userId": 123,
+      "purchaseId": 456,
+      "rating": 2
+    }
+  },
+  {
+    "key": 123,
+    "value": {
+      "userId": 123,
+      "purchaseId": 789,
+      "rating": 4
+    }
+  },
+  {
+    "key": 456,
+    "value": {
+      "userId": 456,
+      "purchaseId": 321,
+      "rating": 7
+    }
+  }
+]
