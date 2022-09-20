@@ -7,11 +7,25 @@ There are three scenarios tested: </br>
 **NOTE:** Subscription tests are currently skipped by bats. (WIP)
 
 ## Prerequisite
-You can specify the quick-cli version when you are building the image through the argument `QUICK_CLI_VERSION`. The default version is `0.7.0` 
+You can specify the quick-cli version and the repository of distributions (package index)
+via providing the `QUICK_CLI_VERSION` and `INDEX` arguments, respectively. 
+Supported repositories are `PyPI` and `Test PyPI`.
+To build an image using `Test PyPI`,
+you must pass `test` value to the `INDEX` argument.
+Providing any other argument results in using `PyPI`.
+If you don't give any argument explicitly,
+its default value is used to build an image. 
+The default values are `QUICK_CLI_VERSION=0.7.0` and `INDEX=main`.
 
+Example 1:
 ```bash
 docker build --build-arg QUICK_CLI_VERSION=<Version> -t quick-e2e-test-runner:<TAG> .
 ```
+Example 2:
+```
+docker build -t quick-e2e-test-runner --build-arg INDEX=test --build-arg QUICK_CLI_VERSION=0.7.0.dev6  .
+```
+
 
 ## How to run e2e tests
 Just run the e2e tests use the following command in the current directory:
