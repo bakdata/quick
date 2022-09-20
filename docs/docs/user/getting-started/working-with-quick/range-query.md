@@ -48,7 +48,7 @@ Here is an example of the `ratings.json` file:
         "key" : 123,
         "value" : {
             "userId" : 123,
-            "purchaseId" : 123,
+            "purchaseId" : "123",
             "rating": 7
         }
     },
@@ -56,7 +56,7 @@ Here is an example of the `ratings.json` file:
         "key" : 123,
         "value" : {
             "userId" : 123,
-            "purchaseId" : 456,
+            "purchaseId" : "456",
             "rating": 2
         }
     },
@@ -64,7 +64,7 @@ Here is an example of the `ratings.json` file:
         "key" : 123,
         "value" : {
             "userId" : 123,
-            "purchaseId" : 789,
+            "purchaseId" : "789",
             "rating": 4
         }
     },
@@ -72,7 +72,7 @@ Here is an example of the `ratings.json` file:
         "key" : 456,
         "value" : {
             "userId" : 456,
-            "purchaseId" : 321,
+            "purchaseId" : "321",
             "rating": 7
         }
     }
@@ -103,7 +103,7 @@ You can execute both point and range queries in your application.
 There are some constraints upon the values (values that you provide with the `--value` option)
 for which range queries can be executed:
 
-1. The value has to be a complex type, i.e., Avro or Proto. The reason is the range andex is built over the topic 
+1. The value has to be a complex type, i.e., Avro or Proto. The reason is the range index is built over the topic 
    key and a field.  
 2. The field type over which you want to execute queries has to be a `Long` or `Int`.
 
@@ -169,10 +169,10 @@ Upon successful execution of a query, you should receive the following list of r
 {
     "userRatings" : [
         {
-            "purchaseId" : 456
+            "purchaseId" : "456"
         },
         {
-            "purchaseId" : 789
+            "purchaseId" : "789"
         }
     ]
 }

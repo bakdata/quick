@@ -35,7 +35,7 @@ To circumvent the limitation of a key-value store and be able to perform range q
 Quick uses an alternative approach to deal with keys. 
 Each key is a flattened string with a combination of the topic key and the value
 for which the range queries are requested.
-The keys are padded (depending on the type `Int` 11 digits or `Long` 20 digits) 
+The keys are padded (depending on the type `Int` 10 digits or `Long` 19 digits) 
 with zeros to keep the lexicographic order.
 The general format of the key in the state store is: 
 `<zero_paddings><topicKeyValue>_<zero_paddings><rangeFieldValue>`.  
@@ -48,6 +48,12 @@ the key in the state store for the first entry looks like this:
 And for the second:
 ``` 
 00000000001_00000000002
+```
+Regarding negative values, the minus sign is appended at the begging of the padded string.
+For example, consider a user with the negative (for whatever reason) id number `userId=-10`
+and `timestamp=10`. Then, the index looks as follows:
+``` 
+-00000000010_00000000010
 ```
 The flatten key approach creates unique keys for each user with a given timestamp.
 Consequently, all the values will be accessible when running a range query.
