@@ -24,11 +24,11 @@ RUN curl -#L https://github.com/bats-core/bats-core/archive/v${BATS_VERSION}.zip
     && pip install aiohttp==3.8.1 \
     && pip install gql==3.0.0
 
-RUN if [ "$INDEX" = "test" ] \
-    then pip install --index-url https://test.pypi.org/simple/  \
-    --extra-index-url https://pypi.org/simple/ quick-cli==${QUICK_CLI_VERSION} \
-    else pip install quick-cli==${QUICK_CLI_VERSION} \
-    fi
+RUN if [ "$INDEX" = "test" ]; \
+        then pip install --index-url https://test.pypi.org/simple/  \
+        --extra-index-url https://pypi.org/simple/ quick-cli==${QUICK_CLI_VERSION}; \
+        else pip install quick-cli==${QUICK_CLI_VERSION}; \
+        fi
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
