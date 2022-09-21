@@ -17,29 +17,25 @@
 package com.bakdata.quick.gateway.fetcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 
-import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
+import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.type.QuickTopicData;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
+import io.reactivex.Single;
 import java.util.List;
 import java.util.Map;
-import lombok.Builder;
-import lombok.Data;
-import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class KeyFieldFetcherTest {
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final MockWebServer server = new MockWebServer();
-    private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
+class KeyFieldFetcherTest extends FetcherTest {
     private final String host = String.format("localhost:%s", this.server.getPort());
     private final MirrorConfig mirrorConfig = MirrorConfig.directAccess();
 
@@ -51,7 +47,7 @@ class KeyFieldFetcherTest {
     }
 
     @Test
-    void shouldFetchModificationValue() throws Exception {
+    void shouldFetchModificationValue() throws JsonProcessingException {
         final int productId = 5;
         final Purchase purchase = Purchase.builder()
             .purchaseId("testId")
@@ -67,9 +63,14 @@ class KeyFieldFetcherTest {
         final String productJson = this.mapper.writeValueAsString(new MirrorValue<>(product));
         this.server.enqueue(new MockResponse().setBody(productJson));
 
-        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
-        final KeyFieldFetcher<?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient);
+        final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Product.class, this.mapper);
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(knownTypeResolver);
+
+        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
+
+        final DataFetcherClient<String, Product> fetcherClient = this.createClient();
+        final KeyFieldFetcher<?> queryFetcher = new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient);
+
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.convertValue(purchase, DataFetcherClient.OBJECT_TYPE_REFERENCE))
             .build();
@@ -77,7 +78,6 @@ class KeyFieldFetcherTest {
         final Object fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(product);
     }
-
 
     @Test
     void shouldFetchNestModificationValue() throws JsonProcessingException {
@@ -100,9 +100,14 @@ class KeyFieldFetcherTest {
         final String currencyJson = this.mapper.writeValueAsString(new MirrorValue<>(currency));
         this.server.enqueue(new MockResponse().setBody(currencyJson));
 
-        final DataFetcherClient<Currency> fetcherClient = this.createClient(Currency.class);
-        final KeyFieldFetcher<?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "currencyId", fetcherClient);
+        final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Currency.class, this.mapper);
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(knownTypeResolver);
+
+        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final KeyFieldFetcher<?> queryFetcher = new KeyFieldFetcher<>(this.mapper, "currencyId", fetcherClient);
+
+        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
+
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
@@ -131,59 +136,21 @@ class KeyFieldFetcherTest {
             .prices(List.of(3, 4, 5))
             .build();
 
-        this.server.enqueue(new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(product1))));
-        this.server.enqueue(new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(product2))));
+        final String valueList = this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)));
+        this.server.enqueue(new MockResponse().setBody(valueList));
 
-        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
-        final KeyFieldFetcher<?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "productIds", fetcherClient);
+        final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Product.class, this.mapper);
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(knownTypeResolver);
+
+        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
+
+        final DataFetcherClient<String, Product> fetcherClient = this.createClient();
+        final KeyFieldFetcher<?> queryFetcher = new KeyFieldFetcher<>(this.mapper, "productIds", fetcherClient);
+
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
         final Object fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(List.of(product1, product2));
-    }
-
-    private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig,
-            new KnownTypeResolver<>(clazz, this.mapper));
-    }
-
-    @Data
-    @Builder
-    private static class PurchaseList {
-        private String purchaseId;
-        private List<Integer> productIds;
-    }
-
-    @Data
-    @Builder
-    private static class Purchase {
-        private String purchaseId;
-        private int productId;
-        private int amount;
-        private Price price;
-    }
-
-    @Data
-    @Builder
-    private static class Product {
-        private int productId;
-        private List<Integer> prices;
-    }
-
-    @Data
-    @Builder
-    private static class Price {
-        private String currencyId;
-        private double value;
-    }
-
-    @Data
-    @Builder
-    private static class Currency {
-        private String currencyId;
-        private String currency;
-        private double rate;
     }
 }

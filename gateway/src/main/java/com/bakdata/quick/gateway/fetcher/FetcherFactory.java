@@ -82,25 +82,25 @@ public class FetcherFactory {
     }
 
     public <V> DataFetcher<V> queryFetcher(final String topic, final String argument, final boolean isNullable) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<Object, V> client = this.clientSupplier.createClient(topic);
         return new QueryKeyArgumentFetcher<>(argument, client, isNullable);
     }
 
     public <V> DataFetcher<List<V>> queryListFetcher(final String topic, final boolean isNullable,
         final boolean hasNullableElements) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<Object, V> client = this.clientSupplier.createClient(topic);
         return new QueryListFetcher<>(client, isNullable, hasNullableElements);
     }
 
     public <V> DataFetcher<List<V>> listArgumentFetcher(final String topic, final String argument,
         final boolean isNullable, final boolean hasNullableElements) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<Object, V> client = this.clientSupplier.createClient(topic);
         return new ListArgumentFetcher<>(argument, client, isNullable, hasNullableElements);
     }
 
     public <V> DataFetcher<List<V>> rangeFetcher(final String topic, final String argument, final String rangeFrom,
         final String rangeTo, final boolean isNullable) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<Object, V> client = this.clientSupplier.createClient(topic);
         return new RangeQueryFetcher<>(argument, client, rangeFrom, rangeTo, isNullable);
     }
 
@@ -111,7 +111,7 @@ public class FetcherFactory {
      */
     public <K, V> DataFetcher<V> mutationFetcher(final String topic, final String keyArgumentName,
         final String valueArgumentName) {
-        final Lazy<QuickTopicData<K, V>> data = this.getTopicDataWithTopicTypeService(topic);
+        final Lazy<QuickTopicData<K, V>> data = this.getTopicData(topic);
         return new MutationFetcher<>(topic,
             keyArgumentName,
             valueArgumentName,
@@ -131,11 +131,10 @@ public class FetcherFactory {
 
     public <K, V> SubscriptionProvider<K, V> subscriptionProvider(final String topic, final String operationName,
         @Nullable final String argument) {
-        return new KafkaSubscriptionProvider<>(this.kafkaConfig, this.getTopicData(topic), operationName,
-            argument);
+        return new KafkaSubscriptionProvider<>(this.kafkaConfig, this.getTopicData(topic), operationName, argument);
     }
 
-    public <V> DataFetcherClient<V> dataFetcherClient(final String topic) {
+    public <V> DataFetcherClient<Object, V> dataFetcherClient(final String topic) {
         return this.clientSupplier.createClient(topic);
     }
 
@@ -144,18 +143,10 @@ public class FetcherFactory {
     }
 
     private <K, V> Lazy<QuickTopicData<K, V>> getTopicData(final String topic) {
+        log.debug("Requesting topic data from topic {}", topic);
         return new Lazy<>(() -> {
             final Single<QuickTopicData<K, V>> topicData = this.topicTypeService.getTopicData(topic);
             return topicData.blockingGet();
         });
     }
-
-    private <K, V> Lazy<QuickTopicData<K, V>> getTopicDataWithTopicTypeService(final String topic) {
-        return new Lazy<>(() -> {
-            log.debug("requesting topic data from topic {}", topic);
-            final Single<QuickTopicData<K, V>> topicData = this.topicTypeService.getTopicData(topic);
-            return topicData.blockingGet();
-        });
-    }
-
 }

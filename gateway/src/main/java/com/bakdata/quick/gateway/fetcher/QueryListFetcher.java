@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
  * There, the gateway must fetch all purchases from the corresponding mirror as there is no argument. This is done by
  * this data fetcher.
  */
-public class QueryListFetcher<T> implements DataFetcher<List<T>> {
-    private final DataFetcherClient<T> dataFetcherClient;
+public class QueryListFetcher<K, T> implements DataFetcher<List<T>> {
+    private final DataFetcherClient<K ,T> dataFetcherClient;
     private final boolean isNullable;
     private final boolean hasNullableElements;
 
@@ -52,7 +52,7 @@ public class QueryListFetcher<T> implements DataFetcher<List<T>> {
      * @param isNullable true if list itself can be null
      * @param hasNullableElements true if list elements can be null
      */
-    public QueryListFetcher(final DataFetcherClient<T> dataFetcherClient, final boolean isNullable,
+    public QueryListFetcher(final DataFetcherClient<K, T> dataFetcherClient, final boolean isNullable,
         final boolean hasNullableElements) {
         this.dataFetcherClient = dataFetcherClient;
         this.isNullable = isNullable;

@@ -135,6 +135,17 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             .map(this::transformValuesAndCreateHttpResponse);
     }
 
+    @Override
+    public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
+        // For now, we only consider the local state!
+        final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
+        return Flowable.fromIterable(store::all)
+            .map(keyValue -> keyValue.value)
+            .toList()
+            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)).status(200));
+
+    }
+
     /**
      * Transforms a list of HttpResponses of MirrorValue of a specific type into
      * a single HttpResponse of MirrorValue with a list of values of that type.
@@ -162,17 +173,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         } else {
             return responseWithoutHeader;
         }
-    }
-
-    @Override
-    public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
-        // For now, we only consider the local state!
-        final ReadOnlyKeyValueStore<K, V> store = this.streams.store(this.storeQueryParameters);
-        return Flowable.fromIterable(store::all)
-            .map(keyValue -> keyValue.value)
-            .toList()
-            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)).status(200));
-
     }
 
     private HttpResponse<MirrorValue<V>> fetch(final HostInfo replicaHostInfo, final K key) {

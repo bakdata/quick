@@ -46,10 +46,10 @@ import reactor.core.publisher.Mono;
  * data for the other selected fields is fetched through the mirror.
  */
 @Slf4j
-public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<String, Object>>> {
+public class MultiSubscriptionFetcher<K> implements DataFetcher<Publisher<Map<String, Object>>> {
 
     public static final int CACHE_SIZE = 5_000;
-    private final Map<String, DataFetcherClient<?>> fieldDataFetcherClients;
+    private final Map<String, DataFetcherClient<String, ?>> fieldDataFetcherClients;
     /**
      * A cache for all field values.
      *
@@ -67,7 +67,7 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      * @param fieldDataFetcherClients map of fields to their fetching clients
      * @param fieldSubscriptionProviders map of field to their subscription providers
      */
-    public MultiSubscriptionFetcher(final Map<String, DataFetcherClient<?>> fieldDataFetcherClients,
+    public MultiSubscriptionFetcher(final Map<String, DataFetcherClient<String,?>> fieldDataFetcherClients,
         final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders) {
         this(fieldDataFetcherClients, fieldSubscriptionProviders, MultiSubscriptionFetcher::getSelectedFields);
     }
@@ -80,7 +80,7 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      * @param fieldSelector function extracting the selected fields of a GraphQL environment
      */
     @VisibleForTesting
-    MultiSubscriptionFetcher(final Map<String, DataFetcherClient<?>> fieldDataFetcherClients,
+    MultiSubscriptionFetcher(final Map<String, DataFetcherClient<String,?>> fieldDataFetcherClients,
         final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders,
         final FieldSelector fieldSelector) {
         this.fieldDataFetcherClients = fieldDataFetcherClients;
@@ -166,7 +166,7 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
 
     @Nullable
     private Object loadField(final FieldKey<?> fieldKey) {
-        final DataFetcherClient<?> client = this.fieldDataFetcherClients.get(fieldKey.getFieldName());
+        final DataFetcherClient<String, ?> client = this.fieldDataFetcherClients.get(fieldKey.getFieldName());
         Objects.requireNonNull(client, () -> "No client found for field " + fieldKey.getFieldName());
         return client.fetchResult(fieldKey.getKey().toString());
     }

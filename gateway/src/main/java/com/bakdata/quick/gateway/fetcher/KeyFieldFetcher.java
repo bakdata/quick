@@ -63,10 +63,10 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
  * since it is stored in a different topic. The KeyFieldFetcher extracts the productId from the returned purchase and
  * fetches the corresponding product.
  */
-public class KeyFieldFetcher<T> implements DataFetcher<Object> {
+public class KeyFieldFetcher<V> implements DataFetcher<Object> {
     private final ObjectMapper objectMapper;
     private final String argument;
-    private final DataFetcherClient<T> client;
+    private final DataFetcherClient<String, V> client;
     private final JsonAvroConverter converter;
 
     /**
@@ -76,7 +76,8 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
      * @param argument name of the argument to extract key from
      * @param client underlying HTTP mirror client
      */
-    public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument, final DataFetcherClient<T> client) {
+    public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument,
+        final DataFetcherClient<String, V> client) {
         this.objectMapper = objectMapper;
         this.argument = argument;
         this.client = client;

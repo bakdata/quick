@@ -19,7 +19,6 @@ package com.bakdata.quick.gateway.fetcher;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.NotFoundException;
-import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
@@ -38,26 +37,16 @@ final class DefaultClientSupplier implements ClientSupplier {
     }
 
     @Override
-    public <T> DataFetcherClient<T> createClient(final String topic) {
+    public <K, V> DataFetcherClient<K, V> createClient(final String topic) {
         return this.doCreateClient(topic);
     }
 
-    private <T> DataFetcherClient<T> doCreateClient(final String topic) {
-        final Lazy<TypeResolver<T>> quickTopicTypeLazy = new Lazy<>(() -> this.getQuickTopicTypeLazy(topic));
+    private <K, V> DataFetcherClient<K, V> doCreateClient(final String topic) {
         return new MirrorDataFetcherClient<>(
             topic,
             this.client,
             this.mirrorConfig,
-            quickTopicTypeLazy
+            this.topicTypeService
         );
-    }
-
-    private <T> TypeResolver<T> getQuickTopicTypeLazy(final String topic) {
-        final Single<QuickTopicData<Object, T>> data = this.topicTypeService.getTopicData(topic);
-        final QuickTopicData<?, T> topicData = data.blockingGet();
-        if (topicData == null) {
-            throw new NotFoundException("Could not find topic " + topic);
-        }
-        return topicData.getValueData().getResolver();
     }
 }

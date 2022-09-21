@@ -20,12 +20,14 @@ import com.bakdata.quick.common.exception.MirrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
 import okhttp3.Response;
 
 /**
  * A default implementation of MirrorRequestManager.
  */
+@Slf4j
 public class DefaultMirrorRequestManager implements MirrorRequestManager {
 
     private final HttpClient client;
@@ -57,6 +59,12 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
             return null;
         } catch (final IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
+        } finally {
+            // We are sure that the response is processed and can be closed
+            if (responseWrapper.getResponseBody() != null) {
+                log.debug("Closing the response body.");
+                responseWrapper.getResponseBody().close();
+            }
         }
     }
 }

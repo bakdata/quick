@@ -35,8 +35,8 @@ class MultiSubscriptionFetcherTest {
     @Test
     @DisabledIfEnvironmentVariable(named = "CI", matches = "true", disabledReason = "Flaky on CI")
     void shouldReturnComplexType() {
-        final DataFetcherClient<?> field1Client = Mockito.mock(DataFetcherClient.class);
-        final DataFetcherClient<?> field2Client = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<String, ?> field1Client = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<String, ?> field2Client = Mockito.mock(DataFetcherClient.class);
         Mockito.doReturn("field1Key2").when(field1Client).fetchResult("key2");
         Mockito.doReturn("field2Key1").when(field2Client).fetchResult("key1");
 
@@ -45,7 +45,8 @@ class MultiSubscriptionFetcherTest {
         final SubscriptionProvider<?, ?> field2Subscriber =
             env -> Flux.just(new ConsumerRecord<>("topic2", 0, 0, "key2", "field2Key2"));
 
-        final Map<String, DataFetcherClient<?>> fieldClients = Map.of("field1", field1Client, "field2", field2Client);
+        final Map<String, DataFetcherClient<String, ?>> fieldClients =
+            Map.of("field1", field1Client, "field2", field2Client);
         final Map<String, SubscriptionProvider<?, ?>> fieldSubscribers =
             Map.of("field1", field1Subscriber, "field2", field2Subscriber);
 
@@ -66,14 +67,15 @@ class MultiSubscriptionFetcherTest {
 
     @Test
     void shouldReturnSingleFieldOfComplexType() {
-        final DataFetcherClient<?> field1Client = Mockito.mock(DataFetcherClient.class);
-        final DataFetcherClient<?> field2Client = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<String, ?> field1Client = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<String, ?> field2Client = Mockito.mock(DataFetcherClient.class);
 
         final SubscriptionProvider<?, ?> field1Subscriber =
             env -> Flux.just(new ConsumerRecord<>("topic1", 0, 0, "key1", "field1Key1"));
         final SubscriptionProvider<?, ?> field2Subscriber = env -> Flux.empty();
 
-        final Map<String, DataFetcherClient<?>> fieldClients = Map.of("field1", field1Client, "field2", field2Client);
+        final Map<String, DataFetcherClient<String, ?>> fieldClients =
+            Map.of("field1", field1Client, "field2", field2Client);
         final Map<String, SubscriptionProvider<?, ?>> fieldSubscribers =
             Map.of("field1", field1Subscriber, "field2", field2Subscriber);
 

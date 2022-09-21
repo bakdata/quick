@@ -74,7 +74,7 @@ class StreamsStateControllerTest {
 
     @Test
     void shouldReceiveCorrectPartitionHostFromMirrorApplication() throws InterruptedException {
-        sendValuesToKafka();
+        this.sendValuesToKafka();
         final MirrorApplication<String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();

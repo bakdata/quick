@@ -52,11 +52,11 @@ public class MirrorRegistryClient implements TopicRegistryClient {
      * Injectable constructor.
      *
      * @param topicRegistryConfig configuration for Quick's topic registry
-     * @param ingestClient        http client for ingest service
-     * @param client              http client
+     * @param ingestClient http client for ingest service
+     * @param client http client
      */
     public MirrorRegistryClient(final TopicRegistryConfig topicRegistryConfig, final IngestClient ingestClient,
-                                final HttpClient client) {
+        final HttpClient client) {
         this.registryTopic = topicRegistryConfig.getTopicName();
         this.ingestClient = ingestClient;
         this.topicDataClient = createMirrorClient(topicRegistryConfig, client);
@@ -105,9 +105,9 @@ public class MirrorRegistryClient implements TopicRegistryClient {
     }
 
     private static MirrorClient<String, TopicData> createMirrorClient(final TopicRegistryConfig topicRegistryConfig,
-                                                                      final HttpClient client) {
-        final KnownTypeResolver<TopicData> typeResolver = new KnownTypeResolver<>(
-            TopicData.class, client.objectMapper());
+        final HttpClient client) {
+        final KnownTypeResolver<TopicData> typeResolver =
+            new KnownTypeResolver<>(TopicData.class, client.objectMapper());
         final MirrorHost mirrorHost = new MirrorHost(topicRegistryConfig.getServiceName(), MirrorConfig.directAccess());
         return new DefaultMirrorClient<>(mirrorHost, client, typeResolver, new DefaultMirrorRequestManager(client));
     }

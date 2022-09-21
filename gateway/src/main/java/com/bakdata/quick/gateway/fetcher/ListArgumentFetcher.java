@@ -19,6 +19,7 @@ package com.bakdata.quick.gateway.fetcher;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -46,9 +47,9 @@ import lombok.extern.slf4j.Slf4j;
  * The gateway receives a list of purchase-IDs and sends them to the mirror and should receive a list of purchases.
  */
 @Slf4j
-public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
+public class ListArgumentFetcher<K, V> implements DataFetcher<List<V>> {
     private final String argument;
-    private final DataFetcherClient<V> dataFetcherClient;
+    private final DataFetcherClient<K, V> dataFetcherClient;
     private final boolean isNullable;
     private final boolean hasNullableElements;
 
@@ -60,7 +61,7 @@ public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
      * @param isNullable true if field that is being fetched can be null
      */
     public ListArgumentFetcher(final String argument,
-        final DataFetcherClient<V> dataFetcherClient,
+        final DataFetcherClient<K, V> dataFetcherClient,
         final boolean isNullable, final boolean hasNullableElements) {
         this.argument = argument;
         this.dataFetcherClient = dataFetcherClient;
@@ -71,13 +72,13 @@ public class ListArgumentFetcher<V> implements DataFetcher<List<V>> {
     @Override
     @Nullable
     public List<V> get(final DataFetchingEnvironment environment) {
-        final Object arguments = DeferFetcher.getArgument(this.argument, environment)
+        final DeferFetcher<K> deferFetcher = new DeferFetcher<>();
+        final K arguments = deferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
 
         List<V> results = null;
         if (arguments instanceof List) {
-            final List<String> stringArgument =
-                ((Collection<?>) arguments).stream().map(Object::toString).collect(Collectors.toList());
+            final List<K> stringArgument = new ArrayList<>(((Collection<K>) arguments));
             log.trace("Preparing list arguments {} to fetch from the data fetcher client (Mirror)", stringArgument);
             results = this.dataFetcherClient.fetchResults(stringArgument);
         }

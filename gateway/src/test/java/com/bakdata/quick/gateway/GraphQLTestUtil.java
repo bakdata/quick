@@ -33,7 +33,8 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 
 public final class GraphQLTestUtil {
-    private GraphQLTestUtil() {}
+    private GraphQLTestUtil() {
+    }
 
     public static DataFetcher<?> getFieldDataFetcher(final String objectName, final String fieldName,
         final GraphQLSchema schema) {
@@ -64,15 +65,15 @@ public final class GraphQLTestUtil {
 
     static final class TestClientSupplier implements ClientSupplier {
         @Getter
-        private final Map<String, DataFetcherClient<?>> clients;
+        private final Map<String, DataFetcherClient<?, ?>> clients;
 
         TestClientSupplier() {
             this.clients = new HashMap<>();
         }
 
         @Override
-        public DataFetcherClient<?> createClient(final String topic) {
-            final DataFetcherClient<?> client = mock(DataFetcherClient.class);
+        public DataFetcherClient<?, ?> createClient(final String topic) {
+            final DataFetcherClient<?, ?> client = mock(DataFetcherClient.class);
             this.clients.put(topic, client);
             return client;
         }

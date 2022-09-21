@@ -48,8 +48,8 @@ public class MirrorConfig {
      * <p>
      * The parameters are optional. If not set, their defaults are used.
      *
-     * @param prefix prefix of mirror, e.g. "quick-mirror" in http://quick-mirror-topic/. Defaults to {@link
-     *               MirrorConfig#DEFAULT_MIRROR_HOST_PREFIX} for empty optionals.
+     * @param prefix prefix of mirror, e.g. "quick-mirror" in http://quick-mirror-topic/. Defaults to
+     * {@link MirrorConfig#DEFAULT_MIRROR_HOST_PREFIX} for empty optionals.
      */
     @ConfigurationInject
     public MirrorConfig(final Optional<String> prefix) {

@@ -81,6 +81,11 @@ public class MirrorHost {
             DEFAULT_MIRROR_HOST_PATH, key, from, to);
     }
 
+    /**
+     * Returns the Mirror host with the configured prefix.
+     * e.g. http://quick-mirror-host-name/.
+     *
+     */
     @Override
     public String toString() {
         return String.format("http://%s%s/", this.config.getPrefix(), this.host);

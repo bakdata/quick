@@ -28,14 +28,14 @@ import org.apache.avro.generic.GenericRecord;
 /**
  * Fetches multiple values from a mirror.
  *
- * @param <T> key type
+ * @param <K> key type
  * @param <V> value type
  */
-public class ListFieldFetcher<T, V> implements DataFetcher<List<V>> {
+public class ListFieldFetcher<K, V> implements DataFetcher<List<V>> {
     private final String idFieldName;
-    private final DataFetcherClient<V> client;
+    private final DataFetcherClient<K,V> client;
 
-    public ListFieldFetcher(final String idFieldName, final DataFetcherClient<V> client) {
+    public ListFieldFetcher(final String idFieldName, final DataFetcherClient<K,V> client) {
         this.idFieldName = idFieldName;
         this.client = client;
     }
@@ -43,24 +43,21 @@ public class ListFieldFetcher<T, V> implements DataFetcher<List<V>> {
     @Override
     @Nullable
     public List<V> get(final DataFetchingEnvironment environment) {
-        final List<String> keys = this.findKeys(environment)
-            .stream()
-            .map(Object::toString)
-            .collect(Collectors.toList());
+        final List<K> keys = this.findKeys(environment);
         return this.client.fetchResults(keys);
     }
 
     @SuppressWarnings("unchecked")
-    private List<T> findKeys(final DataFetchingEnvironment environment) {
+    private List<K> findKeys(final DataFetchingEnvironment environment) {
         // in case of a subscription, we get a generic record directly from the Kafka Consumer
-        final List<T> keys;
+        final List<K> keys;
         if (environment.getSource() instanceof GenericRecord) {
             final GenericRecord genericRecord = environment.getSource();
-            keys = (List<T>) genericRecord.get(this.idFieldName);
+            keys = (List<K>) genericRecord.get(this.idFieldName);
         } else {
             // otherwise, it's a from a request to a mirror and therefore json, i.e. a map
             final Map<String, Object> source = environment.getSource();
-            keys = (List<T>) source.get(this.idFieldName);
+            keys = (List<K>) source.get(this.idFieldName);
         }
 
         if (keys == null) {

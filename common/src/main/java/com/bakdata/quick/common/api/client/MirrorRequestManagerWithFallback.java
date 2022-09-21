@@ -16,6 +16,8 @@
 
 package com.bakdata.quick.common.api.client;
 
+import static com.bakdata.quick.common.api.client.ClientUtils.createMirrorUrlFromRequest;
+
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.exception.MirrorException;
 import io.micronaut.http.HttpStatus;
@@ -26,14 +28,14 @@ import okhttp3.Response;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * An implementation of MirrorRequestManager that handles the case in which a replica is removed
- * and the corresponding host is no longer available. If this occurs, the fallback service is called.
+ * An implementation of MirrorRequestManager that handles the case in which a replica is removed and the corresponding
+ * host is no longer available. If this occurs, the fallback service is called.
  */
 @Slf4j
 public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
 
     private final HttpClient client;
-    private final String fallbackServiceHost;
+    private final MirrorHost fallbackServiceHost;
     private final MirrorRequestManager delegate;
 
     /**
@@ -44,7 +46,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
      */
     public MirrorRequestManagerWithFallback(final HttpClient client, final MirrorHost fallbackServiceHost) {
         this.client = client;
-        this.fallbackServiceHost = fallbackServiceHost.toString();
+        this.fallbackServiceHost = fallbackServiceHost;
         this.delegate = new DefaultMirrorRequestManager(client);
     }
 
@@ -57,7 +59,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
             final Response response = this.client.newCall(request).execute();
             return ResponseWrapper.fromResponse(response);
         } catch (final IOException exception) {
-            return this.getResponseFromFallbackService(url, request);
+            return this.getResponseFromFallbackService(request);
         }
     }
 
@@ -68,20 +70,17 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
     }
 
     /**
-     * This code covers a situation where a replica is removed, and we can no longer
-     * reach the host for a given partition. The k8s-service (Load Balancer) is used
-     * as a fallback in such a case. It might also happen that the Load Balancer itself is not reachable.
-     * If this occurs, we throw an exception. We also set the X-Cache-Update header {@link HeaderConstants}
-     * to a response to immediately update the mapping.
+     * This code covers a situation where a replica is removed, and we can no longer reach the host for a given
+     * partition. The k8s-service (Load Balancer) is used as a fallback in such a case. It might also happen that the
+     * Load Balancer itself is not reachable. If this occurs, we throw an exception. We also set the X-Cache-Update
+     * header {@link HeaderConstants} to a response to immediately update the mapping.
      *
-     * @param initialUrl the original URL for which an initial call is made
      * @param initialRequest the original request
      * @return an instance of ResponseWrapper with headerSet equals true
      */
-    private ResponseWrapper getResponseFromFallbackService(final String initialUrl, final Request initialRequest) {
-        final String keyInfo = String.join("/", initialRequest.url().pathSegments());
-        final String newUrl = this.fallbackServiceHost + keyInfo;
-        log.info("Host at {} is unavailable.", initialUrl);
+    private ResponseWrapper getResponseFromFallbackService(final Request initialRequest) {
+        log.info("Host at {} is unavailable.", initialRequest.url());
+        final String newUrl = createMirrorUrlFromRequest(initialRequest, this.fallbackServiceHost);
         log.info("Forwarding the request to {}", newUrl);
         final Request fallbackRequest = new Request.Builder().url(newUrl).get().build();
         try {
@@ -89,8 +88,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
             return ResponseWrapper.fromFallbackResponse(fallbackResponse);
         } catch (final IOException fallbackException) {
             throw new MirrorException("Unable to process the request. Load Balancer is not available.",
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                fallbackException);
+                HttpStatus.INTERNAL_SERVER_ERROR, fallbackException);
         }
     }
 }

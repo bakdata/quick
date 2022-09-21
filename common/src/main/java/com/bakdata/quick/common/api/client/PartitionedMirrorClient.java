@@ -22,14 +22,19 @@ import com.bakdata.quick.common.api.client.routing.Router;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.type.TopicTypeService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
+import io.reactivex.Single;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -61,19 +66,27 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
      *
      * @param mirrorHost mirror host to use
      * @param client http client
-     * @param keySerde the serde for the key
-     * @param valueResolver the value's {@link TypeResolver}
      * @param partitionFinder strategy for finding partitions
      */
-    public PartitionedMirrorClient(final MirrorHost mirrorHost, final HttpClient client,
-        final Serde<K> keySerde, final TypeResolver<V> valueResolver,
+    public PartitionedMirrorClient(final MirrorHost mirrorHost,
+        final HttpClient client,
+        final TopicTypeService topicTypeService,
         final PartitionFinder partitionFinder) {
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
         this.client = client;
+
+        final String topic = mirrorHost.getHost();
+        final Single<QuickTopicData<K, V>> data = topicTypeService.getTopicData(topic);
+        log.debug("Getting topic data of topic {}.", topic);
+        final QuickTopicData<K, V> quickTopicData = data.blockingGet();
+        final Serde<K> keySerde = quickTopicData.getKeyData().getSerde();
+        log.debug("Extracting key serializer {}.", keySerde.serializer().getClass().getName());
+        final TypeResolver<V> valueResolver = quickTopicData.getValueData().getResolver();
+        log.debug("Extracting value resolver {}.", valueResolver.getClass().getName());
         this.parser = new MirrorValueParser<>(valueResolver, client.objectMapper());
         this.requestManager = new MirrorRequestManagerWithFallback(client, mirrorHost);
         final Map<Integer, String> response = this.makeRequestForPartitionHostMapping();
-        this.router = new PartitionRouter<>(keySerde, mirrorHost.getHost(), partitionFinder, response);
+        this.router = new PartitionRouter<>(keySerde, topic, partitionFinder, response);
         this.knownHosts = this.router.getAllHosts();
     }
 
@@ -110,8 +123,40 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
-        log.debug("Fetching values for {} keys.", keys.size());
-        return keys.stream().map(this::fetchValue).collect(Collectors.toList());
+        log.debug("Fetching values for keys {}.", keys.size());
+        final List<V> valuesFromAllHosts = new ArrayList<>();
+
+        final Map<MirrorHost, List<K>> mirrorHostKeyMap = new HashMap<>();
+        for (final K key : keys) {
+            final MirrorHost mirrorHost = this.router.findHost(key);
+            if (mirrorHostKeyMap.containsKey(mirrorHost)) {
+                mirrorHostKeyMap.get(mirrorHost).add(key);
+            } else {
+                mirrorHostKeyMap.put(mirrorHost, new ArrayList<>());
+                mirrorHostKeyMap.get(mirrorHost).add(key);
+            }
+        }
+        log.debug("Created a map of host and list of keys: {}", mirrorHostKeyMap);
+
+        for (final Entry<MirrorHost, List<K>> mirrorHostWitKeys : mirrorHostKeyMap.entrySet()) {
+            final List<String> stringKeys = mirrorHostWitKeys.getValue().stream().map(Objects::toString).collect(
+                Collectors.toList());
+            final String url = mirrorHostWitKeys.getKey().forKeys(stringKeys);
+            log.debug("Making request for host: {}", url);
+            final ResponseWrapper response = this.requestManager.makeRequest(url);
+
+            if (response.isUpdateCacheHeaderSet()) {
+                log.debug("The update header has been set for url {}. Updating router info.", url);
+                this.updateRouterInfo();
+            }
+
+            final List<V> valuesFromSingleHost =
+                Objects.requireNonNullElse(this.requestManager.processResponse(response, this.parser::deserializeList),
+                    Collections.emptyList());
+            valuesFromAllHosts.addAll(valuesFromSingleHost);
+        }
+        log.debug("Fetched values for list request: {}", valuesFromAllHosts);
+        return valuesFromAllHosts;
     }
 
     @Override

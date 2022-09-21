@@ -25,15 +25,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 
 /**
- * A router that leverages the fact that a mirror knows which partitions a specific replica stores
- * (it has a mapping between partitions and a host replica),
- * and thus can use this information to introduce routing based on the specific partition mapping.
+ * A router that leverages the fact that a mirror knows which partitions a specific replica stores (it has a mapping
+ * between partitions and a host replica), and thus can use this information to introduce routing based on the specific
+ * partition mapping.
  *
  * @param <K> the type of key
  */
+@Slf4j
 public class PartitionRouter<K> implements Router<K> {
 
     private final String topic;
@@ -45,13 +47,13 @@ public class PartitionRouter<K> implements Router<K> {
     /**
      * A constructor with the default partitioner that is retrieved from a static method.
      *
-     * @param keySerde        serializer for the key
-     * @param topic           the name of the corresponding topic
+     * @param keySerde serializer for the key
+     * @param topic the name of the corresponding topic
      * @param partitionFinder strategy for finding partitions
      * @param partitionToHost partition to host mapping
      */
     public PartitionRouter(final Serde<K> keySerde, final String topic, final PartitionFinder partitionFinder,
-                           final Map<Integer, String> partitionToHost) {
+        final Map<Integer, String> partitionToHost) {
         this.topic = topic;
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
@@ -65,10 +67,10 @@ public class PartitionRouter<K> implements Router<K> {
         final int partition =
             this.partitionFinder.getForSerializedKey(serializedKey, this.partitionToMirrorHost.size());
         if (!this.partitionToMirrorHost.containsKey(partition)) {
-            throw new MirrorException(String.format(
-                "No MirrorHost found for partition: %d", partition
-            ), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new MirrorException(String.format("No MirrorHost found for partition: %d", partition),
+                HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        log.debug("Calculated partition is: {}, getting it from {}", partition, this.partitionToMirrorHost);
         return this.partitionToMirrorHost.get(partition);
     }
 
@@ -82,6 +84,7 @@ public class PartitionRouter<K> implements Router<K> {
 
     @Override
     public void updateRoutingInfo(final Map<Integer, String> updatedRoutingInfo) {
+        log.debug("Updating route info with: {}", updatedRoutingInfo);
         this.partitionToMirrorHost = convertHostStringToMirrorHost(updatedRoutingInfo);
         this.distinctMirrorHosts = this.findDistinctHosts();
     }

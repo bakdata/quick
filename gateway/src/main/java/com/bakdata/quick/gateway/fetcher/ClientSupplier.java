@@ -20,5 +20,5 @@ package com.bakdata.quick.gateway.fetcher;
  * Supplier for creating a new data fetcher client for a topic.
  */
 public interface ClientSupplier {
-    <T> DataFetcherClient<T> createClient(final String topic);
+    <K, V> DataFetcherClient<K, V> createClient(final String topic);
 }

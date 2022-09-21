@@ -23,19 +23,21 @@ import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serde;
 
 
 /**
  * A HTTP client for fetching values from mirror REST APIs.
  */
 @Slf4j
-public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
-    private final Lazy<MirrorClient<String, V>> mirrorClient;
+public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
+    private final Lazy<MirrorClient<K, V>> mirrorClient;
 
     /**
      * Constructor for client.
@@ -43,29 +45,30 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
      * @param host host url of the mirror
      * @param client http client
      * @param mirrorConfig configuration for the mirror
-     * @param typeResolverLazy a lazy for the value resolver
      */
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final Lazy<TypeResolver<V>> typeResolverLazy) {
+        final TopicTypeService topicTypeService) {
+
         this.mirrorClient =
-            new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, typeResolverLazy.get()));
+            new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, topicTypeService));
     }
 
-    public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final TypeResolver<V> valueResolver) {
-        this(host, client, mirrorConfig, new Lazy<>(() -> valueResolver));
-    }
+//    public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
+//        final QuickTopicData<K, V> quickTopicData) {
+//        this(host, client, mirrorConfig, new Lazy<>(() -> quickTopicData));
+//    }
 
     @Override
     @Nullable
-    public V fetchResult(final String id) {
+    public V fetchResult(final K id) {
         log.trace("Preparing to send request for fetching a key {} to Mirror", id);
+
         return this.mirrorClient.get().fetchValue(id);
     }
 
     @Override
     @Nullable
-    public List<V> fetchResults(final List<String> ids) {
+    public List<V> fetchResults(final List<K> ids) {
         log.trace("Preparing to send request for fetching a list of ids {} to Mirror", ids);
         return this.mirrorClient.get().fetchValues(ids);
     }
@@ -79,17 +82,19 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
 
     @Override
     @Nullable
-    public List<V> fetchRange(final String id, final String from, final String to) {
+    public List<V> fetchRange(final K id, final String from, final String to) {
         return this.mirrorClient.get().fetchRange(id, from, to);
     }
 
-    private PartitionedMirrorClient<String, V> createMirrorClient(final String host,
+    private PartitionedMirrorClient<K, V> createMirrorClient(final String host,
         final MirrorConfig mirrorConfig,
         final HttpClient client,
-        final TypeResolver<V> valueResolver) {
+        final TopicTypeService topicTypeService) {
         final MirrorHost mirrorHost = new MirrorHost(host, mirrorConfig);
+
         log.info("Creating a partitioned mirror client with with service {}", mirrorHost);
-        return new PartitionedMirrorClient<>(mirrorHost, client, Serdes.String(),
-            valueResolver, new DefaultPartitionFinder());
+        PartitionedMirrorClient<K, V> kvPartitionedMirrorClient =
+            new PartitionedMirrorClient<>(mirrorHost, client, topicTypeService, new DefaultPartitionFinder());
+        return kvPartitionedMirrorClient;
     }
 }

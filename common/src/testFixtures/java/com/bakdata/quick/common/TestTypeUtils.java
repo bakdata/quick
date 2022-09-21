@@ -16,14 +16,20 @@
 
 package com.bakdata.quick.common;
 
+import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.resolver.DoubleResolver;
 import com.bakdata.quick.common.resolver.GenericAvroResolver;
 import com.bakdata.quick.common.resolver.IntegerResolver;
+import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.LongResolver;
 import com.bakdata.quick.common.resolver.ProtobufResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
+import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
+import com.bakdata.quick.common.type.TopicTypeService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
@@ -62,5 +68,4 @@ public final class TestTypeUtils {
     public static QuickData<Message> newProtobufData(final Descriptors.Descriptor descriptor) {
         return new QuickData<>(QuickTopicType.PROTOBUF, new KafkaProtobufSerde<>(), new ProtobufResolver(descriptor));
     }
-
 }

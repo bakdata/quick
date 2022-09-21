@@ -31,6 +31,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsMetadata;
 
@@ -38,6 +39,7 @@ import org.apache.kafka.streams.StreamsMetadata;
  * REST API exposing current Kafka Streams state.
  */
 @Controller("/streams")
+@Slf4j
 public class StreamsStateController {
     private final KafkaStreams streams;
     private final String storeName;
@@ -54,10 +56,12 @@ public class StreamsStateController {
     @Get("/partitions")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<Integer, String> getApplicationHosts() {
-        return this.streams.streamsMetadataForStore(this.storeName).stream()
+        Map<Integer, String> partitionToHost = this.streams.streamsMetadataForStore(this.storeName).stream()
             .flatMap(StreamsStateController::getAddressesForPartitions)
             .filter(distinctByKey(PartitionAddress::getPartition))
             .collect(Collectors.toMap(PartitionAddress::getPartition, PartitionAddress::getAddress));
+        log.debug("The partition to host information: {}", partitionToHost);
+        return partitionToHost;
     }
 
     private static Stream<PartitionAddress> getAddressesForPartitions(final StreamsMetadata metadata) {
