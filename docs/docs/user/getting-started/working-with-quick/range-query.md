@@ -82,23 +82,24 @@ Here is an example of the `ratings.json` file:
 
 To use range queries, you must create a mirror with a range index.
 A range index is a structure that enables the execution of range queries.
-You can create one using the Quick CLI. You do this by executing the topic creation command, however, with some 
-additional options:
+You can create one using the Quick CLI. You do this by executing the topic creation command
+with an additional option:
 ```
-quick topic create user-rating-range --key int --value schema --schema example.UserReview --range-field rating --point
+quick topic create user-rating-range --key int --value schema --schema example.UserReview --range-field rating
 ```
-In comparison to the previous form of the command, you can see two new elements (options):  
-`--range-field` and `--point`.  
-`--range-field` is an optional field.
-Specifying it enables you to create a range index, and consequently carry out range queries. 
-`--range-field` must be linked with a specific field over which you want your range queries to be executed.
-In the example above, the option is linked to the `rating` field.  
-`--point` is a parameter that tells Quick to use the current mirror implementation to perform so-called point 
-queries. Point queries are queries that are executed by default in Quick (thus, you don't have to specify the 
-`-point` option explicitly) and return a single value for a given key.  
-You can also completely drop the possibility of performing point queries by providing the `--no-point` option.  
-`--point` and `--range-field` are not exclusive.
-You can execute both point and range queries in your application.
+Compared to the previous command form,
+you can see a new element (option): `--range-field`.  
+Specifying it enables you to create a range index
+and consequently carry out range queries.
+`--range-field` must be linked with a particular field
+over which you want your range queries to be executed.
+The option is related to the `rating` field in the example above.  
+`--range-field` is an optional flag. When you don't specify it,
+the manager only creates a point index (exactly as before).
+A point index is a structure for carrying out point queries
+(a single value for a given key).
+Thus, you can execute either only point queries
+or both point and range queries in your application.
 
 There are some constraints upon the values (values that you provide with the `--value` option)
 for which range queries can be executed:
