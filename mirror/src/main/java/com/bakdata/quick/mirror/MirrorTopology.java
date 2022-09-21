@@ -58,8 +58,6 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
     private final String storeName;
     private final String rangeStoreName;
     private final String retentionStoreName;
-
-    private final boolean isPoint;
     @Nullable
     private final String rangeField;
     @Nullable
@@ -72,13 +70,12 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
      */
     @Builder
     public MirrorTopology(final QuickTopologyData<K, V> topologyData, final String storeName,
-        final String rangeStoreName, final boolean isPoint, @Nullable final String rangeField,
+        final String rangeStoreName, @Nullable final String rangeField,
         @Nullable final Duration retentionTime,
         final String retentionStoreName, final StoreType storeType, final boolean isCleanup) {
         super(topologyData);
         this.storeName = storeName;
         this.rangeStoreName = rangeStoreName;
-        this.isPoint = isPoint;
         this.rangeField = rangeField;
         this.retentionTime = retentionTime;
         this.retentionStoreName = retentionStoreName;
@@ -96,11 +93,9 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
         final KStream<K, V> stream = builder.stream(this.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
 
         // if the user set a retention time, we use a special mirror processor that schedules a job for it
+        log.debug("Building point topology");
+        this.createPointTopology(builder, keySerDe, valueSerDe, stream);
         if (this.retentionTime == null) {
-            if (this.isPoint) {
-                log.debug("Building point topology");
-                this.createPointTopology(builder, keySerDe, valueSerDe, stream);
-            }
             if (this.rangeField != null) {
                 log.debug("Building range topology");
                 this.createRangeTopology(builder, valueSerDe, stream, this.rangeField);

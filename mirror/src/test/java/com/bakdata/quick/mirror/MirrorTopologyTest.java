@@ -58,7 +58,6 @@ class MirrorTopologyTest {
 
         final MirrorTopology<Integer, Integer> mirrorTopology = MirrorTopology.<Integer, Integer>builder()
             .topologyData(topologyInfo)
-            .isPoint(true)
             .storeName(STORE_NAME)
             .storeType(StoreType.INMEMORY)
             .build();

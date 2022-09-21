@@ -44,7 +44,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
@@ -86,11 +85,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;
 
-    @Setter // Only for testing
-    @Option(names = "--point", description = "Determines if a point index should be built or not",
-        defaultValue = "true")
-    private boolean isPoint;
-
 
     /**
      * Constructor.
@@ -130,7 +124,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .retentionTime(this.retentionTime)
             .retentionStoreName(RETENTION_STORE)
             .storeType(this.storeType)
-            .isPoint(this.isPoint)
             .rangeField(this.rangeField)
             .isCleanup(this.cleanUp)
             .build()
