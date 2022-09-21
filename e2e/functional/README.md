@@ -9,8 +9,8 @@ There are three scenarios tested: </br>
 ## Prerequisite
 You can specify the quick-cli version and the repository of distributions (package index)
 via providing the `QUICK_CLI_VERSION` and `INDEX` arguments, respectively. 
-Supported repositories are [PyPI](https://pypi.org/)
-and [Test PyPI](https://test.pypi.org/).
+Supported repositories are [PyPI](https://pypi.org/project/quick-cli/)
+and [Test PyPI](https://test.pypi.org/project/quick-cli/).
 To build an image using `Test PyPI`,
 you must pass `test` value to the `INDEX` argument.
 Providing any other argument results in using `PyPI`.
