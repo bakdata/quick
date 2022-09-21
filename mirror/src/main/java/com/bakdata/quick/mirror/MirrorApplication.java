@@ -82,7 +82,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     // CLI Arguments
     @Option(names = "--store-type", description = "Kafka Store to use. Choices: ${COMPLETION-CANDIDATES}",
         defaultValue = "inmemory")
-    private StoreType storeType = StoreType.INMEMORY;
+    private final StoreType storeType = StoreType.INMEMORY;
     @Nullable
     @Option(names = "--retention-time", description = "Retention time defined in ISO_8601")
     private Duration retentionTime;
@@ -90,10 +90,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Nullable
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;
-
-    @Option(names = "--point", description = "Determines if a point index should be built or not",
-        defaultValue = "true")
-    private boolean isPoint;
 
 
     /**
@@ -135,7 +131,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .retentionTime(this.retentionTime)
             .retentionStoreName(RETENTION_STORE)
             .storeType(this.storeType)
-            .isPoint(this.isPoint)
             .rangeField(this.rangeField)
             .isCleanup(this.cleanUp)
             .build()

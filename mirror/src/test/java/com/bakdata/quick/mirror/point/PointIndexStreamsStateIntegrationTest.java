@@ -128,7 +128,6 @@ class PointIndexStreamsStateIntegrationTest {
         app.setBrokers(kafkaCluster.getBrokerList());
         app.setProductive(false);
         app.setSchemaRegistryUrl(schemaRegistry.getUrl());
-        app.setPoint(true);
         return app;
     }
 }

@@ -8,4 +8,4 @@ metadata:
     app.kubernetes.io/component: gateway
 data:
   schema.graphql: |
-    [(${schema})]
+  [(${schema})]

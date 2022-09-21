@@ -54,6 +54,7 @@ import org.junit.jupiter.api.Test;
 
 class MirrorRangeTopologyTest {
     private static final List<String> INPUT_TOPICS = List.of("input");
+    public static final String MIRROR_STORE = "mirror-test-store";
     private static final String RANGE_STORE_NAME = "range-test-store";
     private static final String RANGE_FIELD = "timestamp";
 
@@ -329,8 +330,8 @@ class MirrorRangeTopologyTest {
 
         final MirrorTopology<Integer, GenericRecord> mirrorTopology = MirrorTopology.<Integer, GenericRecord>builder()
             .topologyData(topologyInfo)
+            .storeName(MIRROR_STORE)
             .rangeStoreName(RANGE_STORE_NAME)
-            .isPoint(false)
             .rangeField(RANGE_FIELD)
             .storeType(StoreType.INMEMORY)
             .build();
@@ -354,8 +355,8 @@ class MirrorRangeTopologyTest {
 
         final MirrorTopology<Long, Message> mirrorTopology = MirrorTopology.<Long, Message>builder()
             .topologyData(topologyInfo)
+            .storeName(MIRROR_STORE)
             .rangeStoreName(RANGE_STORE_NAME)
-            .isPoint(false)
             .rangeField(RANGE_FIELD)
             .storeType(StoreType.INMEMORY)
             .build();
