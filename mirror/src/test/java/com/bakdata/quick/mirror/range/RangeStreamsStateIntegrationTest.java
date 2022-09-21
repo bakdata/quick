@@ -136,7 +136,6 @@ class RangeStreamsStateIntegrationTest {
         app.setBrokers(kafkaCluster.getBrokerList());
         app.setProductive(false);
         app.setSchemaRegistryUrl(schemaRegistry.getUrl());
-        app.setPoint(false);
         app.setRangeField("timestamp");
         return app;
     }

@@ -17,9 +17,6 @@
 package com.bakdata.quick.mirror;
 
 
-import com.bakdata.quick.common.exception.MirrorTopologyException;
-import com.bakdata.quick.mirror.service.MirrorIndexType;
-import com.bakdata.quick.mirror.service.context.IndexProperties;
 import com.bakdata.quick.mirror.service.context.QueryContextProvider;
 import com.bakdata.quick.mirror.service.context.QueryServiceContext;
 import io.micronaut.http.MediaType;
@@ -53,7 +50,7 @@ public class StreamsStateController {
     public StreamsStateController(final QueryContextProvider contextProvider) {
         final QueryServiceContext queryServiceContext = contextProvider.get();
         this.streams = queryServiceContext.getStreams();
-        this.storeName = getActiveStoreName(queryServiceContext);
+        this.storeName = queryServiceContext.getPointStoreName();
     }
 
     /**
@@ -76,17 +73,6 @@ public class StreamsStateController {
     private static <T> Predicate<T> distinctByKey(final Function<? super T, ?> keyExtractor) {
         final Set<Object> seen = ConcurrentHashMap.newKeySet();
         return element -> seen.add(keyExtractor.apply(element));
-    }
-
-    private static String getActiveStoreName(final QueryServiceContext queryServiceContext) {
-        final Map<MirrorIndexType, IndexProperties> rangePropertiesMap = queryServiceContext.getRangePropertiesMap();
-        if (rangePropertiesMap.containsKey(MirrorIndexType.POINT)) {
-            return rangePropertiesMap.get(MirrorIndexType.POINT).getStoreName();
-        } else if (rangePropertiesMap.containsKey(MirrorIndexType.RANGE)) {
-            return rangePropertiesMap.get(MirrorIndexType.RANGE).getStoreName();
-        } else {
-            throw new MirrorTopologyException("No state store was initialized.");
-        }
     }
 
     /**

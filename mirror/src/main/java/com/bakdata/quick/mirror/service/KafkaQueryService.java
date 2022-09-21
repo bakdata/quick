@@ -24,13 +24,14 @@ import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.InternalErrorException;
+import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.range.DefaultRangeIndexer;
-import com.bakdata.quick.mirror.service.context.IndexProperties;
 import com.bakdata.quick.mirror.service.context.QueryContextProvider;
 import com.bakdata.quick.mirror.service.context.QueryServiceContext;
+import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.micronaut.http.HttpResponse;
@@ -44,7 +45,6 @@ import io.reactivex.schedulers.Schedulers;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +65,7 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
  */
 @Slf4j
 public class KafkaQueryService<K, V> implements QueryService<V> {
-    final QueryServiceContext context;
+    private final QueryServiceContext context;
     private final HttpClient client;
     private final KafkaStreams streams;
     private final HostInfo hostInfo;
@@ -73,8 +73,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private final Serializer<K> keySerializer;
     private final TypeResolver<V> valueResolver;
     private final TypeResolver<K> keyResolver;
-    @Nullable
-    private StoreQueryParameters<ReadOnlyKeyValueStore<K, V>> pointStoreQueryParameters;
+    private final StoreQueryParameters<ReadOnlyKeyValueStore<K, V>> pointStoreQueryParameters;
     @Nullable
     private StoreQueryParameters<ReadOnlyKeyValueStore<String, V>> rangeStoreQueryParameters;
     @Nullable
@@ -89,7 +88,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     public KafkaQueryService(final QueryContextProvider contextProvider, final HttpClient client) {
         this.context = contextProvider.get();
         this.client = client;
-        final QuickTopicData<K, V> topicData = this.context.getTopicData();
+        final QuickTopicData<K, V> topicData = this.context.getQuickTopicData();
         this.streams = this.context.getStreams();
         this.hostInfo = this.context.getHostInfo();
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
@@ -97,28 +96,23 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.valueResolver = topicData.getValueData().getResolver();
         this.topicName = topicData.getName();
 
-        final Map<MirrorIndexType, IndexProperties> rangePropertiesMap = this.context.getRangePropertiesMap();
+        log.debug("Initializing KafkaQueryService for point index");
+        final String pointStoreName = this.context.getPointStoreName();
+        this.pointStoreQueryParameters =
+            StoreQueryParameters.fromNameAndType(pointStoreName, QueryableStoreTypes.keyValueStore());
 
-        log.debug("Range Properties Map is: {}", rangePropertiesMap);
-
-        if (rangePropertiesMap.containsKey(MirrorIndexType.POINT)) {
-            log.debug("Initializing KafkaQueryService for point index");
-            final String pointStoreName = rangePropertiesMap.get(MirrorIndexType.POINT).getStoreName();
-            this.pointStoreQueryParameters =
-                StoreQueryParameters.fromNameAndType(pointStoreName, QueryableStoreTypes.keyValueStore());
-        }
-        if (rangePropertiesMap.containsKey(MirrorIndexType.RANGE)) {
+        if (this.context.getRangeIndexProperties() != null) {
             log.debug("Initializing KafkaQueryService for range index");
-            final IndexProperties rangeIndexProperties = rangePropertiesMap.get(MirrorIndexType.RANGE);
+            final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
             final String rangeStoreName = rangeIndexProperties.getStoreName();
             this.rangeStoreQueryParameters =
                 StoreQueryParameters.fromNameAndType(rangeStoreName, QueryableStoreTypes.keyValueStore());
-            final String rangeField = rangeIndexProperties.getRangeField();
-            final ParsedSchema parsedSchema = this.context.getTopicData().getValueData().getParsedSchema();
+
+            final ParsedSchema parsedSchema = this.context.getQuickTopicData().getValueData().getParsedSchema();
 
             this.rangeIndexer = DefaultRangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
                 Objects.requireNonNull(parsedSchema),
-                Objects.requireNonNull(rangeField));
+                Objects.requireNonNull(rangeIndexProperties.getRangeField()));
         }
     }
 
@@ -126,7 +120,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     public Single<HttpResponse<MirrorValue<V>>> get(final String rawKey) {
         final K key = this.keyResolver.fromString(rawKey);
         final KeyQueryMetadata metadata;
-        final String pointStoreName = this.context.getStoreNameOfType(MirrorIndexType.POINT);
+        final String pointStoreName = this.context.getPointStoreName();
         try {
             metadata = this.streams.queryMetadataForKey(pointStoreName, key, this.keySerializer);
         } catch (final IllegalStateException exception) {
@@ -188,11 +182,16 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         final String to) {
         final K key = this.keyResolver.fromString(rawKey);
         final KeyQueryMetadata metadata;
-        final String rangeStoreName = this.context.getStoreNameOfType(MirrorIndexType.RANGE);
+        final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
 
-        log.debug("range store name is: {}", rangeStoreName);
+        if (rangeIndexProperties == null) {
+            throw new MirrorException("You are trying to query a range. But no range index set.",
+                HttpStatus.BAD_REQUEST);
+        }
+
+        log.debug("range store name is: {}", rangeIndexProperties.getStoreName());
         try {
-            metadata = this.streams.queryMetadataForKey(rangeStoreName, key, this.keySerializer);
+            metadata = this.streams.queryMetadataForKey(rangeIndexProperties.getStoreName(), key, this.keySerializer);
         } catch (final IllegalStateException exception) {
             throw new InternalErrorException("Store is not running");
         }
@@ -216,7 +215,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             this.streams.store(Objects.requireNonNull(this.rangeStoreQueryParameters));
 
         if (rangeStore == null) {
-            log.error("Store {} not found!", rangeStoreName);
+            log.error("Store {} not found!", rangeIndexProperties);
             throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No such store");
         }
 

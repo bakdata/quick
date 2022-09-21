@@ -25,7 +25,7 @@ import lombok.Value;
  *
  */
 @Value
-public class IndexProperties {
+public class RangeIndexProperties {
     String storeName;
     @Nullable
     String rangeField;

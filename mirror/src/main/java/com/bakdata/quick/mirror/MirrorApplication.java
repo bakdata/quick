@@ -23,7 +23,6 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.QuickTopicConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
-import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
@@ -32,10 +31,10 @@ import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.CliArgHandler;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
-import com.bakdata.quick.mirror.service.MirrorIndexType;
-import com.bakdata.quick.mirror.service.context.IndexProperties;
 import com.bakdata.quick.mirror.service.context.QueryContextProvider;
 import com.bakdata.quick.mirror.service.context.QueryServiceContext;
+import com.bakdata.quick.mirror.service.context.QueryServiceContext.QueryServiceContextBuilder;
+import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
@@ -46,7 +45,6 @@ import jakarta.inject.Singleton;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -122,7 +120,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     public Topology createTopology() {
-        log.debug("Creating Mirror topology with properties isPoint {} rangeField {}", this.isPoint, this.rangeField);
+        log.debug("Creating Mirror topology with properties rangeField {}", this.rangeField);
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
         return MirrorTopology.<K, V>builder()
             .topologyData(this.getTopologyData())
@@ -191,35 +189,21 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Override
     protected void runStreamsApplication() {
         final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
-        final QueryServiceContext serviceContext;
-        final Map<MirrorIndexType, IndexProperties> indexProperties;
 
-        if (this.isPoint && this.rangeField != null) {
+        log.debug("Creating index property only for point");
+        final QueryServiceContextBuilder contextBuilder = QueryServiceContext.builder()
+            .streams(this.getStreams())
+            .hostInfo(this.hostConfig.toInfo())
+            .pointStoreName(POINT_STORE)
+            .quickTopicData(quickTopicData);
+
+
+        if (this.rangeField != null) {
             log.debug("Creating index property for point and range");
-            indexProperties = Map.of(
-                MirrorIndexType.POINT, new IndexProperties(POINT_STORE, null),
-                MirrorIndexType.RANGE, new IndexProperties(RANGE_STORE, this.rangeField)
-            );
-        } else if (!this.isPoint && this.rangeField != null) {
-            log.debug("Creating index property only for range");
-            indexProperties = Map.of(
-                MirrorIndexType.RANGE, new IndexProperties(RANGE_STORE, this.rangeField)
-            );
-        } else if (this.isPoint) {
-            log.debug("Creating index property only for point");
-            indexProperties = Map.of(
-                MirrorIndexType.POINT, new IndexProperties(POINT_STORE, null)
-            );
-        } else {
-            throw new MirrorTopologyException("Unsupported");
+            contextBuilder.rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField));
         }
-        serviceContext = new QueryServiceContext(
-            this.getStreams(),
-            this.hostConfig.toInfo(),
-            indexProperties,
-            quickTopicData
-        );
-        this.contextProvider.setQueryContext(serviceContext);
+
+        this.contextProvider.setQueryContext(contextBuilder.build());
         super.runStreamsApplication();
     }
 
