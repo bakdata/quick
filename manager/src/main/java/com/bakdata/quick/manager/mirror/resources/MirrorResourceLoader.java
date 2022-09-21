@@ -90,7 +90,6 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
         final List<String> arguments = CliArgHandler.convertArgs(
             createCliArguments(mirrorCreationData.getTopicName(),
                 mirrorCreationData.getRetentionTime(),
-                mirrorCreationData.isPoint(),
                 mirrorCreationData.getRangeField()));
 
         final MirrorDeployment deployment = new MirrorDeployment(
@@ -153,9 +152,8 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
     }
 
     /**
-     * Sets the args for the mirror deployment. Throws {@link BadArgumentException} if no query type (range or point) is
-     * defined.
-     *
+     * Sets the args for the mirror deployment. Throws {@link BadArgumentException}
+     * if both --retention-time and --range-field are specified.
      * @param topic the input topic name
      * @param retentionTime retention time
      * @param rangeField the field where the range index should be build on
@@ -163,22 +161,20 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
      */
     private static Map<String, String> createCliArguments(final String topic,
         @Nullable final Duration retentionTime,
-        final boolean point,
         @Nullable final String rangeField) {
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
             .put("--input-topics", topic);
 
-        builder.put("--point", Boolean.toString(point));
+        if (Objects.nonNull(retentionTime) && Objects.nonNull(rangeField)) {
+            throw new BadArgumentException("The --range-field option must not be specified" +
+                " when --retention-time is set");
+        }
 
         if (Objects.nonNull(retentionTime)) {
             builder.put("--retention-time", retentionTime.toString());
         }
         if (Objects.nonNull(rangeField)) {
             builder.put("--range-field", rangeField);
-        }
-        if (Objects.isNull(rangeField) && !point) {
-            throw new BadArgumentException(
-                "At least one query type (--range-field <Field> or --point) should be defined");
         }
 
         log.debug("Creating CLI arguments for the mirror deployment: {}", builder.build().toString());
