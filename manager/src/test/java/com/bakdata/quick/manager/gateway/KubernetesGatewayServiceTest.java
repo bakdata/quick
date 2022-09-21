@@ -37,15 +37,21 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.reactivex.Completable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.mockito.Mockito;
 
 class KubernetesGatewayServiceTest extends KubernetesTest {
+
+    private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "graphql");
     private static final String GATEWAY_IMAGE = "quick-gateway";
     private static final String GATEWAY_NAME = "test-gateway";
     private static final String DEPLOYMENT_NAME = "quick-gateway-test-gateway";
@@ -192,8 +198,8 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
     }
 
     @Test
-    void shouldCreateConfigMap() {
-        this.createGateway(GATEWAY_NAME, 1, null);
+    void shouldCreateConfigMapWithNoSchema() {
+        this.createGateway(GATEWAY_NAME, 1, null, null);
 
         final List<ConfigMap> configMaps = this.getConfigMaps();
         assertThat(configMaps)
@@ -204,9 +210,10 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
     }
 
     @Test
-    void shouldCreateConfigmapWithSchema() {
-        final String schema = "type Query { test: Int }";
-        this.createGateway(GATEWAY_NAME, 1, null, schema);
+    void shouldCreateConfigmapWithSchema(final TestInfo testInfo) throws IOException {
+        final String file = this.getSchema(testInfo);
+
+        this.createGateway(GATEWAY_NAME, 1, null, file);
 
         final List<ConfigMap> configMaps = this.getConfigMaps();
         assertThat(configMaps)
@@ -215,7 +222,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
             .extracting(ConfigMap::getData, InstanceOfAssertFactories.map(String.class, String.class))
             .containsOnlyKeys("schema.graphql")
             .extractingByKey("schema.graphql", InstanceOfAssertFactories.STRING)
-            .containsIgnoringWhitespaces(schema);
+            .containsIgnoringWhitespaces(file);
     }
 
 
@@ -348,5 +355,10 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         final Throwable throwable =
             this.gatewayService.createGateway(creationData).blockingGet();
         Optional.ofNullable(throwable).ifPresent(Assertions::fail);
+    }
+
+    private String getSchema(final TestInfo testInfo) throws IOException {
+        return Files.readString(workingDirectory.resolve(
+            testInfo.getTestMethod().orElseThrow().getName() + ".graphql"));
     }
 }
