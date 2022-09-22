@@ -25,7 +25,7 @@ import lombok.Value;
  * Tuple containing the type resolver and the parsed schema.
  */
 @Value
-public class TypeResolverSchema<T> {
+public class TypeResolverWithSchema<T> {
     TypeResolver<T> typeResolver;
     @Nullable
     ParsedSchema parsedSchema;

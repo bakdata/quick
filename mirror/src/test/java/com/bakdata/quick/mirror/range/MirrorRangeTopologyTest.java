@@ -35,6 +35,7 @@ import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.google.common.collect.Maps;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
+import com.google.protobuf.MessageOrBuilder;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
@@ -217,11 +218,7 @@ class MirrorRangeTopologyTest {
                         "0000000000000000001_0000000001",
                         "0000000000000000001_0000000002",
                         "0000000000000000001_0000000003");
-                assertThat(keyValues).extracting(keyValue -> {
-                        final FieldDescriptor fieldDescriptor =
-                            keyValue.value.getDescriptorForType().findFieldByName(RANGE_FIELD);
-                        return keyValue.value.getField(fieldDescriptor);
-                    })
+                assertThat(keyValues).extracting(keyValue -> getField(keyValue.value))
                     .containsExactly(1, 2, 3);
             });
 
@@ -262,11 +259,7 @@ class MirrorRangeTopologyTest {
                         "-0000000000000000001_0000000001",
                         "-0000000000000000001_0000000002",
                         "-0000000000000000001_0000000003");
-                assertThat(keyValues).extracting(keyValue -> {
-                        final FieldDescriptor fieldDescriptor =
-                            keyValue.value.getDescriptorForType().findFieldByName(RANGE_FIELD);
-                        return keyValue.value.getField(fieldDescriptor);
-                    })
+                assertThat(keyValues).extracting(keyValue -> getField(keyValue.value))
                     .containsExactly(1, 2, 3);
             });
 
@@ -304,11 +297,7 @@ class MirrorRangeTopologyTest {
             .satisfies(keyValues -> {
                 assertThat(keyValues).extracting(keyValue -> keyValue.key)
                     .containsExactly(from, to);
-                assertThat(keyValues).extracting(keyValue -> {
-                        final FieldDescriptor fieldDescriptor =
-                            keyValue.value.getDescriptorForType().findFieldByName(RANGE_FIELD);
-                        return keyValue.value.getField(fieldDescriptor);
-                    })
+                assertThat(keyValues).extracting(keyValue -> getField(keyValue.value))
                     .containsExactly(Integer.MIN_VALUE, Integer.MAX_VALUE);
             });
 
@@ -383,5 +372,10 @@ class MirrorRangeTopologyTest {
         return Map.of("bootstrap.servers", "test:123", "application.id", "mirror-test",
             StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.Long().getClass().getName(),
             StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, KafkaProtobufSerde.class.getName());
+    }
+
+    private static Object getField(final MessageOrBuilder keyValue) {
+        final FieldDescriptor fieldDescriptor = keyValue.getDescriptorForType().findFieldByName(RANGE_FIELD);
+        return keyValue.getField(fieldDescriptor);
     }
 }
