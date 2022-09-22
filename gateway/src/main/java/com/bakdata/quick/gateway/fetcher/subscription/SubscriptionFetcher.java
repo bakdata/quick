@@ -21,10 +21,10 @@ import static com.bakdata.quick.gateway.fetcher.subscription.KafkaSubscriptionPr
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.jetbrains.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 /**
@@ -38,7 +38,7 @@ import org.reactivestreams.Publisher;
  * @see io.micronaut.configuration.graphql.ws.GraphQLWsSender
  */
 public class SubscriptionFetcher<K, V> implements DataFetcher<Publisher<V>> {
-    final SubscriptionProvider<K, V> subscriptionProvider;
+    private final SubscriptionProvider<K, V> subscriptionProvider;
 
     /**
      * Creates a new SubscriptionFetcher.

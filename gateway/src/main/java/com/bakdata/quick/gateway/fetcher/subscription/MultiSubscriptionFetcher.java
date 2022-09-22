@@ -134,34 +134,41 @@ public class MultiSubscriptionFetcher<K> implements DataFetcher<Publisher<Map<St
      */
     private Mono<Map<String, Object>> createComplexType(final NamedRecord<K, ?> namedRecord,
         final List<String> selectedFields) {
+
+        final ConsumerRecord<K, ?> record = namedRecord.getConsumerRecord();
         // map holding the data for current key
         final Map<String, Object> complexType = new HashMap<>();
-        complexType.put(namedRecord.getFieldName(), namedRecord.getConsumerRecord().value());
+        complexType.put(namedRecord.getFieldName(), record.value());
 
-        final FieldKey<K> key = new FieldKey<>(namedRecord.getFieldName(), namedRecord.getConsumerRecord().key());
-        final CompletableFuture<?> recordValue =
-            CompletableFuture.completedFuture(namedRecord.getConsumerRecord().value());
-        log.info("Update {} with {}", key, namedRecord.getConsumerRecord().value());
-        this.fieldCache.put(key, recordValue);
+        this.updateFieldCache(namedRecord.getFieldName(), record);
 
         final Flux<? extends FieldKey<K>> fieldKeysToPopulate = Flux.fromIterable(selectedFields)
             .filter(fieldName -> !fieldName.equals(namedRecord.getFieldName()))
-            .map(fieldName -> new FieldKey<>(fieldName, namedRecord.getConsumerRecord().key()));
+            .map(fieldName -> new FieldKey<>(fieldName, record.key()));
 
-        final Flux<FieldValue<Object>> fieldValues = fieldKeysToPopulate.flatMap(fieldKey -> {
-                log.info("Get key {}", fieldKey);
-                return Mono.fromFuture(this.fieldCache.get(fieldKey))
-                    .map(value -> {
-                        log.info("Set key {} to {}", fieldKey.getFieldName(), value);
-                        return new FieldValue<>(fieldKey.getFieldName(), value);
-                    });
-            }
-        );
+        final Flux<FieldValue<Object>> fieldValues = fieldKeysToPopulate.flatMap(this::getValueForKey);
 
         return fieldValues.reduce(complexType, (map, fieldValue) -> {
             map.put(fieldValue.getFieldName(), fieldValue.getValue());
             return map;
         });
+    }
+
+    private void updateFieldCache(final String fieldName, final ConsumerRecord<K, ?> record) {
+        final FieldKey<K> key = new FieldKey<>(fieldName, record.key());
+        final CompletableFuture<?> recordValue =
+            CompletableFuture.completedFuture(record.value());
+
+        log.info("Update field cache with polled record: Key {} has value {}", key, record.value());
+        this.fieldCache.put(key, recordValue);
+    }
+
+    /**
+     * Get the latest value from the {@link MultiSubscriptionFetcher#fieldCache}.
+     */
+    private Mono<FieldValue<Object>> getValueForKey(final FieldKey<K> fieldKey) {
+        return Mono.fromFuture(this.fieldCache.get(fieldKey))
+            .map(value -> new FieldValue<>(fieldKey.getFieldName(), value));
     }
 
     @Nullable
@@ -171,16 +178,30 @@ public class MultiSubscriptionFetcher<K> implements DataFetcher<Publisher<Map<St
         return client.fetchResult(fieldKey.getKey());
     }
 
+    /**
+     * Create one Flux that streams the elements of ALL topics selected by the user query.
+     */
     private Flux<? extends NamedRecord<K, ?>> combineElementStreams(final List<String> selectedFields,
-        final DataFetchingEnvironment env) {
+                                                                    final DataFetchingEnvironment env) {
         final List<Flux<? extends NamedRecord<K, ?>>> fluxes = selectedFields.stream()
-            .map(name -> {
-                final SubscriptionProvider<K, ?> kafkaSubscriber = this.fieldSubscriptionProviders.get(name);
-                Objects.requireNonNull(kafkaSubscriber);
-                final Flux<? extends ConsumerRecord<K, ?>> elementStream = kafkaSubscriber.getElementStream(env);
-                return elementStream.map(val -> new NamedRecord<>(name, val));
-            }).collect(Collectors.toList());
+            .map(name -> this.createSubscriptionFlux(env, name)).collect(Collectors.toList());
         return Flux.merge(fluxes);
+    }
+
+    /**
+     * Creates a {@link Flux} of {@link NamedRecord} for the given field name.
+     *
+     * <p>
+     * The field name points to a topics for which a {@link SubscriptionProvider} emits the consumed records.
+     */
+    private Flux<? extends NamedRecord<K, ?>> createSubscriptionFlux(final DataFetchingEnvironment env,
+                                                                     final String name) {
+        final SubscriptionProvider<K, ?> kafkaSubscriber = Objects.requireNonNull(
+            this.fieldSubscriptionProviders.get(name),
+            () -> "No subscription provider found for field " + name
+        );
+        final Flux<? extends ConsumerRecord<K, ?>> elementStream = kafkaSubscriber.getElementStream(env);
+        return elementStream.map(consumerRecord -> new NamedRecord<>(name, consumerRecord));
     }
 
     /**
