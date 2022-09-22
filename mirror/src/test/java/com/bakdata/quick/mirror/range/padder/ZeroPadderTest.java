@@ -69,7 +69,7 @@ class ZeroPadderTest {
             arguments(TEN_DIGIT_INT_NUMBER, "1000000000"),
             arguments(TEN_DIGIT_MINUS_INT_NUMBER, "-1000000000"),
             arguments(Integer.MAX_VALUE, String.valueOf(Integer.MAX_VALUE))
-            );
+        );
     }
 
     static Stream<Arguments> longNumberProvider() {

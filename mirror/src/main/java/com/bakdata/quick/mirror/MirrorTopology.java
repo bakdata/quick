@@ -93,13 +93,12 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
         final KStream<K, V> stream = builder.stream(this.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
 
         // if the user set a retention time, we use a special mirror processor that schedules a job for it
-        log.debug("Building point topology");
         this.createPointTopology(builder, keySerDe, valueSerDe, stream);
         if (this.retentionTime == null) {
             if (this.rangeField != null) {
-                log.debug("Building range topology");
                 this.createRangeTopology(builder, valueSerDe, stream, this.rangeField);
             }
+            log.debug("The topology is {}", builder.build().describe());
             return builder.build();
         } else {
             return this.createRetentionTopology(builder, keySerDe, stream);
@@ -107,8 +106,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
     }
 
     private void createPointTopology(final StreamsBuilder builder, final Serde<K> keySerDe,
-        final Serde<V> valueSerDe,
-        final KStream<K, V> stream) {
+        final Serde<V> valueSerDe, final KStream<K, V> stream) {
         builder.addStateStore(
             Stores.keyValueStoreBuilder(this.createStore(this.storeName), keySerDe, valueSerDe));
         stream.process(() -> new MirrorProcessor<>(this.storeName), Named.as(PROCESSOR_NAME), this.storeName);
@@ -122,6 +120,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
 
         final QuickTopicType keyType = this.getTopicData().getKeyData().getType();
         final ParsedSchema parsedSchema = this.getTopicData().getValueData().getParsedSchema();
+        log.debug("keyType is {} and parsedSchema is {}", keyType, parsedSchema);
         if (parsedSchema == null) {
             if (this.isCleanup) {
                 log.trace("Parsed schema is null and cleanup flag is set to true.");
@@ -131,8 +130,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
             }
             throw new MirrorTopologyException("Could not get the parsed schema.");
         } else {
-            log.debug("keyType is {}", keyType);
-            log.debug("parsedSchema is {}", parsedSchema);
+            log.debug("Setting up default range indexer.");
             final RangeIndexer<K, V> defaultRangeIndexer =
                 DefaultRangeIndexer.createRangeIndexer(keyType, parsedSchema, rangeField);
             stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, defaultRangeIndexer),
@@ -164,6 +162,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
             keySerDe.serializer(),
             PROCESSOR_NAME
         );
+        log.debug("The topology is {}", topology);
         return topology;
     }
 

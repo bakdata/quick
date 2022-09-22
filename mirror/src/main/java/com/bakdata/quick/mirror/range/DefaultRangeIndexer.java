@@ -188,12 +188,12 @@ public final class DefaultRangeIndexer<K, V, F extends Number> implements RangeI
         final Schema fieldSchema = avroSchema.getField(fieldName).schema();
         if (fieldSchema.getType() == Schema.Type.UNION) {
             final List<Schema> fieldTypes = fieldSchema.getTypes();
-            final Optional<Schema> intLongSchema = fieldTypes
-                .stream().filter(schema -> schema.getType() == Schema.Type.INT || schema.getType() == Schema.Type.LONG)
+            final Optional<Schema.Type> intLongSchemaType = fieldTypes.stream()
+                .map(Schema::getType)
+                .filter(schemaType -> schemaType == Schema.Type.INT || schemaType == Schema.Type.LONG)
                 .findFirst();
-            return intLongSchema
-                .orElseThrow(() -> new MirrorTopologyException("The schema field should be int or long"))
-                .getType();
+            return intLongSchemaType.orElseThrow(
+                () -> new MirrorTopologyException("The schema field should be int or long"));
         } else {
             return fieldSchema.getType();
         }
