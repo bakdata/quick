@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -55,7 +56,7 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
             isNullable);
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(knownTypeResolver);
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
 
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
 
@@ -76,7 +77,7 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(new StringResolver());
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), new StringResolver());
 
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
 
@@ -98,7 +99,7 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(new IntegerResolver());
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), new IntegerResolver());
 
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
 
@@ -119,7 +120,7 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(new LongResolver());
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), new LongResolver());
 
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
 
@@ -140,7 +141,7 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             isNullable);
 
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(new DoubleResolver());
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), new DoubleResolver());
 
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
 

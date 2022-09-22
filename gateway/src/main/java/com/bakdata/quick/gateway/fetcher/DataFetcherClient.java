@@ -25,11 +25,6 @@ import java.util.Map;
  * Client for fetching values from rest endpoints and converting them into generic containers.
  */
 public interface DataFetcherClient<K, V> {
-    TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {
-    };
-    TypeReference<List<Map<String, Object>>> LIST_TYPE_REFERENCE = new TypeReference<>() {
-    };
-
     /**
      * Fetches a single value from the given id.
      *

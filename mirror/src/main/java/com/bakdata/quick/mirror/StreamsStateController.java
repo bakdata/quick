@@ -56,7 +56,7 @@ public class StreamsStateController {
     @Get("/partitions")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<Integer, String> getApplicationHosts() {
-        Map<Integer, String> partitionToHost = this.streams.streamsMetadataForStore(this.storeName).stream()
+        final Map<Integer, String> partitionToHost = this.streams.streamsMetadataForStore(this.storeName).stream()
             .flatMap(StreamsStateController::getAddressesForPartitions)
             .filter(distinctByKey(PartitionAddress::getPartition))
             .collect(Collectors.toMap(PartitionAddress::getPartition, PartitionAddress::getAddress));

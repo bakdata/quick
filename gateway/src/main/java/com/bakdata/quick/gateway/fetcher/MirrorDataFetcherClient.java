@@ -22,14 +22,11 @@ import com.bakdata.quick.common.api.client.PartitionedMirrorClient;
 import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serde;
 
 
 /**
@@ -52,11 +49,6 @@ public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
         this.mirrorClient =
             new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, topicTypeService));
     }
-
-//    public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-//        final QuickTopicData<K, V> quickTopicData) {
-//        this(host, client, mirrorConfig, new Lazy<>(() -> quickTopicData));
-//    }
 
     @Override
     @Nullable
@@ -93,8 +85,6 @@ public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
         final MirrorHost mirrorHost = new MirrorHost(host, mirrorConfig);
 
         log.info("Creating a partitioned mirror client with with service {}", mirrorHost);
-        PartitionedMirrorClient<K, V> kvPartitionedMirrorClient =
-            new PartitionedMirrorClient<>(mirrorHost, client, topicTypeService, new DefaultPartitionFinder());
-        return kvPartitionedMirrorClient;
+        return new PartitionedMirrorClient<>(mirrorHost, client, topicTypeService, new DefaultPartitionFinder());
     }
 }

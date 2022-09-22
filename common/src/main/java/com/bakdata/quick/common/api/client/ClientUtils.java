@@ -20,7 +20,7 @@ import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import okhttp3.Request;
 
 /**
- * Utils for Quick clients
+ * Utils for Quick clients.
  */
 public final class ClientUtils {
     private ClientUtils() {

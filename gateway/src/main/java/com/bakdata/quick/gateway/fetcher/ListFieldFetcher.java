@@ -22,7 +22,6 @@ import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.apache.avro.generic.GenericRecord;
 
 /**
@@ -33,9 +32,9 @@ import org.apache.avro.generic.GenericRecord;
  */
 public class ListFieldFetcher<K, V> implements DataFetcher<List<V>> {
     private final String idFieldName;
-    private final DataFetcherClient<K,V> client;
+    private final DataFetcherClient<K, V> client;
 
-    public ListFieldFetcher(final String idFieldName, final DataFetcherClient<K,V> client) {
+    public ListFieldFetcher(final String idFieldName, final DataFetcherClient<K, V> client) {
         this.idFieldName = idFieldName;
         this.client = client;
     }

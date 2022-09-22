@@ -16,7 +16,6 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.mockito.Mockito.mock;
 
 import com.bakdata.quick.common.api.client.HttpClient;
@@ -32,7 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -48,58 +47,76 @@ public abstract class FetcherTest {
     private final String host = String.format("localhost:%s", this.server.getPort());
 
 
+    // TODO: This tests only one host. Test for two different hosts.
     @BeforeEach
     void initRouterAndMirror() throws JsonProcessingException {
         // mapping from partition to host for initializing PartitionRouter
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(0, this.host, 1, this.host));
+        final String routerBody = this.mapper.writeValueAsString(Map.of(0, this.host, 1, this.host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
     }
 
-    protected  <K, V> MirrorDataFetcherClient<K, V> createClient() {
+    protected <K, V> MirrorDataFetcherClient<K, V> createClient() {
         return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, this.typeService);
     }
 
-    protected static QuickTopicData<?, ?> newQuickTopicData(final TypeResolver<?> typeResolver) {
+    protected static QuickTopicData<?, ?> newQuickTopicData(final QuickData<?> keyData,
+        final TypeResolver<?> typeResolver) {
         final QuickData<?> valueData = new QuickData<>(QuickTopicType.AVRO, null, typeResolver);
-        return new QuickTopicData<>("topic", TopicWriteType.MUTABLE, newStringData(), valueData);
+        return new QuickTopicData<>("topic", TopicWriteType.MUTABLE, keyData, valueData);
     }
 
-
-    @Data
+    @Value
     @Builder
     protected static class PurchaseList {
-        private String purchaseId;
-        private List<Integer> productIds;
+        String purchaseId;
+        List<Integer> productIds;
     }
 
-    @Data
+    @Value
     @Builder
     protected static class Purchase {
-        private String purchaseId;
-        private int productId;
-        private int amount;
-        private Price price;
+        String purchaseId;
+        int productId;
+        int amount;
+        Price price;
     }
 
-    @Data
+    @Value
     @Builder
     protected static class Product {
-        private int productId;
-        private List<Integer> prices;
+        int productId;
+        String name;
+        List<Integer> prices;
+        int ratings;
     }
 
-    @Data
+    @Value
     @Builder
     protected static class Price {
-        private String currencyId;
-        private double value;
+        String currencyId;
+        double value;
     }
 
-    @Data
+    @Value
     @Builder
     protected static class Currency {
-        private String currencyId;
-        private String currency;
-        private double rate;
+        String currencyId;
+        String currency;
+        double rate;
     }
+
+//    @Value
+//    @Builder
+//    protected static class UserRequest {
+//        int userId;
+//        int timestamp;
+//        Request requests;
+//    }
+//
+//    @Value
+//    @Builder
+//    protected static class Request {
+//        int count;
+//        int successful;
+//    }
 }

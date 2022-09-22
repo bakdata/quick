@@ -67,7 +67,7 @@ public class MultiSubscriptionFetcher<K> implements DataFetcher<Publisher<Map<St
      * @param fieldDataFetcherClients map of fields to their fetching clients
      * @param fieldSubscriptionProviders map of field to their subscription providers
      */
-    public MultiSubscriptionFetcher(final Map<String, DataFetcherClient<String,?>> fieldDataFetcherClients,
+    public MultiSubscriptionFetcher(final Map<String, DataFetcherClient<String, ?>> fieldDataFetcherClients,
         final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders) {
         this(fieldDataFetcherClients, fieldSubscriptionProviders, MultiSubscriptionFetcher::getSelectedFields);
     }
@@ -80,7 +80,7 @@ public class MultiSubscriptionFetcher<K> implements DataFetcher<Publisher<Map<St
      * @param fieldSelector function extracting the selected fields of a GraphQL environment
      */
     @VisibleForTesting
-    MultiSubscriptionFetcher(final Map<String, DataFetcherClient<String,?>> fieldDataFetcherClients,
+    MultiSubscriptionFetcher(final Map<String, DataFetcherClient<String, ?>> fieldDataFetcherClients,
         final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders,
         final FieldSelector fieldSelector) {
         this.fieldDataFetcherClients = fieldDataFetcherClients;

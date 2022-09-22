@@ -46,10 +46,14 @@ public class MirrorConfig {
      * Injectable constructor from properties.
      *
      * <p>
-     * The parameters are optional. If not set, their defaults are used.
-     *
-     * @param prefix prefix of mirror, e.g. "quick-mirror" in http://quick-mirror-topic/. Defaults to
+     * The parameters are optional. If not set, their defaults are used. Defaults to
      * {@link MirrorConfig#DEFAULT_MIRROR_HOST_PREFIX} for empty optionals.
+     *
+     * <p>
+     * e.g. if "quick-mirror" is the prefix and the topic name is "test-topic" the mirror URL is
+     * http://quick-mirror-test-topic/.
+     *
+     * @param prefix prefix of mirror
      */
     @ConfigurationInject
     public MirrorConfig(final Optional<String> prefix) {

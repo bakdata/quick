@@ -17,6 +17,7 @@
 package com.bakdata.quick.common.api.model.mirror;
 
 import com.bakdata.quick.common.config.MirrorConfig;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -82,12 +83,30 @@ public class MirrorHost {
     }
 
     /**
-     * Returns the Mirror host with the configured prefix.
-     * e.g. http://quick-mirror-host-name/.
-     *
+     * Returns the Mirror host with the configured prefix. e.g. http://quick-mirror-host-name/.
      */
     @Override
     public String toString() {
         return String.format("http://%s%s/", this.config.getPrefix(), this.host);
+    }
+
+    /**
+     * If the host (name) of the two mirrors is the same they are equal.
+     */
+    @Override
+    public boolean equals(final Object otherMirrorHost) {
+        if (this == otherMirrorHost) {
+            return true;
+        }
+        if (otherMirrorHost == null || this.getClass() != otherMirrorHost.getClass()) {
+            return false;
+        }
+        final MirrorHost that = (MirrorHost) otherMirrorHost;
+        return Objects.equals(this.host, that.host);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.host);
     }
 }

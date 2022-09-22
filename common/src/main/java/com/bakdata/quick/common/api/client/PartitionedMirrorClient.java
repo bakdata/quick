@@ -139,8 +139,8 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         log.debug("Created a map of host and list of keys: {}", mirrorHostKeyMap);
 
         for (final Entry<MirrorHost, List<K>> mirrorHostWitKeys : mirrorHostKeyMap.entrySet()) {
-            final List<String> stringKeys = mirrorHostWitKeys.getValue().stream().map(Objects::toString).collect(
-                Collectors.toList());
+            final List<String> stringKeys = mirrorHostWitKeys.getValue().stream().map(Objects::toString)
+                .collect(Collectors.toList());
             final String url = mirrorHostWitKeys.getKey().forKeys(stringKeys);
             log.debug("Making request for host: {}", url);
             final ResponseWrapper response = this.requestManager.makeRequest(url);

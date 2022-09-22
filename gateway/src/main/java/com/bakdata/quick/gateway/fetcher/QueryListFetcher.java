@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * this data fetcher.
  */
 public class QueryListFetcher<K, T> implements DataFetcher<List<T>> {
-    private final DataFetcherClient<K ,T> dataFetcherClient;
+    private final DataFetcherClient<K, T> dataFetcherClient;
     private final boolean isNullable;
     private final boolean hasNullableElements;
 

@@ -16,35 +16,27 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import io.reactivex.Single;
 import java.util.List;
 import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class KeyFieldFetcherTest extends FetcherTest {
-    private final String host = String.format("localhost:%s", this.server.getPort());
-    private final MirrorConfig mirrorConfig = MirrorConfig.directAccess();
-
-    @BeforeEach
-    void initRouterAndMirror() throws JsonProcessingException {
-        // mapping from partition to host for initializing PartitionRouter
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(0, this.host, 1, this.host));
-        this.server.enqueue(new MockResponse().setBody(routerBody));
-    }
+    private static TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {};
 
     @Test
     void shouldFetchModificationValue() throws JsonProcessingException {
@@ -64,7 +56,7 @@ class KeyFieldFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(productJson));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Product.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(knownTypeResolver);
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
 
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
 
@@ -72,7 +64,7 @@ class KeyFieldFetcherTest extends FetcherTest {
         final KeyFieldFetcher<?> queryFetcher = new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.convertValue(purchase, DataFetcherClient.OBJECT_TYPE_REFERENCE))
+            .source(this.mapper.convertValue(purchase, OBJECT_TYPE_REFERENCE))
             .build();
 
         final Object fetcherResult = queryFetcher.get(env);
@@ -101,7 +93,7 @@ class KeyFieldFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(currencyJson));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Currency.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(knownTypeResolver);
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
 
         final DataFetcherClient<String, ?> fetcherClient = this.createClient();
         final KeyFieldFetcher<?> queryFetcher = new KeyFieldFetcher<>(this.mapper, "currencyId", fetcherClient);
@@ -110,7 +102,7 @@ class KeyFieldFetcherTest extends FetcherTest {
 
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
+            .source(this.mapper.readValue(source, OBJECT_TYPE_REFERENCE)).build();
 
         final Object fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(currency);
@@ -140,7 +132,7 @@ class KeyFieldFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(valueList));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Product.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(knownTypeResolver);
+        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
 
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
 
@@ -149,7 +141,7 @@ class KeyFieldFetcherTest extends FetcherTest {
 
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.readValue(source, DataFetcherClient.OBJECT_TYPE_REFERENCE)).build();
+            .source(this.mapper.readValue(source, OBJECT_TYPE_REFERENCE)).build();
         final Object fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(List.of(product1, product2));
     }
