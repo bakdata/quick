@@ -1,5 +1,6 @@
 {
     userRatings(userId: 123, ratingFrom: 1, ratingTo: 4)  {
         purchaseId
+        rating
     }
 }

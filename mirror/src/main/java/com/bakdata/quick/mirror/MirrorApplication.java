@@ -190,16 +190,15 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     protected void runStreamsApplication() {
         final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
 
-        log.debug("Creating index property only for point");
         final QueryServiceContextBuilder contextBuilder = QueryServiceContext.builder()
             .streams(this.getStreams())
             .hostInfo(this.hostConfig.toInfo())
             .pointStoreName(POINT_STORE)
             .quickTopicData(quickTopicData);
 
-
         if (this.rangeField != null) {
-            log.debug("Creating index property for point and range");
+            log.debug("Adding range index properties to query service context for store {} and field {}", RANGE_STORE,
+                this.rangeField);
             contextBuilder.rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField));
         }
 

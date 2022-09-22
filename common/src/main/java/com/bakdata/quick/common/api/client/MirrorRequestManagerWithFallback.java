@@ -50,7 +50,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
 
     @Override
     public ResponseWrapper makeRequest(final String url) {
-        log.info("Sending request to: {}", url);
+        log.debug("Sending request to: {}", url);
         final Request request = new Request.Builder().url(url).get().build();
         // Do not close the response here because its content is read later (try-with-resources
         // implicitly closes the processed resource).

@@ -77,7 +77,7 @@ public class MirrorController<K, V> {
     /**
      * Fetches a range of values over a given key and a range field.
      */
-    @Get("range/{key}")
+    @Get("/range/{key}")
     public Single<HttpResponse<MirrorValue<List<V>>>> getRange(@PathVariable("key") final String keyString,
         @QueryValue() final String from, @QueryValue() final String to) {
         log.debug("Request for range with key {} from {} to {}", keyString, from, to);

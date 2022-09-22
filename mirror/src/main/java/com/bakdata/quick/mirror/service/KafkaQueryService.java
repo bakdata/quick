@@ -102,17 +102,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             StoreQueryParameters.fromNameAndType(pointStoreName, QueryableStoreTypes.keyValueStore());
 
         if (this.context.getRangeIndexProperties() != null) {
-            log.debug("Initializing KafkaQueryService for range index");
-            final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
-            final String rangeStoreName = rangeIndexProperties.getStoreName();
-            this.rangeStoreQueryParameters =
-                StoreQueryParameters.fromNameAndType(rangeStoreName, QueryableStoreTypes.keyValueStore());
-
-            final ParsedSchema parsedSchema = this.context.getQuickTopicData().getValueData().getParsedSchema();
-
-            this.rangeIndexer = DefaultRangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
-                Objects.requireNonNull(parsedSchema),
-                Objects.requireNonNull(rangeIndexProperties.getRangeField()));
+            this.initializeQueryServiceForRange(topicData);
         }
     }
 
@@ -240,6 +230,20 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         log.debug("Fetched range from state store: {}", values);
 
         return Single.just(HttpResponse.created(new MirrorValue<>(values)).status(HttpStatus.OK));
+    }
+
+    private void initializeQueryServiceForRange(final QuickTopicData<K, V> topicData) {
+        log.debug("Initializing KafkaQueryService for range index");
+        final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
+        final String rangeStoreName = rangeIndexProperties.getStoreName();
+        this.rangeStoreQueryParameters =
+            StoreQueryParameters.fromNameAndType(rangeStoreName, QueryableStoreTypes.keyValueStore());
+
+        final ParsedSchema parsedSchema = this.context.getQuickTopicData().getValueData().getParsedSchema();
+
+        this.rangeIndexer = DefaultRangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
+            Objects.requireNonNull(parsedSchema),
+            Objects.requireNonNull(rangeIndexProperties.getRangeField()));
     }
 
     private HttpResponse<MirrorValue<V>> fetch(final HostInfo replicaHostInfo, final K key) {

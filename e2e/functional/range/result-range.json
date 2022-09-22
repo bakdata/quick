@@ -1,10 +1,12 @@
 {
   "userRatings": [
     {
-      "purchaseId": 456
+      "purchaseId": 456,
+      "rating": 2
     },
     {
-      "purchaseId": 789
+      "purchaseId": 789,
+      "rating": 4
     }
   ]
 }

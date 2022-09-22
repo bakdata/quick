@@ -21,8 +21,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.Value;
 
 /**
- * Contains index properties.
- *
+ * Contains the range index properties.
  */
 @Value
 public class RangeIndexProperties {
