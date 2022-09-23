@@ -38,6 +38,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import jakarta.inject.Singleton;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.context.Context;
 
 /**
@@ -47,7 +49,10 @@ import org.thymeleaf.context.Context;
  * It fills out the Kubernetes template files with the given arguments.
  */
 @Singleton
+@Slf4j
 public class GatewayResourceLoader implements ResourceLoader<GatewayResources, GatewayCreationData> {
+
+    private static final String DEFAULT_INDENTATION = "  ";
     private final KubernetesResources kubernetesResources;
     private final DeploymentConfig deploymentConfig;
     private final ApplicationSpecificationConfig appSpecConfig;
@@ -234,8 +239,14 @@ public class GatewayResourceLoader implements ResourceLoader<GatewayResources, G
         final Context root = new Context();
         root.setVariable("name", name);
         if (schema != null) {
-            root.setVariable("schema", schema);
+            final String reformattedSchema = this.formatSchemaForYaml(schema);
+            log.debug("Creating gateway config map with the following schema: {}", reformattedSchema);
+            root.setVariable("schema", reformattedSchema);
         }
         return this.kubernetesResources.loadResource(root, "gateway/config-map", ConfigMap.class);
+    }
+
+    private String formatSchemaForYaml(final String schema) {
+        return schema.lines().map(line -> DEFAULT_INDENTATION + line).collect(Collectors.joining());
     }
 }
