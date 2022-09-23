@@ -154,6 +154,7 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
     /**
      * Sets the args for the mirror deployment. Throws {@link BadArgumentException}
      * if both --retention-time and --range-field are specified.
+     *
      * @param topic the input topic name
      * @param retentionTime retention time
      * @param rangeField the field where the range index should be build on
@@ -166,8 +167,8 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
             .put("--input-topics", topic);
 
         if (Objects.nonNull(retentionTime) && Objects.nonNull(rangeField)) {
-            throw new BadArgumentException("The --range-field option must not be specified" +
-                " when --retention-time is set");
+            throw new BadArgumentException("The --range-field option must not be specified"
+                + " when --retention-time is set");
         }
 
         if (Objects.nonNull(retentionTime)) {
