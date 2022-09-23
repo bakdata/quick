@@ -63,20 +63,19 @@ public final class GraphQLTestUtil {
             .collect(Collectors.toList());
     }
 
-    static final class TestClientSupplier implements ClientSupplier {
+    static final class TestClientSupplier<K, V> implements ClientSupplier {
         @Getter
-        private final Map<String, DataFetcherClient<?, ?>> clients;
+        private final Map<String, DataFetcherClient<K, V>> clients;
 
         TestClientSupplier() {
             this.clients = new HashMap<>();
         }
 
         @Override
-        public DataFetcherClient<?, ?> createClient(final String topic) {
-            final DataFetcherClient<?, ?> client = mock(DataFetcherClient.class);
+        public DataFetcherClient<K, V> createClient(final String topic) {
+            final DataFetcherClient<K, V> client = mock(DataFetcherClient.class);
             this.clients.put(topic, client);
             return client;
         }
     }
-
 }

@@ -104,19 +104,4 @@ public abstract class FetcherTest {
         String currency;
         double rate;
     }
-
-//    @Value
-//    @Builder
-//    protected static class UserRequest {
-//        int userId;
-//        int timestamp;
-//        Request requests;
-//    }
-//
-//    @Value
-//    @Builder
-//    protected static class Request {
-//        int count;
-//        int successful;
-//    }
 }
