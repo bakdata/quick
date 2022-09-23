@@ -41,7 +41,7 @@ class MirrorValueParser<V> {
     private final TypeResolver<V> resolver;
     private final ObjectMapper objectMapper;
 
-    public MirrorValueParser(final TypeResolver<V> resolver, final ObjectMapper objectMapper) {
+    MirrorValueParser(final TypeResolver<V> resolver, final ObjectMapper objectMapper) {
         this.resolver = resolver;
         this.objectMapper = objectMapper;
     }
