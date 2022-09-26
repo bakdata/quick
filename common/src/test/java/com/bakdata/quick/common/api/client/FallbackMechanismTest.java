@@ -72,13 +72,13 @@ class FallbackMechanismTest {
         final String routerBody = this.mapper.writeValueAsString(Map.of(1, this.host,
             2, "unavailableHost:1234"));
         this.server.enqueue(new MockResponse().setBody(routerBody));
-        final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(TopicData.class, this.mapper);
+        final TypeResolver<TopicData> knownTypeResolver = new KnownTypeResolver<>(TopicData.class, this.mapper);
 
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
+        final QuickTopicData<String, TopicData> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
         doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
 
         this.topicDataClient =
-            new PartitionedMirrorClient<>(this.mirrorHost, this.client, this.typeService, this.partitionFinder);
+            new PartitionedMirrorClient<>(this.mirrorHost, this.client, topicInfo, this.partitionFinder);
     }
 
     @Test
@@ -114,9 +114,9 @@ class FallbackMechanismTest {
         assertThat(Objects.requireNonNull(topic2).getName()).isEqualTo(DEFAULT_TOPIC);
     }
 
-    private static QuickTopicData<?, ?> newQuickTopicData(final QuickData<?> keyData,
-        final TypeResolver<?> typeResolver) {
-        final QuickData<?> valueData = new QuickData<>(QuickTopicType.AVRO, null, typeResolver);
+    private static <K, V> QuickTopicData<K, V> newQuickTopicData(final QuickData<K> keyData,
+        final TypeResolver<V> typeResolver) {
+        final QuickData<V> valueData = new QuickData<>(QuickTopicType.AVRO, null, typeResolver);
         return new QuickTopicData<>("topic", TopicWriteType.MUTABLE, keyData, valueData);
     }
 }

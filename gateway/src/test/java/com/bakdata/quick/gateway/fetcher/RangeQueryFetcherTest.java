@@ -18,17 +18,13 @@ package com.bakdata.quick.gateway.fetcher;
 
 import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.type.QuickTopicData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
-import io.reactivex.Single;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -59,9 +55,7 @@ class RangeQueryFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(userRequestJson));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Product.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<String, ?> fetcherClient = this.createClient(newStringData(), knownTypeResolver);
 
         final RangeQueryFetcher<?, ?> rangeQueryFetcher =
             new RangeQueryFetcher<>("userId", fetcherClient, "ratingFrom", "ratingTo", true);
@@ -81,9 +75,7 @@ class RangeQueryFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(body));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<String, ?> fetcherClient = this.createClient(newStringData(), knownTypeResolver);
 
         final RangeQueryFetcher<?, ?> rangeQueryFetcher =
             new RangeQueryFetcher<>("userId", fetcherClient, "timestampFrom", "timestampTo", false);

@@ -19,8 +19,6 @@ package com.bakdata.quick.common.api.client;
 import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import com.bakdata.quick.common.api.model.TopicWriteType;
@@ -37,7 +35,6 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.reactivex.Single;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Objects;
@@ -69,11 +66,10 @@ class PartitionedMirrorClientTest {
         final String routerBody = this.mapper.writeValueAsString(Map.of(1, this.host, 2, this.host));
         this.server.enqueue(new MockResponse().setBody(routerBody));
 
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), new StringResolver());
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
+        final QuickTopicData<String, String> topicInfo = newQuickTopicData(newStringData(), new StringResolver());
 
         this.stringMirrorClient =
-            new PartitionedMirrorClient<>(this.mirrorHost, this.client, this.typeService, this.partitionFinder);
+            new PartitionedMirrorClient<>(this.mirrorHost, this.client, topicInfo, this.partitionFinder);
     }
 
     @Test
@@ -170,9 +166,9 @@ class PartitionedMirrorClientTest {
             .hasMessage("No MirrorHost found for partition: 2");
     }
 
-    private static QuickTopicData<?, ?> newQuickTopicData(final QuickData<?> keyData,
-        final TypeResolver<?> typeResolver) {
-        final QuickData<?> valueData = new QuickData<>(QuickTopicType.AVRO, null, typeResolver);
+    private static <K, V> QuickTopicData<K, V> newQuickTopicData(final QuickData<K> keyData,
+        final TypeResolver<V> typeResolver) {
+        final QuickData<V> valueData = new QuickData<>(QuickTopicType.AVRO, null, typeResolver);
         return new QuickTopicData<>("topic", TopicWriteType.MUTABLE, keyData, valueData);
     }
 }

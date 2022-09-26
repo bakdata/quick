@@ -21,8 +21,6 @@ import static com.bakdata.quick.common.TestTypeUtils.newDoubleData;
 import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
 import static com.bakdata.quick.common.TestTypeUtils.newLongData;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.resolver.DoubleResolver;
@@ -30,11 +28,9 @@ import com.bakdata.quick.common.resolver.IntegerResolver;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.type.QuickTopicData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
-import io.reactivex.Single;
 import java.util.List;
 import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
@@ -61,9 +57,7 @@ class QueryListFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(purchaseJson));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newLongData(), knownTypeResolver);
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<Long, ?> fetcherClient = this.createClient(newLongData(), knownTypeResolver);
 
         final QueryListFetcher<?, ?> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
         final Map<String, String> arguments = Map.of("purchaseId", "testId");
@@ -81,9 +75,7 @@ class QueryListFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(listJson));
         this.server.enqueue(new MockResponse().setBody(listJson));
 
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newLongData(), new StringResolver());
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<Long, ?> fetcherClient = this.createClient(newLongData(), new StringResolver());
 
         final QueryListFetcher<?, ?> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
@@ -99,9 +91,7 @@ class QueryListFetcherTest extends FetcherTest {
         final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
         this.server.enqueue(new MockResponse().setBody(listJson));
 
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newIntegerData(), new IntegerResolver());
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<Integer, ?> fetcherClient = this.createClient(newIntegerData(), new IntegerResolver());
 
         final QueryListFetcher<?, ?> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
@@ -117,9 +107,7 @@ class QueryListFetcherTest extends FetcherTest {
         final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
         this.server.enqueue(new MockResponse().setBody(listJson));
 
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newDoubleData(), new DoubleResolver());
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<Double, ?> fetcherClient = this.createClient(newDoubleData(), new DoubleResolver());
 
         final QueryListFetcher<?, ?> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
 

@@ -43,10 +43,10 @@ import org.reactivestreams.Publisher;
  */
 @Singleton
 @Slf4j
-public class FetcherFactory {
+public class FetcherFactory<K, V> {
     private final KafkaConfig kafkaConfig;
     private final ObjectMapper objectMapper;
-    private final ClientSupplier clientSupplier;
+    private final ClientSupplier<K, V> clientSupplier;
     private final TopicTypeService topicTypeService;
 
 
@@ -55,11 +55,13 @@ public class FetcherFactory {
      */
     @VisibleForTesting
     public FetcherFactory(final KafkaConfig kafkaConfig, final ObjectMapper objectMapper,
-        final ClientSupplier clientSupplier, final TopicTypeService topicTypeService) {
+        final TopicTypeService topicTypeService,
+        final HttpClient client,
+        final MirrorConfig mirrorConfig) {
         this.kafkaConfig = kafkaConfig;
         this.objectMapper = objectMapper;
-        this.clientSupplier = clientSupplier;
         this.topicTypeService = topicTypeService;
+        this.clientSupplier = new DefaultClientSupplier<>(client, mirrorConfig);
     }
 
     /**
@@ -68,39 +70,38 @@ public class FetcherFactory {
      * <p> Parameters are injected.
      */
     @Inject
-    public FetcherFactory(final KafkaConfig kafkaConfig,
-        final HttpClient client, final MirrorConfig mirrorConfig,
-        final TopicTypeService topicTypeService) {
-        this(kafkaConfig, client.objectMapper(),
-            new DefaultClientSupplier(client, topicTypeService, mirrorConfig), topicTypeService);
+    public FetcherFactory(final KafkaConfig kafkaConfig, final HttpClient client,
+        final MirrorConfig mirrorConfig, final TopicTypeService topicTypeService) {
+
+        this(kafkaConfig, client.objectMapper(), topicTypeService, client, mirrorConfig);
     }
 
-    public <K, V> DataFetcher<Publisher<V>> subscriptionFetcher(final String topic, final String operationName,
+    public DataFetcher<Publisher<V>> subscriptionFetcher(final String topic, final String operationName,
         @Nullable final String argument) {
         final Lazy<QuickTopicData<K, V>> topicData = this.getTopicData(topic);
         return new SubscriptionFetcher<>(this.kafkaConfig, topicData, operationName, argument);
     }
 
-    public <V> DataFetcher<V> queryFetcher(final String topic, final String argument, final boolean isNullable) {
-        final DataFetcherClient<Object, V> client = this.clientSupplier.createClient(topic);
+    public DataFetcher<V> queryFetcher(final String topic, final String argument, final boolean isNullable) {
+        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, this.getTopicData(topic));
         return new QueryKeyArgumentFetcher<>(argument, client, isNullable);
     }
 
-    public <V> DataFetcher<List<V>> queryListFetcher(final String topic, final boolean isNullable,
+    public DataFetcher<List<V>> queryListFetcher(final String topic, final boolean isNullable,
         final boolean hasNullableElements) {
-        final DataFetcherClient<Object, V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, this.getTopicData(topic));
         return new QueryListFetcher<>(client, isNullable, hasNullableElements);
     }
 
-    public <V> DataFetcher<List<V>> listArgumentFetcher(final String topic, final String argument,
+    public DataFetcher<List<V>> listArgumentFetcher(final String topic, final String argument,
         final boolean isNullable, final boolean hasNullableElements) {
-        final DataFetcherClient<Object, V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, this.getTopicData(topic));
         return new ListArgumentFetcher<>(argument, client, isNullable, hasNullableElements);
     }
 
-    public <V> DataFetcher<List<V>> rangeFetcher(final String topic, final String argument, final String rangeFrom,
+    public DataFetcher<List<V>> rangeFetcher(final String topic, final String argument, final String rangeFrom,
         final String rangeTo, final boolean isNullable) {
-        final DataFetcherClient<Object, V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, this.getTopicData(topic));
         return new RangeQueryFetcher<>(argument, client, rangeFrom, rangeTo, isNullable);
     }
 
@@ -109,7 +110,7 @@ public class FetcherFactory {
      *
      * @see MutationFetcher
      */
-    public <K, V> DataFetcher<V> mutationFetcher(final String topic, final String keyArgumentName,
+    public DataFetcher<V> mutationFetcher(final String topic, final String keyArgumentName,
         final String valueArgumentName) {
         final Lazy<QuickTopicData<K, V>> data = this.getTopicData(topic);
         return new MutationFetcher<>(topic,
@@ -121,28 +122,29 @@ public class FetcherFactory {
         );
     }
 
-    public <V> DataFetcher<List<V>> listFieldFetcher(final String topic, final String keyFieldName) {
-        return new ListFieldFetcher<>(keyFieldName, this.clientSupplier.createClient(topic));
+    public DataFetcher<List<V>> listFieldFetcher(final String topic, final String keyFieldName) {
+        return new ListFieldFetcher<>(keyFieldName, this.clientSupplier.createClient(topic, this.getTopicData(topic)));
     }
 
     public DataFetcher<Object> keyFieldFetcher(final String topic, final String keyFieldName) {
-        return new KeyFieldFetcher<>(this.objectMapper, keyFieldName, this.clientSupplier.createClient(topic));
+        return new KeyFieldFetcher<>(this.objectMapper, keyFieldName,
+            this.clientSupplier.createClient(topic, this.getTopicData(topic)));
     }
 
-    public <K, V> SubscriptionProvider<K, V> subscriptionProvider(final String topic, final String operationName,
+    public SubscriptionProvider<K, V> subscriptionProvider(final String topic, final String operationName,
         @Nullable final String argument) {
         return new KafkaSubscriptionProvider<>(this.kafkaConfig, this.getTopicData(topic), operationName, argument);
     }
 
-    public <V> DataFetcherClient<Object, V> dataFetcherClient(final String topic) {
-        return this.clientSupplier.createClient(topic);
+    public DataFetcherClient<K, V> dataFetcherClient(final String topic) {
+        return this.clientSupplier.createClient(topic, this.getTopicData(topic));
     }
 
     public DataFetcher<DataFetcherResult<Object>> deferFetcher() {
         return new DeferFetcher();
     }
 
-    private <K, V> Lazy<QuickTopicData<K, V>> getTopicData(final String topic) {
+    private Lazy<QuickTopicData<K, V>> getTopicData(final String topic) {
         log.debug("Requesting topic data from topic {}", topic);
         return new Lazy<>(() -> {
             final Single<QuickTopicData<K, V>> topicData = this.topicTypeService.getTopicData(topic);

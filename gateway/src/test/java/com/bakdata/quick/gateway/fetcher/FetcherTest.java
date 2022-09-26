@@ -39,13 +39,11 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class FetcherTest {
     protected final ObjectMapper mapper = new ObjectMapper();
-
     protected final MockWebServer server = new MockWebServer();
     protected final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
     protected final TopicTypeService typeService = mock(TopicTypeService.class);
     private final MirrorConfig mirrorConfig = MirrorConfig.directAccess();
     private final String host = String.format("localhost:%s", this.server.getPort());
-
 
     // TODO: This tests only one host. Test for two different hosts.
     @BeforeEach
@@ -55,13 +53,14 @@ public abstract class FetcherTest {
         this.server.enqueue(new MockResponse().setBody(routerBody));
     }
 
-    protected <K, V> MirrorDataFetcherClient<K, V> createClient() {
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, this.typeService);
+    protected <K, V> MirrorDataFetcherClient<K, V> createClient(final QuickData<K> keyData, final TypeResolver<V> typeResolver) {
+        final QuickTopicData<K, V> topicInfo = newQuickTopicData(keyData, typeResolver);
+        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, topicInfo);
     }
 
-    protected static QuickTopicData<?, ?> newQuickTopicData(final QuickData<?> keyData,
-        final TypeResolver<?> typeResolver) {
-        final QuickData<?> valueData = new QuickData<>(QuickTopicType.AVRO, null, typeResolver);
+    protected static <K, V> QuickTopicData<K, V> newQuickTopicData(final QuickData<K> keyData,
+        final TypeResolver<V> typeResolver) {
+        final QuickData<V> valueData = new QuickData<>(QuickTopicType.AVRO, null, typeResolver);
         return new QuickTopicData<>("topic", TopicWriteType.MUTABLE, keyData, valueData);
     }
 

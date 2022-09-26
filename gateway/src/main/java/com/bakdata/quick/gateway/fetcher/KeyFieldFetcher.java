@@ -20,11 +20,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
@@ -63,10 +63,10 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
  * since it is stored in a different topic. The KeyFieldFetcher extracts the productId from the returned purchase and
  * fetches the corresponding product.
  */
-public class KeyFieldFetcher<V> implements DataFetcher<Object> {
+public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
     private final ObjectMapper objectMapper;
     private final String argument;
-    private final DataFetcherClient<String, V> client;
+    private final DataFetcherClient<K, V> client;
     private final JsonAvroConverter converter;
 
     /**
@@ -76,8 +76,9 @@ public class KeyFieldFetcher<V> implements DataFetcher<Object> {
      * @param argument name of the argument to extract key from
      * @param client underlying HTTP mirror client
      */
-    public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument,
-        final DataFetcherClient<String, V> client) {
+    public KeyFieldFetcher(final ObjectMapper objectMapper,
+        final String argument,
+        final DataFetcherClient<K, V> client) {
         this.objectMapper = objectMapper;
         this.argument = argument;
         this.client = client;
@@ -87,14 +88,14 @@ public class KeyFieldFetcher<V> implements DataFetcher<Object> {
     @Override
     @Nullable
     public Object get(final DataFetchingEnvironment environment) {
-        final List<String> uriList = this.findKeyArgument(environment).collect(Collectors.toList());
+        final List<String> keyArguments = this.findKeyArgument(environment).collect(Collectors.toList());
 
         // the modification applies either to an array node or to a single field
         // TODO create two different classes for both use cases and create them based on the schema
-        if (uriList.size() == 1) {
-            return this.client.fetchResult(uriList.get(0));
+        if (keyArguments.size() == 1) {
+            return this.client.fetchResult((K) keyArguments.get(0));
         } else {
-            return this.client.fetchResults(uriList);
+            return this.client.fetchResults((List<K>) keyArguments);
         }
     }
 
@@ -102,8 +103,8 @@ public class KeyFieldFetcher<V> implements DataFetcher<Object> {
         final String parentJson;
         try {
             parentJson = this.extractJson(environment);
-        } catch (final IOException e) {
-            throw new UncheckedIOException("Could not convert source for extracting key", e);
+        } catch (final JsonProcessingException | InvalidProtocolBufferException e) {
+            throw new RuntimeException("Could not convert source for extracting key", e);
         }
         // parse json and try to find the value for our argument
         // if it is an array, we need to resolve each one
@@ -127,7 +128,8 @@ public class KeyFieldFetcher<V> implements DataFetcher<Object> {
         }
     }
 
-    private String extractJson(final DataFetchingEnvironment environment) throws IOException {
+    private String extractJson(final DataFetchingEnvironment environment) throws JsonProcessingException,
+        InvalidProtocolBufferException {
         // TODO work on JSON everywhere:
         //  1. Do not convert back to real types in MirrorDataFetcherClient
         //  2. Immediately convert to JSON in SubscriptionFetcher

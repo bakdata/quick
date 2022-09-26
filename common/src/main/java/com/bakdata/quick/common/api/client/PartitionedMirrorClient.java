@@ -70,15 +70,13 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
      */
     public PartitionedMirrorClient(final MirrorHost mirrorHost,
         final HttpClient client,
-        final TopicTypeService topicTypeService,
+        final QuickTopicData<K, V> quickTopicData,
         final PartitionFinder partitionFinder) {
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
         this.client = client;
 
         final String topic = mirrorHost.getHost();
-        final Single<QuickTopicData<K, V>> data = topicTypeService.getTopicData(topic);
         log.debug("Getting topic data of topic {}.", topic);
-        final QuickTopicData<K, V> quickTopicData = data.blockingGet();
         final Serde<K> keySerde = quickTopicData.getKeyData().getSerde();
         log.debug("Extracting key serializer {}.", keySerde.serializer().getClass().getName());
         final TypeResolver<V> valueResolver = quickTopicData.getValueData().getResolver();

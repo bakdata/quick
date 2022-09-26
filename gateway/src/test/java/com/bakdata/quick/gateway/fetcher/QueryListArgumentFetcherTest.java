@@ -19,18 +19,14 @@ package com.bakdata.quick.gateway.fetcher;
 import static com.bakdata.quick.common.TestTypeUtils.newLongData;
 import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.type.QuickTopicData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
-import io.reactivex.Single;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,11 +55,7 @@ class QueryListArgumentFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(valueList));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
-
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<String, ?> fetcherClient = this.createClient(newStringData(), knownTypeResolver);
 
         final ListArgumentFetcher<?, ?> listArgumentFetcher =
             new ListArgumentFetcher<>("purchaseId", fetcherClient, true, true);
@@ -94,9 +86,8 @@ class QueryListArgumentFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(body));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Product.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newLongData(), knownTypeResolver);
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+
+        final DataFetcherClient<Long, ?> fetcherClient = this.createClient(newLongData(), knownTypeResolver);
 
         final ListArgumentFetcher<?, ?> listArgumentFetcher =
             new ListArgumentFetcher<>("productId", fetcherClient, true, true);
@@ -116,9 +107,7 @@ class QueryListArgumentFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(body));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Object.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<String, ?> fetcherClient = this.createClient(newStringData(), knownTypeResolver);
 
         final ListArgumentFetcher<?, ?> listArgumentFetcher =
             new ListArgumentFetcher<>("purchaseId", fetcherClient, false, true);
@@ -150,9 +139,7 @@ class QueryListArgumentFetcherTest extends FetcherTest {
         this.server.enqueue(new MockResponse().setBody(body));
 
         final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<String, ?> fetcherClient = this.createClient(newStringData(), knownTypeResolver);
 
         final ListArgumentFetcher<?, ?> listArgumentFetcher =
             new ListArgumentFetcher<>("purchaseId", fetcherClient, true, false);

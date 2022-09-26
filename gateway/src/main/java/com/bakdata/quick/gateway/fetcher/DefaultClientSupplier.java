@@ -18,35 +18,30 @@ package com.bakdata.quick.gateway.fetcher;
 
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
-import io.reactivex.Single;
 
-final class DefaultClientSupplier implements ClientSupplier {
+final class DefaultClientSupplier<K, V> implements ClientSupplier<K, V> {
     private final HttpClient client;
-    private final TopicTypeService topicTypeService;
     private final MirrorConfig mirrorConfig;
 
-    DefaultClientSupplier(final HttpClient client, final TopicTypeService topicRegistryClient,
-                          final MirrorConfig mirrorConfig) {
+    DefaultClientSupplier(final HttpClient client,
+        final MirrorConfig mirrorConfig) {
         this.client = client;
-        this.topicTypeService = topicRegistryClient;
         this.mirrorConfig = mirrorConfig;
     }
 
     @Override
-    public <K, V> DataFetcherClient<K, V> createClient(final String topic) {
-        return this.doCreateClient(topic);
+    public DataFetcherClient<K, V> createClient(final String topic, final Lazy<QuickTopicData<K, V>> quickTopicData) {
+        return this.doCreateClient(topic, quickTopicData.get());
     }
 
-    private <K, V> DataFetcherClient<K, V> doCreateClient(final String topic) {
+    private DataFetcherClient<K, V> doCreateClient(final String topic, final QuickTopicData<K, V> quickTopicData) {
         return new MirrorDataFetcherClient<>(
             topic,
             this.client,
             this.mirrorConfig,
-            this.topicTypeService
+            quickTopicData
         );
     }
 }

@@ -18,6 +18,8 @@ package com.bakdata.quick.gateway;
 
 import static org.mockito.Mockito.mock;
 
+import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.directives.topic.TopicDirective;
 import com.bakdata.quick.gateway.fetcher.ClientSupplier;
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
@@ -63,7 +65,7 @@ public final class GraphQLTestUtil {
             .collect(Collectors.toList());
     }
 
-    static final class TestClientSupplier<K, V> implements ClientSupplier {
+    static final class TestClientSupplier<K, V> implements ClientSupplier<K, V> {
         @Getter
         private final Map<String, DataFetcherClient<K, V>> clients;
 
@@ -72,7 +74,8 @@ public final class GraphQLTestUtil {
         }
 
         @Override
-        public DataFetcherClient<K, V> createClient(final String topic) {
+        public DataFetcherClient<K, V> createClient(String topic,
+            final Lazy<QuickTopicData<K, V>> quickTopicData) {
             final DataFetcherClient<K, V> client = mock(DataFetcherClient.class);
             this.clients.put(topic, client);
             return client;

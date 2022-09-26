@@ -22,7 +22,7 @@ import com.bakdata.quick.common.api.client.PartitionedMirrorClient;
 import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.type.TopicTypeService;
+import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
@@ -44,17 +44,16 @@ public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
      * @param mirrorConfig configuration for the mirror
      */
     public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final TopicTypeService topicTypeService) {
+        final QuickTopicData<K, V> quickTopicData) {
 
         this.mirrorClient =
-            new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, topicTypeService));
+            new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, quickTopicData));
     }
 
     @Override
     @Nullable
     public V fetchResult(final K id) {
         log.trace("Preparing to send request for fetching a key {} to Mirror", id);
-
         return this.mirrorClient.get().fetchValue(id);
     }
 
@@ -81,10 +80,10 @@ public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
     private PartitionedMirrorClient<K, V> createMirrorClient(final String host,
         final MirrorConfig mirrorConfig,
         final HttpClient client,
-        final TopicTypeService topicTypeService) {
+        final QuickTopicData<K, V> quickTopicData) {
         final MirrorHost mirrorHost = new MirrorHost(host, mirrorConfig);
 
         log.info("Creating a partitioned mirror client with with service {}", mirrorHost);
-        return new PartitionedMirrorClient<>(mirrorHost, client, topicTypeService, new DefaultPartitionFinder());
+        return new PartitionedMirrorClient<>(mirrorHost, client, quickTopicData, new DefaultPartitionFinder());
     }
 }

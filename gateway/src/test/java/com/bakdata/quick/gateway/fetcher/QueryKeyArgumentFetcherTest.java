@@ -18,8 +18,6 @@ package com.bakdata.quick.gateway.fetcher;
 
 import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.resolver.DoubleResolver;
@@ -28,18 +26,14 @@ import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.LongResolver;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.type.QuickTopicData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
-import io.reactivex.Single;
 import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.Test;
 
 class QueryKeyArgumentFetcherTest extends FetcherTest {
-
-    public static final boolean isNullable = true;
 
     @Test
     void shouldFetchObjectValue() throws JsonProcessingException {
@@ -51,14 +45,10 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
         final String purchaseJson = this.mapper.writeValueAsString(new MirrorValue<>(purchase));
         this.server.enqueue(new MockResponse().setBody(purchaseJson));
 
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient();
+        final TypeResolver<Purchase> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
+        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), knownTypeResolver);
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
-            isNullable);
-
-        final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), knownTypeResolver);
-
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
+            true);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
@@ -73,13 +63,9 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), new StringResolver());
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
-            isNullable);
-
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), new StringResolver());
-
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
+            true);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
@@ -95,13 +81,9 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
 
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), new IntegerResolver());
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
-            isNullable);
-
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), new IntegerResolver());
-
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
+            true);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
@@ -116,13 +98,9 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), new LongResolver());
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
-            isNullable);
-
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), new LongResolver());
-
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
+            true);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
@@ -137,13 +115,9 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
         final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
         this.server.enqueue(new MockResponse().setBody(valueJson));
 
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient();
+        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), new DoubleResolver());
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
-            isNullable);
-
-        final QuickTopicData<?, ?> topicInfo = newQuickTopicData(newStringData(), new DoubleResolver());
-
-        doReturn(Single.just(topicInfo)).when(this.typeService).getTopicData(anyString());
+            true);
 
         final Map<String, Object> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
