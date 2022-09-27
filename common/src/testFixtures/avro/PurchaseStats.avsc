@@ -1,0 +1,15 @@
+{
+  "namespace": "com.bakdata.quick.avro",
+  "name": "PurchaseStats",
+  "type": "record",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "amount",
+      "type": "long"
+    }
+  ]
+}

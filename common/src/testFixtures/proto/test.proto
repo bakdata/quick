@@ -15,9 +15,14 @@ message ComplexProtoTestRecord {
   ProtoTestRecord protoTestRecord = 2;
 }
 
-message Chart {
-  int64 id = 1;
-  int64 plays = 2;
+message ClickStats {
+  string id = 1;
+  int64 amount = 2;
+}
+
+message PurchaseStats {
+  string id = 1;
+  int64 amount = 2;
 }
 
 message ProtoRangeQueryTest {
