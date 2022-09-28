@@ -348,7 +348,6 @@ class KafkaTopicServiceTest {
             1,
             null,
             retentionTime,
-            true,
             null);
 
         verify(this.mirrorService).createMirror(mirrorCreationData);
