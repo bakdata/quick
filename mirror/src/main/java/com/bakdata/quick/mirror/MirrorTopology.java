@@ -163,7 +163,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
             keySerDe.serializer(),
             PROCESSOR_NAME
         );
-        log.debug("The topology is {}", topology);
+        log.debug("The topology is {}", topology.describe());
         return topology;
     }
 
