@@ -167,8 +167,8 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
             .put("--input-topics", topic);
 
         if (Objects.nonNull(retentionTime) && Objects.nonNull(rangeField)) {
-            throw new BadArgumentException("The --range-field option must not be specified"
-                + " when --retention-time is set");
+            final String errorMessage = "The --range-field option must not be specified when --retention-time is set";
+            throw new BadArgumentException(errorMessage);
         }
 
         if (Objects.nonNull(retentionTime)) {
