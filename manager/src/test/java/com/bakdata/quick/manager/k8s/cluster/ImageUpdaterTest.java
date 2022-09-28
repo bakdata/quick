@@ -178,7 +178,6 @@ class ImageUpdaterTest extends KubernetesTest {
             1,
             null, // use default tag
             null,
-            true,
             null);
 
         mirrorService.createMirror(mirrorCreationData).blockingAwait();
@@ -218,7 +217,6 @@ class ImageUpdaterTest extends KubernetesTest {
             1,
             null, // use default tag
             null,
-            true,
             null);
         mirrorService.createMirror(mirrorCreationData1).blockingAwait();
 
@@ -228,7 +226,6 @@ class ImageUpdaterTest extends KubernetesTest {
             1,
             null, // use default tag
             null,
-            true,
             null);
         mirrorService.createMirror(mirrorCreationData2).blockingAwait();
 
@@ -265,7 +262,6 @@ class ImageUpdaterTest extends KubernetesTest {
             1,
             FIXED_TAG, // use default tag
             null,
-            true,
             null);
         mirrorService.createMirror(mirrorCreationData).blockingAwait();
 
