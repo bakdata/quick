@@ -18,7 +18,7 @@ package com.bakdata.quick.manager.k8s.cluster;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bakdata.quick.common.api.client.GatewayClient;
+import com.bakdata.quick.common.api.client.gateway.GatewayClient;
 import com.bakdata.quick.common.api.model.manager.creation.GatewayCreationData;
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
 import com.bakdata.quick.manager.config.DeploymentConfig;

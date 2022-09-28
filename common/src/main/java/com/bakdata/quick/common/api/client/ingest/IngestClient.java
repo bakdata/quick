@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.ingest;
 
 import com.bakdata.quick.common.api.model.ErrorMessage;
 import com.bakdata.quick.common.api.model.KeyValuePair;

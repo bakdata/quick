@@ -18,6 +18,7 @@ package com.bakdata.quick.common.api.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.bakdata.quick.common.api.client.mirror.StreamsStateHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import org.junit.jupiter.api.Test;

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
 /**
  * A collection of constants for managing headers.

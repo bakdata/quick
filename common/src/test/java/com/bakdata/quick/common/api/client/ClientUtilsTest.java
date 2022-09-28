@@ -27,18 +27,20 @@ import org.junit.jupiter.api.Test;
 class ClientUtilsTest {
     @Test
     void shouldCreateCorrectMirrorUrlFromRequestWithNoQueryParameter() {
-        final MirrorHost mirrorHost = new MirrorHost("test-client-utils", new MirrorConfig());
-        final Request failedRequest = new Request.Builder().url(mirrorHost.forKey("123")).build();
-        final String mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, mirrorHost);
-        assertThat(mirrorUrlFromRequest).isEqualTo("http://quick-mirror-test-client-utils/mirror/123");
+        final MirrorHost unreachableMirror = new MirrorHost("unreachable-mirror", new MirrorConfig());
+        final Request failedRequest = new Request.Builder().url(unreachableMirror.forKey("123")).build();
+        final MirrorHost reachableMirror = new MirrorHost("healthy-mirror", new MirrorConfig());
+        final String mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
+        assertThat(mirrorUrlFromRequest).isEqualTo("http://quick-mirror-healthy-mirror/mirror/123");
     }
 
     @Test
     void shouldCreateCorrectMirrorUrlFromRequestWithQueryParameter() {
-        final MirrorHost mirrorHost = new MirrorHost("test-client-utils", new MirrorConfig());
-        final Request failedRequest = new Request.Builder().url(mirrorHost.forRange("123", "1", "3")).build();
-        final String mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, mirrorHost);
+        final MirrorHost unreachableMirror = new MirrorHost("unreachable-mirror", new MirrorConfig());
+        final Request failedRequest = new Request.Builder().url(unreachableMirror.forRange("123", "1", "3")).build();
+        final MirrorHost reachableMirror = new MirrorHost("healthy-mirror", new MirrorConfig());
+        final String mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
         assertThat(mirrorUrlFromRequest).isEqualTo(
-            "http://quick-mirror-test-client-utils/mirror/range/123?from=1&to=3");
+            "http://quick-mirror-healthy-mirror/mirror/range/123?from=1&to=3");
     }
 }

@@ -17,36 +17,75 @@
 package com.bakdata.quick.common.api.client.routing;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
+import com.bakdata.quick.common.api.client.mirror.MirrorRequestManagerWithFallback;
+import com.bakdata.quick.common.api.model.mirror.MirrorHost;
+import com.bakdata.quick.common.config.MirrorConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
-import org.apache.kafka.common.serialization.Serdes;
+import okhttp3.OkHttpClient;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.apache.kafka.common.serialization.Serdes.StringSerde;
 import org.junit.jupiter.api.Test;
 
 /**
  * Test for Partition Router.
  */
-@MicronautTest
 class PartitionRouterTest {
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final MockWebServer server = new MockWebServer();
+    private final HttpClient client = new HttpClient(this.objectMapper, new OkHttpClient());
+    private final String host = String.format("localhost:%s", this.server.getPort());
+    private final DefaultPartitionFinder partitionFinder = mock(DefaultPartitionFinder.class);
+
+
     @Test
-    void shouldReturnSingleHostWhenTheyAreEqualAndTwoIfTheyDiffer() {
-        final Map<Integer, String> elements = Map.of(1, "host1", 2, "host1");
-        final Router<String> partitionRouter =
-            new PartitionRouter<>(Serdes.String(), "dummy", getMockPartitionFinder(), elements);
+    void shouldReturnSingleHostWhenTheyAreEqualAndTwoIfTheyDiffer() throws JsonProcessingException {
+        final Map<Integer, String> singleReplica = Map.of(0, this.host, 1, this.host);
+        final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
+        final MirrorRequestManager requestManager = new MirrorRequestManagerWithFallback(this.client, mirrorHost);
+
+        final String value = this.objectMapper.writeValueAsString(singleReplica);
+        this.server.enqueue(new MockResponse().setBody(value));
+        final Router<String> partitionRouter = new PartitionRouter<>(this.client, mirrorHost, new StringSerde(),
+            this.partitionFinder,
+            requestManager);
+
         assertThat(partitionRouter.getAllHosts()).hasSize(1);
-        partitionRouter.updateRoutingInfo(Map.of(1, "host1", 2, "host2"));
+        final Map<Integer, String> multiReplica = Map.of(0, this.host, 1, "newlocalhost");
+        final String updateValue = this.objectMapper.writeValueAsString(multiReplica);
+        this.server.enqueue(new MockResponse().setBody(updateValue));
+        partitionRouter.updateRoutingInfo();
         assertThat(partitionRouter.getAllHosts()).hasSize(2);
     }
 
     @Test
-    void shouldReturnCorrectHostForGivenPartition() {
-        final Map<Integer, String> elements = Map.of(1, "host1", 2, "host2");
-        final Router<String> partitionRouter =
-            new PartitionRouter<>(Serdes.String(), "dummy", getMockPartitionFinder(), elements);
-        assertThat(partitionRouter.findHost("abc").getHost()).isEqualTo("host1");
-    }
+    void shouldReturnCorrectHostForGivenPartition() throws JsonProcessingException {
+        final Map<Integer, String> elements = Map.of(0, "host1", 1, "host2");
+        final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
+        final MirrorRequestManager requestManager = new MirrorRequestManagerWithFallback(this.client, mirrorHost);
+        final String value = this.objectMapper.writeValueAsString(elements);
+        this.server.enqueue(new MockResponse().setBody(value));
 
-    private static PartitionFinder getMockPartitionFinder() {
-        return (serializedKey, numPartitions) -> 1;
+        final String key = "abc";
+        final String key2 = "def";
+        final byte[] serializedKey1 = new StringSerde().serializer().serialize("test-topic", key);
+        final byte[] serializedKey2 = new StringSerde().serializer().serialize("test-topic", key2);
+
+        when(this.partitionFinder.getForSerializedKey(eq(serializedKey1), eq(2))).thenReturn(0);
+        when(this.partitionFinder.getForSerializedKey(eq(serializedKey2), eq(2))).thenReturn(1);
+
+        final Router<String> partitionRouter = new PartitionRouter<>(this.client, mirrorHost, new StringSerde(),
+            this.partitionFinder,
+            requestManager);
+        assertThat(partitionRouter.findHost(key).getHost()).isEqualTo("host1");
+        assertThat(partitionRouter.findHost(key2).getHost()).isEqualTo("host2");
     }
 }

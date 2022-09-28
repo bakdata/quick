@@ -16,24 +16,23 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import com.bakdata.quick.common.resolver.KnownTypeResolver;
-import com.bakdata.quick.common.resolver.TypeResolver;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
+import com.bakdata.quick.common.util.Lazy;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.Test;
 
 class RangeQueryFetcherTest extends FetcherTest {
     @Test
-    void shouldFetchRange() throws JsonProcessingException {
+    void shouldFetchRangeOfObjectsWithKeyInteger() {
         final Product product1 = Product.builder()
             .productId(1)
             .name("productTest1")
@@ -46,46 +45,41 @@ class RangeQueryFetcherTest extends FetcherTest {
             .ratings(3)
             .build();
 
-        final List<Product> userRequests = List.of(
-            product1,
-            product2
-        );
+        final List<Product> userRequests = List.of(product1, product2);
 
-        final String userRequestJson = this.mapper.writeValueAsString(new MirrorValue<>(userRequests));
-        this.server.enqueue(new MockResponse().setBody(userRequestJson));
+        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchRange(eq(1), eq("1"), eq("4"))).thenReturn(userRequests);
+        final DataFetcherClient<Integer, Product> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Product.class, this.mapper);
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient(newStringData(), knownTypeResolver);
+        final RangeQueryFetcher<Integer, Product> rangeQueryFetcher =
+            new RangeQueryFetcher<>("productId", fetcherClient, "ratingFrom", "ratingTo", true);
 
-        final RangeQueryFetcher<?, ?> rangeQueryFetcher =
-            new RangeQueryFetcher<>("userId", fetcherClient, "ratingFrom", "ratingTo", true);
-
-        final Map<String, Object> arguments = Map.of("userId", "1", "ratingFrom", "1", "ratingTo", "4");
+        final Map<String, Object> arguments = Map.of("productId", 1, "ratingFrom", "1", "ratingTo", "4");
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = rangeQueryFetcher.get(env);
+        final List<Product> actual = rangeQueryFetcher.get(env);
         assertThat(actual).isEqualTo(userRequests);
     }
 
     @Test
-    void shouldFetchEmptyListWhenResultIsNullAndReturnTypeIsNotNullable() throws JsonProcessingException {
-        final String body = this.mapper.writeValueAsString(new MirrorValue<>(Collections.emptyList()));
-        this.server.enqueue(new MockResponse().setBody(body));
+    void shouldFetchEmptyListWhenResultIsNullAndReturnTypeIsNotNullable() {
+        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchRange(eq(1), eq("1"), eq("4"))).thenReturn(Collections.emptyList());
+        final DataFetcherClient<Integer, Product> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
-        final DataFetcherClient<String, ?> fetcherClient = this.createClient(newStringData(), knownTypeResolver);
+        final RangeQueryFetcher<Integer, Product> rangeQueryFetcher =
+            new RangeQueryFetcher<>("productId", fetcherClient, "ratingFrom", "ratingTo", false);
 
-        final RangeQueryFetcher<?, ?> rangeQueryFetcher =
-            new RangeQueryFetcher<>("userId", fetcherClient, "timestampFrom", "timestampTo", false);
-
-        final Map<String, Object> arguments = Map.of("userId", "1", "timestampFrom", "1", "timestampTo", "2");
+        final Map<String, Object> arguments = Map.of("productId", 1, "ratingFrom", "1", "ratingTo", "2");
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = rangeQueryFetcher.get(env);
+        final List<Product> actual = rangeQueryFetcher.get(env);
 
         assertThat(actual).isEqualTo(Collections.emptyList());
     }

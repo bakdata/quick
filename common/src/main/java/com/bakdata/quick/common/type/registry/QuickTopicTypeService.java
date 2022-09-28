@@ -19,7 +19,7 @@ package com.bakdata.quick.common.type.registry;
 import static com.bakdata.quick.common.api.model.KeyValueEnum.KEY;
 import static com.bakdata.quick.common.api.model.KeyValueEnum.VALUE;
 
-import com.bakdata.quick.common.api.client.TopicRegistryClient;
+import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;

@@ -19,8 +19,8 @@ package com.bakdata.quick.manager.topic;
 import static com.bakdata.quick.common.api.model.KeyValueEnum.KEY;
 import static com.bakdata.quick.common.api.model.KeyValueEnum.VALUE;
 
-import com.bakdata.quick.common.api.client.GatewayClient;
-import com.bakdata.quick.common.api.client.TopicRegistryClient;
+import com.bakdata.quick.common.api.client.gateway.GatewayClient;
+import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.KeyValueEnum;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;

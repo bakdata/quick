@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import java.io.IOException;
@@ -25,7 +25,7 @@ import java.io.InputStream;
  *
  * @param <T> type of the returned value
  */
-interface ParserFunction<T> {
+public interface ParserFunction<T> {
     /**
      * Parses an input stream of data into a deserialized value.
      *

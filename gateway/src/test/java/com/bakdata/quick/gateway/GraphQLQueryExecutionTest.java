@@ -21,17 +21,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.TestTopicRegistryClient;
-import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.client.TopicRegistryClient;
+import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.gateway.GraphQLTestUtil.TestClientSupplier;
 import com.bakdata.quick.gateway.directives.QuickDirectiveWiring;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveWiring;
+import com.bakdata.quick.gateway.fetcher.ClientSupplier;
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
 import com.bakdata.quick.gateway.fetcher.FetcherFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -47,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Value;
-import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -55,7 +53,7 @@ class GraphQLQueryExecutionTest {
     private static final TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {};
     private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "execution");
     private final TopicRegistryClient registryClient = new TestTopicRegistryClient();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     GraphQLQueryExecutionTest() {
         this.registerTopics();
@@ -67,10 +65,10 @@ class GraphQLQueryExecutionTest {
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
 
-        final TestClientSupplier<String, ?> testClientSupplier = new TestClientSupplier<>();
-        final GraphQL graphQL = this.getGraphQL(schemaPath);
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
 
-        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClients().get("url-topic");
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
+        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClient("url-topic");
         when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> "test-url");
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
@@ -89,10 +87,9 @@ class GraphQLQueryExecutionTest {
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
 
-        final TestClientSupplier<String, ?> testClientSupplier = new TestClientSupplier<>();
-        final GraphQL graphQL = this.getGraphQL(schemaPath);
-
-        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClients().get("purchase-topic");
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
+        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClient("purchase-topic");
         final Purchase purchase = Purchase.builder().purchaseId("test").amount(5).productId("product").build();
         when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> purchase);
 
@@ -114,11 +111,10 @@ class GraphQLQueryExecutionTest {
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
 
-        final TestClientSupplier<Integer, ?> testClientSupplier = new TestClientSupplier<>();
-        final GraphQL graphQL = this.getGraphQL(schemaPath);
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
 
-        final DataFetcherClient<Integer, ?> dataFetcherClient =
-            testClientSupplier.getClients().get("user-request-range");
+        final DataFetcherClient<Integer, ?> dataFetcherClient = testClientSupplier.getClient("user-request-range");
 
         final List<?> userRequests = List.of(
             UserRequest.builder().userId(1).timestamp(1).requests(5).build(),
@@ -147,18 +143,18 @@ class GraphQLQueryExecutionTest {
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
 
-        final TestClientSupplier<String, ?> testClientSupplier = new TestClientSupplier<>();
-        final GraphQL graphQL = this.getGraphQL(schemaPath);
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
 
-        final DataFetcherClient<String, ?> purchaseClient = testClientSupplier.getClients().get("purchase-topic");
-        final DataFetcherClient<String, ?> productClient = testClientSupplier.getClients().get("product-topic");
+        final DataFetcherClient<String, ?> purchaseClient = testClientSupplier.getClient("purchase-topic");
+        final DataFetcherClient<String, ?> productClient = testClientSupplier.getClient("product-topic");
 
         final List<?> purchases = List.of(
-            this.objectMapper.convertValue(
+            this.mapper.convertValue(
                 Purchase.builder().purchaseId("purchase1").amount(5).productId("product1").build(),
                 OBJECT_TYPE_REFERENCE
             ),
-            this.objectMapper.convertValue(
+            this.mapper.convertValue(
                 Purchase.builder().purchaseId("purchase2").amount(1).productId("product2").build(),
                 OBJECT_TYPE_REFERENCE
             )
@@ -210,10 +206,10 @@ class GraphQLQueryExecutionTest {
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
 
-        final TestClientSupplier<String, ?> testClientSupplier = new TestClientSupplier<>();
-        final GraphQL graphQL = this.getGraphQL(schemaPath);
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
 
-        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClients().get("url-topic");
+        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClient("url-topic");
         when(dataFetcherClient.fetchList()).thenAnswer(invocation -> List.of("1", "2", "3"));
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
@@ -231,10 +227,10 @@ class GraphQLQueryExecutionTest {
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
 
-        final TestClientSupplier<String, ?> testClientSupplier = new TestClientSupplier<>();
-        final GraphQL graphQL = this.getGraphQL(schemaPath);
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
 
-        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClients().get("url-topic");
+        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClient("url-topic");
         when(dataFetcherClient.fetchResults(List.of("1", "2", "3"))).thenAnswer(invocation -> List.of("1", "2", "3"));
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
@@ -252,10 +248,10 @@ class GraphQLQueryExecutionTest {
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
 
-        final TestClientSupplier<Integer, ?> testClientSupplier = new TestClientSupplier<>();
-        final GraphQL graphQL = this.getGraphQL(schemaPath);
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
 
-        final DataFetcherClient<Integer, ?> dataFetcherClient = testClientSupplier.getClients().get("url-topic");
+        final DataFetcherClient<Integer, ?> dataFetcherClient = testClientSupplier.getClient("url-topic");
 
         when(dataFetcherClient.fetchResults(List.of(1, 2, 3))).thenAnswer(invocation -> List.of("1", "2", "3"));
 
@@ -274,10 +270,10 @@ class GraphQLQueryExecutionTest {
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
 
-        final TestClientSupplier<String, ?> testClientSupplier = new TestClientSupplier<>();
-        final GraphQL graphQL = this.getGraphQL(schemaPath);
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
 
-        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClients().get("url-topic");
+        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClient("url-topic");
         when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> "url");
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
@@ -295,10 +291,11 @@ class GraphQLQueryExecutionTest {
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
         final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
 
-        final TestClientSupplier<String, ?> testClientSupplier = new TestClientSupplier<>();
-        final GraphQL graphQL = this.getGraphQL(schemaPath);
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
 
-        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClients().get("purchase-topic");
+        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClient("purchase-topic");
+
         final Purchase purchase = Purchase.builder().purchaseId("test").amount(5).productId(null).build();
         when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> purchase);
 
@@ -313,13 +310,14 @@ class GraphQLQueryExecutionTest {
             });
     }
 
-    private <K, V> GraphQL getGraphQL(final Path schemaPath)
-        throws IOException {
+    private GraphQL getGraphQL(final Path schemaPath, final ClientSupplier clientSupplier) throws IOException {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy", "dummy");
+
         final TopicTypeService topicTypeService = mock(TopicTypeService.class);
-        final HttpClient client = new HttpClient(this.objectMapper, new OkHttpClient());
-        final FetcherFactory<K, V> fetcherFactory =
-            new FetcherFactory<>(kafkaConfig, this.objectMapper, topicTypeService, client, new MirrorConfig());
+
+        final FetcherFactory fetcherFactory = new FetcherFactory(kafkaConfig, this.mapper, topicTypeService,
+            clientSupplier);
+
         final QuickDirectiveWiring topicDirectiveWiring = new TopicDirectiveWiring(fetcherFactory);
         final GraphQLSchemaGenerator graphQLSchemaGenerator =
             new GraphQLSchemaGenerator(List.of(topicDirectiveWiring), Collections.emptyList(),

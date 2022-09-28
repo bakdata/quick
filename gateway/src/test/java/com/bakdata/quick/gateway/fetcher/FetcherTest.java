@@ -16,54 +16,11 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import static org.mockito.Mockito.mock;
-
-import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.model.TopicWriteType;
-import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.QuickTopicData.QuickData;
-import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.common.type.TopicTypeService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Value;
-import okhttp3.OkHttpClient;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.BeforeEach;
 
 public abstract class FetcherTest {
-    protected final ObjectMapper mapper = new ObjectMapper();
-    protected final MockWebServer server = new MockWebServer();
-    protected final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
-    protected final TopicTypeService typeService = mock(TopicTypeService.class);
-    private final MirrorConfig mirrorConfig = MirrorConfig.directAccess();
-    private final String host = String.format("localhost:%s", this.server.getPort());
-
-    // TODO: This tests only one host. Test for two different hosts.
-    @BeforeEach
-    void initRouterAndMirror() throws JsonProcessingException {
-        // mapping from partition to host for initializing PartitionRouter
-        final String routerBody = this.mapper.writeValueAsString(Map.of(0, this.host, 1, this.host));
-        this.server.enqueue(new MockResponse().setBody(routerBody));
-    }
-
-    protected <K, V> MirrorDataFetcherClient<K, V> createClient(final QuickData<K> keyData, final TypeResolver<V> typeResolver) {
-        final QuickTopicData<K, V> topicInfo = newQuickTopicData(keyData, typeResolver);
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, topicInfo);
-    }
-
-    protected static <K, V> QuickTopicData<K, V> newQuickTopicData(final QuickData<K> keyData,
-        final TypeResolver<V> typeResolver) {
-        final QuickData<V> valueData = new QuickData<>(QuickTopicType.AVRO, null, typeResolver);
-        return new QuickTopicData<>("topic", TopicWriteType.MUTABLE, keyData, valueData);
-    }
-
     @Value
     @Builder
     protected static class PurchaseList {

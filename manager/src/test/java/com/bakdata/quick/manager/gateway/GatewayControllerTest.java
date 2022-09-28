@@ -27,7 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.client.GatewayClient;
+import com.bakdata.quick.common.api.client.gateway.GatewayClient;
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import com.bakdata.quick.common.api.model.manager.GatewayDescription;
 import com.bakdata.quick.common.api.model.manager.creation.GatewayCreationData;

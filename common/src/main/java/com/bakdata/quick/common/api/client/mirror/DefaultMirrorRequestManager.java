@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
+import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.exception.MirrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;

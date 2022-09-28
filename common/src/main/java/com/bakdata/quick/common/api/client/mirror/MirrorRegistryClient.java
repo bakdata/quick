@@ -14,8 +14,10 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
+import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.client.ingest.IngestClient;
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;

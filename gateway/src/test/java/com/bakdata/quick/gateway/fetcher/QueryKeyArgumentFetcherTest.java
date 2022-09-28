@@ -16,37 +16,108 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import com.bakdata.quick.common.resolver.DoubleResolver;
-import com.bakdata.quick.common.resolver.IntegerResolver;
-import com.bakdata.quick.common.resolver.KnownTypeResolver;
-import com.bakdata.quick.common.resolver.LongResolver;
-import com.bakdata.quick.common.resolver.StringResolver;
-import com.bakdata.quick.common.resolver.TypeResolver;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
+import com.bakdata.quick.common.util.Lazy;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.Map;
-import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.Test;
 
 class QueryKeyArgumentFetcherTest extends FetcherTest {
+    @Test
+    void shouldFetchStringValueWithKeyString() {
+        final String value = "test";
+
+        final PartitionedMirrorClient<String, String> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValue(eq("testId"))).thenReturn(value);
+        final DataFetcherClient<String, String> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
+        final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
+            true);
+
+        final Map<String, Object> arguments = Map.of("purchaseId", "testId");
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
+            .localContext(arguments).build();
+        final Object fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(value);
+    }
 
     @Test
-    void shouldFetchObjectValue() throws JsonProcessingException {
+    void shouldFetchIntegerValueWithKeyString() {
+        final int value = 5;
+
+        final PartitionedMirrorClient<String, Integer> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValue(eq("testId"))).thenReturn(value);
+        final DataFetcherClient<String, Integer> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
+        final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
+            true);
+
+        final Map<String, Object> arguments = Map.of("purchaseId", "testId");
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
+            .localContext(arguments).build();
+        final Object fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(value);
+    }
+
+    @Test
+    void shouldFetchLongValueWithKeyString() {
+        final long value = 5L;
+
+        final PartitionedMirrorClient<String, Long> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValue(eq("testId"))).thenReturn(value);
+        final DataFetcherClient<String, Long> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
+        final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
+            true);
+
+        final Map<String, Object> arguments = Map.of("purchaseId", "testId");
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
+            .localContext(arguments).build();
+        final Object fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(value);
+    }
+
+    @Test
+    void shouldFetchDoubleValue() {
+        final double value = 0.5;
+
+        final PartitionedMirrorClient<String, Double> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValue(eq("testId"))).thenReturn(value);
+        final DataFetcherClient<String, Double> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
+        final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
+            true);
+
+        final Map<String, Object> arguments = Map.of("purchaseId", "testId");
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
+            .localContext(arguments).build();
+        final Object fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(value);
+    }
+
+    @Test
+    void shouldFetchObjectValueWithKeyString() {
         final Purchase purchase = Purchase.builder()
             .purchaseId("testId")
             .productId(2)
             .amount(3)
             .build();
-        final String purchaseJson = this.mapper.writeValueAsString(new MirrorValue<>(purchase));
-        this.server.enqueue(new MockResponse().setBody(purchaseJson));
 
-        final TypeResolver<Purchase> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), knownTypeResolver);
+        final PartitionedMirrorClient<String, Purchase> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValue(eq("testId"))).thenReturn(purchase);
+        final DataFetcherClient<String, Purchase> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
             true);
 
@@ -55,74 +126,5 @@ class QueryKeyArgumentFetcherTest extends FetcherTest {
             .localContext(arguments).build();
         final Object fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(purchase);
-    }
-
-    @Test
-    void shouldFetchStringValue() throws JsonProcessingException {
-        final String value = "test";
-        final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
-        this.server.enqueue(new MockResponse().setBody(valueJson));
-
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), new StringResolver());
-        final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
-            true);
-
-        final Map<String, Object> arguments = Map.of("purchaseId", "testId");
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .localContext(arguments).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo("test");
-    }
-
-    @Test
-    void shouldFetchIntegerValue() throws JsonProcessingException {
-        final int value = 5;
-        final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
-
-        this.server.enqueue(new MockResponse().setBody(valueJson));
-
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), new IntegerResolver());
-        final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
-            true);
-
-        final Map<String, Object> arguments = Map.of("purchaseId", "testId");
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .localContext(arguments).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(value);
-    }
-
-    @Test
-    void shouldFetchLongValue() throws JsonProcessingException {
-        final long value = 5L;
-        final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
-        this.server.enqueue(new MockResponse().setBody(valueJson));
-
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), new LongResolver());
-        final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
-            true);
-
-        final Map<String, Object> arguments = Map.of("purchaseId", "testId");
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .localContext(arguments).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(value);
-    }
-
-    @Test
-    void shouldFetchDoubleValue() throws JsonProcessingException {
-        final double value = 0.5;
-        final String valueJson = this.mapper.writeValueAsString(new MirrorValue<>(value));
-        this.server.enqueue(new MockResponse().setBody(valueJson));
-
-        final DataFetcherClient<?, ?> fetcherClient = this.createClient(newStringData(), new DoubleResolver());
-        final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
-            true);
-
-        final Map<String, Object> arguments = Map.of("purchaseId", "testId");
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .localContext(arguments).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(value);
     }
 }

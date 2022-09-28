@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.gateway;
 
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import io.reactivex.Completable;

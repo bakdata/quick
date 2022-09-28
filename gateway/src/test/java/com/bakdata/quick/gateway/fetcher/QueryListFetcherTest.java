@@ -17,29 +17,71 @@
 package com.bakdata.quick.gateway.fetcher;
 
 
-import static com.bakdata.quick.common.TestTypeUtils.newDoubleData;
-import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
-import static com.bakdata.quick.common.TestTypeUtils.newLongData;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import com.bakdata.quick.common.resolver.DoubleResolver;
-import com.bakdata.quick.common.resolver.IntegerResolver;
-import com.bakdata.quick.common.resolver.KnownTypeResolver;
-import com.bakdata.quick.common.resolver.StringResolver;
-import com.bakdata.quick.common.resolver.TypeResolver;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
+import com.bakdata.quick.common.util.Lazy;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.List;
 import java.util.Map;
-import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.Test;
 
 class QueryListFetcherTest extends FetcherTest {
+    @Test
+    void shouldFetchListOfStrings() {
+        final List<String> values = List.of("abc", "def");
+
+        final PartitionedMirrorClient<?, String> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchAll()).thenReturn(values);
+        final DataFetcherClient<?, String> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
+        final QueryListFetcher<?, String> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
+
+        final List<String> fetcherResult = queryFetcher.get(env);
+
+        assertThat(fetcherResult).isEqualTo(values);
+    }
 
     @Test
-    void shouldFetchListOfObjects() throws JsonProcessingException {
+    void shouldFetchListOfInteger() {
+        final List<Integer> values = List.of(1, 2);
+
+        final PartitionedMirrorClient<?, Integer> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchAll()).thenReturn(values);
+        final DataFetcherClient<?, Integer> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
+        final QueryListFetcher<?, Integer> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
+
+        final List<Integer> fetcherResult = queryFetcher.get(env);
+
+        assertThat(fetcherResult).isEqualTo(values);
+    }
+
+    @Test
+    void shouldFetchListOfDoubles() {
+        final List<Double> values = List.of(0.5, 0.1);
+
+        final PartitionedMirrorClient<?, Double> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchAll()).thenReturn(values);
+        final DataFetcherClient<?, Double> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
+        final QueryListFetcher<?, Double> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
+
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
+        final List<Double> fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(values);
+    }
+
+    @Test
+    void shouldFetchListOfObjectsWithKeyString() {
         final Purchase purchase1 = Purchase.builder()
             .purchaseId("testId")
             .productId(1)
@@ -53,66 +95,18 @@ class QueryListFetcherTest extends FetcherTest {
             .build();
 
         final List<Purchase> purchaseList = new java.util.ArrayList<>(List.of(purchase1, purchase2));
-        final String purchaseJson = this.mapper.writeValueAsString(new MirrorValue<>(purchaseList));
-        this.server.enqueue(new MockResponse().setBody(purchaseJson));
 
-        final TypeResolver<?> knownTypeResolver = new KnownTypeResolver<>(Purchase.class, this.mapper);
-        final DataFetcherClient<Long, ?> fetcherClient = this.createClient(newLongData(), knownTypeResolver);
+        final PartitionedMirrorClient<?, Purchase> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchAll()).thenReturn(purchaseList);
+        final DataFetcherClient<?, Purchase> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final QueryListFetcher<?, ?> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
+        final QueryListFetcher<?, Purchase> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
         final Map<String, String> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
         final List<?> actual = queryFetcher.get(env);
         assertThat(actual).isEqualTo(purchaseList);
-    }
-
-    @Test
-    void shouldFetchListOfStrings() throws JsonProcessingException {
-        final List<String> list = List.of("abc", "def");
-        final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
-        this.server.enqueue(new MockResponse().setBody(listJson));
-        this.server.enqueue(new MockResponse().setBody(listJson));
-
-        final DataFetcherClient<Long, ?> fetcherClient = this.createClient(newLongData(), new StringResolver());
-
-        final QueryListFetcher<?, ?> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
-
-        final List<?> fetcherResult = queryFetcher.get(env);
-
-        assertThat(fetcherResult).isEqualTo(List.of("abc", "def"));
-    }
-
-    @Test
-    void shouldFetchListOfInteger() throws JsonProcessingException {
-        final List<Integer> list = List.of(1, 2);
-        final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
-        this.server.enqueue(new MockResponse().setBody(listJson));
-
-        final DataFetcherClient<Integer, ?> fetcherClient = this.createClient(newIntegerData(), new IntegerResolver());
-
-        final QueryListFetcher<?, ?> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
-
-        final List<?> fetcherResult = queryFetcher.get(env);
-
-        assertThat(fetcherResult).isEqualTo(List.of(1, 2));
-    }
-
-    @Test
-    void shouldFetchListOfDoubles() throws JsonProcessingException {
-        final List<Double> list = List.of(0.5, 0.1);
-        final String listJson = this.mapper.writeValueAsString(new MirrorValue<>(list));
-        this.server.enqueue(new MockResponse().setBody(listJson));
-
-        final DataFetcherClient<Double, ?> fetcherClient = this.createClient(newDoubleData(), new DoubleResolver());
-
-        final QueryListFetcher<?, ?> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
-
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
-        final List<?> fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(List.of(0.5, 0.1));
     }
 }

@@ -14,15 +14,25 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.gateway.fetcher;
+package com.bakdata.quick.common.api.client.mirror;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.util.Lazy;
+import com.bakdata.quick.common.api.model.TopicData;
+import io.reactivex.Completable;
+import io.reactivex.Single;
+import java.util.List;
 
 /**
- * Supplier for creating a new data fetcher client for a topic.
+ * Client for interacting with Quick's topic registry.
  */
-@FunctionalInterface
-public interface ClientSupplier {
-    <K, V> DataFetcherClient<K, V> createClient(final String topic, final Lazy<QuickTopicData<K, V>> quickTopicData);
+public interface TopicRegistryClient {
+
+    Completable register(String name, TopicData data);
+
+    Completable delete(String name);
+
+    Single<TopicData> getTopicData(String name);
+
+    Single<Boolean> topicDataExists(final String name);
+
+    Single<List<TopicData>> getAllTopics();
 }

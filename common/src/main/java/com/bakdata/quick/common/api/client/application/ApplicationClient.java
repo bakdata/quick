@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.application;
 
 import com.bakdata.quick.common.api.model.manager.ApplicationDescription;
 import com.bakdata.quick.common.api.model.manager.creation.ApplicationCreationData;

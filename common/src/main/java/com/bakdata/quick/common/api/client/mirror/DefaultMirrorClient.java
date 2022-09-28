@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
+import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.Collections;
@@ -36,20 +36,6 @@ public class DefaultMirrorClient<K, V> implements MirrorClient<K, V> {
     private final MirrorHost host;
     private final MirrorValueParser<V> parser;
     private final MirrorRequestManager mirrorRequestManager;
-
-    /**
-     * Constructor for the client.
-     *
-     * @param topicName name of the topic the mirror is deployed
-     * @param client http client
-     * @param mirrorConfig configuration of the mirror host
-     * @param valueResolver the value's {@link TypeResolver}
-     * @param requestManager a manager for sending requests to the mirror and processing responses
-     */
-    public DefaultMirrorClient(final String topicName, final HttpClient client, final MirrorConfig mirrorConfig,
-        final TypeResolver<V> valueResolver, final MirrorRequestManager requestManager) {
-        this(new MirrorHost(topicName, mirrorConfig), client, valueResolver, requestManager);
-    }
 
     /**
      * Constructor that can be used when the mirror client is based on an IP or other non-standard host.

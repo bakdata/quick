@@ -14,25 +14,19 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
-import com.bakdata.quick.common.api.model.TopicData;
-import io.reactivex.Completable;
-import io.reactivex.Single;
-import java.util.List;
+import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.config.MirrorConfig;
+import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.util.Lazy;
 
 /**
- * Client for interacting with Quick's topic registry.
+ * Factory for creating {@link MirrorClient}.
  */
-public interface TopicRegistryClient {
-
-    Completable register(String name, TopicData data);
-
-    Completable delete(String name);
-
-    Single<TopicData> getTopicData(String name);
-
-    Single<Boolean> topicDataExists(final String name);
-
-    Single<List<TopicData>> getAllTopics();
+public interface MirrorClientFactory {
+    <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
+        final String topic,
+        final MirrorConfig mirrorConfig,
+        final Lazy<QuickTopicData<K, V>> quickTopicData);
 }

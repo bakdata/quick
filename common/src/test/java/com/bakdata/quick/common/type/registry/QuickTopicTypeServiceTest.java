@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bakdata.quick.avro.ChartRecord;
 import com.bakdata.quick.common.TestTopicRegistryClient;
 import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.client.TopicRegistryClient;
+import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
@@ -137,5 +137,4 @@ class QuickTopicTypeServiceTest {
         final DefaultConversionProvider conversionProvider = new DefaultConversionProvider(schemaConfig);
         return new QuickTopicTypeService(schemaFetcher, this.topicRegistryClient, kafkaConfig, conversionProvider);
     }
-
 }

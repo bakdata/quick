@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.exception.MirrorException;
@@ -33,7 +33,7 @@ import java.util.stream.StreamSupport;
  *
  * @param <V> type of the value
  */
-class MirrorValueParser<V> {
+public class MirrorValueParser<V> {
     /**
      * Name of the field in {@link MirrorValue} containing the value.
      */
@@ -41,7 +41,7 @@ class MirrorValueParser<V> {
     private final TypeResolver<V> resolver;
     private final ObjectMapper objectMapper;
 
-    MirrorValueParser(final TypeResolver<V> resolver, final ObjectMapper objectMapper) {
+    public MirrorValueParser(final TypeResolver<V> resolver, final ObjectMapper objectMapper) {
         this.resolver = resolver;
         this.objectMapper = objectMapper;
     }

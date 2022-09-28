@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -88,18 +89,19 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
     @Override
     @Nullable
     public Object get(final DataFetchingEnvironment environment) {
-        final List<String> keyArguments = this.findKeyArgument(environment).collect(Collectors.toList());
+        final List<K> keyArguments = this.findKeyArgument(environment).collect(Collectors.toList());
 
         // the modification applies either to an array node or to a single field
         // TODO create two different classes for both use cases and create them based on the schema
         if (keyArguments.size() == 1) {
-            return this.client.fetchResult((K) keyArguments.get(0));
+            return this.client.fetchResult(keyArguments.get(0));
         } else {
-            return this.client.fetchResults((List<K>) keyArguments);
+            return this.client.fetchResults(keyArguments);
         }
     }
 
-    private Stream<String> findKeyArgument(final DataFetchingEnvironment environment) {
+    // TODO: Fix this
+    private Stream<K> findKeyArgument(final DataFetchingEnvironment environment) {
         final String parentJson;
         try {
             parentJson = this.extractJson(environment);
@@ -111,20 +113,39 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
         try {
             final JsonNode parent = this.objectMapper.readTree(parentJson);
             final JsonNode node = parent.findValue(this.argument);
+            final Object typedNode = extractCorrectType(node);
             if (node == null) {
                 throw new IllegalArgumentException(
                     String.format("Field + %s could not be found in source.", this.argument));
             }
             if (node.isArray()) {
                 final Iterator<JsonNode> elements = node.elements();
-                return StreamSupport.stream(Spliterators.spliteratorUnknownSize(elements, 0), false)
-                    .map(this::valueAsString);
-
+                return (Stream<K>) StreamSupport
+                    .stream(Spliterators.spliteratorUnknownSize(elements, 0), false)
+                    .map(KeyFieldFetcher::extractCorrectType);
             } else {
-                return Stream.of(this.valueAsString(node));
+                return (Stream<K>) Stream.of(typedNode);
             }
         } catch (final JsonProcessingException e) {
             throw new UncheckedIOException("Could not process json: " + parentJson, e);
+        }
+    }
+
+    private static Object extractCorrectType(final JsonNode jsonNode) {
+        if (jsonNode.isInt()) {
+            return jsonNode.asInt();
+        } else if (jsonNode.isDouble()) {
+            return jsonNode.asDouble();
+        } else if (jsonNode.isLong()) {
+            return jsonNode.asLong();
+        } else if (jsonNode.isBoolean()) {
+            return jsonNode.asBoolean();
+        } else if (jsonNode.isArray() || jsonNode.isObject()) {
+            return jsonNode;
+        } else if (jsonNode.isTextual()) {
+            return jsonNode.textValue();
+        } else {
+            throw new BadArgumentException("Provided argument is not supported.");
         }
     }
 

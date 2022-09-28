@@ -70,10 +70,10 @@ public class MultiSubscriptionTransformer implements SchemaGeneratorPostProcessi
         return originalSchema.transform(builder -> builder.codeRegistry(codeRegistry));
     }
 
-    private DataFetcherSpecification buildDataFetcher(final GraphQLFieldDefinition fieldDefinition) {
+    private <K> DataFetcherSpecification buildDataFetcher(final GraphQLFieldDefinition fieldDefinition) {
         final GraphQLObjectType objectType = (GraphQLObjectType) fieldDefinition.getType();
-        final Map<String, DataFetcherClient<?, ?>> dataFetchers = new HashMap<>();
-        final Map<String, SubscriptionProvider<?, ?>> subscriptionProviders = new HashMap<>();
+        final Map<String, DataFetcherClient<K, ?>> dataFetchers = new HashMap<>();
+        final Map<String, SubscriptionProvider<K, ?>> subscriptionProviders = new HashMap<>();
         for (final GraphQLFieldDefinition field : objectType.getFieldDefinitions()) {
             if (!field.getDirectivesByName().containsKey(TopicDirective.DIRECTIVE_NAME)) {
                 log.warn("Skip field {} of {} in subscription: No topic directive found", field.getName(),
@@ -84,9 +84,9 @@ public class MultiSubscriptionTransformer implements SchemaGeneratorPostProcessi
             final List<GraphQLArgument> arguments =
                 field.getDirective(TopicDirective.DIRECTIVE_NAME).getArguments();
             final TopicDirective topicDirective = TopicDirective.fromArguments(arguments);
-            final DataFetcherClient<?, ?> dataFetcherClient =
+            final DataFetcherClient<K, ?> dataFetcherClient =
                 this.fetcherFactory.dataFetcherClient(topicDirective.getTopicName());
-            final SubscriptionProvider<?, ?> subscriptionProvider =
+            final SubscriptionProvider<K, ?> subscriptionProvider =
                 this.fetcherFactory.subscriptionProvider(topicDirective.getTopicName(), field.getName(),
                     topicDirective.getKeyArgument());
 
@@ -94,10 +94,9 @@ public class MultiSubscriptionTransformer implements SchemaGeneratorPostProcessi
             subscriptionProviders.put(field.getName(), subscriptionProvider);
         }
         final DataFetcher<?> multiSubscriptionFetcher =
-            new MultiSubscriptionFetcher(dataFetchers, subscriptionProviders);
+            new MultiSubscriptionFetcher<>(dataFetchers, subscriptionProviders);
         final FieldCoordinates coordinates =
             FieldCoordinates.coordinates(GraphQLUtils.SUBSCRIPTION_TYPE, fieldDefinition.getName());
         return DataFetcherSpecification.of(coordinates, multiSubscriptionFetcher);
     }
-
 }

@@ -18,6 +18,9 @@ package com.bakdata.quick.common.api.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
+import com.bakdata.quick.common.api.client.mirror.MirrorClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;

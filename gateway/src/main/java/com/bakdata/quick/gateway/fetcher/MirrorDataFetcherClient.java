@@ -16,21 +16,16 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.client.MirrorClient;
-import com.bakdata.quick.common.api.client.PartitionedMirrorClient;
-import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.api.client.mirror.MirrorClient;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
 
 /**
- * A HTTP client for fetching values from mirror REST APIs.
+ * An HTTP client for fetching values from mirror REST APIs.
  */
 @Slf4j
 public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
@@ -38,16 +33,9 @@ public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
 
     /**
      * Constructor for client.
-     *
-     * @param host host url of the mirror
-     * @param client http client
-     * @param mirrorConfig configuration for the mirror
      */
-    public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final QuickTopicData<K, V> quickTopicData) {
-
-        this.mirrorClient =
-            new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, quickTopicData));
+    public MirrorDataFetcherClient(final Lazy<MirrorClient<K, V>> mirrorClient) {
+        this.mirrorClient = mirrorClient;
     }
 
     @Override
@@ -75,15 +63,5 @@ public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
     @Nullable
     public List<V> fetchRange(final K id, final String from, final String to) {
         return this.mirrorClient.get().fetchRange(id, from, to);
-    }
-
-    private PartitionedMirrorClient<K, V> createMirrorClient(final String host,
-        final MirrorConfig mirrorConfig,
-        final HttpClient client,
-        final QuickTopicData<K, V> quickTopicData) {
-        final MirrorHost mirrorHost = new MirrorHost(host, mirrorConfig);
-
-        log.info("Creating a partitioned mirror client with with service {}", mirrorHost);
-        return new PartitionedMirrorClient<>(mirrorHost, client, quickTopicData, new DefaultPartitionFinder());
     }
 }

@@ -29,8 +29,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.TestTopicRegistryClient;
-import com.bakdata.quick.common.api.client.GatewayClient;
-import com.bakdata.quick.common.api.client.TopicRegistryClient;
+import com.bakdata.quick.common.api.client.gateway.GatewayClient;
+import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
