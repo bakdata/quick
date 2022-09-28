@@ -39,7 +39,7 @@ import org.apache.avro.Schema;
  * Creates range indexes for a Mirror's state store.
  */
 @Slf4j
-public final class DefaultRangeIndexer<K, V, F extends Number> implements RangeIndexer<K, V> {
+public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
     private final ZeroPadder<K> keyZeroPadder;
     private final ZeroPadder<F> valueZeroPadder;
     private final RangeFieldValueExtractor<V, F> rangeFieldValueExtractor;
@@ -58,25 +58,30 @@ public final class DefaultRangeIndexer<K, V, F extends Number> implements RangeI
      * Creates the zero padder for the key and sets the range field value extractor based on the schema type. It then
      * reads the range field type form the schema and sets the value zero padder for the range field.
      */
-    public static <K, V, F extends Number> DefaultRangeIndexer<K, V, F> createRangeIndexer(
+    public static <K, V, F> DefaultRangeIndexer<K, V, F> createRangeIndexer(
         final QuickTopicType keyType,
         final ParsedSchema parsedSchema,
         final String rangeField) {
 
         final ZeroPadder<K> keyZeroPadder = createZeroPadderForTopicType(keyType);
-        if (parsedSchema.schemaType().equals(AvroSchema.TYPE)) {
-            return getDefaultRangeIndexerForAvroSchema(parsedSchema, rangeField, keyZeroPadder);
-        } else if (parsedSchema.schemaType().equals(ProtobufSchema.TYPE)) {
-            return getDefaultRangeIndexerForProtobuf(parsedSchema, rangeField, keyZeroPadder);
+
+        switch (parsedSchema.schemaType()) {
+            case (AvroSchema.TYPE):
+                return getDefaultRangeIndexerForAvroSchema(parsedSchema, rangeField, keyZeroPadder);
+            case (ProtobufSchema.TYPE):
+                return getDefaultRangeIndexerForProtobuf(parsedSchema, rangeField, keyZeroPadder);
+            default:
+                throw new MirrorTopologyException("Key value should be either integer or mirror");
         }
-        throw new MirrorTopologyException("Key value should be either integer or mirror");
     }
 
     /**
-     * Creates the range index for a given key over a specific range field First the value is converted to Avro generic
-     * record or Protobuf message. Then the value is extracted from the schema. Depending on the type (integer or long)
-     * of the key and value zero paddings are appended to the left side of the key and value, and they are contaminated
-     * with an <b>_</b>.
+     * Creates the range index for a given key over a specific range field.
+     *
+     * <p>
+     * First the value is converted to Avro generic record or Protobuf message. Then the value is extracted from the
+     * schema. Depending on the type (integer or long) of the key and value zero paddings are appended to the left side
+     * of the key and value, and they are contaminated with an <b>_</b>.
      *
      * <p>
      * Imagine the incoming record has a key of type integer with the value 1. The value is a proto schema with the
@@ -137,7 +142,7 @@ public final class DefaultRangeIndexer<K, V, F extends Number> implements RangeI
     }
 
 
-    private static <K, V, F extends Number> DefaultRangeIndexer<K, V, F> getDefaultRangeIndexerForAvroSchema(
+    private static <K, V, F> DefaultRangeIndexer<K, V, F> getDefaultRangeIndexerForAvroSchema(
         final ParsedSchema parsedSchema,
         final String rangeField, final ZeroPadder<K> keyZeroPadder) {
         log.debug("Type Avro detected");
@@ -147,7 +152,7 @@ public final class DefaultRangeIndexer<K, V, F extends Number> implements RangeI
         return new DefaultRangeIndexer<>(keyZeroPadder, valueZeroPadder, avroExtractor, rangeField);
     }
 
-    private static <K, V, F extends Number> DefaultRangeIndexer<K, V, F> getDefaultRangeIndexerForProtobuf(
+    private static <K, V, F> DefaultRangeIndexer<K, V, F> getDefaultRangeIndexerForProtobuf(
         final ParsedSchema parsedSchema,
         final String rangeField, final ZeroPadder<K> keyZeroPadder) {
         log.debug("Type Protobuf detected");

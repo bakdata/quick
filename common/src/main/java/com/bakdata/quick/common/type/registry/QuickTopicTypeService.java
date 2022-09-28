@@ -20,6 +20,7 @@ import static com.bakdata.quick.common.api.model.KeyValueEnum.KEY;
 import static com.bakdata.quick.common.api.model.KeyValueEnum.VALUE;
 
 import com.bakdata.quick.common.api.client.TopicRegistryClient;
+import com.bakdata.quick.common.api.model.KeyValueEnum;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.schema.SchemaFetcher;
@@ -115,8 +116,8 @@ public class QuickTopicTypeService implements TopicTypeService {
         final Serde<V> valueSerde = this.conversionProvider.getSerde(valueType, configs, false);
 
         final String topic = topicData.getName();
-        final Single<QuickData<K>> keyData = this.createKeyData(keyType, keySerde, topic);
-        final Single<QuickData<V>> valueData = this.createValueData(valueType, valueSerde, topic);
+        final Single<QuickData<K>> keyData = this.createData(keyType, keySerde, topic, KEY);
+        final Single<QuickData<V>> valueData = this.createData(valueType, valueSerde, topic, VALUE);
 
         // combine key and value data when both are ready
         return keyData.zipWith(valueData,
@@ -124,18 +125,11 @@ public class QuickTopicTypeService implements TopicTypeService {
         );
     }
 
-    private <K> Single<QuickData<K>> createKeyData(final QuickTopicType keyType, final Serde<K> keySerde,
-        final String topic) {
-        final Single<TypeResolverWithSchema<K>> keyResolver = this.createResolver(keyType, KEY.asSubject(topic));
-        return keyResolver.map(resolverWithSchema -> new QuickData<>(keyType, keySerde,
-            resolverWithSchema.getTypeResolver(),
-            resolverWithSchema.getParsedSchema()));
-    }
-
-    private <V> Single<QuickData<V>> createValueData(final QuickTopicType valueType, final Serde<V> valueSerde,
-        final String topic) {
-        final Single<TypeResolverWithSchema<V>> valueResolver = this.createResolver(valueType, VALUE.asSubject(topic));
-        return valueResolver.map(resolverWithSchema -> new QuickData<>(valueType, valueSerde,
+    private <T> Single<QuickData<T>> createData(final QuickTopicType quickTopicType, final Serde<T> serde,
+        final String topic, final KeyValueEnum keyValueEnum) {
+        final Single<TypeResolverWithSchema<T>> valueResolver =
+            this.createResolver(quickTopicType, keyValueEnum.asSubject(topic));
+        return valueResolver.map(resolverWithSchema -> new QuickData<>(quickTopicType, serde,
             resolverWithSchema.getTypeResolver(),
             resolverWithSchema.getParsedSchema()));
     }
