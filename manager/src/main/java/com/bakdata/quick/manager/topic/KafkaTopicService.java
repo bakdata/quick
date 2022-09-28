@@ -131,7 +131,6 @@ public class KafkaTopicService implements TopicService {
         // create topic in kafka and deploy a mirror application
         final Completable kafkaTopicCreation = this.createKafkaTopic(name);
         final Completable mirrorCreation = this.createMirror(name, topicCreationData.getRetentionTime(),
-            topicCreationData.isPoint(),
             topicCreationData.getRangeField());
 
         // default to mutable topic write type
@@ -203,7 +202,6 @@ public class KafkaTopicService implements TopicService {
 
     private Completable createMirror(final String topicName,
                                      @Nullable final Duration retentionTime,
-                                     final boolean point,
                                      @Nullable final String rangeField) {
         return Completable.defer(() -> {
             log.debug("Create mirror for topic {}", topicName);
@@ -212,7 +210,6 @@ public class KafkaTopicService implements TopicService {
                 1,
                 null, // use default tag
                 retentionTime,
-                point,
                 rangeField);
             return this.mirrorService.createMirror(mirrorCreationData);
         });

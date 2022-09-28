@@ -73,7 +73,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             3,
             null,
             Duration.of(1, ChronoUnit.MINUTES),
-            true,
             null);
 
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
@@ -170,7 +169,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             1,
             null,
             null,
-            true,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -209,7 +207,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             1,
             customTag,
             null,
-            true,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -237,7 +234,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             5,
             null,
             null,
-            true,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -263,7 +259,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             1,
             null,
             retentionTime,
-            true,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -280,9 +275,8 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .hasSize(1)
                     .first()
                     .extracting(Container::getArgs, LIST)
-                    .hasSize(3)
+                    .hasSize(2)
                     .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
-                    .contains("--point=" + "true")
                     .contains("--retention-time=" + retentionTime);
             });
     }
@@ -296,7 +290,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             1,
             null,
             null,
-            true,
             rangeField);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -313,15 +306,14 @@ class MirrorResourceLoaderTest extends KubernetesTest {
                     .hasSize(1)
                     .first()
                     .extracting(Container::getArgs, LIST)
-                    .hasSize(3)
+                    .hasSize(2)
                     .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
-                    .contains("--point=" + "true")
                     .contains("--range-field=" + rangeField);
             });
     }
 
     @Test
-    void shouldSetRetentionTimeAndRangeFieldForMirrorDeployment() {
+    void shouldThrowBadArgumentExceptionWhenBothRetentionTimeAndRangeFieldSet() {
         final Duration retentionTime = Duration.ofHours(1);
         final String rangeField = "timestamp";
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
@@ -330,78 +322,12 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             1,
             null,
             retentionTime,
-            true,
             rangeField);
-        final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
-
-        final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
-
-        assertThat(hasMetadata)
-            .isPresent()
-            .get(InstanceOfAssertFactories.type(Deployment.class))
-            .satisfies(deployment -> {
-
-                final PodSpec podSpec = deployment.getSpec().getTemplate().getSpec();
-                assertThat(podSpec.getContainers())
-                    .isNotNull()
-                    .hasSize(1)
-                    .first()
-                    .extracting(Container::getArgs, LIST)
-                    .hasSize(4)
-                    .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
-                    .contains("--point=" + "true")
-                    .contains("--retention-time=" + retentionTime)
-                    .contains("--range-field=" + rangeField);
-            });
-    }
-
-    @Test
-    void shouldSetOnlyRangeFieldForMirrorDeployment() {
-        final String rangeField = "timestamp";
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            DEFAULT_NAME,
-            DEFAULT_TOPIC_NAME,
-            1,
-            null,
-            null,
-            false,
-            rangeField);
-        final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
-
-        final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
-
-        assertThat(hasMetadata)
-            .isPresent()
-            .get(InstanceOfAssertFactories.type(Deployment.class))
-            .satisfies(deployment -> {
-
-                final PodSpec podSpec = deployment.getSpec().getTemplate().getSpec();
-                assertThat(podSpec.getContainers())
-                    .isNotNull()
-                    .hasSize(1)
-                    .first()
-                    .extracting(Container::getArgs, LIST)
-                    .hasSize(3)
-                    .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
-                    .contains("--point=" + "false")
-                    .contains("--range-field=" + rangeField);
-            });
-    }
-
-    @Test
-    void shouldThrowBadArgumentExceptionWhenNoQueryTypeIsDefined() {
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            DEFAULT_NAME,
-            DEFAULT_TOPIC_NAME,
-            1,
-            null,
-            null,
-            false,
-            null);
 
         assertThatThrownBy(() -> this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR)).isInstanceOf(
                 BadArgumentException.class)
-            .hasMessageContaining("At least one query type (--range-field <Field> or --point) should be defined");
+            .hasMessageContaining("The --range-field option must not be specified" +
+                " when --retention-time is set");
     }
 
     @Test
@@ -412,7 +338,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             3,
             "snapshot",
             null,
-            true,
             null);
 
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
@@ -465,7 +390,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             1,
             null,
             null,
-            true,
             null);
 
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);

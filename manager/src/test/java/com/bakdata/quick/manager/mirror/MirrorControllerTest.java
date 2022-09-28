@@ -59,7 +59,6 @@ class MirrorControllerTest {
             DEFAULT_REPLICA,
             TAG,
             null,
-            true,
             null);
 
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));
@@ -77,7 +76,6 @@ class MirrorControllerTest {
             REPLICAS,
             TAG,
             null,
-            true,
             null);
 
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));

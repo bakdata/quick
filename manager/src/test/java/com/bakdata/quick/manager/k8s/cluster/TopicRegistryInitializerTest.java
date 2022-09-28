@@ -122,7 +122,6 @@ class TopicRegistryInitializerTest {
             1,
             null,
             null,
-            true,
             null);
         verify(this.mock).createInternalMirror(mirrorCreationData);
     }
