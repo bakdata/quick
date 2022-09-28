@@ -121,21 +121,21 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
         final QuickTopicType keyType = this.getTopicData().getKeyData().getType();
         final ParsedSchema parsedSchema = this.getTopicData().getValueData().getParsedSchema();
         log.debug("keyType is {} and parsedSchema is {}", keyType, parsedSchema);
+        final RangeIndexer<K, V> rangeIndexer;
         if (parsedSchema == null) {
             if (this.isCleanup) {
                 log.trace("Parsed schema is null and cleanup flag is set to true.");
-                final RangeIndexer<K, V> opRangeIndexer = new NoOpRangeIndexer<>();
-                stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, opRangeIndexer),
-                    Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
+                rangeIndexer = new NoOpRangeIndexer<>();
+            } else {
+                throw new MirrorTopologyException("Could not get the parsed schema.");
             }
-            throw new MirrorTopologyException("Could not get the parsed schema.");
         } else {
             log.debug("Setting up default range indexer.");
-            final RangeIndexer<K, V> defaultRangeIndexer =
+            rangeIndexer =
                 DefaultRangeIndexer.createRangeIndexer(keyType, parsedSchema, rangeField);
-            stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, defaultRangeIndexer),
-                Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
         }
+        stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, rangeIndexer),
+            Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
     }
 
     private Topology createRetentionTopology(final StreamsBuilder builder, final Serde<K> keySerDe,
@@ -162,7 +162,6 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
             keySerDe.serializer(),
             PROCESSOR_NAME
         );
-        log.debug("The topology is {}", topology);
         return topology;
     }
 

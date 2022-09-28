@@ -110,7 +110,6 @@ public class TopicRegistryInitializer {
             1,
             null, // null means we use the default tag
             null,
-            true,
             null
         );
 

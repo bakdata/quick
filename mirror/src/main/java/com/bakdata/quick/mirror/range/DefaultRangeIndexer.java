@@ -39,7 +39,7 @@ import org.apache.avro.Schema;
  * Creates range indexes for a Mirror's state store.
  */
 @Slf4j
-public final class DefaultRangeIndexer<K, V, F extends Number> implements RangeIndexer<K, V> {
+public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
     private final ZeroPadder<K> keyZeroPadder;
     private final ZeroPadder<F> valueZeroPadder;
     private final RangeFieldValueExtractor<V, F> rangeFieldValueExtractor;
@@ -58,30 +58,30 @@ public final class DefaultRangeIndexer<K, V, F extends Number> implements RangeI
      * Creates the zero padder for the key and sets the range field value extractor based on the schema type. It then
      * reads the range field type form the schema and sets the value zero padder for the range field.
      */
-    public static <K, V, F extends Number> DefaultRangeIndexer<K, V, F> createRangeIndexer(
+    public static <K, V, F> DefaultRangeIndexer<K, V, F> createRangeIndexer(
         final QuickTopicType keyType,
         final ParsedSchema parsedSchema,
         final String rangeField) {
 
-        final ZeroPadder<K> keyZeroPadder = createKeyZeroPadder(keyType);
-        final ZeroPadder<F> valueZeroPadder = createValueZeroPadder(parsedSchema, rangeField);
-        if (parsedSchema.schemaType().equals(AvroSchema.TYPE)) {
-            log.debug("Type Avro detected");
-            final RangeFieldValueExtractor avroExtractor = new AvroValueExtractor<>(valueZeroPadder.getPadderClass());
-            return new DefaultRangeIndexer<>(keyZeroPadder, valueZeroPadder, avroExtractor, rangeField);
-        } else if (parsedSchema.schemaType().equals(ProtobufSchema.TYPE)) {
-            log.debug("Type Protobuf detected");
-            final RangeFieldValueExtractor protoExtractor = new ProtoValueExtractor<>(valueZeroPadder.getPadderClass());
-            return new DefaultRangeIndexer<>(keyZeroPadder, valueZeroPadder, protoExtractor, rangeField);
+        final ZeroPadder<K> keyZeroPadder = createZeroPadderForTopicType(keyType);
+
+        switch (parsedSchema.schemaType()) {
+            case (AvroSchema.TYPE):
+                return getDefaultRangeIndexerForAvroSchema(parsedSchema, rangeField, keyZeroPadder);
+            case (ProtobufSchema.TYPE):
+                return getDefaultRangeIndexerForProtobuf(parsedSchema, rangeField, keyZeroPadder);
+            default:
+                throw new MirrorTopologyException("Key value should be either integer or mirror");
         }
-        throw new MirrorTopologyException("Key value should be either integer or mirror");
     }
 
     /**
-     * Creates the range index for a given key over a specific range field First the value is converted to Avro generic
-     * record or Protobuf message. Then the value is extracted from the schema. Depending on the type (integer or long)
-     * of the key and value zero paddings are appended to the left side of the key and value, and they are contaminated
-     * with an <b>_</b>.
+     * Creates the range index for a given key over a specific range field.
+     *
+     * <p>
+     * First the value is converted to Avro generic record or Protobuf message. Then the value is extracted from the
+     * schema. Depending on the type (integer or long) of the key and value zero paddings are appended to the left side
+     * of the key and value, and they are contaminated with an <b>_</b>.
      *
      * <p>
      * Imagine the incoming record has a key of type integer with the value 1. The value is a proto schema with the
@@ -130,7 +130,7 @@ public final class DefaultRangeIndexer<K, V, F extends Number> implements RangeI
     }
 
     @SuppressWarnings("unchecked")
-    private static <K> ZeroPadder<K> createKeyZeroPadder(final QuickTopicType topicType) {
+    private static <K> ZeroPadder<K> createZeroPadderForTopicType(final QuickTopicType topicType) {
         if (topicType == QuickTopicType.INTEGER) {
             log.trace("Creating integer zero padder for key");
             return (ZeroPadder<K>) new IntPadder();
@@ -141,45 +141,53 @@ public final class DefaultRangeIndexer<K, V, F extends Number> implements RangeI
         throw new MirrorTopologyException("Key value should be either integer or mirror");
     }
 
-    private static <F extends Number> ZeroPadder<F> createValueZeroPadder(final ParsedSchema parsedSchema,
-        final String rangeField) {
-        if (parsedSchema.schemaType().equals(AvroSchema.TYPE)) {
-            return getZeroPadderForAvroSchema((Schema) parsedSchema.rawSchema(), rangeField);
-        } else if (parsedSchema.schemaType().equals(ProtobufSchema.TYPE)) {
-            return getZeroPadderForProtobufSchema((ProtobufSchema) parsedSchema, rangeField);
-        }
-        throw new MirrorTopologyException("Supported values are Avro and Protobuf");
+
+    private static <K, V, F> DefaultRangeIndexer<K, V, F> getDefaultRangeIndexerForAvroSchema(
+        final ParsedSchema parsedSchema,
+        final String rangeField, final ZeroPadder<K> keyZeroPadder) {
+        log.debug("Type Avro detected");
+        final QuickTopicType rangeValueType = getValueTypeForAvroSchema((Schema) parsedSchema.rawSchema(), rangeField);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType);
+        final RangeFieldValueExtractor avroExtractor = new AvroValueExtractor<>(valueZeroPadder.getPadderClass());
+        return new DefaultRangeIndexer<>(keyZeroPadder, valueZeroPadder, avroExtractor, rangeField);
     }
 
-    @SuppressWarnings("unchecked")
-    private static <F extends Number> ZeroPadder<F> getZeroPadderForAvroSchema(final Schema avroSchema,
+    private static <K, V, F> DefaultRangeIndexer<K, V, F> getDefaultRangeIndexerForProtobuf(
+        final ParsedSchema parsedSchema,
+        final String rangeField, final ZeroPadder<K> keyZeroPadder) {
+        log.debug("Type Protobuf detected");
+        final QuickTopicType rangeValueType =
+            getValueTypeForProtobufSchema((ProtobufSchema) parsedSchema, rangeField);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType);
+        final RangeFieldValueExtractor protoExtractor = new ProtoValueExtractor<>(valueZeroPadder.getPadderClass());
+        return new DefaultRangeIndexer<>(keyZeroPadder, valueZeroPadder, protoExtractor, rangeField);
+    }
+
+    private static QuickTopicType getValueTypeForAvroSchema(final Schema avroSchema,
         final String rangeField) {
         final Schema.Type fieldType = getAvroFieldType(avroSchema, rangeField);
-
         log.debug("Field Type is {}", fieldType);
 
         if (fieldType == Schema.Type.INT) {
             log.trace("Creating integer zero padder for avro value");
-            return (ZeroPadder<F>) new IntPadder();
+            return QuickTopicType.INTEGER;
         } else if (fieldType == Schema.Type.LONG) {
             log.trace("Creating long zero padder for avro value");
-            return (ZeroPadder<F>) new LongPadder();
+            return QuickTopicType.LONG;
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
     }
 
-    @SuppressWarnings("unchecked")
-    private static <F extends Number> ZeroPadder<F> getZeroPadderForProtobufSchema(
-        final ProtobufSchema parsedSchema,
+    private static QuickTopicType getValueTypeForProtobufSchema(final ProtobufSchema parsedSchema,
         final String rangeField) {
         final Descriptors.Descriptor descriptor = parsedSchema.toDescriptor();
         final JavaType fieldType = descriptor.findFieldByName(rangeField).getJavaType();
         if (fieldType == JavaType.INT) {
             log.trace("Creating integer zero padder for protobuf value");
-            return (ZeroPadder<F>) new IntPadder();
+            return QuickTopicType.INTEGER;
         } else if (fieldType == JavaType.LONG) {
             log.trace("Creating long zero padder for protobuf value");
-            return (ZeroPadder<F>) new LongPadder();
+            return QuickTopicType.LONG;
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
     }
