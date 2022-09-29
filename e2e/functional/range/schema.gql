@@ -3,7 +3,7 @@ type Query {
         userId: Int
         ratingFrom: Int
         ratingTo: Int
-    ): [UserRating] @topic(name: "user-rating-range",
+    ): [UserRating] @topic(name: "user-rating-range-test",
         keyArgument: "userId",
         rangeFrom: "ratingFrom",
         rangeTo: "ratingTo")

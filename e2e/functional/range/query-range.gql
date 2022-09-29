@@ -1,14 +1,14 @@
-{
-    userRatings(userId: 123, ratingFrom: 1, ratingTo: 5)  {
-        userId
-        purchase {
-            purchaseId
-            productId
-            price {
-                total
-                currency
-            }
-        }
-        rating
-    }
+query {
+	userRatings(userId: 123, ratingFrom:1, ratingTo:10) {
+		userId
+		rating
+		purchase {
+			purchaseId
+			productId
+			price {
+				total
+				currency
+			}
+		}
+	}
 }

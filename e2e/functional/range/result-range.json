@@ -1,12 +1,38 @@
-{
-  "userRatings": [
-    {
-      "purchaseId": 456,
-      "rating": 2
-    },
-    {
-      "purchaseId": 789,
-      "rating": 4
+[
+  {
+    "userId": 123,
+    "rating": 2,
+    "purchase": {
+      "purchaseId": "def",
+      "productId": 123,
+      "price": {
+        "total": 30,
+        "currency": "DOLLAR"
+      }
     }
-  ]
-}
+  },
+  {
+    "userId": 123,
+    "rating": 4,
+    "purchase": {
+      "purchaseId": "ghi",
+      "productId": 456,
+      "price": {
+        "total": 79.99,
+        "currency": "DOLLAR"
+      }
+    }
+  },
+  {
+    "userId": 123,
+    "rating": 7,
+    "purchase": {
+      "purchaseId": "abc",
+      "productId": 123,
+      "price": {
+        "total": 19.99,
+        "currency": "DOLLAR"
+      }
+    }
+  }
+]
