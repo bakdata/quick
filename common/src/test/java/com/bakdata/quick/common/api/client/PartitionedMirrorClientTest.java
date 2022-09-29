@@ -61,14 +61,14 @@ class PartitionedMirrorClientTest {
         final String value1 = this.stringMirrorClient.fetchValue("key-1");
 
         assertThat(value1).isEqualTo("value-1");
-        verify(this.mockRequestManager).makeRequest(any());
-        verify(this.mockRequestManager).processResponse(any(), any());
+        verify(this.mockRequestManager).makeRequest(eq(httpUrl));
+        verify(this.mockRequestManager).processResponse(eq(response), any());
 
         when(this.mockRouter.findHost(eq("key-2"))).thenReturn(secondPartition);
         final HttpUrl secondKeyUrl = secondPartition.forKey("key-2");
-        when(this.mockRequestManager.makeRequest(eq(secondKeyUrl))).thenReturn(
-            ResponseWrapper.fromFallbackResponse(mockResponse()));
-        when(this.mockRequestManager.processResponse(any(), any())).thenReturn("value-2");
+        final ResponseWrapper fallbackResponse = ResponseWrapper.fromFallbackResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(secondKeyUrl))).thenReturn(fallbackResponse);
+        when(this.mockRequestManager.processResponse(eq(fallbackResponse), any())).thenReturn("value-2");
 
         final String value2 = this.stringMirrorClient.fetchValue("key-2");
 
@@ -150,14 +150,15 @@ class PartitionedMirrorClientTest {
 
         final List<String> queriedKeys = List.of("key-2", "key-3");
         final HttpUrl url = firstPartitions.forKeys(queriedKeys);
-        when(this.mockRequestManager.makeRequest(eq(url))).thenReturn(
-            ResponseWrapper.fromFallbackResponse(mockResponse()));
-        when(this.mockRequestManager.processResponse(any(), any())).thenReturn(List.of("value-2", "value-3"));
+        final ResponseWrapper fallbackResponse = ResponseWrapper.fromFallbackResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(url))).thenReturn(fallbackResponse);
+        when(this.mockRequestManager.processResponse(eq(fallbackResponse), any())).thenReturn(
+            List.of("value-2", "value-3"));
 
         final List<String> allValues = this.stringMirrorClient.fetchValues(queriedKeys);
 
-        verify(this.mockRequestManager).makeRequest(any());
-        verify(this.mockRequestManager).processResponse(any(), any());
+        verify(this.mockRequestManager).makeRequest(eq(url));
+        verify(this.mockRequestManager).processResponse(eq(fallbackResponse), any());
         verify(this.mockRouter).updateRoutingInfo();
         assertThat(allValues).hasSize(2).containsAll(List.of("value-2", "value-3"));
     }
@@ -168,15 +169,15 @@ class PartitionedMirrorClientTest {
 
         when(this.mockRouter.findHost("key-1")).thenReturn(singleReplica);
         final HttpUrl rangeUrl = singleReplica.forRange("key-1", "1", "4");
-        when(this.mockRequestManager.makeRequest(eq(rangeUrl))).thenReturn(
-            ResponseWrapper.fromFallbackResponse(mockResponse()));
+        final ResponseWrapper fallbackResponse = ResponseWrapper.fromFallbackResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(rangeUrl))).thenReturn(fallbackResponse);
         final List<String> values = List.of("value-1", "value-2", "value-3", "value-4");
-        when(this.mockRequestManager.processResponse(any(), any())).thenReturn(values);
+        when(this.mockRequestManager.processResponse(eq(fallbackResponse), any())).thenReturn(values);
 
         final List<String> allValues = this.stringMirrorClient.fetchRange("key-1", "1", "4");
 
-        verify(this.mockRequestManager).makeRequest(any());
-        verify(this.mockRequestManager).processResponse(any(), any());
+        verify(this.mockRequestManager).makeRequest(eq(rangeUrl));
+        verify(this.mockRequestManager).processResponse(eq(fallbackResponse), any());
         verify(this.mockRouter).updateRoutingInfo();
         assertThat(allValues).hasSize(4).containsAll(values);
     }
