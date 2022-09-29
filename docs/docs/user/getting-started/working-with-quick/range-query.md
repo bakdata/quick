@@ -24,12 +24,12 @@ To be able to integrate the range queries into your application, you must take t
 2. Define a range in the GraphQL query type.  
 3. Execute the query.  
 
-The following subsections will describe these steps in detail.
+The following subsections describe these steps in detail.
 To present the idea of range queries, we will extend the schema presented before with the following type:
 ```graphql title="schema.gql"
 type UserReview {
     userId: Int!
-    purchaseId: String!
+    purchase: Purchase!
     rating: Int
 }
 ```
@@ -48,7 +48,16 @@ Here is an example of the `ratings.json` file:
         "key" : 123,
         "value" : {
             "userId" : 123,
-            "purchaseId" : "123",
+            "purchase" : {
+                "purchaseId": "abc",
+                "productId": 123,
+                "userId": 123,
+                "amount": 10,
+                "price": {
+                  "total": 9.99,
+                  "currency": "DOLLAR"
+                }
+            },
             "rating": 7
         }
     },
@@ -56,7 +65,16 @@ Here is an example of the `ratings.json` file:
         "key" : 123,
         "value" : {
             "userId" : 123,
-            "purchaseId" : "456",
+            "purchase" : {
+                "purchaseId": "def",
+                "productId": 101,
+                "userId": 123,
+                "amount": 1,
+                "price": {
+                  "total": 119.99,
+                  "currency": "DOLLAR"
+                }
+            },
             "rating": 2
         }
     },
@@ -64,7 +82,16 @@ Here is an example of the `ratings.json` file:
         "key" : 123,
         "value" : {
             "userId" : 123,
-            "purchaseId" : "789",
+            "purchase" : {
+                "purchaseId": "ijk",
+                "productId": 333,
+                "userId": 123,
+                "amount": 2,
+                "price": {
+                  "total": 19.99,
+                  "currency": "DOLLAR"
+                }
+            },
             "rating": 4
         }
     },
@@ -72,7 +99,16 @@ Here is an example of the `ratings.json` file:
         "key" : 456,
         "value" : {
             "userId" : 456,
-            "purchaseId" : "321",
+            "purchase" : {
+                "purchaseId": "fgh",
+                "productId": 1234,
+                "userId": 456,
+                "amount": 5,
+                "price": {
+                  "total": 29.99,
+                  "currency": "DOLLAR"
+                }
+            },
             "rating": 7
         }
     }
@@ -138,7 +174,7 @@ type Query {
 
 type UserRating {
     userId: Int!
-    purchaseId: String!
+    purchase: Purchase!
     rating: Int
 }
 ``` 
@@ -162,6 +198,10 @@ you can execute the following query to obtain the results.
 {
     userRatings(userId: 123, ratingFrom: 1, ratingTo: 4)  {
         purchaseId
+        productId
+        price {
+           total
+        }
     }
 }
 ```
@@ -169,12 +209,22 @@ Upon successful execution of a query, you should receive the following list of r
 ```json
 {
     "userRatings" : [
-        {
-            "purchaseId" : "456"
-        },
-        {
-            "purchaseId" : "789"
-        }
+       {
+          "purchaseId": "def",
+          "productId": 101,
+          "amount": 1,
+          "price": {
+             "total": 119.99
+          }
+       },
+       {
+          "purchaseId": "ijk",
+          "productId": 333,
+          "amount": 2,
+          "price": {
+             "total": 19.99
+          }
+       }
     ]
 }
 ```
