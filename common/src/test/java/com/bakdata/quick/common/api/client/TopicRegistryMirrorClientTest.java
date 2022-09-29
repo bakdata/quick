@@ -16,98 +16,118 @@
 
 package com.bakdata.quick.common.api.client;
 
+import static com.bakdata.quick.common.api.client.TestUtils.mockResponse;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
-import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.mirror.MirrorClient;
+import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
+import com.bakdata.quick.common.api.client.mirror.ResponseWrapper;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicType;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micronaut.http.HttpStatus;
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.util.List;
 import java.util.Objects;
-import okhttp3.OkHttpClient;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.BeforeEach;
+import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Test;
 
-@MicronautTest
 class TopicRegistryMirrorClientTest {
-    private final MockWebServer server = new MockWebServer();
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
-    private final String host = String.format("%s:%d", this.server.getHostName(), this.server.getPort());
-    private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
-    private MirrorClient<String, TopicData> topicDataClient;
+    private final MirrorHost mirrorHost = new MirrorHost("internal-topic-registry", MirrorConfig.directAccess());
+    private final HttpClient mockClient = mock(HttpClient.class);
+    private final TypeResolver<TopicData> mockTypeResolver = mock(KnownTypeResolver.class);
+    private final MirrorRequestManager mockRequestManager = mock(MirrorRequestManager.class);
+    private final MirrorClient<String, TopicData> topicRegistryMirrorClient =
+        new DefaultMirrorClient<>(this.mirrorHost,
+            this.mockClient,
+            this.mockTypeResolver,
+            this.mockRequestManager);
 
-    @BeforeEach
-    void initRouterAndMirror() {
-        final TypeResolver<TopicData> knownTypeResolver = new KnownTypeResolver<>(TopicData.class, this.mapper);
+    @Test
+    void shouldReturnGetTopicDataWithSpecificKey() {
+        final TopicData topicData = createTopicData("test-topic");
 
-        this.topicDataClient = new DefaultMirrorClient<>(this.mirrorHost, this.client, knownTypeResolver,
-            new DefaultMirrorRequestManager(this.client));
+        final HttpUrl httpUrl = this.mirrorHost.forKey("test-topic");
+        final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(httpUrl))).thenReturn(response);
+        when(this.mockRequestManager.processResponse(eq(response), any())).thenReturn(topicData);
+
+        final TopicData topic = this.topicRegistryMirrorClient.fetchValue("test-topic");
+
+        verify(this.mockRequestManager).makeRequest(any());
+        verify(this.mockRequestManager).processResponse(any(), any());
+        assertThat(Objects.requireNonNull(topic).getName()).isEqualTo("test-topic");
     }
 
     @Test
-    void shouldReturnGetTopicDataWithSpecificKey() throws JsonProcessingException {
-        final TopicData topicData = createTopicData("dummy");
-        final String body = this.mapper.writeValueAsString(new MirrorValue<>(topicData));
-        this.server.enqueue(new MockResponse().setBody(body));
+    void shouldReturnListOfTopicsData() {
+        final TopicData topicData = createTopicData("test-topic-1");
+        final TopicData topicData2 = createTopicData("test-topic-2");
 
-        final TopicData topic = this.topicDataClient.fetchValue("dummy");
-        assertThat(Objects.requireNonNull(topic).getName()).isEqualTo("dummy");
+        final HttpUrl httpUrl = this.mirrorHost.forKeys(List.of("test-topic-1", "test-topic-2"));
+        final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(httpUrl))).thenReturn(response);
+        when(this.mockRequestManager.processResponse(eq(response), any())).thenReturn(List.of(topicData, topicData2));
+
+        final List<TopicData> topic = this.topicRegistryMirrorClient.fetchValues(List.of("test-topic-1", "test-topic-2"));
+
+        verify(this.mockRequestManager).makeRequest(any());
+        verify(this.mockRequestManager).processResponse(any(), any());
+        assertThat(topic).hasSize(2)
+            .extracting(TopicData::getName)
+            .containsExactly("test-topic-1", "test-topic-2");
     }
 
     @Test
-    void shouldReturnListOfTopicsData() throws JsonProcessingException {
-        final TopicData topicData = createTopicData("dummy");
-        final TopicData topicData2 = createTopicData("dummy2");
+    void shouldReturnGetAllTopicData() {
+        final TopicData topicData = createTopicData("test-topic-1");
+        final TopicData topicData2 = createTopicData("test-topic-2");
 
-        final String body = this.mapper.writeValueAsString(new MirrorValue<>(List.of(topicData, topicData2)));
-        this.server.enqueue(new MockResponse().setBody(body));
+        final HttpUrl httpUrl = this.mirrorHost.forAll();
+        final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(httpUrl))).thenReturn(response);
+        when(this.mockRequestManager.processResponse(eq(response), any())).thenReturn(List.of(topicData, topicData2));
 
-        final List<TopicData> topic = this.topicDataClient.fetchValues(List.of("dummy", "dummy2"));
-        assertThat(topic).hasSize(2).extracting(TopicData::getName).containsExactly("dummy", "dummy2");
+        final List<TopicData> topic = this.topicRegistryMirrorClient.fetchAll();
+        verify(this.mockRequestManager).makeRequest(any());
+        verify(this.mockRequestManager).processResponse(any(), any());
+        assertThat(topic).hasSize(2)
+            .extracting(TopicData::getName)
+            .containsExactly("test-topic-1", "test-topic-2");
     }
 
     @Test
-    void shouldReturnGetAllTopicData() throws JsonProcessingException {
-        final TopicData topicData = createTopicData("dummy");
-        final TopicData topicData2 = createTopicData("dummy2");
+    void shouldReturnTrueIfTopicExists() {
+        final TopicData topicData = createTopicData("test-topic");
 
-        final String body = this.mapper.writeValueAsString(new MirrorValue<>(List.of(topicData, topicData2)));
-        this.server.enqueue(new MockResponse().setBody(body));
+        final HttpUrl httpUrl = this.mirrorHost.forKey("test-topic");
+        final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(httpUrl))).thenReturn(response);
+        when(this.mockRequestManager.processResponse(eq(response), any())).thenReturn(topicData);
 
-        final List<TopicData> topic = this.topicDataClient.fetchAll();
-        assertThat(topic).hasSize(2).extracting(TopicData::getName).containsExactly("dummy", "dummy2");
-    }
-
-    @Test
-    void shouldReturnTrueIfTopicDoesNotExist() throws JsonProcessingException {
-        final TopicData topicData = createTopicData("dummy");
-
-        final String body = this.mapper.writeValueAsString(new MirrorValue<>(topicData));
-        this.server.enqueue(new MockResponse().setBody(body));
-
-        final Boolean exists = this.topicDataClient.exists("dummy");
+        final Boolean exists = this.topicRegistryMirrorClient.exists("test-topic");
         assertThat(exists).isTrue();
     }
 
     @Test
-    void shouldReturnFalseIfTopicDoesNotExist() {
-        this.server.enqueue(new MockResponse().setResponseCode(HttpStatus.NOT_FOUND.getCode()));
-        final Boolean exists = this.topicDataClient.exists("dummy");
-        assertThat(exists).isFalse();
+    void shouldEmptyListIfTopicDoesNotExists() {
+        final HttpUrl httpUrl = this.mirrorHost.forAll();
+        final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(httpUrl))).thenReturn(response);
+        when(this.mockRequestManager.processResponse(eq(response), any())).thenReturn(null);
+
+        assertThat(this.topicRegistryMirrorClient.fetchAll()).isEmpty();
+
+        assertThat(this.topicRegistryMirrorClient.fetchValues(List.of("some-topic"))).isEmpty();
+        assertThat(this.topicRegistryMirrorClient.fetchRange("some-topic", "1", "4")).isEmpty();
     }
 
     private static TopicData createTopicData(final String name) {

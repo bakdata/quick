@@ -18,7 +18,6 @@ package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
-import com.bakdata.quick.common.api.client.mirror.ResponseWrapper;
 import com.bakdata.quick.common.api.client.mirror.StreamsStateHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
@@ -129,8 +128,8 @@ public class PartitionRouter<K> implements Router<K> {
      */
     private Map<Integer, String> makeRequestForPartitionHostMapping() {
         final HttpUrl url = this.streamsStateHost.getPartitionToHostUrl();
-        final ResponseWrapper responseWrapper = this.requestManager.makeRequest(url);
-        try (final ResponseBody responseBody = Objects.requireNonNull(responseWrapper).getResponseBody()) {
+        try (final ResponseBody responseBody = Objects.requireNonNull(this.requestManager.makeRequest(url))
+            .getResponseBody()) {
             if (responseBody == null) {
                 throw new MirrorException("Response body was null.", HttpStatus.INTERNAL_SERVER_ERROR);
             }

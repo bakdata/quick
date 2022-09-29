@@ -16,133 +16,169 @@
 
 package com.bakdata.quick.common.api.client;
 
-import static com.bakdata.quick.common.TestTypeUtils.newStringData;
+import static com.bakdata.quick.common.api.client.TestUtils.mockResponse;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.client.mirror.HeaderConstants;
 import com.bakdata.quick.common.api.client.mirror.MirrorClient;
-import com.bakdata.quick.common.api.client.mirror.MirrorRequestManagerWithFallback;
+import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
 import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
-import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
+import com.bakdata.quick.common.api.client.mirror.ResponseWrapper;
 import com.bakdata.quick.common.api.client.routing.PartitionRouter;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.resolver.StringResolver;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Map;
-import java.util.Objects;
-import okhttp3.OkHttpClient;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.List;
+import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Test;
 
 class PartitionedMirrorClientTest {
-    private static final String DEFAULT_KEY = "dummy";
-    private static final String TEST_MESSAGE = "test";
-    private final MockWebServer server = new MockWebServer();
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
-    private final String host = String.format("%s:%d", this.server.getHostName(), this.server.getPort());
-    private final MirrorHost mirrorHost = new MirrorHost(this.host, MirrorConfig.directAccess());
-    private MirrorClient<String, String> stringMirrorClient;
-    private final DefaultPartitionFinder mockPartitionFinder = mock(DefaultPartitionFinder.class);
+    private final HttpClient mockClient = mock(HttpClient.class);
+    private final MirrorRequestManager mockRequestManager = mock(MirrorRequestManager.class);
+    private final PartitionRouter<String> mockRouter = mock(PartitionRouter.class);
+    private final MirrorClient<String, String> stringMirrorClient =
+        new PartitionedMirrorClient<>(this.mockClient, new StringResolver(), this.mockRequestManager, this.mockRouter);
 
-    @BeforeEach
-    void initRouterAndMirror() throws JsonProcessingException {
-        // First response: mapping from partition to host for initializing PartitionRouter
-        final String routerBody = this.mapper.writeValueAsString(Map.of(0, this.host, 1, this.host));
-        this.server.enqueue(new MockResponse().setBody(routerBody));
+    @Test
+    void shouldCallUpdateRoutingInfoWhenUpdateHeaderIsSetWhenFetchingValue() {
+        final List<MirrorHost> singleReplicaMirrorWithTwoPartitions = List.of(
+            new MirrorHost("123.456.789.000", MirrorConfig.directAccess()),
+            new MirrorHost("123.456.789.000", MirrorConfig.directAccess())
+        );
+        final MirrorHost firstPartition = singleReplicaMirrorWithTwoPartitions.get(0);
+        final MirrorHost secondPartition = singleReplicaMirrorWithTwoPartitions.get(1);
 
-        final MirrorRequestManagerWithFallback requestManager =
-            new MirrorRequestManagerWithFallback(this.client, this.mirrorHost);
+        when(this.mockRouter.findHost(eq("key-1"))).thenReturn(firstPartition);
+        final HttpUrl httpUrl = firstPartition.forKey("key-1");
+        final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(httpUrl))).thenReturn(response);
+        when(this.mockRequestManager.processResponse(eq(response), any())).thenReturn("value-1");
+        final String value1 = this.stringMirrorClient.fetchValue("key-1");
 
-        final PartitionRouter<String> partitionRouter =
-            new PartitionRouter<>(this.client, this.mirrorHost, newStringData().getSerde(),
-                this.mockPartitionFinder,
-                requestManager);
+        assertThat(value1).isEqualTo("value-1");
+        verify(this.mockRequestManager).makeRequest(any());
+        verify(this.mockRequestManager).processResponse(any(), any());
 
-        this.stringMirrorClient =
-            new PartitionedMirrorClient<>(this.client, new StringResolver(), requestManager, partitionRouter);
+        when(this.mockRouter.findHost(eq("key-2"))).thenReturn(secondPartition);
+        final HttpUrl secondKeyUrl = secondPartition.forKey("key-2");
+        when(this.mockRequestManager.makeRequest(eq(secondKeyUrl))).thenReturn(
+            ResponseWrapper.fromFallbackResponse(mockResponse()));
+        when(this.mockRequestManager.processResponse(any(), any())).thenReturn("value-2");
+
+        final String value2 = this.stringMirrorClient.fetchValue("key-2");
+
+        verify(this.mockRouter).updateRoutingInfo();
+        assertThat(value2).isEqualTo("value-2");
     }
 
     @Test
-    void shouldThrowExceptionIfNoMappingUpdate() throws JsonProcessingException {
-        final String body = this.mapper.writeValueAsString(new MirrorValue<>(TEST_MESSAGE));
-        this.server.enqueue(new MockResponse().setBody(body));
+    void shouldReturnAllValuesFromMirrorWithTwoReplicaWhenFetchingAll() {
+        final List<MirrorHost> multiReplicaMirror = List.of(
+            new MirrorHost("123.456.789.000", MirrorConfig.directAccess()),
+            new MirrorHost("000.987.654.321", MirrorConfig.directAccess())
+        );
 
-        when(this.mockPartitionFinder.getForSerializedKey(any(), anyInt())).thenReturn(1);
+        final List<String> firstMirrorValues = List.of("value1", "value2");
+        final List<String> secondMirrorValues = List.of("value3", "value4");
 
-        this.stringMirrorClient.fetchValue(DEFAULT_KEY);
+        when(this.mockRouter.getAllHosts()).thenReturn(multiReplicaMirror);
+        final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(any())).thenReturn(response);
+        when(this.mockRequestManager.processResponse(eq(response), any())).thenReturn(firstMirrorValues,
+            secondMirrorValues);
 
-        this.server.enqueue(new MockResponse().setBody(body));
+        final List<String> allValues = this.stringMirrorClient.fetchAll();
 
-        when(this.mockPartitionFinder.getForSerializedKey(any(), anyInt())).thenReturn(2);
-
-        assertThatThrownBy(() -> this.stringMirrorClient.fetchValue(DEFAULT_KEY))
-            .isInstanceOf(MirrorException.class)
-            .hasMessage("No MirrorHost found for partition: 2");
-
+        verify(this.mockRequestManager, times(2)).makeRequest(any());
+        verify(this.mockRequestManager, times(2)).processResponse(any(), any());
+        assertThat(allValues).hasSize(4).containsAll(List.of("value1", "value2", "value3", "value4"));
     }
 
     @Test
-    void shouldReadHeaderAndUpdateRouterWithAdditionalReplica() throws JsonProcessingException {
-        final String body = this.mapper.writeValueAsString(new MirrorValue<>(TEST_MESSAGE));
-        this.server.enqueue(new MockResponse().setBody(body).setHeader(
-            HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS));
+    void shouldReturnAllValuesFromMirrorWithTwoReplicaWhenFetchValues() {
+        final List<MirrorHost> multiReplicaMirror = List.of(
+            new MirrorHost("123.456.789.000", MirrorConfig.directAccess()),
+            new MirrorHost("000.987.654.321", MirrorConfig.directAccess())
+        );
 
-        final String routerBody = this.mapper.writeValueAsString(Map.of(0, this.host, 1, this.host,
-            2, this.host));
-        this.server.enqueue(new MockResponse().setBody(routerBody));
+        final List<String> queriedKeys = List.of("key-1", "key-2", "key-3", "key-4");
+        final List<String> firstMirrorValues = List.of("value-1", "value-2");
+        final List<String> secondMirrorValues = List.of("value-3", "value-4");
 
-        when(this.mockPartitionFinder.getForSerializedKey(any(), anyInt())).thenReturn(1);
+        final MirrorHost firstReplica = multiReplicaMirror.get(0);
+        when(this.mockRouter.findHost("key-1")).thenReturn(firstReplica);
+        when(this.mockRouter.findHost("key-2")).thenReturn(firstReplica);
+        final MirrorHost secondReplica = multiReplicaMirror.get(1);
+        when(this.mockRouter.findHost("key-3")).thenReturn(secondReplica);
+        when(this.mockRouter.findHost("key-4")).thenReturn(secondReplica);
 
-        final String response1 = this.stringMirrorClient.fetchValue(DEFAULT_KEY);
+        final HttpUrl urlForFirstMirror = firstReplica.forKeys(List.of("key-1", "key-2"));
+        final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(urlForFirstMirror))).thenReturn(response);
+        when(this.mockRequestManager.processResponse(eq(response), any())).thenReturn(firstMirrorValues);
 
-        this.server.enqueue(new MockResponse().setBody(body));
+        final HttpUrl urlForSecondMirror = secondReplica.forKeys(List.of("key-3", "key-4"));
+        final ResponseWrapper fallbackResponse = ResponseWrapper.fromFallbackResponse(mockResponse());
+        when(this.mockRequestManager.makeRequest(eq(urlForSecondMirror))).thenReturn(
+            fallbackResponse);
+        when(this.mockRequestManager.processResponse(eq(fallbackResponse), any())).thenReturn(secondMirrorValues);
 
-        when(this.mockPartitionFinder.getForSerializedKey(any(), anyInt())).thenReturn(2);
-        final String response2 = this.stringMirrorClient.fetchValue(DEFAULT_KEY);
+        final List<String> allValues = this.stringMirrorClient.fetchValues(queriedKeys);
 
-        assertThat(Objects.requireNonNull(response1)).isEqualTo(TEST_MESSAGE);
-        assertThat(Objects.requireNonNull(response2)).isEqualTo(TEST_MESSAGE);
+        verify(this.mockRequestManager, times(2)).makeRequest(any());
+        verify(this.mockRequestManager, times(2)).processResponse(any(), any());
+        verify(this.mockRouter).updateRoutingInfo();
+        assertThat(allValues).hasSize(4).containsAll(List.of("value-1", "value-2", "value-3", "value-4"));
     }
 
     @Test
-    void shouldReadHeaderAndUpdateRouterWithFewerReplicas() throws JsonProcessingException {
-        final String body = this.mapper.writeValueAsString(new MirrorValue<>(TEST_MESSAGE));
-        this.server.enqueue(new MockResponse().setBody(body));
-        this.server.enqueue(new MockResponse().setBody(body).setHeader(
-            HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS));
+    void shouldReturnAllValuesFromMirrorWithOneReplicaAndTwoPartitionsWhenFetchValues() {
+        final List<MirrorHost> singleReplicaMirrorWithTwoPartitions = List.of(
+            new MirrorHost("123.456.789.000", MirrorConfig.directAccess()),
+            new MirrorHost("123.456.789.000", MirrorConfig.directAccess())
+        );
 
-        final String routerBody = this.mapper.writeValueAsString(Map.of(0, this.host));
-        this.server.enqueue(new MockResponse().setBody(routerBody));
+        final MirrorHost firstPartitions = singleReplicaMirrorWithTwoPartitions.get(0);
+        when(this.mockRouter.findHost("key-2")).thenReturn(firstPartitions);
+        final MirrorHost secondPartition = singleReplicaMirrorWithTwoPartitions.get(1);
+        when(this.mockRouter.findHost("key-3")).thenReturn(secondPartition);
 
-        when(this.mockPartitionFinder.getForSerializedKey(any(), anyInt())).thenReturn(1);
+        final List<String> queriedKeys = List.of("key-2", "key-3");
+        final HttpUrl url = firstPartitions.forKeys(queriedKeys);
+        when(this.mockRequestManager.makeRequest(eq(url))).thenReturn(
+            ResponseWrapper.fromFallbackResponse(mockResponse()));
+        when(this.mockRequestManager.processResponse(any(), any())).thenReturn(List.of("value-2", "value-3"));
 
-        final String response1 = this.stringMirrorClient.fetchValue(DEFAULT_KEY);
+        final List<String> allValues = this.stringMirrorClient.fetchValues(queriedKeys);
 
-        this.server.enqueue(new MockResponse().setBody(body));
+        verify(this.mockRequestManager).makeRequest(any());
+        verify(this.mockRequestManager).processResponse(any(), any());
+        verify(this.mockRouter).updateRoutingInfo();
+        assertThat(allValues).hasSize(2).containsAll(List.of("value-2", "value-3"));
+    }
 
-        when(this.mockPartitionFinder.getForSerializedKey(any(), anyInt())).thenReturn(0);
-        final String response2 = this.stringMirrorClient.fetchValue(DEFAULT_KEY);
+    @Test
+    void shouldReturnAllValuesFromMirrorWithOneReplicaWhenFetchRange() {
+        final MirrorHost singleReplica = new MirrorHost("123.456.789.000", MirrorConfig.directAccess());
 
-        assertThat(Objects.requireNonNull(response1)).isEqualTo(TEST_MESSAGE);
-        assertThat(Objects.requireNonNull(response2)).isEqualTo(TEST_MESSAGE);
+        when(this.mockRouter.findHost("key-1")).thenReturn(singleReplica);
+        final HttpUrl rangeUrl = singleReplica.forRange("key-1", "1", "4");
+        when(this.mockRequestManager.makeRequest(eq(rangeUrl))).thenReturn(
+            ResponseWrapper.fromFallbackResponse(mockResponse()));
+        final List<String> values = List.of("value-1", "value-2", "value-3", "value-4");
+        when(this.mockRequestManager.processResponse(any(), any())).thenReturn(values);
 
-        when(this.mockPartitionFinder.getForSerializedKey(any(), anyInt())).thenReturn(1);
+        final List<String> allValues = this.stringMirrorClient.fetchRange("key-1", "1", "4");
 
-        assertThatThrownBy(() -> this.stringMirrorClient.fetchValue(DEFAULT_KEY))
-            .isInstanceOf(MirrorException.class)
-            .hasMessage("No MirrorHost found for partition: 1");
+        verify(this.mockRequestManager).makeRequest(any());
+        verify(this.mockRequestManager).processResponse(any(), any());
+        verify(this.mockRouter).updateRoutingInfo();
+        assertThat(allValues).hasSize(4).containsAll(values);
     }
 }
 
