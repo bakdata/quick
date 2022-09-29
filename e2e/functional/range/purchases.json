@@ -1,0 +1,46 @@
+[
+  {
+    "key": "abc",
+    "value": {
+      "purchaseId": "abc",
+      "productId": 123,
+      "price": {
+        "total": 19.99,
+        "currency": "DOLLAR"
+      }
+    }
+  },
+  {
+    "key": "def",
+    "value": {
+      "purchaseId": "def",
+      "productId": 123,
+      "price": {
+        "total": 30.00,
+        "currency": "DOLLAR"
+      }
+    }
+  },
+  {
+    "key": "ghi",
+    "value": {
+      "purchaseId": "ghi",
+      "productId": 456,
+      "price": {
+        "total": 79.99,
+        "currency": "DOLLAR"
+      }
+    }
+  },
+  {
+    "key": "jkl",
+    "value": {
+      "purchaseId": "jkl",
+      "productId": 789,
+      "price": {
+        "total": 99.99,
+        "currency": "DOLLAR"
+      }
+    }
+  }
+]

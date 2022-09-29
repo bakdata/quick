@@ -3,7 +3,7 @@
     "key": 123,
     "value": {
       "userId": 123,
-      "purchaseId": 123,
+      "purchaseId": "abc",
       "rating": 7
     }
   },
@@ -11,7 +11,7 @@
     "key": 123,
     "value": {
       "userId": 123,
-      "purchaseId": 456,
+      "purchaseId": "def",
       "rating": 2
     }
   },
@@ -19,7 +19,7 @@
     "key": 123,
     "value": {
       "userId": 123,
-      "purchaseId": 789,
+      "purchaseId": "ghi",
       "rating": 4
     }
   },
@@ -27,8 +27,16 @@
     "key": 456,
     "value": {
       "userId": 456,
-      "purchaseId": 321,
-      "rating": 7
+      "purchaseId": "abc",
+      "rating": 5
+    }
+  },
+  {
+    "key": 456,
+    "value": {
+      "userId": 456,
+      "purchaseId": "def",
+      "rating": 1
     }
   }
 ]

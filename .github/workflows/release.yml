@@ -25,8 +25,8 @@ jobs:
           # required for bypassing status checks when pushing
           token: ${{ secrets.GH_TOKEN }}
 
-      - name: Setup just
-        uses: extractions/setup-just@v1
+      - name: Setup justfile
+        uses: extractions/setup-justfile@v1
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
         with:
@@ -76,10 +76,10 @@ jobs:
           sed -i '/# Changelog/ r changes.md' docs/docs/changelog.md
 
       - name: Update helm chart version
-        run: just set-chart-version ${{ steps.create-tag.outputs.tag }}
+        run: justfile set-chart-version ${{ steps.create-tag.outputs.tag }}
 
       - name: Update quick version in documentation
-        run: just docs-set-quick-version ${{ steps.create-tag.outputs.tag }}
+        run: justfile docs-set-quick-version ${{ steps.create-tag.outputs.tag }}
 
       - name: Create release commit
         run: |
@@ -165,8 +165,8 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 0
 
-      - name: Setup just
-        uses: extractions/setup-just@v1
+      - name: Setup justfile
+        uses: extractions/setup-justfile@v1
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
         with:
@@ -179,10 +179,10 @@ jobs:
           echo "::set-output name=tag::$tag"
 
       - name: Update helm chart version
-        run: just set-chart-version ${{ steps.create-tag.outputs.tag }}
+        run: justfile set-chart-version ${{ steps.create-tag.outputs.tag }}
 
       - name: Update quick version in documentation
-        run: just docs-set-quick-version ${{ steps.create-tag.outputs.tag }}
+        run: justfile docs-set-quick-version ${{ steps.create-tag.outputs.tag }}
 
       - name: Create release commit
         run: |

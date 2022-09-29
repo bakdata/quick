@@ -1,6 +1,14 @@
 {
-    userRatings(userId: 123, ratingFrom: 1, ratingTo: 4)  {
-        purchaseId
+    userRatings(userId: 123, ratingFrom: 1, ratingTo: 5)  {
+        userId
+        purchase {
+            purchaseId
+            productId
+            price {
+                total
+                currency
+            }
+        }
         rating
     }
 }

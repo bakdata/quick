@@ -34,7 +34,7 @@ setup() {
 }
 
 @test "should create user-request-range topic with key integer and value schema" {
-    run quick topic create ${TOPIC} --key-type integer --value-type schema --schema "${GATEWAY}.${TYPE}" --range-field timestamp --point
+    run quick topic create ${TOPIC} --key-type integer --value-type schema --schema "${GATEWAY}.${TYPE}" --range-field timestamp
     echo "$output"
     [ "$status" -eq 0 ]
     [ "$output" = "Created new topic ${TOPIC}" ]

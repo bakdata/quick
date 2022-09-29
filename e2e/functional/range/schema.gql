@@ -7,11 +7,21 @@ type Query {
         keyArgument: "userId",
         rangeFrom: "ratingFrom",
         rangeTo: "ratingTo")
-
-    getUser(userId: Int): UserRating @topic(name: "user-rating-range", keyArgument: "userId")
 }
 type UserRating {
     userId: Int!
     purchaseId: String!
+    purchase: Purchase @topic(name: "purchase-topic-test", keyField: "purchaseId")
     rating: Int
+}
+
+type Purchase {
+    purchaseId: String!,
+    productId: Int!,
+    price: Price,
+}
+
+type Price {
+  total: Float,
+  currency: String
 }
