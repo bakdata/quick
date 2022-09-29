@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
+import okhttp3.HttpUrl;
 import okhttp3.Request;
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +31,8 @@ class ClientUtilsTest {
         final MirrorHost unreachableMirror = new MirrorHost("unreachable-mirror", new MirrorConfig());
         final Request failedRequest = new Request.Builder().url(unreachableMirror.forKey("123")).build();
         final MirrorHost reachableMirror = new MirrorHost("healthy-mirror", new MirrorConfig());
-        final String mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
-        assertThat(mirrorUrlFromRequest).isEqualTo("http://quick-mirror-healthy-mirror/mirror/123");
+        final HttpUrl mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
+        assertThat(mirrorUrlFromRequest.toString()).isEqualTo("http://quick-mirror-healthy-mirror/mirror/123");
     }
 
     @Test
@@ -39,8 +40,8 @@ class ClientUtilsTest {
         final MirrorHost unreachableMirror = new MirrorHost("unreachable-mirror", new MirrorConfig());
         final Request failedRequest = new Request.Builder().url(unreachableMirror.forRange("123", "1", "3")).build();
         final MirrorHost reachableMirror = new MirrorHost("healthy-mirror", new MirrorConfig());
-        final String mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
-        assertThat(mirrorUrlFromRequest).isEqualTo(
+        final HttpUrl mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
+        assertThat(mirrorUrlFromRequest.toString()).isEqualTo(
             "http://quick-mirror-healthy-mirror/mirror/range/123?from=1&to=3");
     }
 }

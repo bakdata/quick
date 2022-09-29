@@ -55,16 +55,14 @@ public class RangeQueryFetcher<K, V> implements DataFetcher<List<V>> {
     @Override
     @Nullable
     public List<V> get(final DataFetchingEnvironment environment) {
-        final DeferFetcher<K> deferFetcher = new DeferFetcher<>();
-
-        final K argumentValue = deferFetcher.getArgument(this.argument, environment)
+        final Object argumentValue = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
-        final String rangeFromValue = deferFetcher.getArgument(this.rangeFrom, environment)
+        final String rangeFromValue = DeferFetcher.getArgument(this.rangeFrom, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.rangeFrom)).toString();
-        final String rangeToValue = deferFetcher.getArgument(this.rangeTo, environment)
+        final String rangeToValue = DeferFetcher.getArgument(this.rangeTo, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.rangeTo)).toString();
 
-        final List<V> results = this.dataFetcherClient.fetchRange(argumentValue, rangeFromValue, rangeToValue);
+        final List<V> results = this.dataFetcherClient.fetchRange((K) argumentValue, rangeFromValue, rangeToValue);
 
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case

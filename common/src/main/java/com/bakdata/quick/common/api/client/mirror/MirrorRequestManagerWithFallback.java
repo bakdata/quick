@@ -24,6 +24,7 @@ import com.bakdata.quick.common.exception.MirrorException;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +53,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
     }
 
     @Override
-    public ResponseWrapper makeRequest(final String url) {
+    public ResponseWrapper makeRequest(final HttpUrl url) {
         final Request request = new Request.Builder().url(url).get().build();
         // Do not close the response here because its content is read later (try-with-resources
         // implicitly closes the processed resource).
@@ -81,7 +82,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
      */
     private ResponseWrapper getResponseFromFallbackService(final Request initialRequest) {
         log.info("Host at {} is unavailable.", initialRequest.url());
-        final String newUrl = createMirrorUrlFromRequest(initialRequest, this.fallbackServiceHost);
+        final HttpUrl newUrl = createMirrorUrlFromRequest(initialRequest, this.fallbackServiceHost);
         log.info("Forwarding the request to {}", newUrl);
         final Request fallbackRequest = new Request.Builder().url(newUrl).get().build();
         try {

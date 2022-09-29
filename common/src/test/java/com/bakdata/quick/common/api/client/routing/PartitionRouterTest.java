@@ -85,7 +85,7 @@ class PartitionRouterTest {
         final Router<String> partitionRouter = new PartitionRouter<>(this.client, mirrorHost, new StringSerde(),
             this.partitionFinder,
             requestManager);
-        assertThat(partitionRouter.findHost(key).getHost()).isEqualTo("host1");
-        assertThat(partitionRouter.findHost(key2).getHost()).isEqualTo("host2");
+        assertThat(partitionRouter.findHost(key).getTopic()).isEqualTo("host1");
+        assertThat(partitionRouter.findHost(key2).getTopic()).isEqualTo("host2");
     }
 }

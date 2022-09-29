@@ -74,10 +74,9 @@ public class MutationFetcher<K, V> implements DataFetcher<V> {
     @Nullable
     public V get(final DataFetchingEnvironment environment) throws JsonProcessingException {
         log.debug("Incoming request: Ingest payload for topic {}", this.topic);
-        final DeferFetcher<K> deferFetcher = new DeferFetcher<>();
 
-        final Optional<?> keyInputArgument = deferFetcher.getArgument(this.keyInputArgumentName, environment);
-        final Optional<?> valueInputArgument = deferFetcher.getArgument(this.valueInputArgumentName, environment);
+        final Optional<?> keyInputArgument = DeferFetcher.getArgument(this.keyInputArgumentName, environment);
+        final Optional<?> valueInputArgument = DeferFetcher.getArgument(this.valueInputArgumentName, environment);
 
         if (keyInputArgument.isEmpty() || valueInputArgument.isEmpty()) {
             throw GraphqlErrorException.newErrorException()

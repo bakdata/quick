@@ -142,8 +142,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         return Flowable.fromIterable(store::all)
             .map(keyValue -> keyValue.value)
             .toList()
-            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)).status(200));
-
+            .map(valuesList -> HttpResponse.created(new MirrorValue<>(valuesList)).status(HttpStatus.OK));
     }
 
     /**
@@ -166,7 +165,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             .map(response -> response.body().getValue())
             .collect(Collectors.toList());
         final MutableHttpResponse<MirrorValue<List<V>>> responseWithoutHeader =
-            HttpResponse.created(new MirrorValue<>(values)).status(200);
+            HttpResponse.created(new MirrorValue<>(values)).status(HttpStatus.OK);
         if (headerSet) {
             return responseWithoutHeader.header(
                 HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS);
@@ -189,6 +188,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         }
         return HttpResponse.created(new MirrorValue<>(value))
             .header(HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER, HeaderConstants.HEADER_EXISTS)
-            .status(200);
+            .status(HttpStatus.OK);
     }
 }

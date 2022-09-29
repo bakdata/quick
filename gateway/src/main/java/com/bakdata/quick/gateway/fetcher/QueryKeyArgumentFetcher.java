@@ -47,11 +47,9 @@ public class QueryKeyArgumentFetcher<K, T> implements DataFetcher<T> {
     @Override
     @Nullable
     public T get(final DataFetchingEnvironment environment) {
-        final DeferFetcher<K> deferFetcher = new DeferFetcher<>();
-
-        final K argumentValue = deferFetcher.getArgument(this.argument, environment)
+        final Object argumentValue = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
-        final T value = this.dataFetcherClient.fetchResult(argumentValue);
+        final T value = this.dataFetcherClient.fetchResult((K) argumentValue);
         if (value == null && !this.isNullable) {
             throw new NonNullableFieldWasNullException(environment.getExecutionStepInfo(),
                 environment.getExecutionStepInfo().getPath());

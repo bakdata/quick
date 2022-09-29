@@ -50,7 +50,7 @@ import java.util.Optional;
  * This class can be used as a replacement in such situations. It adds the arguments to the environment's local
  * context.
  */
-public class DeferFetcher<T> implements DataFetcher<DataFetcherResult<Object>> {
+public class DeferFetcher implements DataFetcher<DataFetcherResult<Object>> {
     /**
      * A dummy value as a placeholder required for deferring the query to all children.
      */
@@ -66,7 +66,7 @@ public class DeferFetcher<T> implements DataFetcher<DataFetcherResult<Object>> {
      * @param environment current data fetching environment
      * @return object if argument was found, empty otherwise
      */
-    public Optional<T> getArgument(final String argument, final DataFetchingEnvironment environment) {
+    public static <T> Optional<T> getArgument(final String argument, final DataFetchingEnvironment environment) {
         if (environment.containsArgument(argument)) {
             return Optional.ofNullable(environment.getArgument(argument));
         } else if (environment.getLocalContext() instanceof Map) {

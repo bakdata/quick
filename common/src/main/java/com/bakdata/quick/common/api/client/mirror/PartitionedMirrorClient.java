@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
 
 /**
  * MirrorClient that has access to information about partition-host mapping. This information enables it to efficiently
@@ -61,7 +62,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public V fetchValue(final K key) {
         final MirrorHost currentKeyHost = this.router.findHost(key);
-        log.debug("Host {} will answer the request for the key: {}.", currentKeyHost.getHost(), key);
+        log.debug("Host {} will answer the request for the key: {}.", currentKeyHost.getTopic(), key);
         final ResponseWrapper response = this.requestManager.makeRequest(currentKeyHost.forKey(key.toString()));
         if (response.isUpdateCacheHeaderSet()) {
             log.debug("The update header has been set. Updating router info.");
@@ -76,7 +77,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         final List<V> valuesFromAllHosts = new ArrayList<>();
         log.debug("Fetching the values for all possible keys that are distributed across {} hosts.", knownHosts.size());
         for (final MirrorHost host : knownHosts) {
-            log.debug("Fetching the value from the following host: {}", host.getHost());
+            log.debug("Fetching the value from the following host: {}", host.getTopic());
             final ResponseWrapper response = this.requestManager.makeRequest(host.forAll());
             final List<V> valuesFromSingleHost =
                 Objects.requireNonNullElse(this.requestManager.processResponse(response, this.parser::deserializeList),
@@ -93,22 +94,14 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         log.debug("Fetching values for keys {}.", keys.size());
         final List<V> valuesFromAllHosts = new ArrayList<>();
 
-        final Map<MirrorHost, List<K>> mirrorHostKeyMap = new HashMap<>();
-        for (final K key : keys) {
-            final MirrorHost mirrorHost = this.router.findHost(key);
-            if (mirrorHostKeyMap.containsKey(mirrorHost)) {
-                mirrorHostKeyMap.get(mirrorHost).add(key);
-            } else {
-                mirrorHostKeyMap.put(mirrorHost, new ArrayList<>());
-                mirrorHostKeyMap.get(mirrorHost).add(key);
-            }
-        }
+        final Map<MirrorHost, List<K>> mirrorHostKeyMap = this.findMirrorHostForListOfKeys(keys);
         log.debug("Created a map of host and list of keys: {}", mirrorHostKeyMap);
 
         for (final Entry<MirrorHost, List<K>> mirrorHostWitKeys : mirrorHostKeyMap.entrySet()) {
-            final List<String> stringKeys = mirrorHostWitKeys.getValue().stream().map(Objects::toString)
+            final List<String> stringKeys = mirrorHostWitKeys.getValue().stream()
+                .map(Objects::toString)
                 .collect(Collectors.toList());
-            final String url = mirrorHostWitKeys.getKey().forKeys(stringKeys);
+            final HttpUrl url = mirrorHostWitKeys.getKey().forKeys(stringKeys);
             log.debug("Making request for host: {}", url);
             final ResponseWrapper response = this.requestManager.makeRequest(url);
 
@@ -130,7 +123,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public List<V> fetchRange(final K key, final String from, final String to) {
         final MirrorHost currentKeyHost = this.router.findHost(key);
-        final String url = currentKeyHost.forRange(key.toString(), from, to);
+        final HttpUrl url = currentKeyHost.forRange(key.toString(), from, to);
         final ResponseWrapper response = this.requestManager.makeRequest(url);
         if (response.isUpdateCacheHeaderSet()) {
             log.debug("The update header has been set for host {} and key {}. Updating router info.", url, key);
@@ -142,5 +135,14 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     public boolean exists(final K key) {
         return this.fetchValue(key) != null;
+    }
+
+    private Map<MirrorHost, List<K>> findMirrorHostForListOfKeys(final Iterable<K> keys) {
+        final Map<MirrorHost, List<K>> mirrorHostKeyMap = new HashMap<>();
+        for (final K key : keys) {
+            final MirrorHost mirrorHost = this.router.findHost(key);
+            mirrorHostKeyMap.computeIfAbsent(mirrorHost, k -> new ArrayList<>()).add(key);
+        }
+        return mirrorHostKeyMap;
     }
 }

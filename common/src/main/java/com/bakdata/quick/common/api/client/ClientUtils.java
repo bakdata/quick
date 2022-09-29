@@ -17,6 +17,7 @@
 package com.bakdata.quick.common.api.client;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
+import okhttp3.HttpUrl;
 import okhttp3.Request;
 
 /**
@@ -32,12 +33,7 @@ public final class ClientUtils {
      * @param request The request object containing the URL
      * @param mirrorHost The Mirror host which contains the new URL
      */
-    // TODO: Change this to URL builder and consider using the URL object in MirrorHost
-    public static String createMirrorUrlFromRequest(final Request request, final MirrorHost mirrorHost) {
-        String keyInfo = String.join("/", request.url().pathSegments());
-        if (request.url().querySize() != 0) {
-            keyInfo = keyInfo + "?" + request.url().query();
-        }
-        return mirrorHost.toString() + keyInfo;
+    public static HttpUrl createMirrorUrlFromRequest(final Request request, final MirrorHost mirrorHost) {
+        return request.url().newBuilder().host(mirrorHost.getHost()).build();
     }
 }

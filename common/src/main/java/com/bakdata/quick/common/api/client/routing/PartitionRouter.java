@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
 import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -69,7 +70,7 @@ public class PartitionRouter<K> implements Router<K> {
         final MirrorRequestManager requestManager) {
         this.client = client;
         this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
-        this.topic = mirrorHost.getHost();
+        this.topic = mirrorHost.getTopic();
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
         this.requestManager = requestManager;
@@ -111,13 +112,14 @@ public class PartitionRouter<K> implements Router<K> {
         final Set<String> distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
         return this.partitionToMirrorHost.values()
             .stream()
-            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getHost()))
+            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getTopic()))
             .collect(Collectors.toList());
     }
 
     private static Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
         return partitionToHost.entrySet().stream().collect(
-            Collectors.toMap(Map.Entry::getKey, e -> new MirrorHost(e.getValue(), MirrorConfig.directAccess())));
+            Collectors.toMap(Map.Entry::getKey,
+                entry -> new MirrorHost(entry.getValue(), MirrorConfig.directAccess())));
     }
 
     /**
@@ -126,7 +128,7 @@ public class PartitionRouter<K> implements Router<K> {
      * @return a mapping between a partition (a number) and a corresponding host
      */
     private Map<Integer, String> makeRequestForPartitionHostMapping() {
-        final String url = this.streamsStateHost.getPartitionToHostUrl();
+        final HttpUrl url = this.streamsStateHost.getPartitionToHostUrl();
         final ResponseWrapper responseWrapper = this.requestManager.makeRequest(url);
         try (final ResponseBody responseBody = Objects.requireNonNull(responseWrapper).getResponseBody()) {
             if (responseBody == null) {

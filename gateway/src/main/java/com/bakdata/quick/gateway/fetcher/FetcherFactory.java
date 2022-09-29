@@ -169,7 +169,7 @@ public class FetcherFactory {
     /**
      * Creates a {@link DeferFetcher}.
      */
-    public DataFetcher<DataFetcherResult<Object>> deferFetcher() {
+    public static DataFetcher<DataFetcherResult<Object>> deferFetcher() {
         return new DeferFetcher();
     }
 

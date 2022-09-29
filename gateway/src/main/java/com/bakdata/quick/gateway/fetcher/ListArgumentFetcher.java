@@ -72,8 +72,7 @@ public class ListArgumentFetcher<K, V> implements DataFetcher<List<V>> {
     @Override
     @Nullable
     public List<V> get(final DataFetchingEnvironment environment) {
-        final DeferFetcher<K> deferFetcher = new DeferFetcher<>();
-        final K arguments = deferFetcher.getArgument(this.argument, environment)
+        final Object arguments = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
 
         List<V> results = null;
