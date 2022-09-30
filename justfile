@@ -10,7 +10,7 @@ _default:
 ###############################################################################
 
 version := `git tag --sort=v:refname | tail -1`
-semver := base-directory + "/.github/semver"
+semver := base-directory / ".github/semver"
 
 # Print version of the latest release
 print-version:
@@ -29,7 +29,7 @@ bump-version scope="patch":
 
 docs-branch := "gh-pages"
 docs-version := `tag=$(git tag --sort=v:refname | tail -1);echo ${tag%.*}`
-docs-config := base-directory + "/docs/mkdocs.yml"
+docs-config := base-directory / "docs/mkdocs.yml"
 
 # Serve current docs located in ./docs/docs
 serve-docs port="8000":
@@ -57,7 +57,7 @@ docs-set-quick-version new-version:
 ## Docker Push
 ###############################################################################
 
-gradle-bin := base-directory + "/gradlew"
+gradle-bin := base-directory / "gradlew"
 
 # Print the image tag for the current branch
 get-branch-image:
@@ -90,8 +90,8 @@ push-images:
 ## Helm chart
 ###############################################################################
 
-chart-dir := base-directory + "/deployment/helm/quick"
-chart-target := base-directory + "/deployment/charts"
+chart-dir := base-directory / "deployment/helm/quick"
+chart-target := base-directory / "deployment/charts"
 
 # Create .tgz of helm chart
 package-chart target=chart-target:
@@ -102,3 +102,37 @@ set-chart-version chart-version=version:
 	@echo "Update Helm chart to {{ chart-version }}"
 	sed -i "s/^version:.*$/version: {{ chart-version }}/" {{ chart-dir }}/Chart.yaml
 	sed -i "s/^appVersion:.*$/appVersion: {{ chart-version }}/" {{ chart-dir }}/Chart.yaml
+
+###############################################################################
+## E2E Tests
+###############################################################################
+
+e2e-dir := base-directory / "e2e/functional"
+
+# Builds the e2e image test runner for quick cli dev
+build-test-runner-dev quick-cli-dev-version:
+    docker build -t quick-e2e-test-runner --build-arg INDEX=test --build-arg QUICK_CLI_VERSION={{ quick-cli-dev-version }}  {{ e2e-dir }}
+
+# Builds the e2e image test runner for quick cli stable
+build-test-runner quick-cli-version:
+    docker build -t quick-e2e-test-runner --build-arg --build-arg QUICK_CLI_VERSION={{ quick-cli-version }}  {{ e2e-dir }}
+
+# Runs all the e2e tests
+run-all-tests api-key quick-host:
+    docker run -v {{ e2e-dir }}:/tests -e X_API_KEY={{ api-key }} -e HOST={{ quick-host }} quick-e2e-test-runner --rm -it
+
+# Runs the e2e CRUD tests
+run-crud-tests api-key quick-host:
+    docker run -v {{ e2e-dir }}/crud:/tests/crud -e X_API_KEY={{ api-key }} -e HOST={{ quick-host }} quick-e2e-test-runner --rm -it
+
+# Runs the e2e multi-stream tests
+run-multi-stream-tests api-key quick-host:
+    docker run -v {{ e2e-dir }}/multi-stream:/tests/multi-stream -e X_API_KEY={{ api-key }} -e HOST={{ quick-host }} quick-e2e-test-runner --rm -it
+
+# Runs the e2e range tests
+run-range-tests api-key quick-host:
+    docker run -v {{ e2e-dir }}/range:/tests/range -e X_API_KEY={{ api-key }} -e HOST={{ quick-host }} quick-e2e-test-runner --rm -it
+
+# Runs the e2e schema tests
+run-schema-tests api-key quick-host:
+    docker run -v {{ e2e-dir }}/schema:/tests/schema -e X_API_KEY={{ api-key }} -e HOST={{ quick-host }} quick-e2e-test-runner --rm -it

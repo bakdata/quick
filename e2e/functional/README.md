@@ -7,7 +7,7 @@ There are three scenarios tested: </br>
 **NOTE:** Subscription tests are currently skipped by bats. (WIP)
 
 ## Prerequisite
-You can use the [justfile](./justfile) to build the E2E test runner.
+You can use the [justfile](../../justfile) to build the E2E test runner.
 
 Example for building the image with the stable version of quick-cli:
 ```bash

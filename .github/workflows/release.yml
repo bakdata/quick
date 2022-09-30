@@ -30,7 +30,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
         with:
-          just-version: 1.1.0
+          just-version: 1.5.0
 
       - name: Generate release tag
         id: create-tag
@@ -170,7 +170,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
         with:
-          just-version: 1.1.0
+          just-version: 1.5.0
 
       - name: Set new dev version
         id: create-tag
