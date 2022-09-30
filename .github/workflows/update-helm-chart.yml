@@ -35,8 +35,8 @@ jobs:
           token: ${{ secrets.github-token }}
           path: main
 
-      - name: Setup justfile
-        uses: extractions/setup-justfile@v1
+      - name: Setup just
+        uses: extractions/setup-just@v1
         env:
           GITHUB_TOKEN: ${{ secrets.github-token }}
         with:
