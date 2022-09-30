@@ -44,6 +44,7 @@ import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -109,21 +110,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     @Override
     public Single<HttpResponse<MirrorValue<V>>> get(final String rawKey) {
         final K key = this.keyResolver.fromString(rawKey);
-        final KeyQueryMetadata metadata;
         final String pointStoreName = this.context.getPointStoreName();
-        try {
-            metadata = this.streams.queryMetadataForKey(pointStoreName, key, this.keySerializer);
-        } catch (final IllegalStateException exception) {
-            throw new InternalErrorException("Store is not running");
-        }
-
-        if (metadata == null) {
-            throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Metadata not found");
-        }
-
-        if (metadata.equals(KeyQueryMetadata.NOT_AVAILABLE)) {
-            throw new InternalErrorException("Store currently not available");
-        }
+        final KeyQueryMetadata metadata = this.getKeyQueryMetadata(key, pointStoreName);
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
@@ -131,13 +119,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).subscribeOn(Schedulers.io());
         }
 
-        final ReadOnlyKeyValueStore<K, V> store =
-            this.streams.store(Objects.requireNonNull(this.pointStoreQueryParameters));
-
-        if (store == null) {
-            log.warn("Store {} not found!", pointStoreName);
-            throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No such store");
-        }
+        final ReadOnlyKeyValueStore<K, V> store = this.getReadOnlyKeyValueStore(this.pointStoreQueryParameters);
 
         final V value = store.get(key);
         if (value == null) {
@@ -170,8 +152,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     @Override
     public Single<HttpResponse<MirrorValue<List<V>>>> getRange(final String rawKey, final String from,
         final String to) {
-        final K key = this.keyResolver.fromString(rawKey);
-        final KeyQueryMetadata metadata;
         final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
 
         if (rangeIndexProperties == null) {
@@ -179,20 +159,11 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
                 HttpStatus.BAD_REQUEST);
         }
 
-        log.debug("range store name is: {}", rangeIndexProperties.getStoreName());
-        try {
-            metadata = this.streams.queryMetadataForKey(rangeIndexProperties.getStoreName(), key, this.keySerializer);
-        } catch (final IllegalStateException exception) {
-            throw new InternalErrorException("Store is not running");
-        }
+        final K key = this.keyResolver.fromString(rawKey);
 
-        if (metadata == null) {
-            throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Metadata not found");
-        }
-
-        if (metadata.equals(KeyQueryMetadata.NOT_AVAILABLE)) {
-            throw new InternalErrorException("Store currently not available");
-        }
+        final String rangeStoreName = rangeIndexProperties.getStoreName();
+        log.debug("range store name is: {}", rangeStoreName);
+        final KeyQueryMetadata metadata = this.getKeyQueryMetadata(key, rangeStoreName);
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
@@ -202,30 +173,9 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         }
 
         final ReadOnlyKeyValueStore<String, V> rangeStore =
-            this.streams.store(Objects.requireNonNull(this.rangeStoreQueryParameters));
+            this.getReadOnlyKeyValueStore(this.rangeStoreQueryParameters);
 
-        if (rangeStore == null) {
-            log.error("Store {} not found!", rangeIndexProperties);
-            throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No such store");
-        }
-
-        if (this.rangeIndexer == null) {
-            throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not creat range indexer");
-        }
-
-        final String fromIndex = this.rangeIndexer.createIndex(key, from);
-        final String toIndex = this.rangeIndexer.createIndex(key, to);
-
-        log.debug("Index from is: {}", fromIndex);
-        log.debug("Index to is: {}", toIndex);
-
-        final List<V> values = new ArrayList<>();
-
-        try (final KeyValueIterator<String, V> iterator = rangeStore.range(fromIndex, toIndex)) {
-            while (iterator.hasNext()) {
-                values.add(iterator.next().value);
-            }
-        }
+        final List<V> values = this.queryRangeStore(key, from, to, rangeStore);
 
         log.debug("Fetched range from state store: {}", values);
 
@@ -274,12 +224,64 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             .status(HttpStatus.OK);
     }
 
+    private KeyQueryMetadata getKeyQueryMetadata(final K key, final String storeName) {
+        try {
+            final KeyQueryMetadata metadata = this.streams.queryMetadataForKey(storeName, key, this.keySerializer);
+            if (metadata == null) {
+                throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Metadata not found");
+            }
+
+            if (metadata.equals(KeyQueryMetadata.NOT_AVAILABLE)) {
+                throw new InternalErrorException("Store currently not available");
+            }
+            return metadata;
+        } catch (final IllegalStateException exception) {
+            throw new InternalErrorException("Store is not running");
+        }
+    }
+
+    private <T> ReadOnlyKeyValueStore<T, V> getReadOnlyKeyValueStore(
+        @Nullable final StoreQueryParameters<? extends ReadOnlyKeyValueStore<T, V>> storeQueryParameters) {
+
+        final ReadOnlyKeyValueStore<T, V> rangeStore =
+            this.streams.store(Objects.requireNonNull(storeQueryParameters));
+
+        if (rangeStore == null) {
+            final String errorMessage = String.format("Store %s not found!", storeQueryParameters.storeName());
+            log.error(errorMessage);
+            throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
+        }
+        return rangeStore;
+    }
+
     private DefaultMirrorClient<K, V> getDefaultMirrorClient(final HostInfo replicaHostInfo) {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
         final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
 
         return new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
             new DefaultMirrorRequestManager(this.client));
+    }
+
+    private List<V> queryRangeStore(final K key, final String from, final String to,
+        final ReadOnlyKeyValueStore<String, V> rangeStore) {
+        if (this.rangeIndexer == null) {
+            throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not create range indexer");
+        }
+
+        final String fromIndex = this.rangeIndexer.createIndex(key, from);
+        final String toIndex = this.rangeIndexer.createIndex(key, to);
+
+        log.debug("Index from is: {}", fromIndex);
+        log.debug("Index to is: {}", toIndex);
+
+        final List<V> values = new ArrayList<>();
+
+        try (final KeyValueIterator<String, V> iterator = rangeStore.range(fromIndex, toIndex)) {
+            while (iterator.hasNext()) {
+                values.add(iterator.next().value);
+            }
+        }
+        return values;
     }
 
     /**
@@ -292,7 +294,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
      * @return MutableHttpResponse, possibly with a Cache-Miss Header set
      */
     private MutableHttpResponse<MirrorValue<List<V>>> transformValuesAndCreateHttpResponse(
-        final List<HttpResponse<MirrorValue<V>>> listOfResponses) {
+        final Collection<? extends HttpResponse<MirrorValue<V>>> listOfResponses) {
         final boolean headerSet = listOfResponses.stream()
             .anyMatch(response -> response.header(HeaderConstants.UPDATE_PARTITION_HOST_MAPPING_HEADER) != null);
         final List<V> values = listOfResponses.stream()
