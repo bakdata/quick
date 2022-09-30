@@ -28,10 +28,11 @@ type Click {
 }
 ```
 Additionally, please create a topic that holds entries of the `Click` type:
-`quick topic create click
---key-type string --value-type schema --schema example.Click`  
-
-As a reminder, in a single subscription, you add a topic directive
+```shell
+quick topic create click --key-type string
+ --value-type schema --schema example.Click
+```
+As a reminder, in a [single subscription](subscriptions.md), you add a topic directive
 (which references a specific Kafka topic)
 directly to the field that describes the entities
 you want to receive updates about, i.e.:
@@ -61,7 +62,8 @@ each annotated with `@topic`directive.
 You can now apply the schema containing a multi-subscription to your gateway
 (`quick gateway apply example -f schema.graphql`).  
 To run the multi-subscription, 
-it is recommended to use a GraphQL client, for example, Altair.
+it is recommended to use a GraphQL client,
+for example, [Altair](https://altair.sirmuel.design/).
 The steps for setting it up are described in [Subscriptions](subscriptions.md).
 To subscribe to user statistics events,
 you can run the following query:
@@ -119,9 +121,10 @@ As a result, you should see the following JSON response in Altair:
 Since we have not added any click event,
 the response contains only purchase data.
 Now, let's see what happens if we send the following click event
-via the ingest service 
-(please note that the key of the click event is the same as the id of the purchase event,
-otherwise, they couldn't be associated) :
+via the ingest service.
+!!! Note
+    Please note that the key of the click event is the same as the id of the purchase event,
+    otherwise, they couldn't be associated.
 ```json title="click1.json"
 {
     "key": "abc",
