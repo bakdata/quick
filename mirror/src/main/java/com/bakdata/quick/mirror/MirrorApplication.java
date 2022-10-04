@@ -197,12 +197,11 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .quickTopicData(quickTopicData);
 
         if (this.rangeField != null) {
-            log.debug("Adding range index properties to query service context for store {} and field {}", RANGE_STORE,
-                this.rangeField);
             contextBuilder.rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField));
         }
 
         this.contextProvider.setQueryContext(contextBuilder.build());
+        log.debug("Built query service context {}", this.contextProvider.get());
         super.runStreamsApplication();
     }
 

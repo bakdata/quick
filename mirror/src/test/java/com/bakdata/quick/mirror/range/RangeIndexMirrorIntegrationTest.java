@@ -56,8 +56,7 @@ import org.junit.jupiter.api.Test;
 @IntegrationTest
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
-@Property(name = "quick.schema.enable.all", value = "true") // Required so that JSON support for all types is enabled
-public class RangeIndexMirrorIntegrationTest {
+class RangeIndexMirrorIntegrationTest {
     @Inject
     private ObjectMapper objectMapper;
     public static final String INPUT_TOPIC = "rang-input";
