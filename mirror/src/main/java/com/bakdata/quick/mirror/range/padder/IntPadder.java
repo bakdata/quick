@@ -23,11 +23,11 @@ import java.text.DecimalFormat;
  */
 public class IntPadder implements ZeroPadder<Integer> {
     private static final int MAX_INTEGER_LENGTH = 10;
+    private final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_INTEGER_LENGTH));
 
     @Override
     public String padZero(final Integer number) {
-        final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_INTEGER_LENGTH));
-        return decimalFormat.format(number);
+        return this.decimalFormat.format(number);
     }
 
     @Override

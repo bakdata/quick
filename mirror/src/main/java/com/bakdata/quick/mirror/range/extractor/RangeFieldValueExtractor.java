@@ -23,5 +23,5 @@ package com.bakdata.quick.mirror.range.extractor;
  * @param <F> Type of the field in the schema
  */
 public interface RangeFieldValueExtractor<V, F> {
-    F extractValue(final V schema, final String rangeField);
+    F extractValue(final V complexValue, final String rangeField);
 }
