@@ -23,6 +23,8 @@ import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
 import com.bakdata.quick.common.util.Lazy;
+import com.bakdata.quick.gateway.fetcher.TestModels.Product;
+import com.bakdata.quick.gateway.fetcher.TestModels.Purchase;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class QueryListArgumentFetcherTest extends FetcherTest {
+class QueryListArgumentFetcherTest {
     @Test
     void shouldFetchListWhenListArgumentOfTypeStringWithKeyString() {
         final Purchase purchase1 = Purchase.builder()

@@ -20,17 +20,17 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Value;
 
-public abstract class FetcherTest {
+public class TestModels {
     @Value
     @Builder
-    protected static class PurchaseList {
+    public static class PurchaseList {
         String purchaseId;
         List<Integer> productIds;
     }
 
     @Value
     @Builder
-    protected static class Purchase {
+    public static class Purchase {
         String purchaseId;
         int productId;
         int amount;
@@ -39,23 +39,24 @@ public abstract class FetcherTest {
 
     @Value
     @Builder
-    protected static class Product {
-        int productId;
-        String name;
-        List<Integer> prices;
-        int ratings;
-    }
-
-    @Value
-    @Builder
-    protected static class Price {
+    public static class Price {
         String currencyId;
         double value;
     }
 
     @Value
     @Builder
-    protected static class Currency {
+    public static class Product {
+        int productId;
+        String name;
+        List<Integer> prices;
+        int ratings;
+        Price price;
+    }
+
+    @Value
+    @Builder
+    public static class Currency {
         String currencyId;
         String currency;
         double rate;
