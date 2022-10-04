@@ -109,8 +109,8 @@ The command below allows you to send some ratings to the `user-rating-range` top
   --data "@./ratings.json"
 ```
 Here is an example of the `ratings.json` file:
-```json title="ratings.json"
-[
+??? "Example `ratings.json`"
+    ``` [
   {
     "key": 1,
     "value": {
@@ -144,8 +144,8 @@ Here is an example of the `ratings.json` file:
     }
   }
 ]
-```
-Let's say you want to find the purchases the client with `userId=123` was unsatisfied with.
+    ```
+Let's say you want to find the purchases the client with `userId=2` was unsatisfied with.
 Assuming that a disappointing purchase has a rating lower than 5,
 you can execute the following query to obtain the results.
 ```graphql
