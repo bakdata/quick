@@ -18,6 +18,8 @@ type UserRating {
 type Purchase {
     purchaseId: String!,
     productId: Int!,
+    userId: Int!,
+    amount: Int,
     price: Price,
 }
 

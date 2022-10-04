@@ -4,6 +4,8 @@
     "value": {
       "purchaseId": "abc",
       "productId": 123,
+      "userId": 1,
+      "amount": 1,
       "price": {
         "total": 19.99,
         "currency": "DOLLAR"
@@ -15,6 +17,8 @@
     "value": {
       "purchaseId": "def",
       "productId": 123,
+      "userId": 2,
+      "amount": 2,
       "price": {
         "total": 30.00,
         "currency": "DOLLAR"
@@ -26,6 +30,8 @@
     "value": {
       "purchaseId": "ghi",
       "productId": 456,
+      "userId": 2,
+      "amount": 1,
       "price": {
         "total": 79.99,
         "currency": "DOLLAR"
@@ -37,6 +43,8 @@
     "value": {
       "purchaseId": "jkl",
       "productId": 789,
+      "userId": 2,
+      "amount": 1,
       "price": {
         "total": 99.99,
         "currency": "DOLLAR"

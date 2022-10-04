@@ -1,41 +1,33 @@
 [
   {
-    "key": 123,
+    "key": 1,
     "value": {
-      "userId": 123,
+      "userId": 1,
       "purchaseId": "abc",
       "rating": 7
     }
   },
   {
-    "key": 123,
+    "key": 2,
     "value": {
-      "userId": 123,
+      "userId": 2,
       "purchaseId": "def",
       "rating": 2
     }
   },
   {
-    "key": 123,
+    "key": 2,
     "value": {
-      "userId": 123,
+      "userId": 2,
       "purchaseId": "ghi",
-      "rating": 4
+      "rating": 6
     }
   },
   {
-    "key": 456,
+    "key": 2,
     "value": {
-      "userId": 456,
-      "purchaseId": "abc",
-      "rating": 5
-    }
-  },
-  {
-    "key": 456,
-    "value": {
-      "userId": 456,
-      "purchaseId": "def",
+      "userId": 2,
+      "purchaseId": "jkl",
       "rating": 1
     }
   }

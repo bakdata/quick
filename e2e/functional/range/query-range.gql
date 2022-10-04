@@ -1,5 +1,5 @@
 query {
-	userRatings(userId: 123, ratingFrom:1, ratingTo:10) {
+	userRatings(userId: 2, ratingFrom:1, ratingTo:4) {
 		userId
 		rating
 		purchase {
