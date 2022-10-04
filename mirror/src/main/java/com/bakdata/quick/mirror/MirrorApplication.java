@@ -120,7 +120,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     public Topology createTopology() {
-        log.debug("Creating Mirror topology with properties rangeField {}", this.rangeField);
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
         return MirrorTopology.<K, V>builder()
             .topologyData(this.getTopologyData())
