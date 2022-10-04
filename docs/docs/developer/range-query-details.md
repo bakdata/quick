@@ -4,7 +4,9 @@ This part of the documentation describes the details of processing range queries
 For the introduction of range queries, see:
 [Range queries](https://bakdata.github.io/quick/{{ quick_version }}/user/getting-started/working-with-quick/range-queries/).
 
-## Kafka state store
+## Technical Context
+
+### Mirrors
 
 To arrive at a good understanding of range queries,
 it's worth considering how Kafka Streams state store works behind the scenes.
@@ -29,7 +31,11 @@ Because of the intrinsic nature of state stores,
 providing a possibility to access previous values (making a range query that encompasses more than one value 
 associated with `key=1`) demands a change in the key representation. 
 
-## Range processor for range queries
+### Query Processors
+
+Point query processors ... implemented here ...
+
+Range query processors ... implemented here ... in short they do the following:
 
 To circumvent the limitation of a key-value store and be able to perform range queries,
 Quick uses an alternative approach to deal with keys. 
@@ -57,3 +63,11 @@ and `timestamp=10`. Then, the index looks as follows:
 ```
 The flatten key approach creates unique keys for each user with a given timestamp.
 Consequently, all the values will be accessible when running a range query.
+
+## Configure your topic with the range information.
+
+tbd.
+
+## Modify your GraphQL schema and define a range in the query.
+
+tbd.
