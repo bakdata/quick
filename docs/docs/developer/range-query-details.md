@@ -4,9 +4,9 @@ This part of the documentation describes the details of processing range queries
 For the introduction of range queries, see:
 [Range queries](https://bakdata.github.io/quick/{{ quick_version }}/user/getting-started/working-with-quick/range-queries/).
 
-In this part, we want to describe what happens under the hood
-when users follow the steps for integrating range queries into their applications
-(described in the user section).
+This part outlines what happens under the hood
+when users follow the steps for integrating range queries
+into their applications (described in the user section).
 As a reminder, these steps are:
 1. Modify your GraphQL schema and define a range in the query.
 2. Apply the schema to the gateway.
@@ -16,7 +16,7 @@ As a reminder, these steps are:
 ## Technical Context
 
 Before delving into the details of each step,
-we will provide a technical context
+a technical context is provided
 for arriving at a better understanding of the range queries.
 
 ### Mirrors
@@ -110,6 +110,8 @@ Each time a new value is sent to the topic, both processors are called.
 The first one creates a new key-value pair
 if the specified key does not exist.
 If it does, the value for the given key is overwritten (precisely as described above).
+If the key exists, but you specify `null` as the value,
+the key and the corresponding (previous) value will be deleted from the state store.
 The second processor creates the range index in the way that was
 discussed above.
 
@@ -122,8 +124,8 @@ After you have executed the query, it hits the gateway.
 There, it is processed by the [RangeQueryFetcher](https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java).
 _RangeQueryFetcher_ is responsible for extracting the information
 about the range from the query you passed.
-Having done this, it calls the MirrorClient with information about the key,
-the beginning of the range, and the end of the range.
-MirrorClient forwards the request to
-an appropriate endpoint of the Mirror
-and fetches the result. 
+Having collected the necessary data
+(information about the key, the beginning of the range,
+and the end of the range),
+the Gateway sends the get request to the mirror
+and fetches the result.
