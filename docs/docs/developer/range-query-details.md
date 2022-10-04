@@ -44,19 +44,14 @@ Suppose you query the store with `userId=1`.
 In that case, you get `{userId: 1, purchaseId: "def", rating: 4}`,
 and there is no possibility to access the earlier value.  
 In subsequent parts of this section,
-we refer to queries that can only retrieve the latest record as _point queries_. 
+we refer to queries that can only retrieve the latest record as point queries. 
 Similarly, if a specific mirror is only capable of supporting such queries,
 we say that this is a mirror with a point index.  
 Because of the intrinsic nature of state stores, 
 providing a possibility to access previous values (making a range query that encompasses more than one value 
 associated with `userId=1`) demands a change in the key representation. 
 
-### Query Processors
-
-Concerning point queries, 
-Quick uses [MirrorProcessor](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/MirrorProcessor.java)
-and [KafkaQueryService](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/service/KafkaQueryService.java) 
-to insert values to a state store and retrieve them from it, respectively.
+### Introducing possibility to carry out range queries
 
 To circumvent the limitation of a key-value store and be able to perform range queries,
 Quick uses an alternative approach to deal with keys. 
@@ -76,8 +71,6 @@ And for the second:
 ``` 
 00000000001_00000000004
 ```
-In later parts of this section, a mirror that has the capability of supporting range queries
-is called a mirror with a range index. 
 Regarding negative values, the minus sign is appended at the beginning of the padded string.
 For example, consider a user with the negative (for whatever reason) id number `userId=-10`
 and `rating=10`.
@@ -87,6 +80,8 @@ Then, the index looks as follows:
 ```
 The flatten key approach creates unique keys for each user with a given rating.
 Consequently, all the values will be accessible when running a range query.
+In later parts of this section, a mirror that has the capability of supporting range queries
+is called a mirror with a range index.
 ---
 
 ## Modify your GraphQL schema and define a range in the query
@@ -99,8 +94,26 @@ Nothing changes here in comparison to point queries.
 
 ## Configure your topic with the range information.
 
-When a topic with the `--range-field` option is created, you deploy 
-a mirror that is both capable of supporting point queries and range queries.
+When you execute the `topic create` command with the `--range-field`, i.e.:
+```shell
+quick topic create user-rating-range --key int --value schema --schema example.UserReview --range-field rating
+```
+a request is sent to the manager, which prepares the deployment of a 
+mirror called rating-range.
+Two indexes are created behind the scenes:
+
+1. Point index only over the topic key (userId).
+2. Range index over the topic key (here, the userId) and rating.
+
+Concerning the point index and point queries,
+Quick uses [MirrorProcessor](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/MirrorProcessor.java)
+and [KafkaQueryService](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/service/KafkaQueryService.java)
+to insert values to a state store and retrieve them from it, respectively.
+
+
 
 
 ## Create and execute the range query.
+
+When you execute a range query, you provide two additional parameters in the entry point.
+These attributes define your range. 
