@@ -71,8 +71,8 @@ public class TestTopicTypeService implements TopicTypeService {
         final Serde<V> valueSerde = this.conversionProvider.getSerde(this.valueType, configs, false);
         final TypeResolver<K> keyResolver = this.conversionProvider.getTypeResolver(this.keyType, this.keySchema);
         final TypeResolver<V> valueResolver = this.conversionProvider.getTypeResolver(this.valueType, this.valueSchema);
-        final QuickData<K> quickData = new QuickData<>(this.keyType, keySerde, keyResolver);
-        final QuickData<V> valueInfo = new QuickData<>(this.valueType, valueSerde, valueResolver);
+        final QuickData<K> quickData = new QuickData<>(this.keyType, keySerde, keyResolver, this.keySchema);
+        final QuickData<V> valueInfo = new QuickData<>(this.valueType, valueSerde, valueResolver, this.valueSchema);
         final QuickTopicData<K, V> topicInfo =
             new QuickTopicData<>(topic, TopicWriteType.MUTABLE, quickData, valueInfo);
         return Single.just(topicInfo);

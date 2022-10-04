@@ -56,12 +56,12 @@ class MirrorApplicationIntegrationTest {
     ApplicationContext applicationContext;
     @Inject
     QueryContextProvider queryContextProvider;
-    private static EmbeddedKafkaCluster kafkaCluster;
+    private static final EmbeddedKafkaCluster kafkaCluster =
+        provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
 
     @BeforeAll
     static void setup() {
-        kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
         schemaRegistry.start();
         kafkaCluster.start();
     }
@@ -74,7 +74,7 @@ class MirrorApplicationIntegrationTest {
 
     @Test
     void shouldReceiveCorrectValueFromMirrorApplication() throws InterruptedException {
-        sendValuesToKafka();
+        this.sendValuesToKafka();
         final MirrorApplication<String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();
@@ -82,12 +82,12 @@ class MirrorApplicationIntegrationTest {
         Thread.sleep(3000);
 
         await()
-                .atMost(Duration.ofSeconds(12))
-                .untilAsserted(
-                        () -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
-                                .then()
-                                .statusCode(200)
-                                .body(equalTo("{\"value\":\"value1\"}")));
+            .atMost(Duration.ofSeconds(12))
+            .untilAsserted(
+                () -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
+                    .then()
+                    .statusCode(200)
+                    .body(equalTo("{\"value\":\"value1\"}")));
         app.close();
         app.getStreams().cleanUp();
         runThread.interrupt();
@@ -95,22 +95,22 @@ class MirrorApplicationIntegrationTest {
 
     private void sendValuesToKafka() throws InterruptedException {
         final List<KeyValue<String, String>> keyValueList = List.of(new KeyValue<>("key1", "value1"),
-                new KeyValue<>("key2", "value2"),
-                new KeyValue<>("key3", "value3"));
+            new KeyValue<>("key2", "value2"),
+            new KeyValue<>("key3", "value3"));
         final SendKeyValuesTransactional<String, String> sendRequest = SendKeyValuesTransactional
-                .inTransaction(INPUT_TOPIC, keyValueList)
-                .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
-                .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
-                .with("schema.registry.url", schemaRegistry.getUrl())
-                .build();
+            .inTransaction(INPUT_TOPIC, keyValueList)
+            .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
+            .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
+            .with("schema.registry.url", schemaRegistry.getUrl())
+            .build();
 
         kafkaCluster.send(sendRequest);
     }
 
     private MirrorApplication<String, String> setUpApp() {
         final MirrorApplication<String, String> app = new MirrorApplication<>(
-                this.applicationContext, this.topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-                this.hostConfig, this.queryContextProvider
+            this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
+            this.hostConfig, this.queryContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());
@@ -119,13 +119,13 @@ class MirrorApplicationIntegrationTest {
         return app;
     }
 
-    private TopicTypeService topicTypeService() {
+    private static TopicTypeService topicTypeService() {
         return TestTopicTypeService.builder()
-                .urlSupplier(schemaRegistry::getUrl)
-                .keyType(QuickTopicType.STRING)
-                .valueType(QuickTopicType.STRING)
-                .keySchema(null)
-                .valueSchema(null)
-                .build();
+            .urlSupplier(schemaRegistry::getUrl)
+            .keyType(QuickTopicType.STRING)
+            .valueType(QuickTopicType.STRING)
+            .keySchema(null)
+            .valueSchema(null)
+            .build();
     }
 }

@@ -14,28 +14,37 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror;
+package com.bakdata.quick.mirror.range;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
 
-
 /**
- * Processor for putting filling up Kafka state store.
+ * Processor for filling up Kafka state store for range queries.
  *
  * @param <K> key type
  * @param <V> value type
  */
-public class MirrorProcessor<K, V> implements Processor<K, V, Void, Void> {
+@Slf4j
+public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
     private final String storeName;
+    private final RangeIndexer<K, V> defaultRangeIndexer;
     @Nullable
-    private KeyValueStore<K, V> store = null;
+    private KeyValueStore<String, V> store = null;
 
-    public MirrorProcessor(final String storeName) {
+    /**
+     * Standard constructor.
+     *
+     * @param storeName The name of the range store
+     * @param defaultRangeIndexer Creates and prepares the range index format
+     */
+    public MirrorRangeProcessor(final String storeName, final RangeIndexer<K, V> defaultRangeIndexer) {
         this.storeName = storeName;
+        this.defaultRangeIndexer = defaultRangeIndexer;
     }
 
     @Override
@@ -53,9 +62,14 @@ public class MirrorProcessor<K, V> implements Processor<K, V, Void, Void> {
         }
 
         if (value == null) {
-            this.store.delete(key);
-        } else {
-            this.store.put(key, value);
+            log.warn("Skipping range index creation for key {}. Because the value is null.", key);
+            return;
         }
+
+        final String rangeIndex = this.defaultRangeIndexer.createIndex(key, value);
+
+        log.debug("crating range index: {}", rangeIndex);
+
+        this.store.put(rangeIndex, value);
     }
 }

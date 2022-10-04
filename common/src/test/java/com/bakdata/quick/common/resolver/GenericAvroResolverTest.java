@@ -18,7 +18,7 @@ package com.bakdata.quick.common.resolver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bakdata.quick.avro.ChartRecord;
+import com.bakdata.quick.testutil.ChartRecord;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Test;
 

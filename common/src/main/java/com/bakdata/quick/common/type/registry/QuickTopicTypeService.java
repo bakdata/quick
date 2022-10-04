@@ -20,9 +20,9 @@ import static com.bakdata.quick.common.api.model.KeyValueEnum.KEY;
 import static com.bakdata.quick.common.api.model.KeyValueEnum.VALUE;
 
 import com.bakdata.quick.common.api.client.TopicRegistryClient;
+import com.bakdata.quick.common.api.model.KeyValueEnum;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.config.KafkaConfig;
-import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.schema.SchemaFetcher;
 import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
@@ -57,14 +57,14 @@ public class QuickTopicTypeService implements TopicTypeService {
     /**
      * Default constructor.
      *
-     * @param registryFetcher     http client for schema registry
+     * @param registryFetcher http client for schema registry
      * @param topicRegistryClient http client for topic registry
-     * @param kafkaConfig         configuration for kafka
-     * @param conversionProvider  provider for conversion operations
+     * @param kafkaConfig configuration for kafka
+     * @param conversionProvider provider for conversion operations
      */
     public QuickTopicTypeService(final SchemaFetcher registryFetcher,
-                                 final TopicRegistryClient topicRegistryClient, final KafkaConfig kafkaConfig,
-                                 final ConversionProvider conversionProvider) {
+        final TopicRegistryClient topicRegistryClient, final KafkaConfig kafkaConfig,
+        final ConversionProvider conversionProvider) {
         this.registryFetcher = registryFetcher;
         this.topicRegistryClient = topicRegistryClient;
         this.schemaRegistryUrl = kafkaConfig.getSchemaRegistryUrl();
@@ -107,17 +107,6 @@ public class QuickTopicTypeService implements TopicTypeService {
             .as(single -> singleToFuture(executor, single));
     }
 
-    private <K> Single<TypeResolver<K>> createResolver(final QuickTopicType type, final String subject) {
-        // no need for configuration if handle non-schema types
-        if (!type.isSchema()) {
-            return Single.just(this.conversionProvider.getTypeResolver(type, null));
-        }
-        // get schema and configure the resolver with it
-        return this.registryFetcher.getSchema(subject)
-            .doOnError(e -> log.error("No schema found for subject {}", subject, e))
-            .map(schema -> this.conversionProvider.getTypeResolver(type, schema));
-    }
-
     private <K, V> Single<QuickTopicData<K, V>> fromTopicData(final TopicData topicData) {
         final QuickTopicType keyType = topicData.getKeyType();
         final QuickTopicType valueType = topicData.getValueType();
@@ -127,14 +116,8 @@ public class QuickTopicTypeService implements TopicTypeService {
         final Serde<V> valueSerde = this.conversionProvider.getSerde(valueType, configs, false);
 
         final String topic = topicData.getName();
-        // create key data
-        final Single<TypeResolver<K>> keyResolver = this.createResolver(keyType, KEY.asSubject(topic));
-        final Single<QuickData<K>> keyData = keyResolver.map(resolver -> new QuickData<>(keyType, keySerde, resolver));
-
-        // create value data
-        final Single<TypeResolver<V>> valueResolver = this.createResolver(valueType, VALUE.asSubject(topic));
-        final Single<QuickData<V>> valueData =
-            valueResolver.map(resolver -> new QuickData<>(valueType, valueSerde, resolver));
+        final Single<QuickData<K>> keyData = this.createData(keyType, keySerde, topic, KEY);
+        final Single<QuickData<V>> valueData = this.createData(valueType, valueSerde, topic, VALUE);
 
         // combine key and value data when both are ready
         return keyData.zipWith(valueData,
@@ -142,4 +125,25 @@ public class QuickTopicTypeService implements TopicTypeService {
         );
     }
 
+    private <T> Single<QuickData<T>> createData(final QuickTopicType quickTopicType, final Serde<T> serde,
+        final String topic, final KeyValueEnum keyValueEnum) {
+        final Single<TypeResolverWithSchema<T>> valueResolver =
+            this.createResolver(quickTopicType, keyValueEnum.asSubject(topic));
+        return valueResolver.map(resolverWithSchema -> new QuickData<>(quickTopicType, serde,
+            resolverWithSchema.getTypeResolver(),
+            resolverWithSchema.getParsedSchema()));
+    }
+
+    private <K> Single<TypeResolverWithSchema<K>> createResolver(final QuickTopicType type, final String subject) {
+        // no need for configuration if handle non-schema types
+        if (!type.isSchema()) {
+            return Single.just(new TypeResolverWithSchema<>(this.conversionProvider.getTypeResolver(type, null),
+                null));
+        }
+        // get schema and configure the resolver with it
+        return this.registryFetcher.getSchema(subject)
+            .doOnError(e -> log.error("No schema found for subject {}", subject, e))
+            .map(schema -> new TypeResolverWithSchema<>(this.conversionProvider.getTypeResolver(type, schema),
+                schema));
+    }
 }

@@ -23,11 +23,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
-import com.bakdata.quick.avro.ChartRecord;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.service.KafkaQueryService;
 import com.bakdata.quick.mirror.service.QueryService;
+import com.bakdata.quick.testutil.ChartRecord;
 import com.bakdata.quick.testutil.ProtoTestRecord;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

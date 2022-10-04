@@ -32,7 +32,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.avro.ChartRecord;
 import com.bakdata.quick.common.api.model.ErrorMessage;
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.api.model.TopicWriteType;
@@ -45,6 +44,7 @@ import com.bakdata.quick.ingest.service.IngestFilter;
 import com.bakdata.quick.ingest.service.IngestFilter.IngestLists;
 import com.bakdata.quick.ingest.service.IngestService;
 import com.bakdata.quick.ingest.service.KafkaIngestService;
+import com.bakdata.quick.testutil.ChartRecord;
 import com.bakdata.quick.testutil.ProtoTestRecord;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -168,7 +168,6 @@ public enum QuickTopicType {
      */
     abstract <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey);
 
-
     @SuppressWarnings("unchecked")
     static <K> TypeResolver<K> configuredTypeResolver(final TypeResolver<?> typeResolver) {
         return (TypeResolver<K>) typeResolver;
@@ -179,5 +178,4 @@ public enum QuickTopicType {
         serde.configure(config, isKey);
         return (Serde<K>) serde;
     }
-
 }
