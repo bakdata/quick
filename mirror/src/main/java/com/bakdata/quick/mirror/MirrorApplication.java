@@ -64,6 +64,7 @@ import picocli.CommandLine.Option;
 public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     public static final String MIRROR_STORE = "mirror-store";
     public static final String RETENTION_STORE = "retention-store";
+    public static final String RANGE_STORE = "range-store";
 
     // injectable parameter
     private final TopicTypeService topicTypeService;
@@ -83,10 +84,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Nullable
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;
-
-    @Option(names = "--point", description = "Determines if a point index should be built or not",
-        defaultValue = "true")
-    private boolean isPoint;
 
 
     /**
@@ -123,9 +120,12 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         return MirrorTopology.<K, V>builder()
             .topologyData(this.getTopologyData())
             .storeName(MIRROR_STORE)
+            .rangeStoreName(RANGE_STORE)
             .retentionTime(this.retentionTime)
             .retentionStoreName(RETENTION_STORE)
             .storeType(this.storeType)
+            .rangeField(this.rangeField)
+            .isCleanup(this.cleanUp)
             .build()
             .createTopology(streamsBuilder);
     }
@@ -263,14 +263,14 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      */
     @SuppressWarnings("unchecked") // ok since conversion does not happen during clean up
     private QuickTopologyData<K, V> cleanUpTopicData() {
-        final QuickData<String> data = new QuickData<>(QuickTopicType.STRING, Serdes.String(), new StringResolver());
+        final QuickData<String> data =
+            new QuickData<>(QuickTopicType.STRING, Serdes.String(), new StringResolver(), null);
         return (QuickTopologyData<K, V>) QuickTopologyData.<String, String>builder()
             .inputTopics(this.getInputTopics())
             .outputTopic(this.getOutputTopic())
             .errorTopic(this.errorTopic)
             .topicData(new QuickTopicData<>(this.getInputTopics().get(0), TopicWriteType.MUTABLE, data, data))
             .build();
-
     }
 
     @Override

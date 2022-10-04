@@ -14,3 +14,8 @@ message ComplexProtoTestRecord {
   string id = 1;
   ProtoTestRecord protoTestRecord = 2;
 }
+
+message ProtoRangeQueryTest {
+  int64 userId = 1;
+  int32 timestamp = 2;
+}

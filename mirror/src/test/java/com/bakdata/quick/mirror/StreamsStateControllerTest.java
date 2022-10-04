@@ -31,6 +31,7 @@ import com.bakdata.quick.mirror.service.QueryContextProvider;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.time.Duration;
@@ -56,12 +57,12 @@ class StreamsStateControllerTest {
     ApplicationContext applicationContext;
     @Inject
     QueryContextProvider queryContextProvider;
-    private static EmbeddedKafkaCluster kafkaCluster;
+    private static final EmbeddedKafkaCluster kafkaCluster =
+        provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
 
     @BeforeAll
     static void setup() {
-        kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
         schemaRegistry.start();
         kafkaCluster.start();
     }
@@ -85,7 +86,7 @@ class StreamsStateControllerTest {
             .untilAsserted(() -> when()
                 .get("http://" + this.hostConfig.toConnectionString() + "/streams/partitions")
                 .then()
-                .statusCode(200)
+                .statusCode(HttpStatus.OK.getCode())
                 .body(equalTo(expectedBody)));
         app.close();
         app.getStreams().cleanUp();
@@ -93,7 +94,7 @@ class StreamsStateControllerTest {
     }
 
 
-    private void sendValuesToKafka() throws InterruptedException {
+    private static void sendValuesToKafka() throws InterruptedException {
         final List<KeyValue<String, String>> keyValueList = List.of(new KeyValue<>("key1", "value1"),
             new KeyValue<>("key2", "value2"),
             new KeyValue<>("key3", "value3"));
@@ -107,7 +108,7 @@ class StreamsStateControllerTest {
         kafkaCluster.send(sendRequest);
     }
 
-    private TopicTypeService topicTypeService() {
+    private static TopicTypeService topicTypeService() {
         return TestTopicTypeService.builder()
             .urlSupplier(schemaRegistry::getUrl)
             .keyType(QuickTopicType.STRING)
@@ -119,7 +120,7 @@ class StreamsStateControllerTest {
 
     private MirrorApplication<String, String> setUpApp() {
         final MirrorApplication<String, String> app = new MirrorApplication<>(
-            this.applicationContext, this.topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
+            this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
             this.hostConfig, this.queryContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));

@@ -18,10 +18,10 @@ package com.bakdata.quick.common.schema;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bakdata.quick.avro.Person;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.exception.HttpClientException;
+import com.bakdata.quick.testutil.Person;
 import com.bakdata.quick.testutil.ProtoTestRecord;
 import com.bakdata.schemaregistrymock.junit5.SchemaRegistryMockExtension;
 import io.confluent.kafka.schemaregistry.ParsedSchema;

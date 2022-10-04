@@ -20,7 +20,6 @@ import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
 import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.defaultClusterConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bakdata.quick.avro.ChartRecord;
 import com.bakdata.quick.common.TestTopicTypeService;
 import com.bakdata.quick.common.TestTypeUtils;
 import com.bakdata.quick.common.api.model.TopicWriteType;
@@ -33,6 +32,7 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.ingest.KafkaIngestService;
+import com.bakdata.quick.testutil.ChartRecord;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.Nullable;

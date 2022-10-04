@@ -1,5 +1,5 @@
 {
-  "namespace": "com.bakdata.quick.avro",
+  "namespace": "com.bakdata.quick.testutil",
   "name": "Person",
   "type": "record",
   "fields": [

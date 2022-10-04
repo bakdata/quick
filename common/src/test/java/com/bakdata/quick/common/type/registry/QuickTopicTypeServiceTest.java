@@ -18,7 +18,6 @@ package com.bakdata.quick.common.type.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bakdata.quick.avro.ChartRecord;
 import com.bakdata.quick.common.TestTopicRegistryClient;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
@@ -33,6 +32,7 @@ import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
+import com.bakdata.quick.testutil.ChartRecord;
 import com.bakdata.quick.testutil.ProtoTestRecord;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import io.confluent.kafka.schemaregistry.ParsedSchema;

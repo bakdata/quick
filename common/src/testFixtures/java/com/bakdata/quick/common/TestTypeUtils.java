@@ -26,6 +26,8 @@ import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
+import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import org.apache.avro.Schema;
@@ -40,26 +42,28 @@ public final class TestTypeUtils {
     }
 
     public static QuickData<GenericRecord> newAvroData(final Schema schema) {
-        return new QuickData<>(QuickTopicType.AVRO, new GenericAvroSerde(), new GenericAvroResolver(schema));
+        return new QuickData<>(QuickTopicType.AVRO, new GenericAvroSerde(), new GenericAvroResolver(schema),
+            new AvroSchema(schema));
     }
 
     public static QuickData<String> newStringData() {
-        return new QuickData<>(QuickTopicType.STRING, Serdes.String(), new StringResolver());
+        return new QuickData<>(QuickTopicType.STRING, Serdes.String(), new StringResolver(), null);
     }
 
     public static QuickData<Long> newLongData() {
-        return new QuickData<>(QuickTopicType.LONG, Serdes.Long(), new LongResolver());
+        return new QuickData<>(QuickTopicType.LONG, Serdes.Long(), new LongResolver(), null);
     }
 
     public static QuickData<Double> newDoubleData() {
-        return new QuickData<>(QuickTopicType.DOUBLE, Serdes.Double(), new DoubleResolver());
+        return new QuickData<>(QuickTopicType.DOUBLE, Serdes.Double(), new DoubleResolver(), null);
     }
 
     public static QuickData<Integer> newIntegerData() {
-        return new QuickData<>(QuickTopicType.INTEGER, Serdes.Integer(), new IntegerResolver());
+        return new QuickData<>(QuickTopicType.INTEGER, Serdes.Integer(), new IntegerResolver(), null);
     }
 
     public static QuickData<Message> newProtobufData(final Descriptors.Descriptor descriptor) {
-        return new QuickData<>(QuickTopicType.PROTOBUF, new KafkaProtobufSerde<>(), new ProtobufResolver(descriptor));
+        return new QuickData<>(QuickTopicType.PROTOBUF, new KafkaProtobufSerde<>(), new ProtobufResolver(descriptor),
+            new ProtobufSchema(descriptor));
     }
 }

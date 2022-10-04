@@ -1,0 +1,23 @@
+{
+  "namespace": "com.bakdata.quick.testutil",
+  "name": "AvroRangeQueryTest",
+  "type": "record",
+  "fields": [
+    {
+      "name": "userId",
+      "type": "int"
+    },
+    {
+      "name": "timestamp",
+      "type": "long"
+    },
+    {
+      "name": "age",
+      "type": [
+        "null",
+        "int"
+      ],
+      "default": null
+    }
+  ]
+}
