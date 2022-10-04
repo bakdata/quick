@@ -135,24 +135,53 @@ class MultiSubscriptionFetcherTest {
         final SubscriptionProvider<?, ?> field2Subscriber =
             env -> Flux.just(new ConsumerRecord<>("topic2", 0, 0, "key2", key2field2));
 
+        final Map<String, DataFetcherClient<?>> fieldClients = Map.of(
+            "field1", field1Client,
+            "field2", field2Client
+        );
+        final Map<String, SubscriptionProvider<?, ?>> fieldSubscribers = Map.of(
+            "field1", field1Subscriber,
+            "field2", field2Subscriber
+        );
 
+        final List<String> selectedFields = List.of("field1", "field2");
+        final MultiSubscriptionFetcher fetcher =
+            new MultiSubscriptionFetcher(fieldClients, fieldSubscribers, env -> selectedFields);
 
+        final Publisher<Map<String, Object>> mapPublisher = fetcher.get(
+            DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build()
+        );
 
-
+        final TestSubscriber<Object> testSubscriber = TestSubscriber.create();
+        mapPublisher.subscribe(testSubscriber);
+        testSubscriber.awaitTerminalEvent(2, TimeUnit.SECONDS);
+        testSubscriber.assertComplete();
+        testSubscriber.assertValueAt(0, Map.of(
+            "field1", expected.get(0), "field2", expected.get(1)));
+        testSubscriber.assertValueAt(0, Map.of(
+            "field1", expected.get(2), "field2", expected.get(3)));
     }
 
     private static Stream<Arguments> provideArguments() {
+        Pair<?, ?> avroInputPair = Pair.of(
+            newPurchaseStatsInputAvro("id2", 2),
+            newClickStatsInputAvro("id2", 2)
+        );
+        Pair<?, ?> protoInputPair = Pair.of(
+            newPurchaseStatsInputAvro("id2", 2),
+            newClickStatsInputAvro("id2", 2)
+        );
         return Stream.of(
             Arguments.of(
                 "int-avro-test",
                 List.of(
-                    new KeyValue<>(1, newClickStatsInputAvro(2L, 3L)),
-                    new KeyValue<>(2, newClickStatsInputAvro(3L, 4L))),
+                    new KeyValue<>(1, protoInputPair),
+                    new KeyValue<>(2, newClickStatsInputAvro("id2", 4L))),
                 TestTypeUtils.newIntegerData(),
                 TestTypeUtils.newAvroData(ChartRecord.getClassSchema()),
                 List.of(
-                    newAvroClickStatsOutput(2L, 3L),
-                    newAvroClickStatsOutput(3L, 4L)
+                    newAvroClickStatsOutput("id1", 3L),
+                    newAvroClickStatsOutput("id2", 4L)
                 )),
             Arguments.of(
                 "string-proto-test",
