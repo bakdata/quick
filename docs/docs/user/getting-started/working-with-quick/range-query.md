@@ -15,11 +15,11 @@ To integrate range queries into your application, you must take the following st
 1. Modify your GraphQL schema and define a range in the query.
 2. Apply the schema to the gateway.
 3. Configure your topic with the range information.
-4. Create and execute the range query as defined in step (2).
+4. Create and execute the range query as defined in step (1).
 
 ## Define a range in the GraphQL query type
 
-To introduce range queries, we will change and extend the schema presented previously as follows:
+To introduce range queries, we will extend the schema presented previously as follows:
 ```graphql title="schema.gql"
 type Query {
     userRatings(
@@ -34,26 +34,13 @@ type Query {
 type UserRating {
     userId: Int!
     purchaseId: String!
-    purchase: Purchase @topic(name: "purchase-topic-test", keyField: "purchaseId")
+    purchase: Purchase @topic(name: "purchase", keyField: "purchaseId")
     rating: Int
-}
-
-type Purchase {
-    purchaseId: String!,
-    productId: Int!,
-    price: Price,
-}
-
-type Price {
-  total: Float,
-  currency: String
 }
 ```
 Let's start with the new structure called `UserRating`.
 It describes a numerical rating a given user (discerned by the `userId`) assigns
 to the specific purchase they previously made (distinguished by the `purchaseId`).
-`Purchase` (with its `Price` component) is the simplified version
-of the same type you have encountered before.  
 The most significant changes occur in the `Query` type.
 The first change concerns the parameters of the entry point (`userRatings`).
 The second relates to the `@topic` directive.
@@ -71,9 +58,9 @@ However, we think that adhering to the presented pattern increases readability.
 When you execute a range query, you receive a list of entries.
 Therefore, the return type of the query is a list of _UserRating_.
 
-## Apply the schema to the gateway.
+## Apply the schema to the gateway
 
-Just like before, we now apply the modified schema to the gateway as follows:
+Just like before, you need to apply the modified schema to the gateway as follows:
 ```shell
 quick gateway apply example -f schema.gql
 ```
@@ -88,8 +75,8 @@ quick topic create user-rating-range --key int --value schema --schema example.U
 ```
 
 Note that `--range-field` links a particular field you can later use for range queries.
-In our example we link the `rating` field.
-Changes in the `Query` type described in the first subsection relate precisely to the field
+In our example, the `rating` field is of the `UserRating` is linked with a range.
+Changes in the `Query` type described in the first subsection refer precisely to the field
 you define with `--range-field`.
 
 `--range-field` is an optional flag.
@@ -105,69 +92,16 @@ Note the constraints on the values (which you define via the `--value` option):
 If you are interested in details of the query processing,
 visit the developer [section on ranges](https://bakdata.github.io/quick/latest/developer/range-queries-details/).
 
----
-
 ## Execute the query
 
-Before executing any range query, we need some data to be available in the topics.
-You can send some purchases and ratings into Quick using the REST API of the ingest service.  
-With the following command, you can add some purchases into the `purchase` topic:
-```shell
- curl --request POST --url "$QUICK_URL/ingest/purchase" \
-  --header "content-type:application/json" \
-  --header "X-API-Key:$QUICK_API_KEY"\
-  --data "@./purchases.json"
-```
-Here is an exemplary `purchase.json` file:
-```json title="ratings.json"
-[
-  {
-    "key": "abc",
-    "value": {
-      "purchaseId": "abc",
-      "productId": 123,
-      "price": {
-        "total": 19.99,
-        "currency": "DOLLAR"
-      }
-    }
-  },
-  {
-    "key": "def",
-    "value": {
-      "purchaseId": "def",
-      "productId": 123,
-      "price": {
-        "total": 30.00,
-        "currency": "DOLLAR"
-      }
-    }
-  },
-  {
-    "key": "ghi",
-    "value": {
-      "purchaseId": "ghi",
-      "productId": 456,
-      "price": {
-        "total": 79.99,
-        "currency": "DOLLAR"
-      }
-    }
-  },
-  {
-    "key": "jkl",
-    "value": {
-      "purchaseId": "jkl",
-      "productId": 789,
-      "price": {
-        "total": 99.99,
-        "currency": "DOLLAR"
-      }
-    }
-  }
-]
-```
-The command below allows you to add some ratings to the `user-rating-range` topic.
+Before executing any range query, you need some data to be available in the topics.
+You can send some purchases and ratings into Quick using the REST API of the ingest service.
+If you followed the previous parts of the user guide,
+you should already have some data in the purchase topic.
+If you didn't, please check the [section about ingesting data](ingest-data.md)
+to add some purchases into the `purchase` topic:
+
+The command below allows you to send some ratings to the `user-rating-range` topic.
 ```shell
  curl --request POST --url "$QUICK_URL/ingest/user-rating-range" \
   --header "content-type:application/json" \
@@ -178,42 +112,34 @@ Here is an example of the `ratings.json` file:
 ```json title="ratings.json"
 [
   {
-    "key": 123,
+    "key": 1,
     "value": {
-      "userId": 123,
+      "userId": 1,
       "purchaseId": "abc",
       "rating": 7
     }
   },
   {
-    "key": 123,
+    "key": 2,
     "value": {
-      "userId": 123,
+      "userId": 2,
       "purchaseId": "def",
       "rating": 2
     }
   },
   {
-    "key": 123,
+    "key": 2,
     "value": {
-      "userId": 123,
+      "userId": 2,
       "purchaseId": "ghi",
-      "rating": 4
+      "rating": 6
     }
   },
   {
-    "key": 456,
+    "key": 2,
     "value": {
-      "userId": 456,
-      "purchaseId": "abc",
-      "rating": 5
-    }
-  },
-  {
-    "key": 456,
-    "value": {
-      "userId": 456,
-      "purchaseId": "def",
+      "userId": 2,
+      "purchaseId": "jkl",
       "rating": 1
     }
   }
@@ -224,7 +150,7 @@ Assuming that a disappointing purchase has a rating lower than 5,
 you can execute the following query to obtain the results.
 ```graphql
 query {
-    userRatings(userId: 123, ratingFrom:1, ratingTo:4) {
+    userRatings(userId: 2, ratingFrom:1, ratingTo:4) {
         userId
         rating
         purchase {
@@ -242,7 +168,7 @@ Upon successful execution of a query, you should receive the following list of r
 ```json
 [
   {
-    "userId": 123,
+    "userId": 2,
     "rating": 2,
     "purchase": {
       "purchaseId": "def",
@@ -254,13 +180,13 @@ Upon successful execution of a query, you should receive the following list of r
     }
   },
   {
-    "userId": 123,
+    "userId": 2,
     "rating": 4,
     "purchase": {
-      "purchaseId": "ghi",
+      "purchaseId": "jkl",
       "productId": 456,
       "price": {
-        "total": 79.99,
+        "total": 99.99,
         "currency": "DOLLAR"
       }
     }
