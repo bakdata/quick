@@ -16,19 +16,19 @@ As a reminder, these steps are:
 ## Technical Context
 
 Before delving into the details of each step,
-we will provide some technical context
+we will provide a technical context
 for arriving at a better understanding of the range queries.
 
 ### Mirrors
 
-Each time you create a new topic in Quick, a corresponding mirror is deployed.
+A corresponding mirror is deployed each time you create a new topic in Quick.
 A mirror is a Kafka Streams application that reads the content of a topic
 and exposes it through a key-value REST API.
-The API is linked with a specific state store. 
+The API is linked with a specific state store.
 A state store in Kafka can either be a persistent state store (by default RocksDB)
 or in-memory state store.
-Regardless of the type of the chosen state store, their functionality is the same. 
-In any case, it's a key-value store, which means that all keys are unique.
+Regardless of the chosen state store type, their functionality is the same.
+In any case, it's a key-value store, meaning all keys are unique.
 Storing different values for the same key is impossible.
 Consider the following entries that are saved in a topic:
 
@@ -42,26 +42,26 @@ The table indicates that there are two entries for the `userId=1`.
 The second entry is newer, meaning its value is the current one in the store.
 Suppose you query the store with `userId=1`.
 In that case, you get `{userId: 1, purchaseId: "def", rating: 4}`,
-and there is no possibility to access the earlier value.  
+and there is no possibility of accessing the earlier value.  
 In subsequent parts of this section,
-we refer to queries that can only retrieve the latest record as point queries. 
-Similarly, if a specific mirror is only capable of supporting such queries,
-we say that this is a mirror with a point index.  
-Because of the intrinsic nature of state stores, 
-providing a possibility to access previous values (making a range query that encompasses more than one value 
-associated with `userId=1`) demands a change in the key representation. 
+we refer to queries that can only retrieve the latest record as point queries.
+Similarly, suppose a specific mirror is only capable of supporting such queries. In that case,
+we say this is a mirror with a point index.  
+Because of the intrinsic nature of state stores,
+providing a possibility to access previous values (making a range query that encompasses more than one value
+associated with `userId=1`) demands a change in the key representation.
 
-### Introducing possibility to carry out range queries
+### Introducing the possibility of carrying out range queries
 
 To circumvent the limitation of a key-value store and be able to perform range queries,
-Quick uses an alternative approach to deal with keys. 
+Quick uses an alternative approach to deal with keys.
 Each key is a flattened string with a combination of the topic key and the value
 for which the range queries are requested.
-The keys are padded (depending on the type `Int` 10 digits or `Long` 19 digits) 
+The keys are padded (depending on the type `Int` 10 digits or `Long` 19 digits)
 with zeros to keep the lexicographic order.
-The general format of the key in the state store is: 
+The general format of the key in the state store is:
 `<zero_paddings><topicKeyValue>_<zero_paddings><rangeFieldValue>`.  
-Following the example from the table: If we've a topic with `userId` as its key
+Following the example from the table: If we have a topic with `userId` as its key
 and want to create a range over the `rating`,
 the key in the state store for the first entry looks like this:
 ``` 
@@ -78,42 +78,52 @@ Then, the index looks as follows:
 ``` 
 -00000000010_00000000010
 ```
-The flatten key approach creates unique keys for each user with a given rating.
+The flatten-key approach creates unique keys for each user with a given rating.
 Consequently, all the values will be accessible when running a range query.
-In later parts of this section, a mirror that has the capability of supporting range queries
+In later parts of this section, a mirror that can support range queries
 is called a mirror with a range index.
 ---
 
 ## Modify your GraphQL schema and define a range in the query
 
-
+The modification of the schema has no impact
+until it is applied.
 
 ## Apply the schema to the gateway
 
-Nothing changes here in comparison to point queries.
+When you apply a schema that
+contains the topic directive with additional fields
+(`rangeFrom` and `rangeTo`),
+a [RangeQueryFetcher](https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java).
+is created.
+This class will be later used
+to deliver a result of a range query to the user.
 
-## Configure your topic with the range information.
+## Configure your topic with the range information
 
-When you execute the `topic create` command with the `--range-field`, i.e.:
-```shell
-quick topic create user-rating-range --key int --value schema --schema example.UserReview --range-field rating
-```
-a request is sent to the manager, which prepares the deployment of a 
-mirror called rating-range.
-Two indexes are created behind the scenes:
+When you execute the `topic create` command with the `--range-field` option,
+a request is sent to the Manager.
+The Manager prepares the deployment of a mirror, which contains
+both [Point Index Processor](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/MirrorProcessor.java)
+and [Range Index Process](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/range/MirrorRangeProcessor.java).
+Each time a new value is sent to the topic, both processors are called.
+The first one creates a new key-value pair
+if the specified key does not exist.
+If it does, the value for the given key is overwritten (precisely as described above).
+The second processor creates the range index in the way that was
+discussed above.
 
-1. Point index only over the topic key (userId).
-2. Range index over the topic key (here, the userId) and rating.
+## Create and execute the range query
 
-Concerning the point index and point queries,
-Quick uses [MirrorProcessor](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/MirrorProcessor.java)
-and [KafkaQueryService](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/service/KafkaQueryService.java)
-to insert values to a state store and retrieve them from it, respectively.
-
-
-
-
-## Create and execute the range query.
-
-When you execute a range query, you provide two additional parameters in the entry point.
-These attributes define your range. 
+When you prepare a range query,
+you provide two additional parameters in the entry point.
+These attributes define your range.
+After you have executed the query, it hits the gateway.
+There, it is processed by the [RangeQueryFetcher](https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java).
+_RangeQueryFetcher_ is responsible for extracting the information
+about the range from the query you passed.
+Having done this, it calls the MirrorClient with information about the key,
+the beginning of the range, and the end of the range.
+MirrorClient forwards the request to
+an appropriate endpoint of the Mirror
+and fetches the result. 

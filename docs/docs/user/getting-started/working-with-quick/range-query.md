@@ -19,7 +19,7 @@ To integrate range queries into your application, you must take the following st
 
 ## Define a range in the GraphQL query type
 
-To introduce range queries, we will extend the schema presented previously as follows:
+To introduce range queries, we will extend the previously presented schema as follows:
 ```graphql title="schema.gql"
 type Query {
     userRatings(
@@ -75,7 +75,7 @@ quick topic create user-rating-range --key int --value schema --schema example.U
 ```
 
 Note that `--range-field` links a particular field you can later use for range queries.
-In our example, the `rating` field is of the `UserRating` is linked with a range.
+In our example, the `rating` field of the `UserRating` is linked with a range.
 Changes in the `Query` type described in the first subsection refer precisely to the field
 you define with `--range-field`.
 
@@ -99,7 +99,7 @@ You can send some purchases and ratings into Quick using the REST API of the ing
 If you followed the previous parts of the user guide,
 you should already have some data in the purchase topic.
 If you didn't, please check the [section about ingesting data](ingest-data.md)
-to add some purchases into the `purchase` topic:
+to add some purchases to the `purchase` topic:
 
 The command below allows you to send some ratings to the `user-rating-range` topic.
 ```shell

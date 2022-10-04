@@ -4,7 +4,7 @@ To query your data, you have to tell Quick how to connect your schema with your 
 Quick uses GraphQL directives to represent this information.
 You can imagine them like annotations and attributes in programming languages:
 They add meta information to a schema element form which Quick derives extra functionalities.
-The [`@topic` directive](../reference/graphql-extensions#topic) is the most important when working with Quick.
+The [`@topic` directive](../../reference/graphql-support.md#topic) is the most important when working with Quick.
 It connects elements in your schema to Apache Kafka topics.
 
 ## Query by key
