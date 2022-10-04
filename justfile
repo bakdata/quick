@@ -111,11 +111,11 @@ e2e-dir := base-directory / "e2e/functional"
 
 # Builds the e2e image test runner for quick cli dev
 build-test-runner-dev quick-cli-dev-version:
-    docker build -t quick-e2e-test-runner --build-arg INDEX=test --build-arg QUICK_CLI_VERSION={{ quick-cli-dev-version }}  {{ e2e-dir }}
+    docker build -t quick-e2e-test-runner --build-arg INDEX=test --build-arg QUICK_CLI_VERSION={{ quick-cli-dev-version }} {{ e2e-dir }}
 
 # Builds the e2e image test runner for quick cli stable
 build-test-runner quick-cli-version:
-    docker build -t quick-e2e-test-runner --build-arg --build-arg QUICK_CLI_VERSION={{ quick-cli-version }}  {{ e2e-dir }}
+    docker build -t quick-e2e-test-runner --build-arg --build-arg QUICK_CLI_VERSION={{ quick-cli-version }} {{ e2e-dir }}
 
 # Runs all the e2e tests
 run-all-tests api-key quick-host:
