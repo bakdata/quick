@@ -36,9 +36,9 @@ public class MirrorHost {
     private final String host;
 
     /**
-     * Default constructor.
+     * Private to creates the host with the topic name and mirror config. The host can be a service name or an IP.
      *
-     * @param topic the host of the mirror. This can be a service name or an IP.
+     * @param topic the topic of the mirror.
      * @param config mirror config to use. This can set the service prefix and REST path.
      */
     public MirrorHost(final String topic, final MirrorConfig config) {

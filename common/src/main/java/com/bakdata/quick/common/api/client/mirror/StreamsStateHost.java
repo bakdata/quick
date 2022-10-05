@@ -20,7 +20,6 @@ import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
-import okhttp3.HttpUrl.Builder;
 
 /**
  * Provides information about the host that enables access to the endpoint that delivers info about Kafka Streams app
@@ -32,9 +31,9 @@ public final class StreamsStateHost {
     private final String host;
 
     /**
-     * Private constructor for creating StreamsStateHost.
+     * Private to creates the host with the topic name and mirror config. The host can be a service name or an IP.
      *
-     * @param topic the host of the mirror. This can be a service name or an IP.
+     * @param topic the topic of the mirror.
      * @param config mirror config to use. This can set the service prefix and REST path.
      */
     private StreamsStateHost(final String topic, final MirrorConfig config) {
@@ -57,7 +56,7 @@ public final class StreamsStateHost {
      * Generates a URL for fetching partition info.
      */
     public HttpUrl getPartitionToHostUrl() {
-        final HttpUrl httpUrl = new Builder()
+        final HttpUrl httpUrl = new HttpUrl.Builder()
             .scheme(DEFAULT_MIRROR_SCHEME)
             .host(this.host)
             .addPathSegment("streams")
