@@ -3,8 +3,7 @@
 This part of the documentation describes the implementation details
 of multi-subscriptions.
 For the introduction of multi-subscriptions, see:
-[Multi-subscriptions](https://bakdata.github.io/quick/{{ quick_version }}
-/user/getting-started/working-with-quick/multi-subscriptions/).
+[Multi-subscriptions](../user/getting-started/working-with-quick/multi-subscriptions.md).
 
 ## Creating complex objects
 
@@ -30,6 +29,7 @@ or an internal cache to fetch missing
 data and create a complex object immediately.
 The use of the specific entity is dependent on the current scenario.
 There are three scenarios for building complex objects via multi subscriptions:
+
 1. Purchase event arrives; there were some click events,
    but we have not seen them yet
    (for example, because the subscription started after the events were produced).

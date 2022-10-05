@@ -12,6 +12,7 @@ retrieve complex objects whose elements
 belong to more than one Kafka topic.
 To integrate a multi-subscription into your application,
 you make the following steps:
+
 1. Modify your schema with and define the multi-subscription.
 2. Apply the new schema.
 3. Run the multi-subscription.
@@ -31,21 +32,21 @@ you create a multi-subscription.
 ## Modify your schema with and define the multi-subscription
 
 Before the details of multi-subscriptions are presented,
-please extend your schema `example.graphql` with the following type:
+extend your schema `example.graphql` with the following type:
 ```graphql
 type Click {
     userId: Int!
     timestamp: Int
 }
 ```
-Additionally, please create a topic that holds entries of the `Click` type:
+Additionally, create a topic that holds entries of the `Click` type:
 ```shell
 quick topic create click --key-type string
  --value-type schema --schema example.Click
 ```
 To introduce multi-subscriptions,
 we will extend the schema
-(please consult the earlier sections of the documentation
+(consult the earlier sections of the documentation
 if you don't have the previous schema) as follows:
 ```graphql
 type Subscription {
@@ -70,14 +71,14 @@ type Subscription {
 }
 ```
 In a multi-subscription, the field `userStatistics` in `Subscription`
-is **not** directly applied with the `@topic` directive.
+is not directly followed by the `@topic` directive.
 Instead, the type the field relates to (`UserStatistics`)
 consists of two fields, each with the `@topic`directive.
 
 ## Apply the new schema
 
-You can now apply the schema containing a multi-subscription to your gateway:
-(`quick gateway apply example -f schema.graphql`).
+You can now apply the schema containing a multi-subscription to your gateway:  
+`quick gateway apply example -f schema.graphql`.
 
 ## Run the multi-subscription
 
@@ -107,7 +108,7 @@ to start the subscription.
 
 You can now ingest some data to different topics
 and see how the multi-subscription behaves.
-Please start with adding a single purchase:
+Start with adding a single purchase:
 ```json title="subscription-purchase.json"
 {
     "key": "abc",
@@ -144,12 +145,12 @@ As a result, you should see the following JSON response in Altair:
 ```
 Since you have not added any click event,
 the response contains only purchase data.
-Now, please send the following click event
+Now, send the following click event
 via the ingest service.
 !!! Note
-Please note that the key of the click event
-is the same as the id of the purchase event.
-Otherwise, they couldn't be associated.
+    Note that the key of the click event
+    is the same as the id of the purchase event.
+    Otherwise, they couldn't be associated.
 ```json title="click1.json"
 {
     "key": "abc",
@@ -167,7 +168,8 @@ Otherwise, they couldn't be associated.
 ```
 You should see the following subscription result in your GraphQL client:
 ```json
-{ "data": {
+{ 
+  "data": {
     "userStatistics": {
       "purchase": {
         "purchaseId": "abc"
@@ -200,13 +202,13 @@ you immediately receive the latest seen version of the other type
 Quick does the automatic retrieval to directly
 create a response whose elements
 belong to different types 
-and are stored in various topics.
+and are stored in various topics.  
 This mechanism can be extrapolated to multi-subscriptions
 that encompass multiple types (topics).
 If you had a type that consists of three elements,
 and you receive the first element,
 the latest versions of the corresponding types are fetched
-immediately to create a response.
+immediately to create a response.  
 If you are interested in the details of this process,
 you are welcome to consult
 the developer [section on multi-subscriptions](https://bakdata.github.io/quick/latest/developer/multi-subscriptions-details/)
