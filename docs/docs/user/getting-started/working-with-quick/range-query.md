@@ -1,6 +1,6 @@
 # Range queries
 
-We now extend [the e-commerce example](query-data.md) with user ratings.
+We now extend the [e-commerce example](query-data.md) with user ratings.
 Thus, users can then rank their purchases.
 This allows the company to find purchases that did not satisfy customers.
 It could then provide promo codes to the unhappy ones.
@@ -19,7 +19,7 @@ To integrate range queries into your application, you must take the following st
 
 ## Define a range in the GraphQL query type
 
-To introduce range queries, we will extend the previously presented schema as follows:
+To introduce range queries, we will extend the previous schema as follows:
 ```graphql title="schema.gql"
 type Query {
     userRatings(
@@ -110,40 +110,41 @@ The command below allows you to send some ratings to the `user-rating-range` top
 ```
 Here is an example of the `ratings.json` file:
 ??? "Example `ratings.json`"
-    ``` [
-  {
-    "key": 1,
-    "value": {
-      "userId": 1,
-      "purchaseId": "abc",
-      "rating": 7
-    }
-  },
-  {
-    "key": 2,
-    "value": {
-      "userId": 2,
-      "purchaseId": "def",
-      "rating": 2
-    }
-  },
-  {
-    "key": 2,
-    "value": {
-      "userId": 2,
-      "purchaseId": "ghi",
-      "rating": 6
-    }
-  },
-  {
-    "key": 2,
-    "value": {
-      "userId": 2,
-      "purchaseId": "jkl",
-      "rating": 1
-    }
-  }
-]
+    ``` 
+    [
+      {
+        "key": 1,
+        "value": {
+          "userId": 1,
+          "purchaseId": "abc",
+          "rating": 7
+        }
+      },
+      {
+        "key": 2,
+        "value": {
+          "userId": 2,
+          "purchaseId": "def",
+          "rating": 2
+        }
+      },
+      {
+        "key": 2,
+        "value": {
+          "userId": 2,
+          "purchaseId": "ghi",
+          "rating": 6
+        }
+      },
+      {
+        "key": 2,
+        "value": {
+          "userId": 2,
+          "purchaseId": "jkl",
+          "rating": 1
+        }
+      }
+    ]
     ```
 Let's say you want to find the purchases the client with `userId=2` was unsatisfied with.
 Assuming that a disappointing purchase has a rating lower than 5,

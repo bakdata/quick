@@ -8,6 +8,7 @@ This part outlines what happens under the hood
 when users follow the steps for integrating range queries
 into their applications (described in the user section).
 As a reminder, these steps are:
+
 1. Modify your GraphQL schema and define a range in the query.
 2. Apply the schema to the gateway.
 3. Configure your topic with the range information.
@@ -60,7 +61,7 @@ for which the range queries are requested.
 The keys are padded (depending on the type `Int` 10 digits or `Long` 19 digits)
 with zeros to keep the lexicographic order.
 The general format of the key in the state store is:
-`<zero_paddings><topicKeyValue>_<zero_paddings><rangeFieldValue>`.  
+<nobr>`<zero_paddings><topicKeyValue>_<zero_paddings><rangeFieldValue>`</nobr>.  
 Following the example from the table: If we have a topic with `userId` as its key
 and want to create a range over the `rating`,
 the key in the state store for the first entry looks like this:
@@ -82,7 +83,7 @@ The flatten-key approach creates unique keys for each user with a given rating.
 Consequently, all the values will be accessible when running a range query.
 In later parts of this section, a mirror that can support range queries
 is called a mirror with a range index.
----
+
 
 ## Modify your GraphQL schema and define a range in the query
 
@@ -94,7 +95,7 @@ until it is applied.
 When you apply a schema that
 contains the topic directive with additional fields
 (`rangeFrom` and `rangeTo`),
-a [RangeQueryFetcher](https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java).
+a [RangeQueryFetcher](https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java)
 is created.
 This class will be later used
 to deliver a result of a range query to the user.
@@ -105,7 +106,8 @@ When you execute the `topic create` command with the `--range-field` option,
 a request is sent to the Manager.
 The Manager prepares the deployment of a mirror, which contains
 both [Point Index Processor](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/MirrorProcessor.java)
-and [Range Index Process](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/range/MirrorRangeProcessor.java).
+and [Range Index Processor](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror
+/range/MirrorRangeProcessor.java).
 Each time a new value is sent to the topic, both processors are called.
 The first one creates a new key-value pair
 if the specified key does not exist.
@@ -125,7 +127,7 @@ There, it is processed by the [RangeQueryFetcher](https://github.com/bakdata/qui
 _RangeQueryFetcher_ is responsible for extracting the information
 about the range from the query you passed.
 Having collected the necessary data
-(information about the key, the beginning of the range,
+(information about the key, the start of the range,
 and the end of the range),
 the Gateway sends the get request to the mirror
 and fetches the result.
