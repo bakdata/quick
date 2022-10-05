@@ -17,7 +17,8 @@
 package com.bakdata.quick.mirror;
 
 
-import com.bakdata.quick.mirror.service.QueryContextProvider;
+import com.bakdata.quick.mirror.service.context.QueryContextProvider;
+import com.bakdata.quick.mirror.service.context.QueryServiceContext;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -44,10 +45,14 @@ public class StreamsStateController {
     private final KafkaStreams streams;
     private final String storeName;
 
+    /**
+     * Injectable constructor.
+     */
     @Inject
     public StreamsStateController(final QueryContextProvider contextProvider) {
-        this.streams = contextProvider.get().getStreams();
-        this.storeName = contextProvider.get().getStoreName();
+        final QueryServiceContext queryServiceContext = contextProvider.get();
+        this.streams = queryServiceContext.getStreams();
+        this.storeName = queryServiceContext.getPointStoreName();
     }
 
     /**

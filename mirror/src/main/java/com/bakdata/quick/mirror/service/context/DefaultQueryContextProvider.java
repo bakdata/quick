@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.service;
+package com.bakdata.quick.mirror.service.context;
 
 import com.bakdata.quick.common.exception.InternalErrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;

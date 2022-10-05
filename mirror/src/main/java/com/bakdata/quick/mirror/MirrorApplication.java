@@ -31,8 +31,10 @@ import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.CliArgHandler;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
-import com.bakdata.quick.mirror.service.QueryContextProvider;
-import com.bakdata.quick.mirror.service.QueryServiceContext;
+import com.bakdata.quick.mirror.service.context.QueryContextProvider;
+import com.bakdata.quick.mirror.service.context.QueryServiceContext;
+import com.bakdata.quick.mirror.service.context.QueryServiceContext.QueryServiceContextBuilder;
+import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
@@ -44,6 +46,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
@@ -59,10 +62,11 @@ import picocli.CommandLine.Option;
  * @param <K> key type
  * @param <V> value type
  */
+@Setter
 @Singleton
 @Slf4j
 public class MirrorApplication<K, V> extends KafkaStreamsApplication {
-    public static final String MIRROR_STORE = "mirror-store";
+    public static final String POINT_STORE = "mirror-store";
     public static final String RETENTION_STORE = "retention-store";
     public static final String RANGE_STORE = "range-store";
 
@@ -119,7 +123,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
         return MirrorTopology.<K, V>builder()
             .topologyData(this.getTopologyData())
-            .storeName(MIRROR_STORE)
+            .storeName(POINT_STORE)
             .rangeStoreName(RANGE_STORE)
             .retentionTime(this.retentionTime)
             .retentionStoreName(RETENTION_STORE)
@@ -185,13 +189,18 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     protected void runStreamsApplication() {
         final QuickTopicData<K, V> quickTopicData = this.getTopologyData().getTopicData();
 
-        final QueryServiceContext serviceContext = new QueryServiceContext(
-            this.getStreams(),
-            this.hostConfig.toInfo(),
-            MIRROR_STORE,
-            quickTopicData
-        );
-        this.contextProvider.setQueryContext(serviceContext);
+        final QueryServiceContextBuilder contextBuilder = QueryServiceContext.builder()
+            .streams(this.getStreams())
+            .hostInfo(this.hostConfig.toInfo())
+            .pointStoreName(POINT_STORE)
+            .quickTopicData(quickTopicData);
+
+        if (this.rangeField != null) {
+            contextBuilder.rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField));
+        }
+
+        this.contextProvider.setQueryContext(contextBuilder.build());
+        log.debug("Built query service context {}", this.contextProvider.get());
         super.runStreamsApplication();
     }
 

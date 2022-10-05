@@ -20,7 +20,6 @@ import com.bakdata.quick.common.api.client.mirror.MirrorClient;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -29,12 +28,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
-    private final Lazy<MirrorClient<K, V>> mirrorClient;
+    private final Lazy<? extends MirrorClient<K, V>> mirrorClient;
 
     /**
      * Constructor for client.
      */
-    public MirrorDataFetcherClient(final Lazy<MirrorClient<K, V>> mirrorClient) {
+    public MirrorDataFetcherClient(final Lazy<? extends MirrorClient<K, V>> mirrorClient) {
         this.mirrorClient = mirrorClient;
     }
 
@@ -62,6 +61,9 @@ public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
     @Override
     @Nullable
     public List<V> fetchRange(final K id, final String from, final String to) {
+        log.trace("Preparing to send request for fetching the key {} and a range from {} to {}  from the Mirror", id,
+            from,
+            to);
         return this.mirrorClient.get().fetchRange(id, from, to);
     }
 }

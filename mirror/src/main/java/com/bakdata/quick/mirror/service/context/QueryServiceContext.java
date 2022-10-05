@@ -14,9 +14,10 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.service;
+package com.bakdata.quick.mirror.service.context;
 
 import com.bakdata.quick.common.type.QuickTopicData;
+import lombok.Builder;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;
@@ -24,16 +25,17 @@ import org.apache.kafka.streams.state.HostInfo;
 /**
  * Context for holding information about Kafka state.
  */
+@Builder
 @Value
 public class QueryServiceContext {
     KafkaStreams streams;
     HostInfo hostInfo;
-    String storeName;
-    QuickTopicData<?, ?> topicData;
+    String pointStoreName;
+    RangeIndexProperties rangeIndexProperties;
+    QuickTopicData<?, ?> quickTopicData;
 
     @SuppressWarnings("unchecked")
-    <K, V> QuickTopicData<K, V> getTopicData() {
-        return (QuickTopicData<K, V>) this.topicData;
+    public <K, V> QuickTopicData<K, V> getQuickTopicData() {
+        return (QuickTopicData<K, V>) this.quickTopicData;
     }
-
 }

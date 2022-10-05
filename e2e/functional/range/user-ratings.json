@@ -1,0 +1,34 @@
+[
+  {
+    "key": 1,
+    "value": {
+      "userId": 1,
+      "purchaseId": "abc",
+      "rating": 7
+    }
+  },
+  {
+    "key": 2,
+    "value": {
+      "userId": 2,
+      "purchaseId": "def",
+      "rating": 2
+    }
+  },
+  {
+    "key": 2,
+    "value": {
+      "userId": 2,
+      "purchaseId": "ghi",
+      "rating": 6
+    }
+  },
+  {
+    "key": 2,
+    "value": {
+      "userId": 2,
+      "purchaseId": "jkl",
+      "rating": 1
+    }
+  }
+]

@@ -15,7 +15,7 @@
  */
 
 
-package com.bakdata.quick.mirror.service;
+package com.bakdata.quick.mirror.service.context;
 
 /**
  * Imitates the functionality of the javax's Provider

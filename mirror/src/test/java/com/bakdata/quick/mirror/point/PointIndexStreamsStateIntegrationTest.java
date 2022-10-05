@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror;
+package com.bakdata.quick.mirror.point;
 
 import static io.restassured.RestAssured.when;
 import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
@@ -26,8 +26,9 @@ import com.bakdata.quick.common.TestTopicTypeService;
 import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
+import com.bakdata.quick.mirror.MirrorApplication;
 import com.bakdata.quick.mirror.base.HostConfig;
-import com.bakdata.quick.mirror.service.QueryContextProvider;
+import com.bakdata.quick.mirror.service.context.QueryContextProvider;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
@@ -49,7 +50,7 @@ import org.junit.jupiter.api.Test;
 @IntegrationTest
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
-class StreamsStateControllerTest {
+class PointIndexStreamsStateIntegrationTest {
     public static final String INPUT_TOPIC = "input";
     @Inject
     HostConfig hostConfig;
