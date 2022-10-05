@@ -14,12 +14,10 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bakdata.quick.common.api.client.mirror.StreamsStateHost;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Test;
@@ -34,6 +32,15 @@ class StreamsStateHostTest {
         final HttpUrl actual = streamsStateHost.getPartitionToHostUrl();
         final String url = "http://%s-test-for-streams/streams/partitions";
         final String expected = String.format(url, MIRROR_HOST_PREFIX);
+        assertThat(actual.toString()).isEqualTo(expected);
+    }
+
+    @Test
+    void shouldConstructCorrectUrlWithPortAndIpForStreamStateHost() {
+        final MirrorHost mirrorHost = new MirrorHost("10.20.40.0:8080", MirrorConfig.directAccess());
+        final StreamsStateHost streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
+        final HttpUrl actual = streamsStateHost.getPartitionToHostUrl();
+        final String expected = "http://10.20.40.0:8080/streams/partitions";
         assertThat(actual.toString()).isEqualTo(expected);
     }
 }

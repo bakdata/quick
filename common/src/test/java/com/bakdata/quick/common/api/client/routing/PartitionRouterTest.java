@@ -24,10 +24,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.client.mirror.MirrorHost;
 import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
 import com.bakdata.quick.common.api.client.mirror.ResponseWrapper;
 import com.bakdata.quick.common.api.client.mirror.StreamsStateHost;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.fasterxml.jackson.core.JsonProcessingException;

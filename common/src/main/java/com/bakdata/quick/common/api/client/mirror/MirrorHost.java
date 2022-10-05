@@ -14,7 +14,8 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.model.mirror;
+package com.bakdata.quick.common.api.client.mirror;
+
 
 import com.bakdata.quick.common.config.MirrorConfig;
 import java.util.Objects;
@@ -118,10 +119,10 @@ public class MirrorHost {
      */
     @Override
     public String toString() {
-        return new Builder()
-            .scheme(DEFAULT_MIRROR_SCHEME)
-            .host(this.host)
-            .toString();
+        final String url = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, this.host);
+        final HttpUrl parse = HttpUrl.parse(url);
+        return Objects.requireNonNull(parse, "The url is not valid")
+            .newBuilder().toString();
     }
 
     /**
@@ -145,9 +146,9 @@ public class MirrorHost {
     }
 
     private Builder getBaseUrlBuilder() {
-        return new Builder()
-            .scheme(DEFAULT_MIRROR_SCHEME)
-            .host(this.host)
+        final String url = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, this.host);
+        final HttpUrl parse = HttpUrl.parse(url);
+        return Objects.requireNonNull(parse, "The url is not valid").newBuilder()
             .addPathSegment(DEFAULT_MIRROR_HOST_PATH);
     }
 }

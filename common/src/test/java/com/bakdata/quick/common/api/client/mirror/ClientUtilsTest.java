@@ -14,12 +14,11 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
 import static com.bakdata.quick.common.api.client.ClientUtils.createMirrorUrlFromRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
