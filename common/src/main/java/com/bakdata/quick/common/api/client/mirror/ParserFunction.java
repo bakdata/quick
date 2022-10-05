@@ -17,8 +17,14 @@
 package com.bakdata.quick.common.api.client.mirror;
 
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
+import com.bakdata.quick.common.config.MirrorConfig;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
+import okhttp3.HttpUrl.Builder;
 
 /**
  * Custom parser for values returned by a mirror application.

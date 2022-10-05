@@ -16,7 +16,7 @@
 
 package com.bakdata.quick.common.api.client;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
+import com.bakdata.quick.common.api.client.mirror.MirrorHost;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 

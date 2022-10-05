@@ -17,9 +17,9 @@
 package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.client.mirror.MirrorHost;
 import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
 import com.bakdata.quick.common.api.client.mirror.StreamsStateHost;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.fasterxml.jackson.core.type.TypeReference;
