@@ -59,7 +59,7 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     @Override
     @Nullable
     public V fetchResult(final String id) {
-        log.trace("Preparing to send request for fetching a key {} to Mirror", id);
+        log.trace("Preparing to send request for fetching a id {} to Mirror", id);
         return this.mirrorClient.get().fetchValue(id);
     }
 
@@ -80,7 +80,8 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
     @Override
     @Nullable
     public List<V> fetchRange(final String id, final String from, final String to) {
-        log.debug("Preparing to send request for fetching a range with key {} from {} to {}  from the Mirror", id, from,
+        log.trace("Preparing to send request for fetching the key {} and a range from {} to {}  from the Mirror", id,
+            from,
             to);
         return this.mirrorClient.get().fetchRange(id, from, to);
     }

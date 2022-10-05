@@ -59,7 +59,7 @@ import org.junit.jupiter.api.Test;
 class RangeIndexMirrorIntegrationTest {
     @Inject
     private ObjectMapper objectMapper;
-    public static final String INPUT_TOPIC = "rang-input";
+    private static final String INPUT_TOPIC = "range-input";
     @Inject
     HostConfig hostConfig;
     @Inject
