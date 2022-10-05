@@ -26,11 +26,11 @@ import java.util.List;
  * Data Fetcher that takes the query's key, rangeFrom, and rangeTo arguments and fetches values from the mirror's range
  * index.
  */
-public class RangeQueryFetcher<T> implements DataFetcher<List<T>> {
+public class RangeQueryFetcher<K, V> implements DataFetcher<List<V>> {
     private final String argument;
     private final String rangeFrom;
     private final String rangeTo;
-    private final DataFetcherClient<T> dataFetcherClient;
+    private final DataFetcherClient<K, V> dataFetcherClient;
     private final boolean isNullable;
 
     /**
@@ -43,7 +43,7 @@ public class RangeQueryFetcher<T> implements DataFetcher<List<T>> {
      * @param isNullable true if list itself can be null
      */
     public RangeQueryFetcher(final String argument,
-        final DataFetcherClient<T> dataFetcherClient,
+        final DataFetcherClient<K, V> dataFetcherClient,
         final String rangeFrom, final String rangeTo, final boolean isNullable) {
         this.dataFetcherClient = dataFetcherClient;
         this.argument = argument;
@@ -54,16 +54,15 @@ public class RangeQueryFetcher<T> implements DataFetcher<List<T>> {
 
     @Override
     @Nullable
-    public List<T> get(final DataFetchingEnvironment environment) {
+    public List<V> get(final DataFetchingEnvironment environment) {
         final Object argumentValue = DeferFetcher.getArgument(this.argument, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
-        final Object rangeFromValue = DeferFetcher.getArgument(this.rangeFrom, environment)
-            .orElseThrow(() -> new RuntimeException("Could not find argument " + this.rangeFrom));
-        final Object rangeToValue = DeferFetcher.getArgument(this.rangeTo, environment)
-            .orElseThrow(() -> new RuntimeException("Could not find argument " + this.rangeTo));
+        final String rangeFromValue = DeferFetcher.getArgument(this.rangeFrom, environment)
+            .orElseThrow(() -> new RuntimeException("Could not find argument " + this.rangeFrom)).toString();
+        final String rangeToValue = DeferFetcher.getArgument(this.rangeTo, environment)
+            .orElseThrow(() -> new RuntimeException("Could not find argument " + this.rangeTo)).toString();
 
-        final List<T> results = this.dataFetcherClient.fetchRange(argumentValue.toString(), rangeFromValue.toString(),
-            rangeToValue.toString());
+        final List<V> results = this.dataFetcherClient.fetchRange((K) argumentValue, rangeFromValue, rangeToValue);
 
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case

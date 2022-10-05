@@ -17,6 +17,7 @@
 package com.bakdata.quick.gateway.fetcher;
 
 import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClientFactory;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
@@ -55,11 +56,12 @@ public class FetcherFactory {
      */
     @VisibleForTesting
     public FetcherFactory(final KafkaConfig kafkaConfig, final ObjectMapper objectMapper,
-        final ClientSupplier clientSupplier, final TopicTypeService topicTypeService) {
+        final TopicTypeService topicTypeService,
+        final ClientSupplier clientSupplier) {
         this.kafkaConfig = kafkaConfig;
         this.objectMapper = objectMapper;
-        this.clientSupplier = clientSupplier;
         this.topicTypeService = topicTypeService;
+        this.clientSupplier = clientSupplier;
     }
 
     /**
@@ -68,50 +70,54 @@ public class FetcherFactory {
      * <p> Parameters are injected.
      */
     @Inject
-    public FetcherFactory(final KafkaConfig kafkaConfig,
-        final HttpClient client, final MirrorConfig mirrorConfig,
-        final TopicTypeService topicTypeService) {
-        this(kafkaConfig, client.objectMapper(),
-            new DefaultClientSupplier(client, topicTypeService, mirrorConfig), topicTypeService);
+    public FetcherFactory(final KafkaConfig kafkaConfig, final HttpClient client,
+        final MirrorConfig mirrorConfig, final TopicTypeService topicTypeService) {
+        this(kafkaConfig, client.objectMapper(), topicTypeService,
+            new DefaultClientSupplier(client, mirrorConfig, new PartitionedMirrorClientFactory()));
     }
 
-    public <K, V> DataFetcher<Publisher<V>> subscriptionFetcher(final String topic, final String operationName,
-        @Nullable final String argument) {
+    /**
+     * Creates a {@link QueryKeyArgumentFetcher}.
+     */
+    public <K, V> DataFetcher<V> queryFetcher(final String topic, final String argument, final boolean isNullable) {
         final Lazy<QuickTopicData<K, V>> topicData = this.getTopicData(topic);
-        return new SubscriptionFetcher<>(this.kafkaConfig, topicData, operationName, argument);
-    }
-
-    public <V> DataFetcher<V> queryFetcher(final String topic, final String argument, final boolean isNullable) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, topicData);
         return new QueryKeyArgumentFetcher<>(argument, client, isNullable);
     }
 
-    public <V> DataFetcher<List<V>> queryListFetcher(final String topic, final boolean isNullable,
+    /**
+     * Creates a {@link QueryListFetcher}.
+     */
+    public <K, V> DataFetcher<List<V>> queryListFetcher(final String topic, final boolean isNullable,
         final boolean hasNullableElements) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, this.getTopicData(topic));
         return new QueryListFetcher<>(client, isNullable, hasNullableElements);
     }
 
-    public <V> DataFetcher<List<V>> listArgumentFetcher(final String topic, final String argument,
+    /**
+     * Creates a {@link ListArgumentFetcher}.
+     */
+    public <K, V> DataFetcher<List<V>> listArgumentFetcher(final String topic, final String argument,
         final boolean isNullable, final boolean hasNullableElements) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, this.getTopicData(topic));
         return new ListArgumentFetcher<>(argument, client, isNullable, hasNullableElements);
     }
 
-    public <V> DataFetcher<List<V>> rangeFetcher(final String topic, final String argument, final String rangeFrom,
+    /**
+     * Creates a {@link RangeQueryFetcher}.
+     */
+    public <K, V> DataFetcher<List<V>> rangeFetcher(final String topic, final String argument, final String rangeFrom,
         final String rangeTo, final boolean isNullable) {
-        final DataFetcherClient<V> client = this.clientSupplier.createClient(topic);
+        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, this.getTopicData(topic));
         return new RangeQueryFetcher<>(argument, client, rangeFrom, rangeTo, isNullable);
     }
 
     /**
-     * Creates a MutationFetcher object.
-     *
-     * @see MutationFetcher
+     * Creates a {@link MutationFetcher}.
      */
     public <K, V> DataFetcher<V> mutationFetcher(final String topic, final String keyArgumentName,
         final String valueArgumentName) {
-        final Lazy<QuickTopicData<K, V>> data = this.getTopicDataWithTopicTypeService(topic);
+        final Lazy<QuickTopicData<K, V>> data = this.getTopicData(topic);
         return new MutationFetcher<>(topic,
             keyArgumentName,
             valueArgumentName,
@@ -121,41 +127,57 @@ public class FetcherFactory {
         );
     }
 
+    /**
+     * Creates a {@link ListFieldFetcher}.
+     */
     public <V> DataFetcher<List<V>> listFieldFetcher(final String topic, final String keyFieldName) {
-        return new ListFieldFetcher<>(keyFieldName, this.clientSupplier.createClient(topic));
+        return new ListFieldFetcher<>(keyFieldName, this.clientSupplier.createClient(topic, this.getTopicData(topic)));
     }
 
+    /**
+     * Creates a {@link KeyFieldFetcher}.
+     */
     public DataFetcher<Object> keyFieldFetcher(final String topic, final String keyFieldName) {
-        return new KeyFieldFetcher<>(this.objectMapper, keyFieldName, this.clientSupplier.createClient(topic));
+        return new KeyFieldFetcher<>(this.objectMapper, keyFieldName,
+            this.clientSupplier.createClient(topic, this.getTopicData(topic)));
     }
 
+    /**
+     * Creates a {@link SubscriptionFetcher}.
+     */
+    public <K, V> DataFetcher<Publisher<V>> subscriptionFetcher(final String topic, final String operationName,
+        @Nullable final String argument) {
+        final Lazy<QuickTopicData<K, V>> topicData = this.getTopicData(topic);
+        return new SubscriptionFetcher<>(this.kafkaConfig, topicData, operationName, argument);
+    }
+
+    /**
+     * Creates a {@link KafkaSubscriptionProvider}.
+     */
     public <K, V> SubscriptionProvider<K, V> subscriptionProvider(final String topic, final String operationName,
         @Nullable final String argument) {
-        return new KafkaSubscriptionProvider<>(this.kafkaConfig, this.getTopicData(topic), operationName,
-            argument);
+        return new KafkaSubscriptionProvider<>(this.kafkaConfig, this.getTopicData(topic), operationName, argument);
     }
 
-    public <V> DataFetcherClient<V> dataFetcherClient(final String topic) {
-        return this.clientSupplier.createClient(topic);
+    /**
+     * Creates a {@link DataFetcherClient}.
+     */
+    public <K, V> DataFetcherClient<K, V> dataFetcherClient(final String topic) {
+        return this.clientSupplier.createClient(topic, this.getTopicData(topic));
     }
 
-    public DataFetcher<DataFetcherResult<Object>> deferFetcher() {
+    /**
+     * Creates a {@link DeferFetcher}.
+     */
+    public static DataFetcher<DataFetcherResult<Object>> deferFetcher() {
         return new DeferFetcher();
     }
 
     private <K, V> Lazy<QuickTopicData<K, V>> getTopicData(final String topic) {
         return new Lazy<>(() -> {
             final Single<QuickTopicData<K, V>> topicData = this.topicTypeService.getTopicData(topic);
+            log.debug("Requesting topic data from topic {}", topic);
             return topicData.blockingGet();
         });
     }
-
-    private <K, V> Lazy<QuickTopicData<K, V>> getTopicDataWithTopicTypeService(final String topic) {
-        return new Lazy<>(() -> {
-            log.debug("requesting topic data from topic {}", topic);
-            final Single<QuickTopicData<K, V>> topicData = this.topicTypeService.getTopicData(topic);
-            return topicData.blockingGet();
-        });
-    }
-
 }

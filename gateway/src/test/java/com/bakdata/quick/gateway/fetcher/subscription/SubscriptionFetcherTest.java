@@ -17,6 +17,7 @@
 package com.bakdata.quick.gateway.fetcher.subscription;
 
 import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
+import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.defaultClusterConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -36,7 +37,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
-import net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig;
 import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.SendKeyValuesTransactional;
 import net.mguenther.kafka.junit.TopicConfig;
@@ -51,103 +51,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Publisher;
 
 class SubscriptionFetcherTest {
-    private static EmbeddedKafkaCluster kafkaCluster = null;
+    private static final EmbeddedKafkaCluster kafkaCluster = provisionWith(defaultClusterConfig());
 
     @BeforeAll
     static void setup() {
-        kafkaCluster = provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
         kafkaCluster.start();
     }
 
     @AfterAll
     static void afterAll() {
         kafkaCluster.stop();
-    }
-
-    private static Stream<Arguments> provideValueArguments() {
-        return Stream.of(
-            // integer
-            Arguments.of(
-                "integer-test-values-test",
-                keyValuePairsWithRandomKey(List.of(2, 5, 81243)),
-                TestTypeUtils.newIntegerData(),
-                List.of(2, 5, 81243)
-            ),
-            // long
-            Arguments.of(
-                "long-test-values-test",
-                keyValuePairsWithRandomKey(List.of(2L, 5L, 81243L)),
-                TestTypeUtils.newLongData(),
-                List.of(2L, 5L, 81243L)
-            ),
-            // double
-            Arguments.of(
-                "double-test-values-test",
-                keyValuePairsWithRandomKey(List.of(2., 5., 81243.)),
-                TestTypeUtils.newDoubleData(),
-                List.of(2., 5., 81243.)
-            ),
-            // string
-            Arguments.of(
-                "string-test-values-test",
-                keyValuePairsWithRandomKey(List.of("2", "5", "81243")),
-                TestTypeUtils.newStringData(),
-                List.of("2", "5", "81243")
-            )
-        );
-    }
-
-    private static Stream<Arguments> provideValueArgumentsForKey() {
-        return Stream.of(
-            // integer
-            Arguments.of(
-                "integer-test-key-test",
-                keyValuePairFromValue(List.of(2, 5, 81243)),
-                TestTypeUtils.newIntegerData(),
-                TestTypeUtils.newIntegerData(),
-                5,
-                List.of(5)
-            ),
-            // long
-            Arguments.of(
-                "long-test-key-test",
-                keyValuePairFromValue(List.of(2L, 5L, 81243L)),
-                TestTypeUtils.newLongData(),
-                TestTypeUtils.newLongData(),
-                5L,
-                List.of(5L)
-            ),
-            // double
-            Arguments.of(
-                "double-test-key-test",
-                keyValuePairFromValue(List.of(2., 5., 81243.)),
-                TestTypeUtils.newDoubleData(),
-                TestTypeUtils.newDoubleData(),
-                5.,
-                List.of(5.)
-            ),
-            // string
-            Arguments.of(
-                "string-test-key-test",
-                keyValuePairFromValue(List.of("2", "5", "81243")),
-                TestTypeUtils.newStringData(),
-                TestTypeUtils.newStringData(),
-                "5",
-                List.of("5")
-            )
-        );
-    }
-
-    private static <V> List<KeyValue<String, V>> keyValuePairsWithRandomKey(final List<V> vs) {
-        return vs.stream()
-            .map(e -> new KeyValue<>(RandomStringUtils.random(5), e))
-            .collect(Collectors.toList());
-    }
-
-    private static <V> List<KeyValue<V, V>> keyValuePairFromValue(final List<V> vs) {
-        return vs.stream()
-            .map(e -> new KeyValue<>(e, e))
-            .collect(Collectors.toList());
     }
 
     @ParameterizedTest(name = "shouldFetchValues ({0})")
@@ -190,6 +103,7 @@ class SubscriptionFetcherTest {
                 assertThat(testSubscriber.values()).containsExactlyElementsOf(expected);
                 assertThat(test2Subscriber.values()).containsExactlyElementsOf(expected);
             });
+        deleteTopic(topic);
     }
 
     @ParameterizedTest(name = "shouldFetchValuesForGivenKey ({0})")
@@ -228,5 +142,98 @@ class SubscriptionFetcherTest {
 
         await().atMost(Duration.ofSeconds(10))
             .untilAsserted(() -> assertThat(testSubscriber.values()).containsExactlyElementsOf(expected));
+        deleteTopic(topic);
+    }
+
+    private static Stream<Arguments> provideValueArguments() {
+        return Stream.of(
+            // integer
+            Arguments.of(
+                "integer-test-values-test",
+                keyValuePairsWithRandomKey(List.of(2, 5, 81243)),
+                TestTypeUtils.newIntegerData(),
+                List.of(2, 5, 81243)
+            ),
+            // long
+            Arguments.of(
+                "long-test-values-test",
+                keyValuePairsWithRandomKey(List.of(2L, 5L, 81243L)),
+                TestTypeUtils.newLongData(),
+                List.of(2L, 5L, 81243L)
+            ),
+            // double
+            Arguments.of(
+                "double-test-values-test",
+                keyValuePairsWithRandomKey(List.of(2.0, 5.0, 81243.0)),
+                TestTypeUtils.newDoubleData(),
+                List.of(2.0, 5.0, 81243.0)
+            ),
+            // string
+            Arguments.of(
+                "string-test-values-test",
+                keyValuePairsWithRandomKey(List.of("2", "5", "81243")),
+                TestTypeUtils.newStringData(),
+                List.of("2", "5", "81243")
+            )
+        );
+    }
+
+    private static Stream<Arguments> provideValueArgumentsForKey() {
+        return Stream.of(
+            // integer
+            Arguments.of(
+                "integer-test-key-test",
+                keyValuePairFromValue(List.of(2, 5, 81243)),
+                TestTypeUtils.newIntegerData(),
+                TestTypeUtils.newIntegerData(),
+                5,
+                List.of(5)
+            ),
+            // long
+            Arguments.of(
+                "long-test-key-test",
+                keyValuePairFromValue(List.of(2L, 5L, 81243L)),
+                TestTypeUtils.newLongData(),
+                TestTypeUtils.newLongData(),
+                5L,
+                List.of(5L)
+            ),
+            // double
+            Arguments.of(
+                "double-test-key-test",
+                keyValuePairFromValue(List.of(2.0, 5.0, 81243.0)),
+                TestTypeUtils.newDoubleData(),
+                TestTypeUtils.newDoubleData(),
+                5.0,
+                List.of(5.0)
+            ),
+            // string
+            Arguments.of(
+                "string-test-key-test",
+                keyValuePairFromValue(List.of("2", "5", "81243")),
+                TestTypeUtils.newStringData(),
+                TestTypeUtils.newStringData(),
+                "5",
+                List.of("5")
+            )
+        );
+    }
+
+    private static <V> List<KeyValue<String, V>> keyValuePairsWithRandomKey(final List<V> vs) {
+        return vs.stream()
+            .map(e -> new KeyValue<>(RandomStringUtils.random(5), e))
+            .collect(Collectors.toList());
+    }
+
+    private static <V> List<KeyValue<V, V>> keyValuePairFromValue(final List<V> vs) {
+        return vs.stream()
+            .map(e -> new KeyValue<>(e, e))
+            .collect(Collectors.toList());
+    }
+
+    private static void deleteTopic(final String topic) {
+        if (kafkaCluster.exists(topic)) {
+            kafkaCluster.deleteTopic(topic);
+        }
     }
 }

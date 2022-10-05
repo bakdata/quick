@@ -66,5 +66,4 @@ public final class TestTypeUtils {
         return new QuickData<>(QuickTopicType.PROTOBUF, new KafkaProtobufSerde<>(), new ProtobufResolver(descriptor),
             new ProtobufSchema(descriptor));
     }
-
 }

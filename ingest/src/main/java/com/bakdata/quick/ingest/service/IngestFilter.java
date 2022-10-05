@@ -16,12 +16,13 @@
 
 package com.bakdata.quick.ingest.service;
 
-import com.bakdata.quick.common.api.client.DefaultMirrorClient;
-import com.bakdata.quick.common.api.client.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.client.MirrorClient;
+import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
+import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
+import com.bakdata.quick.common.api.client.mirror.MirrorClient;
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.api.model.TopicWriteType;
+import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
 import io.reactivex.Flowable;
@@ -47,7 +48,7 @@ public class IngestFilter {
     /**
      * Default constructor.
      *
-     * @param client       http client
+     * @param client http client
      * @param mirrorConfig config for Quick mirror
      */
     public IngestFilter(final HttpClient client, final MirrorConfig mirrorConfig) {
@@ -63,13 +64,13 @@ public class IngestFilter {
      * If the topic is mutable, it just returns the original list.
      *
      * @param topicData info of the topics
-     * @param pairs     list of kv pairs to ingest
-     * @param <K>       key type
-     * @param <V>       value type
+     * @param pairs list of kv pairs to ingest
+     * @param <K> key type
+     * @param <V> value type
      * @return two new lists: one with keys to ingest and one with keys that cannot be overriden.
      */
     public <K, V> Single<IngestLists<K, V>> prepareIngest(final QuickTopicData<K, V> topicData,
-                                                          final List<KeyValuePair<K, V>> pairs) {
+        final List<KeyValuePair<K, V>> pairs) {
         log.debug("Prepare ingest for topic {}", topicData.getName());
         if (topicData.getWriteType() == TopicWriteType.MUTABLE) {
             return Single.just(new IngestLists<>(pairs, Collections.emptyList()));
@@ -78,9 +79,10 @@ public class IngestFilter {
     }
 
     private <K, V> Single<IngestLists<K, V>> getExistingKeys(final QuickTopicData<K, V> topicData,
-                                                             final List<KeyValuePair<K, V>> pairs) {
+        final List<KeyValuePair<K, V>> pairs) {
         final MirrorClient<K, V> mirrorClient =
-            new DefaultMirrorClient<>(topicData.getName(), this.client, this.mirrorConfig,
+            new DefaultMirrorClient<>(new MirrorHost(topicData.getName(), this.mirrorConfig),
+                this.client,
                 topicData.getValueData().getResolver(),
                 new DefaultMirrorRequestManager(this.client));
 

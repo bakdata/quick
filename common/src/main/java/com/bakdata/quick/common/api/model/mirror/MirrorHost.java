@@ -17,8 +17,11 @@
 package com.bakdata.quick.common.api.model.mirror;
 
 import com.bakdata.quick.common.config.MirrorConfig;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
+import okhttp3.HttpUrl.Builder;
 
 /**
  * Utility for setting a Mirror host in Quick.
@@ -26,64 +29,125 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @Slf4j
 public class MirrorHost {
-    private final String host;
+    private static final String DEFAULT_MIRROR_HOST_PATH = "mirror";
+    private static final String DEFAULT_MIRROR_SCHEME = "http";
+    private final String topic;
     private final MirrorConfig config;
+    private final String host;
 
     /**
-     * Default constructor.
+     * Private to creates the host with the topic name and mirror config. The host can be a service name or an IP.
      *
-     * @param host the host of the mirror. This can be a service name or an IP.
+     * @param topic the topic of the mirror.
      * @param config mirror config to use. This can set the service prefix and REST path.
      */
-    public MirrorHost(final String host, final MirrorConfig config) {
-        this.host = host;
+    public MirrorHost(final String topic, final MirrorConfig config) {
+        this.topic = topic;
         this.config = config;
+        this.host = this.config.getPrefix() + this.topic;
     }
 
     /**
      * Generates a URL for fetching a single key in a topic.
+     *
+     * <p>
+     * e.g. http://quick-mirror-example-topic/mirror/123
      */
-    public String forKey(final String key) {
-        final String url =
-            String.format("http://%s%s/%s/%s", this.config.getPrefix(), this.host, this.config.getPath(), key);
-        log.trace("Preparing Mirror URL: {}", url);
-        return url;
+    public HttpUrl forKey(final String key) {
+        final HttpUrl httpUrl = this.getBaseUrlBuilder()
+            .addPathSegment(key)
+            .build();
+
+        log.trace("Preparing Mirror URL: {}", httpUrl);
+        return httpUrl;
     }
 
     /**
      * Generates a URL for fetching a list of keys in a topic.
+     *
+     * <p>
+     * e.g. http://quick-mirror-example-topic/mirror/keys?ids=123,456
      */
-    public String forKeys(final Iterable<String> keys) {
+    public HttpUrl forKeys(final Iterable<String> keys) {
         final String ids = String.join(",", keys);
-        final String url =
-            String.format("http://%s%s/%s/keys?ids=%s", this.config.getPrefix(), this.host, this.config.getPath(), ids);
-        log.trace("Preparing Mirror URL: {}", url);
-        return url;
+
+        final HttpUrl httpUrl = this.getBaseUrlBuilder()
+            .addPathSegment("keys")
+            .addEncodedQueryParameter("ids", ids).build();
+
+        log.trace("Preparing Mirror URL: {}", httpUrl);
+        return httpUrl;
     }
 
     /**
      * Generates a URL for fetching all keys in a topic.
+     *
+     * <p>
+     * e.g. http://quick-mirror-example-topic/mirror/
      */
-    public String forAll() {
-        final String url = String.format("http://%s%s/%s", this.config.getPrefix(), this.host, this.config.getPath());
-        log.trace("Preparing Mirror URL: {}", url);
-        return url;
+    public HttpUrl forAll() {
+        final HttpUrl httpUrl = this.getBaseUrlBuilder().build();
+
+        log.trace("Preparing Mirror URL: {}", httpUrl);
+        return httpUrl;
     }
 
     /**
      * Generates a URL for fetching a range of keys.
+     *
+     * <p>
+     * e.g. http://quick-mirror-example-topic/mirror/range/123?from=1&to=10
      */
-    public String forRange(final String key, final String from, final String to) {
-        final String url = String.format("http://%s%s/%s/range/%s?from=%s&to=%s", this.config.getPrefix(), this.host,
-            this.config.getPath(), key, from, to);
-        log.debug("Preparing Mirror URL for range: {}", url);
-        return url;
+    public HttpUrl forRange(final String key, final String from, final String to) {
+        final HttpUrl httpUrl = this.getBaseUrlBuilder()
+            .addPathSegment("range")
+            .addPathSegment(key)
+            .addQueryParameter("from", from)
+            .addQueryParameter("to", to)
+            .build();
+
+        log.trace("Preparing Mirror URL: {}", httpUrl);
+        return httpUrl;
     }
 
     /**
-     * Generates a URL without any keys.
+     * Returns the Mirror host with the configured prefix.
+     *
+     * <p>
+     * e.g. http://quick-mirror-host-name/
      */
-    public String plainUrl() {
-        return String.format("http://%s%s/", this.config.getPrefix(), this.host);
+    @Override
+    public String toString() {
+        return new Builder()
+            .scheme(DEFAULT_MIRROR_SCHEME)
+            .host(this.host)
+            .toString();
+    }
+
+    /**
+     * If the host (name) of the two mirrors is the same they are equal.
+     */
+    @Override
+    public boolean equals(final Object otherMirrorHost) {
+        if (this == otherMirrorHost) {
+            return true;
+        }
+        if (otherMirrorHost == null || this.getClass() != otherMirrorHost.getClass()) {
+            return false;
+        }
+        final MirrorHost that = (MirrorHost) otherMirrorHost;
+        return Objects.equals(this.topic, that.topic);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.topic);
+    }
+
+    private Builder getBaseUrlBuilder() {
+        return new Builder()
+            .scheme(DEFAULT_MIRROR_SCHEME)
+            .host(this.host)
+            .addPathSegment(DEFAULT_MIRROR_HOST_PATH);
     }
 }

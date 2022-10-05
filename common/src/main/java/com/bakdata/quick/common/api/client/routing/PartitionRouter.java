@@ -16,15 +16,24 @@
 
 package com.bakdata.quick.common.api.client.routing;
 
+import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
+import com.bakdata.quick.common.api.client.mirror.StreamsStateHost;
 import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.micronaut.http.HttpStatus;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
+import okhttp3.ResponseBody;
 import org.apache.kafka.common.serialization.Serde;
 
 /**
@@ -34,43 +43,40 @@ import org.apache.kafka.common.serialization.Serde;
  *
  * @param <K> the type of key
  */
+@Slf4j
 public class PartitionRouter<K> implements Router<K> {
-
+    private final HttpClient client;
+    private static final TypeReference<Map<Integer, String>> MAP_TYPE_REFERENCE = new TypeReference<>() {};
+    private final StreamsStateHost streamsStateHost;
     private final String topic;
-    private final Serde<K> keySerde;
+    private final Serde<? super K> keySerde;
     private final PartitionFinder partitionFinder;
     private Map<Integer, MirrorHost> partitionToMirrorHost;
     private List<MirrorHost> distinctMirrorHosts;
+    private final MirrorRequestManager requestManager;
 
     /**
      * A constructor with the default partitioner that is retrieved from a static method.
      *
      * @param keySerde serializer for the key
-     * @param topic the name of the corresponding topic
      * @param partitionFinder strategy for finding partitions
-     * @param partitionToHost partition to host mapping
      */
-    public PartitionRouter(final Serde<K> keySerde, final String topic, final PartitionFinder partitionFinder,
-        final Map<Integer, String> partitionToHost) {
-        this.topic = topic;
+    public PartitionRouter(
+        final HttpClient client,
+        final MirrorHost mirrorHost,
+        final Serde<? super K> keySerde,
+        final PartitionFinder partitionFinder,
+        final MirrorRequestManager requestManager) {
+        this.client = client;
+        this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
+        this.topic = mirrorHost.getTopic();
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
-        this.partitionToMirrorHost = this.convertHostStringToMirrorHost(partitionToHost);
+        this.requestManager = requestManager;
+        this.partitionToMirrorHost = convertHostStringToMirrorHost(this.makeRequestForPartitionHostMapping());
         this.distinctMirrorHosts = this.findDistinctHosts();
     }
 
-    private List<MirrorHost> findDistinctHosts() {
-        final Set<String> distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
-        return this.partitionToMirrorHost.values()
-            .stream()
-            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getHost()))
-            .collect(Collectors.toList());
-    }
-
-    private Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
-        return partitionToHost.entrySet().stream().collect(
-            Collectors.toMap(Map.Entry::getKey, e -> new MirrorHost(e.getValue(), MirrorConfig.directAccess())));
-    }
 
     @Override
     public MirrorHost findHost(final K key) {
@@ -81,6 +87,7 @@ public class PartitionRouter<K> implements Router<K> {
             throw new MirrorException(String.format("No MirrorHost found for partition: %d", partition),
                 HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        log.debug("Calculated partition is: {}, getting it from {}", partition, this.partitionToMirrorHost);
         return this.partitionToMirrorHost.get(partition);
     }
 
@@ -93,8 +100,51 @@ public class PartitionRouter<K> implements Router<K> {
     }
 
     @Override
-    public void updateRoutingInfo(final Map<Integer, String> updatedRoutingInfo) {
-        this.partitionToMirrorHost = this.convertHostStringToMirrorHost(updatedRoutingInfo);
+    public void updateRoutingInfo() {
+        final Map<Integer, String> updatedPartitionHostInfo = this.makeRequestForPartitionHostMapping();
+        log.debug("Updating route info with: {}", updatedPartitionHostInfo);
+        this.partitionToMirrorHost = convertHostStringToMirrorHost(updatedPartitionHostInfo);
         this.distinctMirrorHosts = this.findDistinctHosts();
+    }
+
+    private List<MirrorHost> findDistinctHosts() {
+        final Set<String> distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
+        return this.partitionToMirrorHost.values()
+            .stream()
+            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getTopic()))
+            .collect(Collectors.toList());
+    }
+
+    private static Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
+        return partitionToHost.entrySet().stream().collect(
+            Collectors.toMap(Map.Entry::getKey,
+                entry -> new MirrorHost(entry.getValue(), MirrorConfig.directAccess())));
+    }
+
+    /**
+     * Responsible for fetching the information about the partition - host mapping from the mirror.
+     *
+     * @return a mapping between a partition (a number) and a corresponding host
+     */
+    private Map<Integer, String> makeRequestForPartitionHostMapping() {
+        final HttpUrl url = this.streamsStateHost.getPartitionToHostUrl();
+        try (final ResponseBody responseBody = Objects.requireNonNull(this.requestManager.makeRequest(url))
+            .getResponseBody()) {
+            if (responseBody == null) {
+                throw new MirrorException("Response body was null.", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper()
+                .readValue(responseBody.byteStream(), MAP_TYPE_REFERENCE);
+            log.debug("Partition to individual Mirror hosts are: {}", partitionHostMappingResponse);
+            if (log.isInfoEnabled()) {
+                log.info("Collected information about the partitions and hosts."
+                        + " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
+                    (int) partitionHostMappingResponse.values().stream().distinct().count());
+            }
+            return partitionHostMappingResponse;
+        } catch (final IOException exception) {
+            throw new MirrorException("There was a problem handling the response: ",
+                HttpStatus.INTERNAL_SERVER_ERROR, exception);
+        }
     }
 }

@@ -47,7 +47,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -63,34 +62,7 @@ class GraphQLSchemaGeneratorTest {
         final TestTopicRegistryClient registryClient) {
         this.generator = generator;
         this.registryClient = registryClient;
-    }
-
-    @BeforeEach
-    void setUp() {
-        this.registryClient.register(
-            "purchase-topic",
-            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO, "")
-        ).blockingAwait();
-
-        this.registryClient.register(
-            "product-topic",
-            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
-        ).blockingAwait();
-
-        this.registryClient.register(
-            "contract-topic",
-            new TopicData("contract-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO, "")
-        ).blockingAwait();
-
-        this.registryClient.register(
-            "person-topic",
-            new TopicData("person-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
-        ).blockingAwait();
-
-        this.registryClient.register(
-            "url-topic",
-            new TopicData("url-topic", TopicWriteType.MUTABLE, QuickTopicType.STRING, QuickTopicType.STRING, "")
-        ).blockingAwait();
+        this.registerTopics();
     }
 
     @Test
@@ -537,6 +509,33 @@ class GraphQLSchemaGeneratorTest {
     @Test
     void shouldNotCovertIfReturnTypeOfRangeQueryIsNotList(final TestInfo testInfo) throws  IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "The return type of range queries should be a list.");
+    }
+
+    private void registerTopics() {
+        this.registryClient.register(
+            "purchase-topic",
+            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO, "")
+        ).blockingAwait();
+
+        this.registryClient.register(
+            "product-topic",
+            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
+        ).blockingAwait();
+
+        this.registryClient.register(
+            "contract-topic",
+            new TopicData("contract-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO, "")
+        ).blockingAwait();
+
+        this.registryClient.register(
+            "person-topic",
+            new TopicData("person-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
+        ).blockingAwait();
+
+        this.registryClient.register(
+            "url-topic",
+            new TopicData("url-topic", TopicWriteType.MUTABLE, QuickTopicType.STRING, QuickTopicType.STRING, "")
+        ).blockingAwait();
     }
 
     private void assertQuickDirectiveExceptionMessage(final TestInfo testInfo, final String message)

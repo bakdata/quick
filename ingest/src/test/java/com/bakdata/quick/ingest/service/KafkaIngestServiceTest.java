@@ -71,11 +71,11 @@ class KafkaIngestServiceTest {
     }
 
     @Test
-    void testSendData(TestInfo testInfo) throws InterruptedException {
+    void testSendData(final TestInfo testInfo) throws InterruptedException {
         final KafkaConfig kafkaConfig = new KafkaConfig(kafkaCluster.getBrokerList(), schemaRegistry.getUrl());
-        KafkaIngestService kafkaIngestService = new KafkaIngestService(this.typeService, kafkaConfig);
+        final KafkaIngestService kafkaIngestService = new KafkaIngestService(this.typeService, kafkaConfig);
 
-        String topic = String.format("%s-topic", testInfo.getTestMethod().get().getName());
+        final String topic = String.format("%s-topic", testInfo.getTestMethod().get().getName());
         kafkaCluster.createTopic(TopicConfig.withName(topic).useDefaults());
 
         final KeyValuePair<String, Long> record = new KeyValuePair<>("foo", 5L);
@@ -93,11 +93,11 @@ class KafkaIngestServiceTest {
     }
 
     @Test
-    void testDeleteData(TestInfo testInfo) throws InterruptedException {
+    void testDeleteData(final TestInfo testInfo) throws InterruptedException {
         final KafkaConfig kafkaConfig = new KafkaConfig(kafkaCluster.getBrokerList(), schemaRegistry.getUrl());
-        KafkaIngestService kafkaIngestService = new KafkaIngestService(this.typeService, kafkaConfig);
+        final KafkaIngestService kafkaIngestService = new KafkaIngestService(this.typeService, kafkaConfig);
 
-        String topic = String.format("%s-topic", testInfo.getTestMethod().get().getName());
+        final String topic = String.format("%s-topic", testInfo.getTestMethod().get().getName());
         kafkaCluster.createTopic(TopicConfig.withName(topic).useDefaults());
         final KeyValue<String, Long> record = new KeyValue<>("foo", 5L);
 

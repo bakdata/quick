@@ -14,9 +14,10 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import okhttp3.HttpUrl;
 
 /**
  * Responsible for managing requests send to the Mirror.
@@ -29,7 +30,7 @@ public interface MirrorRequestManager {
      * @param url A URL for which a request is made
      * @return a response body if successful; null if resource has not been found
      */
-    ResponseWrapper makeRequest(final String url);
+    ResponseWrapper makeRequest(final HttpUrl url);
 
     @Nullable
     <T> T processResponse(final ResponseWrapper responseWrapper, final ParserFunction<T> parser);

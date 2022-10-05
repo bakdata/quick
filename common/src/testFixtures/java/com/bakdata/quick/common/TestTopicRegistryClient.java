@@ -16,8 +16,8 @@
 
 package com.bakdata.quick.common;
 
-import com.bakdata.quick.common.api.client.MirrorRegistryClient;
-import com.bakdata.quick.common.api.client.TopicRegistryClient;
+import com.bakdata.quick.common.api.client.mirror.MirrorRegistryClient;
+import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import io.micronaut.context.annotation.Replaces;
 import io.micronaut.context.annotation.Requires;

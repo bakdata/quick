@@ -21,6 +21,7 @@ import com.bakdata.quick.gateway.DataFetcherSpecification;
 import com.bakdata.quick.gateway.directives.QuickDirectiveException;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import com.bakdata.quick.gateway.directives.topic.rule.TopicDirectiveRule;
+import com.bakdata.quick.gateway.fetcher.FetcherFactory;
 import graphql.language.FieldDefinition;
 import graphql.language.ListType;
 import graphql.language.NonNullType;
@@ -62,7 +63,7 @@ public interface DataFetcherRule extends TopicDirectiveRule {
 
         return fieldsWithParentType
             .map(field -> FieldCoordinates.coordinates(GraphQLUtils.QUERY_TYPE, field))
-            .map(coords -> DataFetcherSpecification.of(coords, context.getFetcherFactory().deferFetcher()));
+            .map(coords -> DataFetcherSpecification.of(coords, FetcherFactory.deferFetcher()));
     }
 
     /**

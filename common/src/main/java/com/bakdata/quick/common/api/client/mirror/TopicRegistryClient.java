@@ -14,24 +14,25 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import java.io.IOException;
-import java.io.InputStream;
+import com.bakdata.quick.common.api.model.TopicData;
+import io.reactivex.Completable;
+import io.reactivex.Single;
+import java.util.List;
 
 /**
- * Custom parser for values returned by a mirror application.
- *
- * @param <T> type of the returned value
+ * Client for interacting with Quick's topic registry.
  */
-interface ParserFunction<T> {
-    /**
-     * Parses an input stream of data into a deserialized value.
-     *
-     * @param inputStream the raw response body
-     * @return the deserialized mirror value
-     * @throws IOException if an error reading the input stream occurs
-     */
-    MirrorValue<T> parse(InputStream inputStream) throws IOException;
+public interface TopicRegistryClient {
+
+    Completable register(String name, TopicData data);
+
+    Completable delete(String name);
+
+    Single<TopicData> getTopicData(String name);
+
+    Single<Boolean> topicDataExists(final String name);
+
+    Single<List<TopicData>> getAllTopics();
 }

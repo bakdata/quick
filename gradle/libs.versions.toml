@@ -26,7 +26,7 @@ graphql_extendedScalars = "18.1"
 apache_commons_lang = "3.12.0"
 
 junit = "5.7.2"
-mockito = "3.11.1"
+mockito = "4.8.0"
 assertj = "3.20.1"
 awaitly = "4.1.0"
 kafka_junit = "3.2.0" # 3.2.0
