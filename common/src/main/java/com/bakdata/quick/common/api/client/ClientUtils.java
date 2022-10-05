@@ -16,19 +16,24 @@
 
 package com.bakdata.quick.common.api.client;
 
+import com.bakdata.quick.common.api.model.mirror.MirrorHost;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
+
 /**
- * A collection of constants for managing headers.
+ * Utils for Quick clients.
  */
-public class HeaderConstants {
+public final class ClientUtils {
+    private ClientUtils() {
+    }
 
-    // The X-Cache-Update header is set when there is a need to update the
-    // partition-host mapping in the {@link com.bakdata.quick.common.api.client.routing.PartitionRouter}.
-    // The need arises when a replica of the mirror is added or removed.
-    public static final String UPDATE_PARTITION_HOST_MAPPING_HEADER = "X-Cache-Update";
-    // The constant below indicates the existence of a header.
-    // See: https://stackoverflow.com/a/65241869 for more details.
-    public static final String HEADER_EXISTS = "?1";
-
-    private HeaderConstants() {
+    /**
+     * Creates a new URL from a {@link Request} object.
+     *
+     * @param request The request object containing the URL
+     * @param mirrorHost The Mirror host which contains the new URL
+     */
+    public static HttpUrl createMirrorUrlFromRequest(final Request request, final MirrorHost mirrorHost) {
+        return request.url().newBuilder().host(mirrorHost.getHost()).build();
     }
 }

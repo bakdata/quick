@@ -66,12 +66,11 @@ public class DeferFetcher implements DataFetcher<DataFetcherResult<Object>> {
      * @param environment current data fetching environment
      * @return object if argument was found, empty otherwise
      */
-    public static Optional<Object> getArgument(final String argument, final DataFetchingEnvironment environment) {
+    public static <T> Optional<T> getArgument(final String argument, final DataFetchingEnvironment environment) {
         if (environment.containsArgument(argument)) {
-            return Optional.ofNullable(environment.getArguments().get(argument));
-
+            return Optional.ofNullable(environment.getArgument(argument));
         } else if (environment.getLocalContext() instanceof Map) {
-            final Map<String, Object> localContext = environment.getLocalContext();
+            final Map<String, T> localContext = environment.getLocalContext();
             return Optional.ofNullable(localContext.get(argument));
         }
         return Optional.empty();

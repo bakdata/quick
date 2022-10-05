@@ -16,9 +16,13 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.util.Lazy;
+
 /**
  * Supplier for creating a new data fetcher client for a topic.
  */
+@FunctionalInterface
 public interface ClientSupplier {
-    <T> DataFetcherClient<T> createClient(final String topic);
+    <K, V> DataFetcherClient<K, V> createClient(final String topic, final Lazy<QuickTopicData<K, V>> quickTopicData);
 }

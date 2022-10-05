@@ -16,15 +16,16 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.common.exception.BadArgumentException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
@@ -63,10 +64,10 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
  * since it is stored in a different topic. The KeyFieldFetcher extracts the productId from the returned purchase and
  * fetches the corresponding product.
  */
-public class KeyFieldFetcher<T> implements DataFetcher<Object> {
+public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
     private final ObjectMapper objectMapper;
     private final String argument;
-    private final DataFetcherClient<T> client;
+    private final DataFetcherClient<K, V> client;
     private final JsonAvroConverter converter;
 
     /**
@@ -76,7 +77,9 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
      * @param argument name of the argument to extract key from
      * @param client underlying HTTP mirror client
      */
-    public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument, final DataFetcherClient<T> client) {
+    public KeyFieldFetcher(final ObjectMapper objectMapper,
+        final String argument,
+        final DataFetcherClient<K, V> client) {
         this.objectMapper = objectMapper;
         this.argument = argument;
         this.client = client;
@@ -86,47 +89,68 @@ public class KeyFieldFetcher<T> implements DataFetcher<Object> {
     @Override
     @Nullable
     public Object get(final DataFetchingEnvironment environment) {
-        final List<String> uriList = this.findKeyArgument(environment).collect(Collectors.toList());
+        final List<K> keyArguments = this.findKeyArgument(environment).collect(Collectors.toList());
 
         // the modification applies either to an array node or to a single field
         // TODO create two different classes for both use cases and create them based on the schema
-        if (uriList.size() == 1) {
-            return this.client.fetchResult(uriList.get(0));
+        if (keyArguments.size() == 1) {
+            return this.client.fetchResult(keyArguments.get(0));
         } else {
-            return this.client.fetchResults(uriList);
+            return this.client.fetchResults(keyArguments);
         }
     }
 
-    private Stream<String> findKeyArgument(final DataFetchingEnvironment environment) {
+    // TODO: Fix this
+    private Stream<K> findKeyArgument(final DataFetchingEnvironment environment) {
         final String parentJson;
         try {
             parentJson = this.extractJson(environment);
-        } catch (final IOException e) {
-            throw new UncheckedIOException("Could not convert source for extracting key", e);
+        } catch (final JsonProcessingException | InvalidProtocolBufferException e) {
+            throw new RuntimeException("Could not convert source for extracting key", e);
         }
         // parse json and try to find the value for our argument
         // if it is an array, we need to resolve each one
         try {
             final JsonNode parent = this.objectMapper.readTree(parentJson);
             final JsonNode node = parent.findValue(this.argument);
+            final Object typedNode = extractCorrectType(node);
             if (node == null) {
                 throw new IllegalArgumentException(
                     String.format("Field + %s could not be found in source.", this.argument));
             }
             if (node.isArray()) {
                 final Iterator<JsonNode> elements = node.elements();
-                return StreamSupport.stream(Spliterators.spliteratorUnknownSize(elements, 0), false)
-                    .map(this::valueAsString);
-
+                return (Stream<K>) StreamSupport
+                    .stream(Spliterators.spliteratorUnknownSize(elements, 0), false)
+                    .map(KeyFieldFetcher::extractCorrectType);
             } else {
-                return Stream.of(this.valueAsString(node));
+                return (Stream<K>) Stream.of(typedNode);
             }
         } catch (final JsonProcessingException e) {
             throw new UncheckedIOException("Could not process json: " + parentJson, e);
         }
     }
 
-    private String extractJson(final DataFetchingEnvironment environment) throws IOException {
+    private static Object extractCorrectType(final JsonNode jsonNode) {
+        if (jsonNode.isInt()) {
+            return jsonNode.asInt();
+        } else if (jsonNode.isDouble()) {
+            return jsonNode.asDouble();
+        } else if (jsonNode.isLong()) {
+            return jsonNode.asLong();
+        } else if (jsonNode.isBoolean()) {
+            return jsonNode.asBoolean();
+        } else if (jsonNode.isArray() || jsonNode.isObject()) {
+            return jsonNode;
+        } else if (jsonNode.isTextual()) {
+            return jsonNode.textValue();
+        } else {
+            throw new BadArgumentException("Provided argument is not supported.");
+        }
+    }
+
+    private String extractJson(final DataFetchingEnvironment environment) throws JsonProcessingException,
+        InvalidProtocolBufferException {
         // TODO work on JSON everywhere:
         //  1. Do not convert back to real types in MirrorDataFetcherClient
         //  2. Immediately convert to JSON in SubscriptionFetcher

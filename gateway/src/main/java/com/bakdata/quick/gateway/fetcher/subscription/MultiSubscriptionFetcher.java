@@ -46,10 +46,10 @@ import reactor.core.publisher.Mono;
  * data for the other selected fields is fetched through the mirror.
  */
 @Slf4j
-public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<String, Object>>> {
+public class MultiSubscriptionFetcher<K> implements DataFetcher<Publisher<Map<String, Object>>> {
 
     public static final int CACHE_SIZE = 5_000;
-    private final Map<String, DataFetcherClient<?>> fieldDataFetcherClients;
+    private final Map<String, DataFetcherClient<K, ?>> fieldDataFetcherClients;
     /**
      * A cache for all field values.
      *
@@ -57,8 +57,8 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      * The subscriptions update the values, so that we only need to fetch the values from the mirror in case the kafka
      * didn't yield a value for this field yet.
      */
-    private final AsyncLoadingCache<FieldKey<?>, Object> fieldCache;
-    private final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders;
+    private final AsyncLoadingCache<FieldKey<K>, Object> fieldCache;
+    private final Map<String, SubscriptionProvider<K, ?>> fieldSubscriptionProviders;
     private final FieldSelector fieldSelector;
 
     /**
@@ -67,8 +67,8 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      * @param fieldDataFetcherClients map of fields to their fetching clients
      * @param fieldSubscriptionProviders map of field to their subscription providers
      */
-    public MultiSubscriptionFetcher(final Map<String, DataFetcherClient<?>> fieldDataFetcherClients,
-        final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders) {
+    public MultiSubscriptionFetcher(final Map<String, DataFetcherClient<K, ?>> fieldDataFetcherClients,
+        final Map<String, SubscriptionProvider<K, ?>> fieldSubscriptionProviders) {
         this(fieldDataFetcherClients, fieldSubscriptionProviders, MultiSubscriptionFetcher::getSelectedFields);
     }
 
@@ -80,8 +80,8 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      * @param fieldSelector function extracting the selected fields of a GraphQL environment
      */
     @VisibleForTesting
-    MultiSubscriptionFetcher(final Map<String, DataFetcherClient<?>> fieldDataFetcherClients,
-        final Map<String, SubscriptionProvider<?, ?>> fieldSubscriptionProviders,
+    MultiSubscriptionFetcher(final Map<String, DataFetcherClient<K, ?>> fieldDataFetcherClients,
+        final Map<String, SubscriptionProvider<K, ?>> fieldSubscriptionProviders,
         final FieldSelector fieldSelector) {
         this.fieldDataFetcherClients = fieldDataFetcherClients;
         this.fieldSubscriptionProviders = fieldSubscriptionProviders;
@@ -92,7 +92,7 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
     @Override
     public Publisher<Map<String, Object>> get(final DataFetchingEnvironment environment) {
         final List<String> selectedFields = this.fieldSelector.selectFields(environment);
-        final Flux<? extends NamedRecord<?, ?>> combinedElementsStream =
+        final Flux<? extends NamedRecord<K, ?>> combinedElementsStream =
             this.combineElementStreams(selectedFields, environment);
         return combinedElementsStream.flatMap(namedRecord -> this.createComplexType(namedRecord, selectedFields));
     }
@@ -132,19 +132,19 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
      * @param selectedFields the fields selected by this query
      * @return a map representing the selected object
      */
-    private Mono<Map<String, Object>> createComplexType(final NamedRecord<?, ?> namedRecord,
+    private Mono<Map<String, Object>> createComplexType(final NamedRecord<K, ?> namedRecord,
         final List<String> selectedFields) {
         // map holding the data for current key
         final Map<String, Object> complexType = new HashMap<>();
         complexType.put(namedRecord.getFieldName(), namedRecord.getConsumerRecord().value());
 
-        final FieldKey<?> key = new FieldKey<>(namedRecord.getFieldName(), namedRecord.getConsumerRecord().key());
+        final FieldKey<K> key = new FieldKey<>(namedRecord.getFieldName(), namedRecord.getConsumerRecord().key());
         final CompletableFuture<?> recordValue =
             CompletableFuture.completedFuture(namedRecord.getConsumerRecord().value());
         log.info("Update {} with {}", key, namedRecord.getConsumerRecord().value());
         this.fieldCache.put(key, recordValue);
 
-        final Flux<? extends FieldKey<?>> fieldKeysToPopulate = Flux.fromIterable(selectedFields)
+        final Flux<? extends FieldKey<K>> fieldKeysToPopulate = Flux.fromIterable(selectedFields)
             .filter(fieldName -> !fieldName.equals(namedRecord.getFieldName()))
             .map(fieldName -> new FieldKey<>(fieldName, namedRecord.getConsumerRecord().key()));
 
@@ -165,19 +165,19 @@ public class MultiSubscriptionFetcher implements DataFetcher<Publisher<Map<Strin
     }
 
     @Nullable
-    private Object loadField(final FieldKey<?> fieldKey) {
-        final DataFetcherClient<?> client = this.fieldDataFetcherClients.get(fieldKey.getFieldName());
+    private Object loadField(final FieldKey<K> fieldKey) {
+        final DataFetcherClient<K, ?> client = this.fieldDataFetcherClients.get(fieldKey.getFieldName());
         Objects.requireNonNull(client, () -> "No client found for field " + fieldKey.getFieldName());
-        return client.fetchResult(fieldKey.getKey().toString());
+        return client.fetchResult(fieldKey.getKey());
     }
 
-    private Flux<? extends NamedRecord<?, ?>> combineElementStreams(final List<String> selectedFields,
+    private Flux<? extends NamedRecord<K, ?>> combineElementStreams(final List<String> selectedFields,
         final DataFetchingEnvironment env) {
-        final List<Flux<? extends NamedRecord<?, ?>>> fluxes = selectedFields.stream()
+        final List<Flux<? extends NamedRecord<K, ?>>> fluxes = selectedFields.stream()
             .map(name -> {
-                final SubscriptionProvider<?, ?> kafkaSubscriber = this.fieldSubscriptionProviders.get(name);
+                final SubscriptionProvider<K, ?> kafkaSubscriber = this.fieldSubscriptionProviders.get(name);
                 Objects.requireNonNull(kafkaSubscriber);
-                final Flux<? extends ConsumerRecord<?, ?>> elementStream = kafkaSubscriber.getElementStream(env);
+                final Flux<? extends ConsumerRecord<K, ?>> elementStream = kafkaSubscriber.getElementStream(env);
                 return elementStream.map(val -> new NamedRecord<>(name, val));
             }).collect(Collectors.toList());
         return Flux.merge(fluxes);

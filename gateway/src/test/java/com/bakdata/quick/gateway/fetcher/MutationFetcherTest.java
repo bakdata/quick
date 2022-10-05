@@ -64,7 +64,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 class MutationFetcherTest {
     private static EmbeddedKafkaCluster kafkaCluster = null;
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
-
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeAll

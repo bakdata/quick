@@ -14,18 +14,22 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
+import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.exception.MirrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.Response;
 
 /**
  * A default implementation of MirrorRequestManager.
  */
+@Slf4j
 public class DefaultMirrorRequestManager implements MirrorRequestManager {
 
     private final HttpClient client;
@@ -35,7 +39,7 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
     }
 
     @Override
-    public ResponseWrapper makeRequest(final String url) {
+    public ResponseWrapper makeRequest(final HttpUrl url) {
         final Request request = new Request.Builder().url(url).get().build();
         // Do not close the response here because its content is read later (try-with-resources
         // implicitly closes the processed resource).
@@ -57,6 +61,12 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
             return null;
         } catch (final IOException exception) {
             throw new MirrorException("Not able to parse content", HttpStatus.INTERNAL_SERVER_ERROR, exception);
+        } finally {
+            // We are sure that the response is processed and can be closed
+            if (responseWrapper.getResponseBody() != null) {
+                log.debug("Closing the response body.");
+                responseWrapper.getResponseBody().close();
+            }
         }
     }
 }

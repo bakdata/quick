@@ -17,51 +17,25 @@
 package com.bakdata.quick.gateway.fetcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.resolver.KnownTypeResolver;
-import com.bakdata.quick.common.resolver.TypeResolver;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
+import com.bakdata.quick.common.util.Lazy;
+import com.bakdata.quick.gateway.fetcher.TestModels.Product;
+import com.bakdata.quick.gateway.fetcher.TestModels.Purchase;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import lombok.Builder;
-import lombok.Value;
-import okhttp3.OkHttpClient;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 class QueryListArgumentFetcherTest {
-
-    public static final boolean isNullable = true;
-    public static final boolean hasNullableElements = true;
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final MockWebServer server = new MockWebServer();
-    private final HttpClient client = new HttpClient(this.mapper, new OkHttpClient());
-    private final MirrorConfig mirrorConfig = MirrorConfig.directAccess();
-    private final String host = String.format("localhost:%s", this.server.getPort());
-
-    @BeforeEach
-    void initRouterAndMirror() throws JsonProcessingException {
-        // mapping from partition to host for initializing PartitionRouter
-        final String routerBody = TestUtils.generateBodyForRouterWith(Map.of(0, this.host,1, this.host));
-        this.server.enqueue(new MockResponse().setBody(routerBody));
-    }
-
     @Test
-    void shouldFetchListWhenListArgumentOfTypeString() throws JsonProcessingException {
+    void shouldFetchListWhenListArgumentOfTypeStringWithKeyString() {
         final Purchase purchase1 = Purchase.builder()
             .purchaseId("testId1")
             .productId(1)
@@ -74,29 +48,28 @@ class QueryListArgumentFetcherTest {
             .amount(3)
             .build();
 
-        this.server.enqueue(new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(purchase1))));
-        this.server.enqueue(new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(purchase2))));
+        final List<String> idList = List.of("testId1", "testId2");
+        final List<Purchase> purchaseList = List.of(purchase1, purchase2);
 
-        final DataFetcherClient<Purchase> fetcherClient = this.createClient(Purchase.class);
+        final PartitionedMirrorClient<String, Purchase> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValues(eq(idList))).thenReturn(purchaseList);
+        final DataFetcherClient<String, Purchase> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final ListArgumentFetcher<?> listArgumentFetcher =
-            new ListArgumentFetcher<>("purchaseId", fetcherClient, isNullable, hasNullableElements);
+        final ListArgumentFetcher<String , Purchase> listArgumentFetcher =
+            new ListArgumentFetcher<>("purchaseId", fetcherClient, true, true);
 
-        final Map<String, Object> arguments = Map.of("purchaseId", List.of("testId1", "testId2"));
+        final Map<String, Object> arguments = Map.of("purchaseId", idList);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = listArgumentFetcher.get(env);
-        assertThat(actual).isEqualTo(List.of(purchase1, purchase2));
+        final List<Purchase> actual = listArgumentFetcher.get(env);
+        assertThat(actual).isEqualTo(purchaseList);
     }
 
-    // This test is temporarily disabled because PartitionedMirrorClient can only work with a single type.
-    // The reason is the findHost function in the underlying PartitionRouter that needs the serializer
-    // of a specific type.
-    @Disabled
     @Test
-    void shouldFetchListWhenListArgumentOfTypeInt() throws JsonProcessingException {
+    void shouldFetchListWhenListArgumentOfTypeIntWithKeyLong() {
         final Product product1 = Product.builder()
             .productId(1)
             .name("productTest1")
@@ -107,47 +80,48 @@ class QueryListArgumentFetcherTest {
             .name("productTest2")
             .build();
 
-        this.server.enqueue(
-            new MockResponse().setBody(this.mapper.writeValueAsString(new MirrorValue<>(List.of(product1, product2)))));
+        final List<Long> idList = List.of(1L, 2L);
+        final List<Product> productList = List.of(product1, product2);
 
-        final DataFetcherClient<Product> fetcherClient = this.createClient(Product.class);
+        final PartitionedMirrorClient<Long, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValues(eq(idList))).thenReturn(productList);
+        final DataFetcherClient<Long, Product> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final ListArgumentFetcher<?> listArgumentFetcher =
-            new ListArgumentFetcher<>("productId", fetcherClient, isNullable, hasNullableElements);
+        final ListArgumentFetcher<Long, Product> listArgumentFetcher =
+            new ListArgumentFetcher<>("productId", fetcherClient, true, true);
 
-        final Map<String, Object> arguments = Map.of("productId", List.of(1L, 2L));
+        final Map<String, Object> arguments = Map.of("productId", idList);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = listArgumentFetcher.get(env);
-        assertThat(actual).isEqualTo(List.of(product1, product2));
+        final List<Product> actual = listArgumentFetcher.get(env);
+        assertThat(actual).isEqualTo(productList);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void shouldFetchEmptyListWhenResultIsNullAndReturnTypeIsNotNullable() {
-        final MirrorDataFetcherClient fetcherClient = Mockito.mock(MirrorDataFetcherClient.class);
+        final List<String> idList = List.of("testId1", "testId2");
 
-        Mockito.when(fetcherClient.fetchResults(any())).thenReturn(null);
+        final PartitionedMirrorClient<String, String> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValues(eq(idList))).thenReturn(Collections.emptyList());
+        final DataFetcherClient<String, String> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final ListArgumentFetcher<?> listArgumentFetcher =
-            new ListArgumentFetcher<>("purchaseId", fetcherClient, false, hasNullableElements);
+        final ListArgumentFetcher<String, String> listArgumentFetcher =
+            new ListArgumentFetcher<>("purchaseId", fetcherClient, false, true);
 
-        final Map<String, Object> arguments = Map.of("purchaseId", List.of("testId1", "testId2"));
+        final Map<String, Object> arguments = Map.of("purchaseId", idList);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
+        final List<String> actual = listArgumentFetcher.get(env);
 
-        final List<?> actual = listArgumentFetcher.get(env);
-        final List<?> expected =
-            this.mapper.convertValue(Collections.emptyList(), DataFetcherClient.LIST_TYPE_REFERENCE);
-
-        assertThat(actual).isEqualTo(expected);
+        assertThat(actual).isEqualTo(Collections.emptyList());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void shouldFetchEmptyListWhenResultIsNotNullAndDoesNotHaveNullableElements() {
         final Purchase purchase1 = Purchase.builder()
             .purchaseId("testId1")
@@ -155,46 +129,27 @@ class QueryListArgumentFetcherTest {
             .amount(3)
             .build();
 
-        final MirrorDataFetcherClient fetcherClient = Mockito.mock(MirrorDataFetcherClient.class);
-
-        final List<Object> itemList = new ArrayList<>();
+        final List<String> idList = List.of("testId1", "testId2");
+        final List<Purchase> itemList = new ArrayList<>();
         itemList.add(purchase1);
         itemList.add(null);
 
-        Mockito.when(fetcherClient.fetchResults(any())).thenReturn(itemList);
+        final PartitionedMirrorClient<String, Purchase> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValues(eq(idList))).thenReturn(itemList);
+        final DataFetcherClient<String, Purchase> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final ListArgumentFetcher<?> listArgumentFetcher =
-            new ListArgumentFetcher<>("purchaseId", fetcherClient, isNullable, false);
+        final ListArgumentFetcher<String, Purchase> listArgumentFetcher =
+            new ListArgumentFetcher<>("purchaseId", fetcherClient, true, false);
 
-        final Map<String, Object> arguments = Map.of("purchaseId", List.of("testId1", "testId2"));
+        final Map<String, Object> arguments = Map.of("purchaseId", idList);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = listArgumentFetcher.get(env);
-        final List<?> expected = List.of(purchase1);
+        final List<Purchase> actual = listArgumentFetcher.get(env);
+        final List<Purchase> expected = List.of(purchase1);
 
         assertThat(actual).isEqualTo(expected);
-    }
-
-    @NotNull
-    private <T> MirrorDataFetcherClient<T> createClient(final Class<T> clazz) {
-        final TypeResolver<T> resolver = new KnownTypeResolver<>(clazz, this.mapper);
-        return new MirrorDataFetcherClient<>(this.host, this.client, this.mirrorConfig, resolver);
-    }
-
-    @Value
-    @Builder
-    private static class Purchase {
-        String purchaseId;
-        int productId;
-        int amount;
-    }
-
-    @Value
-    @Builder
-    private static class Product {
-        int productId;
-        String name;
     }
 }

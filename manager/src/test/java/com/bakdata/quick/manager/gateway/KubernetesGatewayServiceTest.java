@@ -18,7 +18,7 @@ package com.bakdata.quick.manager.gateway;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bakdata.quick.common.api.client.GatewayClient;
+import com.bakdata.quick.common.api.client.gateway.GatewayClient;
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import com.bakdata.quick.common.api.model.manager.GatewayDescription;
 import com.bakdata.quick.common.api.model.manager.creation.GatewayCreationData;

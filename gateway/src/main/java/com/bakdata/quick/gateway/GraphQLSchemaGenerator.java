@@ -19,7 +19,6 @@ package com.bakdata.quick.gateway;
 import com.bakdata.quick.gateway.custom.QuickWiringFactory;
 import com.bakdata.quick.gateway.custom.type.QuickGraphQLType;
 import com.bakdata.quick.gateway.directives.QuickDirectiveWiring;
-import graphql.Scalars;
 import graphql.language.ScalarTypeDefinition;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLScalarType;

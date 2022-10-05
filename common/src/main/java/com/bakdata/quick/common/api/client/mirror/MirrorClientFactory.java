@@ -14,17 +14,19 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.gateway.fetcher;
+package com.bakdata.quick.common.api.client.mirror;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Map;
+import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.config.MirrorConfig;
+import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.util.Lazy;
 
-public class TestUtils {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    public static String generateBodyForRouterWith(final Map<Integer, String> elements) throws JsonProcessingException {
-        return MAPPER.writeValueAsString(elements);
-    }
+/**
+ * Factory for creating {@link MirrorClient}.
+ */
+public interface MirrorClientFactory {
+    <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
+        final String topic,
+        final MirrorConfig mirrorConfig,
+        final Lazy<QuickTopicData<K, V>> quickTopicData);
 }

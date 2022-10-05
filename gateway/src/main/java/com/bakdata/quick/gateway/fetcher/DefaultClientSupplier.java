@@ -17,46 +17,27 @@
 package com.bakdata.quick.gateway.fetcher;
 
 import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.client.mirror.MirrorClientFactory;
 import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.exception.NotFoundException;
-import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
-import io.reactivex.Single;
 
 final class DefaultClientSupplier implements ClientSupplier {
     private final HttpClient client;
-    private final TopicTypeService topicTypeService;
     private final MirrorConfig mirrorConfig;
+    private final MirrorClientFactory mirrorClientFactory;
 
-    DefaultClientSupplier(final HttpClient client, final TopicTypeService topicRegistryClient,
-                          final MirrorConfig mirrorConfig) {
+    DefaultClientSupplier(final HttpClient client, final MirrorConfig mirrorConfig,
+        final MirrorClientFactory mirrorClientFactory) {
         this.client = client;
-        this.topicTypeService = topicRegistryClient;
         this.mirrorConfig = mirrorConfig;
+        this.mirrorClientFactory = mirrorClientFactory;
     }
 
     @Override
-    public <T> DataFetcherClient<T> createClient(final String topic) {
-        return this.doCreateClient(topic);
-    }
-
-    private <T> DataFetcherClient<T> doCreateClient(final String topic) {
-        final Lazy<TypeResolver<T>> quickTopicTypeLazy = new Lazy<>(() -> this.getQuickTopicTypeLazy(topic));
-        return new MirrorDataFetcherClient<>(
-            topic, this.client,
-            this.mirrorConfig,
-            quickTopicTypeLazy
-        );
-    }
-
-    private <T> TypeResolver<T> getQuickTopicTypeLazy(final String topic) {
-        final Single<QuickTopicData<Object, T>> data = this.topicTypeService.getTopicData(topic);
-        final QuickTopicData<?, T> topicData = data.blockingGet();
-        if (topicData == null) {
-            throw new NotFoundException("Could not find topic " + topic);
-        }
-        return topicData.getValueData().getResolver();
+    public <K, V> DataFetcherClient<K, V> createClient(final String topic,
+        final Lazy<QuickTopicData<K, V>> quickTopicData) {
+        return new MirrorDataFetcherClient<>(new Lazy<>(() ->
+            this.mirrorClientFactory.createMirrorClient(this.client, topic, this.mirrorConfig, quickTopicData)));
     }
 }

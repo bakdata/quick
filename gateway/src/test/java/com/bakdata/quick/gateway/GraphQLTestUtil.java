@@ -18,6 +18,8 @@ package com.bakdata.quick.gateway;
 
 import static org.mockito.Mockito.mock;
 
+import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.directives.topic.TopicDirective;
 import com.bakdata.quick.gateway.fetcher.ClientSupplier;
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
@@ -33,7 +35,8 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 
 public final class GraphQLTestUtil {
-    private GraphQLTestUtil() {}
+    private GraphQLTestUtil() {
+    }
 
     public static DataFetcher<?> getFieldDataFetcher(final String objectName, final String fieldName,
         final GraphQLSchema schema) {
@@ -64,18 +67,23 @@ public final class GraphQLTestUtil {
 
     static final class TestClientSupplier implements ClientSupplier {
         @Getter
-        private final Map<String, DataFetcherClient<?>> clients;
+        private final Map<String, DataFetcherClient<?, ?>> clients;
 
         TestClientSupplier() {
             this.clients = new HashMap<>();
         }
 
         @Override
-        public DataFetcherClient<?> createClient(final String topic) {
-            final DataFetcherClient<?> client = mock(DataFetcherClient.class);
+        public <K, V> DataFetcherClient<K, V> createClient(final String topic,
+            final Lazy<QuickTopicData<K, V>> quickTopicData) {
+            final DataFetcherClient<K, V> client = mock(DataFetcherClient.class);
             this.clients.put(topic, client);
             return client;
         }
-    }
 
+        @SuppressWarnings("unchecked")
+        public <K, V> DataFetcherClient<K, V> getClient(final String client) {
+            return (DataFetcherClient<K, V>) this.clients.get(client);
+        }
+    }
 }

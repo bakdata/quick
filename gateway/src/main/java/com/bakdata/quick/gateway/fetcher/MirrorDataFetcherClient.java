@@ -16,56 +16,37 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.client.MirrorClient;
-import com.bakdata.quick.common.api.client.PartitionedMirrorClient;
-import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.api.client.mirror.MirrorClient;
 import com.bakdata.quick.common.util.Lazy;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serdes;
 
 
 /**
- * A HTTP client for fetching values from mirror REST APIs.
+ * An HTTP client for fetching values from mirror REST APIs.
  */
 @Slf4j
-public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
-    private final Lazy<MirrorClient<String, V>> mirrorClient;
+public class MirrorDataFetcherClient<K, V> implements DataFetcherClient<K, V> {
+    private final Lazy<? extends MirrorClient<K, V>> mirrorClient;
 
     /**
      * Constructor for client.
-     *
-     * @param host host url of the mirror
-     * @param client http client
-     * @param mirrorConfig configuration for the mirror
-     * @param typeResolverLazy a lazy for the value resolver
      */
-    public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final Lazy<TypeResolver<V>> typeResolverLazy) {
-        this.mirrorClient =
-            new Lazy<>(() -> this.createMirrorClient(host, mirrorConfig, client, typeResolverLazy.get()));
-    }
-
-    public MirrorDataFetcherClient(final String host, final HttpClient client, final MirrorConfig mirrorConfig,
-        final TypeResolver<V> valueResolver) {
-        this(host, client, mirrorConfig, new Lazy<>(() -> valueResolver));
+    public MirrorDataFetcherClient(final Lazy<? extends MirrorClient<K, V>> mirrorClient) {
+        this.mirrorClient = mirrorClient;
     }
 
     @Override
     @Nullable
-    public V fetchResult(final String id) {
-        log.trace("Preparing to send request for fetching a id {} to Mirror", id);
+    public V fetchResult(final K id) {
+        log.trace("Preparing to send request for fetching a key {} to Mirror", id);
         return this.mirrorClient.get().fetchValue(id);
     }
 
     @Override
     @Nullable
-    public List<V> fetchResults(final List<String> ids) {
+    public List<V> fetchResults(final List<K> ids) {
         log.trace("Preparing to send request for fetching a list of ids {} to Mirror", ids);
         return this.mirrorClient.get().fetchValues(ids);
     }
@@ -79,19 +60,10 @@ public class MirrorDataFetcherClient<V> implements DataFetcherClient<V> {
 
     @Override
     @Nullable
-    public List<V> fetchRange(final String id, final String from, final String to) {
+    public List<V> fetchRange(final K id, final String from, final String to) {
         log.trace("Preparing to send request for fetching the key {} and a range from {} to {}  from the Mirror", id,
             from,
             to);
         return this.mirrorClient.get().fetchRange(id, from, to);
-    }
-
-    private PartitionedMirrorClient<String, V> createMirrorClient(final String host,
-        final MirrorConfig mirrorConfig,
-        final HttpClient client,
-        final TypeResolver<V> valueResolver) {
-        final MirrorHost mirrorHost = new MirrorHost(host, mirrorConfig);
-        return new PartitionedMirrorClient<>(mirrorHost, client, Serdes.String(),
-            valueResolver, new DefaultPartitionFinder());
     }
 }
