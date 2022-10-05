@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror;
+package com.bakdata.quick.mirror.point;
 
 import static io.restassured.RestAssured.when;
 import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
@@ -26,11 +26,13 @@ import com.bakdata.quick.common.TestTopicTypeService;
 import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
+import com.bakdata.quick.mirror.MirrorApplication;
 import com.bakdata.quick.mirror.base.HostConfig;
-import com.bakdata.quick.mirror.service.QueryContextProvider;
+import com.bakdata.quick.mirror.service.context.QueryContextProvider;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.time.Duration;
@@ -48,7 +50,7 @@ import org.junit.jupiter.api.Test;
 @IntegrationTest
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
-class MirrorApplicationIntegrationTest {
+class PointIndexStreamsStateIntegrationTest {
     public static final String INPUT_TOPIC = "input";
     @Inject
     HostConfig hostConfig;
@@ -73,27 +75,27 @@ class MirrorApplicationIntegrationTest {
     }
 
     @Test
-    void shouldReceiveCorrectValueFromMirrorApplication() throws InterruptedException {
-        this.sendValuesToKafka();
+    void shouldReceiveCorrectPartitionHostFromMirrorApplication() throws InterruptedException {
+        sendValuesToKafka();
         final MirrorApplication<String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();
 
-        Thread.sleep(3000);
-
-        await()
-            .atMost(Duration.ofSeconds(12))
-            .untilAsserted(
-                () -> when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", "key1")
-                    .then()
-                    .statusCode(200)
-                    .body(equalTo("{\"value\":\"value1\"}")));
+        final int port = this.hostConfig.getPort();
+        final String expectedBody = String.format("{\"0\":\"127.0.0.1:%d\"}", port);
+        await().atMost(Duration.ofSeconds(10))
+            .untilAsserted(() -> when()
+                .get("http://" + this.hostConfig.toConnectionString() + "/streams/partitions")
+                .then()
+                .statusCode(HttpStatus.OK.getCode())
+                .body(equalTo(expectedBody)));
         app.close();
         app.getStreams().cleanUp();
         runThread.interrupt();
     }
 
-    private void sendValuesToKafka() throws InterruptedException {
+
+    private static void sendValuesToKafka() throws InterruptedException {
         final List<KeyValue<String, String>> keyValueList = List.of(new KeyValue<>("key1", "value1"),
             new KeyValue<>("key2", "value2"),
             new KeyValue<>("key3", "value3"));
@@ -107,6 +109,16 @@ class MirrorApplicationIntegrationTest {
         kafkaCluster.send(sendRequest);
     }
 
+    private static TopicTypeService topicTypeService() {
+        return TestTopicTypeService.builder()
+            .urlSupplier(schemaRegistry::getUrl)
+            .keyType(QuickTopicType.STRING)
+            .valueType(QuickTopicType.STRING)
+            .keySchema(null)
+            .valueSchema(null)
+            .build();
+    }
+
     private MirrorApplication<String, String> setUpApp() {
         final MirrorApplication<String, String> app = new MirrorApplication<>(
             this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
@@ -117,15 +129,5 @@ class MirrorApplicationIntegrationTest {
         app.setProductive(false);
         app.setSchemaRegistryUrl(schemaRegistry.getUrl());
         return app;
-    }
-
-    private static TopicTypeService topicTypeService() {
-        return TestTopicTypeService.builder()
-            .urlSupplier(schemaRegistry::getUrl)
-            .keyType(QuickTopicType.STRING)
-            .valueType(QuickTopicType.STRING)
-            .keySchema(null)
-            .valueSchema(null)
-            .build();
     }
 }

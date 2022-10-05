@@ -11,7 +11,7 @@ RUN apt-get update \
   jq -y && \
   apt-get clean
 
-ARG QUICK_CLI_VERSION=0.7.0
+ARG QUICK_CLI_VERSION
 ARG INDEX=main
 ENV BATS_VERSION 1.7.0
 

@@ -45,11 +45,11 @@ public class MirrorController<K, V> {
     }
 
     /**
-     * Fetches values for the given id.
+     * Fetches values for the given key.
      */
     @Get("/{key}")
     public Single<HttpResponse<MirrorValue<V>>> get(@PathVariable("key") final String keyString) {
-        log.debug("Request for id {}", keyString);
+        log.debug("Request for key {}", keyString);
         return this.queryService.get(keyString);
     }
 
@@ -61,7 +61,7 @@ public class MirrorController<K, V> {
      */
     @Get("/keys")
     public Single<HttpResponse<MirrorValue<List<V>>>> getList(@QueryValue() final List<String> ids) {
-        log.debug("Request for ids {}", ids);
+        log.debug("Request for keys {}", ids);
         return this.queryService.getValues(ids);
     }
 
@@ -72,5 +72,15 @@ public class MirrorController<K, V> {
     public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
         log.debug("Request for all existing keys.");
         return this.queryService.getAll();
+    }
+
+    /**
+     * Fetches a range of values over a given key and a range field.
+     */
+    @Get("/range/{key}")
+    public Single<HttpResponse<MirrorValue<List<V>>>> getRange(@PathVariable("key") final String keyString,
+        @QueryValue final String from, @QueryValue final String to) {
+        log.debug("Request for key {} and range from {} to {}", keyString, from, to);
+        return this.queryService.getRange(keyString, from, to);
     }
 }

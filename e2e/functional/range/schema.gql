@@ -1,19 +1,29 @@
 type Query {
-    userRequests(
+    userRatings(
         userId: Int
-        timestampFrom: Int
-        timestampTo: Int
-    ): [UserRequests]
-    @topic(name: "user-request-range",
+        ratingFrom: Int
+        ratingTo: Int
+    ): [UserRating] @topic(name: "user-rating-range-test",
         keyArgument: "userId",
-        rangeFrom: "timestampFrom",
-        rangeTo: "timestampTo")
+        rangeFrom: "ratingFrom",
+        rangeTo: "ratingTo")
+}
+type UserRating {
+    userId: Int!
+    purchaseId: String!
+    purchase: Purchase @topic(name: "purchase-topic-test", keyField: "purchaseId")
+    rating: Int
 }
 
-type UserRequests {
-    userId: Int
-    serviceId: Int
-    timestamp: Int
-    requests: Int
-    success: Int
+type Purchase {
+    purchaseId: String!,
+    productId: Int!,
+    userId: Int!,
+    amount: Int,
+    price: Price,
+}
+
+type Price {
+  total: Float,
+  currency: String
 }
