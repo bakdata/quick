@@ -17,11 +17,7 @@
 package com.bakdata.quick.gateway.fetcher.subscription;
 
 
-import com.bakdata.quick.avro.ChartRecord;
-import com.bakdata.quick.common.TestTypeUtils;
-import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
-import com.bakdata.quick.testutil.Chart;
 import com.bakdata.quick.testutil.ClickStats;
 import com.bakdata.quick.testutil.PurchaseStats;
 import com.google.protobuf.Message;
@@ -110,9 +106,8 @@ class MultiSubscriptionFetcherTest {
 
     @ParameterizedTest(name = "shouldFetchValuesForComplexType ({0})")
     @MethodSource("provideArguments")
-    <K, V> void shouldFetchValuesForComplexType(final String name, final List<KeyValue<String, Pair<V, V>>> keyValues,
-                             final QuickTopicData.QuickData<K> keyInfo, final QuickTopicData.QuickData<V> valueInfo,
-                             final List<V> expected) throws InterruptedException {
+    <V> void shouldFetchValuesForComplexType(final List<KeyValue<String, Pair<V, V>>> keyValues,
+                                             final List<V> expected) throws InterruptedException {
 
         // Es gibt vier verschiedene Values
         // Key 1 field 1
@@ -125,28 +120,28 @@ class MultiSubscriptionFetcherTest {
         final V key2field1 = keyValues.get(1).getValue().getKey();
         final V key2field2 = keyValues.get(1).getValue().getValue();
 
-        final DataFetcherClient<?> field1Client = Mockito.mock(DataFetcherClient.class);
-        final DataFetcherClient<?> field2Client = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<String, V> field1Client = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<String, V> field2Client = Mockito.mock(DataFetcherClient.class);
         Mockito.doReturn(key1field2).when(field2Client).fetchResult("key1");
         Mockito.doReturn(key2field1).when(field1Client).fetchResult("key2");
 
-        final SubscriptionProvider<?, ?> field1Subscriber =
+        final SubscriptionProvider<String, V> field1Subscriber =
             env -> Flux.just(new ConsumerRecord<>("topic1", 0, 0, "key1", key1field1));
-        final SubscriptionProvider<?, ?> field2Subscriber =
+        final SubscriptionProvider<String, V> field2Subscriber =
             env -> Flux.just(new ConsumerRecord<>("topic2", 0, 0, "key2", key2field2));
 
-        final Map<String, DataFetcherClient<?>> fieldClients = Map.of(
+        final Map<String, DataFetcherClient<String, ?>> fieldClients = Map.of(
             "field1", field1Client,
             "field2", field2Client
         );
-        final Map<String, SubscriptionProvider<?, ?>> fieldSubscribers = Map.of(
+        final Map<String, SubscriptionProvider<String, ?>> fieldSubscribers = Map.of(
             "field1", field1Subscriber,
             "field2", field2Subscriber
         );
 
         final List<String> selectedFields = List.of("field1", "field2");
-        final MultiSubscriptionFetcher fetcher =
-            new MultiSubscriptionFetcher(fieldClients, fieldSubscribers, env -> selectedFields);
+        final MultiSubscriptionFetcher<String> fetcher =
+            new MultiSubscriptionFetcher<>(fieldClients, fieldSubscribers, env -> selectedFields);
 
         final Publisher<Map<String, Object>> mapPublisher = fetcher.get(
             DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build()
@@ -167,47 +162,41 @@ class MultiSubscriptionFetcherTest {
             newPurchaseStatsInputAvro("id2", 2),
             newClickStatsInputAvro("id2", 2)
         );
-        Pair<?, ?> protoInputPair = Pair.of(
-            newPurchaseStatsInputAvro("id2", 2),
-            newClickStatsInputAvro("id2", 2)
-        );
+
         return Stream.of(
             Arguments.of(
-                "int-avro-test",
                 List.of(
-                    new KeyValue<>(1, protoInputPair),
-                    new KeyValue<>(2, newClickStatsInputAvro("id2", 4L))),
-                TestTypeUtils.newIntegerData(),
-                TestTypeUtils.newAvroData(ChartRecord.getClassSchema()),
+                    new KeyValue<>(1, avroInputPair),
+                    new KeyValue<>(2, avroInputPair)),
                 List.of(
                     newAvroClickStatsOutput("id1", 3L),
                     newAvroClickStatsOutput("id2", 4L)
-                )),
-            Arguments.of(
-                "string-proto-test",
-                List.of(
-                    new KeyValue<>(1, newProtoRecord(2L, 3L)),
-                    new KeyValue<>(2, newProtoRecord(3L, 4L))),
-                TestTypeUtils.newStringData(),
-                TestTypeUtils.newProtobufData(Chart.getDescriptor()),
-                List.of(
-                    newProtoRecord(2L, 3L),
-                    newProtoRecord(3L, 4L)
                 ))
+//            Arguments.of(
+//                "string-proto-test",
+//                List.of(
+//                    new KeyValue<>(1, newProtoRecord(2L, 3L)),
+//                    new KeyValue<>(2, newProtoRecord(3L, 4L))),
+//                TestTypeUtils.newStringData(),
+//                TestTypeUtils.newProtobufData(Chart.getDescriptor()),
+//                List.of(
+//                    newProtoRecord(2L, 3L),
+//                    newProtoRecord(3L, 4L)
+//                ))
                 );
     }
 
     private static Record newAvroClickStatsOutput(final String id, final long amount) {
         final Record record = new Record(com.bakdata.quick.avro.ClickStats.getClassSchema());
-        record.put("0", id);
-        record.put(1, amount);
+        record.put("id", id);
+        record.put("amount", amount);
         return record;
     }
 
     private static Record newAvroPurchaseStatsOutput(final String id, final long amount) {
         final Record record = new Record(com.bakdata.quick.avro.PurchaseStats.getClassSchema());
-        record.put("0", id);
-        record.put(10, amount);
+        record.put("id", id);
+        record.put("amount", amount);
         return record;
     }
 
