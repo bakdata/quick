@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
 import static com.bakdata.quick.common.api.client.TestUtils.mockResponse;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,12 +25,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.client.mirror.MirrorClient;
-import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
-import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
-import com.bakdata.quick.common.api.client.mirror.ResponseWrapper;
+import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.routing.PartitionRouter;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.StringResolver;
 import java.util.List;

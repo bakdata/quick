@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.model.mirror;
+package com.bakdata.quick.common.api.client.mirror;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -75,6 +75,15 @@ class MirrorHostTest {
     void shouldReturnHostWhenConvertedToString() {
         final MirrorHost mirrorHost = new MirrorHost("test-for-to-string", new MirrorConfig());
         assertThat(mirrorHost.toString()).isEqualTo(
-            String.format("http://%s%s/", MIRROR_HOST_PREFIX, "test-for-to-string"));
+            String.format("http://%s%s/%s", MIRROR_HOST_PREFIX, "test-for-to-string", MIRROR_HOST_PATH));
+    }
+
+    @Test
+    void shouldConstructCorrectUrlWithIpAndPort() {
+        final MirrorHost mirrorHost = new MirrorHost("10.30.40.0:8080", MirrorConfig.directAccess());
+        final HttpUrl actual = mirrorHost.forKey("give-me-key");
+        final String url = "http://10.30.40.0:8080/%s/give-me-key";
+        final String expected = String.format(url, MIRROR_HOST_PATH);
+        assertThat(actual.toString()).isEqualTo(expected);
     }
 }

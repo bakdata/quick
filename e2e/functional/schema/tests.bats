@@ -28,7 +28,7 @@ setup() {
 }
 
 @test "should create product-topic with schema" {
-    run quick topic create ${TOPIC} --key-type long --value-type schema --schema "${GATEWAY}.${TYPE}"
+    run quick topic create ${TOPIC} --key-type int --value-type schema --schema "${GATEWAY}.${TYPE}"
     echo "$output"
     [ "$status" -eq 0 ]
     [ "$output" = "Created new topic ${TOPIC}" ]

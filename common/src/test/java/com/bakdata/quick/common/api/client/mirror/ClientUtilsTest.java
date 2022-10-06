@@ -14,12 +14,11 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client;
+package com.bakdata.quick.common.api.client.mirror;
 
 import static com.bakdata.quick.common.api.client.ClientUtils.createMirrorUrlFromRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
@@ -43,5 +42,14 @@ class ClientUtilsTest {
         final HttpUrl mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
         assertThat(mirrorUrlFromRequest.toString()).isEqualTo(
             "http://quick-mirror-healthy-mirror/mirror/range/123?from=1&to=3");
+    }
+
+    @Test
+    void shouldCreateCorrectMirrorUrlWithDirectAccessFromRequestWithNoQueryParameter() {
+        final MirrorHost unreachableMirror = new MirrorHost("10.20.30.40:8080", MirrorConfig.directAccess());
+        final Request failedRequest = new Request.Builder().url(unreachableMirror.forKey("123")).build();
+        final MirrorHost reachableMirror = new MirrorHost("healthy-mirror", new MirrorConfig());
+        final HttpUrl mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
+        assertThat(mirrorUrlFromRequest.toString()).isEqualTo("http://quick-mirror-healthy-mirror/mirror/123");
     }
 }

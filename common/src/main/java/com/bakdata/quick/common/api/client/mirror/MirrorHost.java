@@ -14,14 +14,13 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.model.mirror;
+package com.bakdata.quick.common.api.client.mirror;
 
 import com.bakdata.quick.common.config.MirrorConfig;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
-import okhttp3.HttpUrl.Builder;
 
 /**
  * Utility for setting a Mirror host in Quick.
@@ -34,6 +33,7 @@ public class MirrorHost {
     private final String topic;
     private final MirrorConfig config;
     private final String host;
+    private final HttpUrl url;
 
     /**
      * Private to creates the host with the topic name and mirror config. The host can be a service name or an IP.
@@ -42,9 +42,11 @@ public class MirrorHost {
      * @param config mirror config to use. This can set the service prefix and REST path.
      */
     public MirrorHost(final String topic, final MirrorConfig config) {
-        this.topic = topic;
         this.config = config;
+        this.topic = topic;
         this.host = this.config.getPrefix() + this.topic;
+        final String stringUrl = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, this.host);
+        this.url = HttpUrl.parse(stringUrl);
     }
 
     /**
@@ -114,14 +116,11 @@ public class MirrorHost {
      * Returns the Mirror host with the configured prefix.
      *
      * <p>
-     * e.g. http://quick-mirror-host-name/
+     * e.g. http://quick-mirror-host-name/mirror
      */
     @Override
     public String toString() {
-        return new Builder()
-            .scheme(DEFAULT_MIRROR_SCHEME)
-            .host(this.host)
-            .toString();
+        return this.getBaseUrlBuilder().toString();
     }
 
     /**
@@ -132,7 +131,7 @@ public class MirrorHost {
         if (this == otherMirrorHost) {
             return true;
         }
-        if (otherMirrorHost == null || this.getClass() != otherMirrorHost.getClass()) {
+        if (!(otherMirrorHost instanceof MirrorHost)) {
             return false;
         }
         final MirrorHost that = (MirrorHost) otherMirrorHost;
@@ -144,10 +143,9 @@ public class MirrorHost {
         return Objects.hash(this.topic);
     }
 
-    private Builder getBaseUrlBuilder() {
-        return new Builder()
-            .scheme(DEFAULT_MIRROR_SCHEME)
-            .host(this.host)
+    private HttpUrl.Builder getBaseUrlBuilder() {
+        return Objects.requireNonNull(this.url, "The url is not valid")
+            .newBuilder()
             .addPathSegment(DEFAULT_MIRROR_HOST_PATH);
     }
 }

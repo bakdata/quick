@@ -17,7 +17,6 @@
 package com.bakdata.quick.common.api.client.mirror;
 
 import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;

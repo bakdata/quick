@@ -18,7 +18,6 @@ package com.bakdata.quick.common.api.client.mirror;
 
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.routing.Router;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.ArrayList;

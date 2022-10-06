@@ -16,8 +16,8 @@
 
 package com.bakdata.quick.common.api.client.mirror;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.config.MirrorConfig;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 
@@ -29,6 +29,7 @@ import okhttp3.HttpUrl;
 public final class StreamsStateHost {
     private static final String DEFAULT_MIRROR_SCHEME = "http";
     private final String host;
+    private final HttpUrl url;
 
     /**
      * Private to creates the host with the topic name and mirror config. The host can be a service name or an IP.
@@ -38,6 +39,8 @@ public final class StreamsStateHost {
      */
     private StreamsStateHost(final String topic, final MirrorConfig config) {
         this.host = config.getPrefix() + topic;
+        final String stringUrl = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, this.host);
+        this.url = HttpUrl.parse(stringUrl);
     }
 
     /**
@@ -56,15 +59,10 @@ public final class StreamsStateHost {
      * Generates a URL for fetching partition info.
      */
     public HttpUrl getPartitionToHostUrl() {
-        final HttpUrl httpUrl = new HttpUrl.Builder()
-            .scheme(DEFAULT_MIRROR_SCHEME)
-            .host(this.host)
-            .addPathSegment("streams")
-            .addPathSegment("partitions")
-            .build();
-
-        log.debug("Preparing StreamStateHost URL: {}", httpUrl);
-        return httpUrl;
+        log.debug("Preparing StreamStateHost URL: {}", this.url);
+        final HttpUrl.Builder builder = Objects.requireNonNull(this.url, "The url is not valid").newBuilder();
+        return builder.addPathSegment("streams")
+            .addPathSegment("partitions").build();
     }
 
     @Override
