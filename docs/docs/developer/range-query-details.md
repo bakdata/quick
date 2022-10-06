@@ -95,7 +95,7 @@ until it is applied.
 When you apply a schema that
 contains the topic directive with the additional fields
 (`rangeFrom` and `rangeTo`),
-a [RangeQueryFetcher](https://github.com/bakdata/quick/blob/master/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java)
+a [RangeQueryFetcher](https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java)
 is created.
 This class will be later used
 to deliver a result of a range query to the user.
@@ -105,9 +105,8 @@ to deliver a result of a range query to the user.
 When you execute the `topic create` command with the `--range-field` option,
 a request is sent to the Manager.
 The Manager prepares the deployment of a mirror, which contains
-both [Point Index Processor](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror/MirrorProcessor.java)
-and [Range Index Processor](https://github.com/bakdata/quick/blob/master/mirror/src/main/java/com/bakdata/quick/mirror
-/range/MirrorRangeProcessor.java).
+both [Point Index Processor](https://github.com/bakdata/quick/blob/6fed9f20f237663cc00e3359de92efaf40307f28/mirror/src/main/java/com/bakdata/quick/mirror/point/MirrorProcessor.java)
+and [Range Index Processor](https://github.com/bakdata/quick/blob/6fed9f20f237663cc00e3359de92efaf40307f28/mirror/src/main/java/com/bakdata/quick/mirror/range/MirrorRangeProcessor.java).
 Each time a new value is sent to the topic, both processors are called.
 The first one creates a new key-value pair
 if the specified key does not exist.
@@ -123,7 +122,7 @@ When you prepare a range query,
 you provide two additional parameters in the entry point.
 These attributes define your range.
 After you have executed the query, it hits the gateway.
-There, it is processed by the [RangeQueryFetcher](https://github.com/bakdata/quick/blob/master/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java).
+There, it is processed by the [RangeQueryFetcher](https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java).
 _RangeQueryFetcher_ is responsible for extracting the information
 about the range from the query you passed.
 Having collected the necessary data
