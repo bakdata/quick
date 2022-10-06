@@ -60,7 +60,7 @@ public final class StreamsStateHost {
         final String url = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, this.host);
         log.debug("Preparing StreamStateHost URL: {}", url);
         final HttpUrl parse = HttpUrl.parse(url);
-        final Builder builder = Objects.requireNonNull(parse, "The url is not valid").newBuilder();
+        final HttpUrl.Builder builder = Objects.requireNonNull(parse, "The url is not valid").newBuilder();
         return builder.addPathSegment("streams")
             .addPathSegment("partitions").build();
     }

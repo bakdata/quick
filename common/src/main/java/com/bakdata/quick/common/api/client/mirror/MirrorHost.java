@@ -133,7 +133,7 @@ public class MirrorHost {
         if (this == otherMirrorHost) {
             return true;
         }
-        if (otherMirrorHost == null || this.getClass() != otherMirrorHost.getClass()) {
+        if (!(otherMirrorHost instanceof MirrorHost)) {
             return false;
         }
         final MirrorHost that = (MirrorHost) otherMirrorHost;
@@ -145,7 +145,7 @@ public class MirrorHost {
         return Objects.hash(this.topic);
     }
 
-    private Builder getBaseUrlBuilder() {
+    private HttpUrl.Builder getBaseUrlBuilder() {
         return Objects.requireNonNull(this.url, "The url is not valid")
             .newBuilder()
             .addPathSegment(DEFAULT_MIRROR_HOST_PATH);
