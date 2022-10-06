@@ -94,7 +94,7 @@ visit the developer [section on ranges](https://bakdata.github.io/quick/latest/d
 
 ## Execute the query
 
-Before executing our range query, we need some data ;)
+Before executing our range query, we need some data ;)  
 You can send purchases and ratings into Quick using [the ingest service](ingest-data.md).
 If you followed the previous parts of this guide,
 you should already have data in the `purchase` topic.

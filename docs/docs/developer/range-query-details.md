@@ -93,7 +93,7 @@ until it is applied.
 ## Apply the schema to the gateway
 
 When you apply a schema that
-contains the topic directive with additional fields
+contains the topic directive with the additional fields
 (`rangeFrom` and `rangeTo`),
 a [RangeQueryFetcher](https://github.com/bakdata/quick/blob/master/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java)
 is created.
@@ -129,5 +129,5 @@ about the range from the query you passed.
 Having collected the necessary data
 (information about the key, the start of the range,
 and the end of the range),
-the Gateway sends the get request to the mirror
+the gateway sends the get request to the mirror
 and fetches the result.
