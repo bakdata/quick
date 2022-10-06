@@ -38,22 +38,23 @@ type UserRating {
     rating: Int
 }
 ```
-Let's start with the new structure called `UserRating`.
-It describes a numerical rating a given user (discerned by the `userId`) assigns
-to the specific purchase they previously made (distinguished by the `purchaseId`).
-The most significant changes occur in the `Query` type.
-The first change concerns the parameters of the entry point (`userRatings`).
-The second relates to the `@topic` directive.
-In the entry point, you declare two parameters that describe your desired range
-(here, the `rating` range).
-The values of these arguments are later assigned to two new fields of the
+Let's start with the new type called `UserRating`.
+It describes a numerical rating a given user assigns
+to a specific purchase previously made (identified by `purchaseId`).
+
+However, the most notable changes are in the `Query` type.
+First, (`userRatings`) has new fields: `ratingFrom` and `ratingTo`.
+Second, the `@topic` directive has changed:
+In the query `userRatings`, you declare the two fields that describe your desired range
+(here, the rating range).
+These field values are later assigned to two new parameters of the
 `@topic` directive, `rangeFrom` and `rangeTo` respectively.
 
 In our example, `ratingFrom` and `ratingTo` follow the naming scheme _field**From**_ and _field**To**_
-where _field_ is the field declared in the topic creation command (see Step 3).
+where _field_ is the field declared in the topic creation command (see later step 3).
 Following this convention is not mandatory.
 You can name the parameters of the entry point as you wish.
-However, we think that adhering to the presented pattern increases readability.
+However, we think that following this pattern increases readability.
 
 When you execute a range query, you receive a list of entries.
 Therefore, the return type of the query is a list of _UserRating_.
@@ -76,8 +77,7 @@ quick topic create user-rating-range --key int --value schema --schema example.U
 
 Note that `--range-field` links a particular field you can later use for range queries.
 In our example, the `rating` field of the `UserRating` is linked with a range.
-Changes in the `Query` type described in the first subsection refer precisely to the field
-you define with `--range-field`.
+Tha changes in the `Query` described above refer to this field you define here with `--range-field`.
 
 `--range-field` is an optional flag.
 If you do not specify it, Quick can solely return values for a given key.
@@ -94,14 +94,14 @@ visit the developer [section on ranges](https://bakdata.github.io/quick/latest/d
 
 ## Execute the query
 
-Before executing any range query, you need some data to be available in the topics.
-You can send some purchases and ratings into Quick using the REST API of the ingest service.
-If you followed the previous parts of the user guide,
-you should already have some data in the purchase topic.
-If you didn't, please check the [section about ingesting data](ingest-data.md)
-to add some purchases to the `purchase` topic:
+Before executing our range query, we need some data ;)
+You can send purchases and ratings into Quick using [the ingest service](ingest-data.md).
+If you followed the previous parts of this guide,
+you should already have data in the `purchase` topic.
+If you didn't, please complete the [section about ingesting data](ingest-data.md)
+and add some purchases:
 
-The command below allows you to send some ratings to the `user-rating-range` topic.
+The command below sends ratings to the `user-rating-range` topic.
 ```shell
  curl --request POST --url "$QUICK_URL/ingest/user-rating-range" \
   --header "content-type:application/json" \
@@ -146,7 +146,7 @@ Here is an example of the `ratings.json` file:
       }
     ]
     ```
-Let's say you want to find the purchases the client with `userId=2` was unsatisfied with.
+Let's now find purchases the client with `userId=2` was unsatisfied with.
 Assuming that a disappointing purchase has a rating lower than 5,
 you can execute the following query to obtain the results.
 ```graphql
@@ -165,7 +165,7 @@ query {
     }
 }
 ```
-Upon successful execution of a query, you should receive the following list of ratings:
+Here you go - this is the list of poorly rated purchases.
 ```json
 [
   {
