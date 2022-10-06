@@ -26,7 +26,7 @@ import io.reactivex.subscribers.TestSubscriber;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
@@ -138,12 +138,15 @@ class MultiSubscriptionFetcherTest {
         mapPublisher.subscribe(testSubscriber);
         testSubscriber.awaitTerminalEvent(2, TimeUnit.SECONDS);
         testSubscriber.assertComplete();
+
         testSubscriber.assertValueAt(0, Map.of(
             "field1", newAvroClickStatsOutput("key1", 1),
-            "field2", newAvroPurchaseStatsOutput("key1", 2)));
-        testSubscriber.assertValueAt(1, Map.of(
-            "field2", newAvroPurchaseStatsOutput("key2", 4),
-            "field1", newAvroClickStatsOutput("key2", 3)));
+            "field2", newAvroPurchaseStatsOutput("key1", 2)
+        ));
+        testSubscriber.assertValueAt(0, Map.of(
+            "field1", newAvroPurchaseStatsOutput("key2", 4),
+            "field2", newAvroClickStatsOutput("key2", 3)
+        ));
     }
 
     @Test
@@ -154,8 +157,8 @@ class MultiSubscriptionFetcherTest {
         final ClickStats key2clickStats = newClickStatsRecord("key2", 3);
         final PurchaseStats key2purchaseStats = newPurchaseStatsRecord("key2", 4);
 
-        final DataFetcherClient<Double, com.bakdata.quick.avro.ClickStats> clickStatsClient = Mockito.mock(DataFetcherClient.class);
-        final DataFetcherClient<Double, com.bakdata.quick.avro.PurchaseStats> purchaseStatsClient = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<Double, ClickStats> clickStatsClient = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<Double, PurchaseStats> purchaseStatsClient = Mockito.mock(DataFetcherClient.class);
         Mockito.doReturn(key1purchaseStats).when(purchaseStatsClient).fetchResult(1d);
         Mockito.doReturn(key2clickStats).when(clickStatsClient).fetchResult(2d);
 
@@ -193,18 +196,12 @@ class MultiSubscriptionFetcherTest {
             "field1", newProtoClickStatsOutput("key2", 3)));
     }
 
-    private static Record newAvroClickStatsOutput(final String id, final long amount) {
-        final Record record = new Record(com.bakdata.quick.avro.ClickStats.getClassSchema());
-        record.put("id", id);
-        record.put("amount", amount);
-        return record;
+    private static GenericRecord newAvroClickStatsOutput(final String id, final long amount) {
+        return newClickStatsInputAvro(id, amount);
     }
 
-    private static Record newAvroPurchaseStatsOutput(final String id, final long amount) {
-        final Record record = new Record(com.bakdata.quick.avro.PurchaseStats.getClassSchema());
-        record.put("id", id);
-        record.put("amount", amount);
-        return record;
+    private static GenericRecord newAvroPurchaseStatsOutput(final String id, final long amount) {
+        return newPurchaseStatsInputAvro(id, amount);
     }
 
     private static com.bakdata.quick.avro.ClickStats newClickStatsInputAvro(final String id, final long amount) {

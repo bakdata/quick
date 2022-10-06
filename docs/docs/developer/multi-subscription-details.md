@@ -26,8 +26,9 @@ When a new schema with a multi-subscription is applied,
 a [MultiSubscriptionFetcher](https://github.com/bakdata/quick/blob/master/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/subscription/MultiSubscriptionFetcher.java)
 is created.
 During this process, 
-Quick constructs a separate Kafka Consumer for each field
-marked with the `@topic` directive.
+Quick constructs a DataFetcherClient (for REST calls)
+and a SubscriptionProvider (for consuming from a topic)
+for each field marked with the `@topic` directive.
 
 ## Run the multi-subscription
 
@@ -49,7 +50,7 @@ There are three scenarios for building complex objects via multi subscriptions:
 2. Purchase event arrives, and we have already seen the click event for the corresponding id.
 3. Purchase event arrives, and there has been no click event.
    Note that in the above considerations, the first event is `Purchase`.
-   Note, however, that the choice is arbitrary.
+   Note, however; that the choice is arbitrary.
    The system would behave in the same fashion
    if you switched the order of arrival,
    i.e., `Click` and not `Purchase` first.
