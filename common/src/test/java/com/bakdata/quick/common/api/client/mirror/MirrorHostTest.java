@@ -75,7 +75,7 @@ class MirrorHostTest {
     void shouldReturnHostWhenConvertedToString() {
         final MirrorHost mirrorHost = new MirrorHost("test-for-to-string", new MirrorConfig());
         assertThat(mirrorHost.toString()).isEqualTo(
-            String.format("http://%s%s/", MIRROR_HOST_PREFIX, "test-for-to-string"));
+            String.format("http://%s%s/%s", MIRROR_HOST_PREFIX, "test-for-to-string", MIRROR_HOST_PATH));
     }
 
     @Test
