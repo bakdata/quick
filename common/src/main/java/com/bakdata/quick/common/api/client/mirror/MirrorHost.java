@@ -16,13 +16,11 @@
 
 package com.bakdata.quick.common.api.client.mirror;
 
-
 import com.bakdata.quick.common.config.MirrorConfig;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
-import okhttp3.HttpUrl.Builder;
 
 /**
  * Utility for setting a Mirror host in Quick.
