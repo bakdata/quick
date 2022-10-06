@@ -24,6 +24,7 @@ import static org.awaitility.Awaitility.await;
 import com.bakdata.quick.common.TestTypeUtils;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.tags.IntegrationTest;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.util.Lazy;

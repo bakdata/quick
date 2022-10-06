@@ -19,6 +19,7 @@ package com.bakdata.quick.gateway.fetcher;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
@@ -49,39 +50,42 @@ class RangeQueryFetcherTest {
         final List<Product> userRequests = List.of(product1, product2);
 
         final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchRange(eq(1), eq("1"), eq("4"))).thenReturn(userRequests);
+        when(partitionedMirrorClient.fetchRange(eq(1), eq("1"), eq("3"))).thenReturn(userRequests);
         final DataFetcherClient<Integer, Product> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
         final RangeQueryFetcher<Integer, Product> rangeQueryFetcher =
             new RangeQueryFetcher<>("productId", fetcherClient, "ratingFrom", "ratingTo", true);
 
-        final Map<String, Object> arguments = Map.of("productId", 1, "ratingFrom", "1", "ratingTo", "4");
+        final Map<String, Object> arguments = Map.of("productId", 1, "ratingFrom", 1, "ratingTo", 4);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
         final List<Product> actual = rangeQueryFetcher.get(env);
+
+        verify(partitionedMirrorClient).fetchRange(eq(1), eq("1"), eq("3"));
         assertThat(actual).isEqualTo(userRequests);
     }
 
     @Test
     void shouldFetchEmptyListWhenResultIsNullAndReturnTypeIsNotNullable() {
         final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchRange(eq(1), eq("1"), eq("4"))).thenReturn(Collections.emptyList());
+        when(partitionedMirrorClient.fetchRange(eq(9), eq("6"), eq("9"))).thenReturn(Collections.emptyList());
         final DataFetcherClient<Integer, Product> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
         final RangeQueryFetcher<Integer, Product> rangeQueryFetcher =
             new RangeQueryFetcher<>("productId", fetcherClient, "ratingFrom", "ratingTo", false);
 
-        final Map<String, Object> arguments = Map.of("productId", 1, "ratingFrom", "1", "ratingTo", "2");
+        final Map<String, Object> arguments = Map.of("productId", 9, "ratingFrom", 6, "ratingTo", 10);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
         final List<Product> actual = rangeQueryFetcher.get(env);
 
+        verify(partitionedMirrorClient).fetchRange(eq(9), eq("6"), eq("9"));
         assertThat(actual).isEqualTo(Collections.emptyList());
     }
 }

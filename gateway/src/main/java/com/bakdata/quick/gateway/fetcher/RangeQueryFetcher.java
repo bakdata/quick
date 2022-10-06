@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.common.exception.BadArgumentException;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -59,10 +60,12 @@ public class RangeQueryFetcher<K, V> implements DataFetcher<List<V>> {
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.argument));
         final String rangeFromValue = DeferFetcher.getArgument(this.rangeFrom, environment)
             .orElseThrow(() -> new RuntimeException("Could not find argument " + this.rangeFrom)).toString();
-        final String rangeToValue = DeferFetcher.getArgument(this.rangeTo, environment)
-            .orElseThrow(() -> new RuntimeException("Could not find argument " + this.rangeTo)).toString();
+        final Object rangeToValue = DeferFetcher.getArgument(this.rangeTo, environment)
+            .orElseThrow(() -> new RuntimeException("Could not find argument " + this.rangeTo));
 
-        final List<V> results = this.dataFetcherClient.fetchRange((K) argumentValue, rangeFromValue, rangeToValue);
+        final String exclusiveToValue = getExclusiveToValue(rangeToValue);
+
+        final List<V> results = this.dataFetcherClient.fetchRange((K) argumentValue, rangeFromValue, exclusiveToValue);
 
         // got null but schema doesn't allow null
         // semantically, there is no difference between null and an empty list for us in this case
@@ -72,5 +75,16 @@ public class RangeQueryFetcher<K, V> implements DataFetcher<List<V>> {
         }
 
         return results;
+    }
+
+    private static String getExclusiveToValue(final Object rangeToValue) {
+        if (rangeToValue instanceof Integer) {
+            final int intValue = (int) rangeToValue - 1;
+            return String.valueOf(intValue);
+        } else if (rangeToValue instanceof Long) {
+            final long longValue = (long) rangeToValue - 1L;
+            return String.valueOf(longValue);
+        }
+        throw new BadArgumentException("The end boundary of the range query should be either a integer or a long");
     }
 }
