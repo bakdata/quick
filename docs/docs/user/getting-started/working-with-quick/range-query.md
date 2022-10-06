@@ -53,7 +53,7 @@ These field values are later assigned to two new parameters of the
 In our example, `ratingFrom` and `ratingTo` follow the naming scheme _field**From**_ and _field**To**_
 where _field_ is the field declared in the topic creation command (see later step 3).
 Following this convention is not mandatory.
-You can name the parameters of the entry point as you wish.
+You can name the parameters that define your range as you wish.
 However, we think that following this pattern increases readability.
 
 When you execute a range query, you receive a list of entries.
