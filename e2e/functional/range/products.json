@@ -35,7 +35,7 @@
         "total": 79.99,
         "currency": "EURO"
       },
-    "timestamp": 1
+      "timestamp": 1
     }
   },
   {
@@ -50,7 +50,7 @@
       },
       "timestamp": 1
     }
-  },  
+  },
   {
     "key": 123,
     "value": {
@@ -74,9 +74,9 @@
         "total": 99.99,
         "currency": "EURO"
       },
-    "timestamp": 2
+      "timestamp": 2
     }
-  },  
+  },
   {
     "key": 123,
     "value": {
