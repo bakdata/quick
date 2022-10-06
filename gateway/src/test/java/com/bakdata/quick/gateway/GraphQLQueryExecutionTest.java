@@ -122,7 +122,7 @@ class GraphQLQueryExecutionTest {
             UserRequest.builder().userId(1).timestamp(3).requests(8).build()
         );
 
-        when(dataFetcherClient.fetchRange(1, "1", "2")).thenAnswer(invocation -> userRequests);
+        when(dataFetcherClient.fetchRange(1, "1", "3")).thenAnswer(invocation -> userRequests);
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 
