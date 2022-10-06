@@ -1,0 +1,93 @@
+[
+  {
+    "key": 123,
+    "value": {
+      "productId": 123,
+      "name": "T-Shirt",
+      "description": "black",
+      "price": {
+        "total": 14.99,
+        "currency": "DOLLAR"
+      },
+      "timestamp": 1
+    }
+  },
+  {
+    "key": 123,
+    "value": {
+      "productId": 123,
+      "name": "T-Shirt",
+      "description": "black",
+      "price": {
+        "total": 19.99,
+        "currency": "DOLLAR"
+      },
+      "timestamp": 2
+    }
+  },
+  {
+    "key": 456,
+    "value": {
+      "productId": 456,
+      "name": "Jeans",
+      "description": "Non-stretch denim",
+      "price": {
+        "total": 79.99,
+        "currency": "EURO"
+      },
+    "timestamp": 1
+    }
+  },
+  {
+    "key": 789,
+    "value": {
+      "productId": 789,
+      "name": "Shoes",
+      "description": "Sneaker",
+      "price": {
+        "total": 99.99,
+        "currency": "DOLLAR"
+      },
+      "timestamp": 1
+    }
+  },  
+  {
+    "key": 123,
+    "value": {
+      "productId": 123,
+      "name": "T-Shirt",
+      "description": "black",
+      "price": {
+        "total": 24.99,
+        "currency": "DOLLAR"
+      },
+      "timestamp": 3
+    }
+  },
+  {
+    "key": 456,
+    "value": {
+      "productId": 456,
+      "name": "Jeans",
+      "description": "Non-stretch denim",
+      "price": {
+        "total": 99.99,
+        "currency": "EURO"
+      },
+    "timestamp": 2
+    }
+  },  
+  {
+    "key": 123,
+    "value": {
+      "productId": 123,
+      "name": "T-Shirt",
+      "description": "black",
+      "price": {
+        "total": 29.99,
+        "currency": "DOLLAR"
+      },
+      "timestamp": 4
+    }
+  }
+]

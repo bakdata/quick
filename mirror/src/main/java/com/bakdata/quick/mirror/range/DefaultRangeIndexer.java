@@ -25,6 +25,7 @@ import com.bakdata.quick.mirror.range.padder.IntPadder;
 import com.bakdata.quick.mirror.range.padder.LongPadder;
 import com.bakdata.quick.mirror.range.padder.ZeroPadder;
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Field;
 
 /**
  * Creates range indexes for a Mirror's state store.
@@ -107,26 +109,39 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
     /**
      * Creates the range index for a given key and a value string type.
      */
-    @SuppressWarnings("unchecked")
-    public String createIndex(final K key, final String value) {
+    public String createIndex(final K key, final String value, final boolean isExclusive) {
         final Class<F> valuePadderClass = this.valueZeroPadder.getPadderClass();
-        final String paddedValue;
+
         if (!StringUtils.isDigits(value)) {
             throw new MirrorTopologyException("The string value should be a series of digits");
         }
-        if (valuePadderClass == Integer.class) {
-            final F number = (F) Integer.valueOf(value);
-            paddedValue = this.valueZeroPadder.padZero(number);
-        } else if (valuePadderClass == Long.class) {
-            final F number = (F) Long.valueOf(value);
-            paddedValue = this.valueZeroPadder.padZero(number);
-        } else {
-            throw new MirrorTopologyException("Unsupported field type");
-        }
 
+        final F number = getNumberFromString(value, valuePadderClass, isExclusive);
+
+        final String paddedValue = this.valueZeroPadder.padZero(number);
         final String paddedKey = this.keyZeroPadder.padZero(key);
 
         return String.format("%s_%s", paddedKey, paddedValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T getNumberFromString(final String value, final Class<T> valuePadderClass,
+        final boolean isExclusive) {
+        if (valuePadderClass == Integer.class) {
+            final int intNumber = Integer.parseInt(value);
+            if (isExclusive) {
+                return (T) Integer.valueOf(intNumber - 1);
+            }
+            return (T) Integer.valueOf(intNumber);
+        } else if (valuePadderClass == Long.class) {
+            final long longNumber = Long.parseLong(value);
+            if (isExclusive) {
+                return (T) Long.valueOf(longNumber - 1L);
+            }
+            return (T) Long.valueOf(longNumber);
+        } else {
+            throw new MirrorTopologyException("Unsupported field type");
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -181,7 +196,13 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
     private static QuickTopicType getValueTypeForProtobufSchema(final ProtobufSchema parsedSchema,
         final String rangeField) {
         final Descriptors.Descriptor descriptor = parsedSchema.toDescriptor();
-        final JavaType fieldType = descriptor.findFieldByName(rangeField).getJavaType();
+        final FieldDescriptor field = descriptor.findFieldByName(rangeField);
+        if (field == null) {
+            final String errorMessage =
+                String.format("The defined range field %s does not exist in your Proto schema.", rangeField);
+            throw new MirrorTopologyException(errorMessage);
+        }
+        final JavaType fieldType = field.getJavaType();
         if (fieldType == JavaType.INT) {
             log.trace("Creating integer zero padder for protobuf value");
             return QuickTopicType.INTEGER;
@@ -192,8 +213,14 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
         throw new MirrorTopologyException("Range field value should be either integer or long");
     }
 
-    private static Schema.Type getAvroFieldType(final Schema avroSchema, final String fieldName) {
-        final Schema fieldSchema = avroSchema.getField(fieldName).schema();
+    private static Schema.Type getAvroFieldType(final Schema avroSchema, final String rangeField) {
+        final Field field = avroSchema.getField(rangeField);
+        if (field == null) {
+            final String errorMessage =
+                String.format("The defined range field %s does not exist in your Avro schema.", rangeField);
+            throw new MirrorTopologyException(errorMessage);
+        }
+        final Schema fieldSchema = field.schema();
         if (fieldSchema.getType() == Schema.Type.UNION) {
             final List<Schema> fieldTypes = fieldSchema.getTypes();
             final Optional<Schema.Type> intLongSchemaType = fieldTypes.stream()
