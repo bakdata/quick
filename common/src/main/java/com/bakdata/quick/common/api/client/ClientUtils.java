@@ -24,6 +24,9 @@ import okhttp3.Request;
  * Utils for Quick clients.
  */
 public final class ClientUtils {
+
+    private static final int DEFAULT_HTTP_PORT = 80;
+
     private ClientUtils() {
     }
 
@@ -34,6 +37,7 @@ public final class ClientUtils {
      * @param mirrorHost The Mirror host which contains the new URL
      */
     public static HttpUrl createMirrorUrlFromRequest(final Request request, final MirrorHost mirrorHost) {
-        return request.url().newBuilder().host(mirrorHost.getHost()).build();
+        final String host = mirrorHost.getUrl().host();
+        return request.url().newBuilder().host(host).port(DEFAULT_HTTP_PORT).build();
     }
 }
