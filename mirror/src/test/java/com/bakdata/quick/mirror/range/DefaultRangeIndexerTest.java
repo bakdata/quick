@@ -72,24 +72,45 @@ class DefaultRangeIndexerTest {
     }
 
     @Test
-    void shouldCreateRangeIndexOnKeyAndString() {
+    void shouldCreateRangeIndexOnKeyAndStringAndInclusive() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
         final DefaultRangeIndexer<Integer, GenericRecord, Long> defaultRangeIndexer =
             DefaultRangeIndexer.createRangeIndexer(QuickTopicType.INTEGER,
                 new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
 
-        assertThat(defaultRangeIndexer.createIndex(1, "1")).isEqualTo("0000000001_0000000000000000001");
+        assertThat(defaultRangeIndexer.createIndex(1, "2", false)).isEqualTo("0000000001_0000000000000000002");
     }
 
     @Test
-    void shouldCreateRangeIndexOnNullableFieldWithKeyAndString() {
+    void shouldCreateRangeIndexOnKeyAndStringAndExclusive() {
+        final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
+        final DefaultRangeIndexer<Integer, GenericRecord, Long> defaultRangeIndexer =
+            DefaultRangeIndexer.createRangeIndexer(QuickTopicType.INTEGER,
+                new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
+
+        assertThat(defaultRangeIndexer.createIndex(1, "2", true)).isEqualTo("0000000001_0000000000000000001");
+    }
+
+    @Test
+    void shouldCreateRangeIndexOnNullableFieldWithKeyAndStringAndIsInclusive() {
         final AvroRangeQueryTest avroRecord =
             AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).setAge(45).build();
         final DefaultRangeIndexer<Integer, GenericRecord, Integer> defaultRangeIndexer =
             DefaultRangeIndexer.createRangeIndexer(QuickTopicType.INTEGER,
                 new AvroSchema(avroRecord.getSchema()), "age");
 
-        assertThat(defaultRangeIndexer.createIndex(1, "45")).isEqualTo("0000000001_0000000045");
+        assertThat(defaultRangeIndexer.createIndex(1, "45", false)).isEqualTo("0000000001_0000000045");
+    }
+
+    @Test
+    void shouldCreateRangeIndexOnNullableFieldWithKeyAndStringAndIsExclusive() {
+        final AvroRangeQueryTest avroRecord =
+            AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).setAge(45).build();
+        final DefaultRangeIndexer<Integer, GenericRecord, Integer> defaultRangeIndexer =
+            DefaultRangeIndexer.createRangeIndexer(QuickTopicType.INTEGER,
+                new AvroSchema(avroRecord.getSchema()), "age");
+
+        assertThat(defaultRangeIndexer.createIndex(1, "45", true)).isEqualTo("0000000001_0000000044");
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {

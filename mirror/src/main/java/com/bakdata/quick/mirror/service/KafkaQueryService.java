@@ -26,6 +26,7 @@ import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
+import com.bakdata.quick.common.resolver.KnownTypeResolver;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.range.DefaultRangeIndexer;
@@ -268,8 +269,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not create range indexer");
         }
 
-        final String fromIndex = this.rangeIndexer.createIndex(key, from);
-        final String toIndex = this.rangeIndexer.createIndex(key, to);
+        final String fromIndex = this.rangeIndexer.createIndex(key, from, false);
+        final String toIndex = this.rangeIndexer.createIndex(key, to, true);
 
         log.debug("Index from is: {}", fromIndex);
         log.debug("Index to is: {}", toIndex);
