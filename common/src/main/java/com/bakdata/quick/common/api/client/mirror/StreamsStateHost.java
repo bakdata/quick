@@ -20,7 +20,6 @@ import com.bakdata.quick.common.config.MirrorConfig;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
-import okhttp3.HttpUrl.Builder;
 
 /**
  * Provides information about the host that enables access to the endpoint that delivers info about Kafka Streams app
@@ -30,6 +29,7 @@ import okhttp3.HttpUrl.Builder;
 public final class StreamsStateHost {
     private static final String DEFAULT_MIRROR_SCHEME = "http";
     private final String host;
+    private final HttpUrl url;
 
     /**
      * Private to creates the host with the topic name and mirror config. The host can be a service name or an IP.
@@ -39,6 +39,8 @@ public final class StreamsStateHost {
      */
     private StreamsStateHost(final String topic, final MirrorConfig config) {
         this.host = config.getPrefix() + topic;
+        final String stringUrl = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, this.host);
+        this.url = HttpUrl.parse(stringUrl);
     }
 
     /**
@@ -57,10 +59,8 @@ public final class StreamsStateHost {
      * Generates a URL for fetching partition info.
      */
     public HttpUrl getPartitionToHostUrl() {
-        final String url = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, this.host);
-        log.debug("Preparing StreamStateHost URL: {}", url);
-        final HttpUrl parse = HttpUrl.parse(url);
-        final HttpUrl.Builder builder = Objects.requireNonNull(parse, "The url is not valid").newBuilder();
+        log.debug("Preparing StreamStateHost URL: {}", this.url);
+        final HttpUrl.Builder builder = Objects.requireNonNull(this.url, "The url is not valid").newBuilder();
         return builder.addPathSegment("streams")
             .addPathSegment("partitions").build();
     }
