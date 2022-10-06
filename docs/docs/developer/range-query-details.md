@@ -95,7 +95,7 @@ until it is applied.
 When you apply a schema that
 contains the topic directive with additional fields
 (`rangeFrom` and `rangeTo`),
-a [RangeQueryFetcher](https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java)
+a [RangeQueryFetcher](https://github.com/bakdata/quick/blob/master/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java)
 is created.
 This class will be later used
 to deliver a result of a range query to the user.
@@ -123,7 +123,7 @@ When you prepare a range query,
 you provide two additional parameters in the entry point.
 These attributes define your range.
 After you have executed the query, it hits the gateway.
-There, it is processed by the [RangeQueryFetcher](https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java).
+There, it is processed by the [RangeQueryFetcher](https://github.com/bakdata/quick/blob/master/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java).
 _RangeQueryFetcher_ is responsible for extracting the information
 about the range from the query you passed.
 Having collected the necessary data
