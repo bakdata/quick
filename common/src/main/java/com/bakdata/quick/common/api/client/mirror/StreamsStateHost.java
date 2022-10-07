@@ -16,8 +16,7 @@
 
 package com.bakdata.quick.common.api.client.mirror;
 
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.config.MirrorConfig;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 
@@ -27,17 +26,15 @@ import okhttp3.HttpUrl;
  */
 @Slf4j
 public final class StreamsStateHost {
-    private static final String DEFAULT_MIRROR_SCHEME = "http";
-    private final String host;
+    private final HttpUrl url;
 
     /**
      * Private to creates the host with the topic name and mirror config. The host can be a service name or an IP.
      *
-     * @param topic the topic of the mirror.
-     * @param config mirror config to use. This can set the service prefix and REST path.
+     * @param url The URL to connect to the Mirror
      */
-    private StreamsStateHost(final String topic, final MirrorConfig config) {
-        this.host = config.getPrefix() + topic;
+    private StreamsStateHost(final HttpUrl url) {
+        this.url = url;
     }
 
     /**
@@ -46,29 +43,24 @@ public final class StreamsStateHost {
      * @param mirrorHost mirror host
      * @return an instance of StreamsStateHost
      */
-    public static StreamsStateHost fromMirrorHost(final MirrorHost mirrorHost) {
-        final String topic = mirrorHost.getTopic();
-        final MirrorConfig mirrorConfig = mirrorHost.getConfig();
-        return new StreamsStateHost(topic, mirrorConfig);
+    public static StreamsStateHost createFromMirrorHost(final MirrorHost mirrorHost) {
+        final String mirrorHostUrl = mirrorHost.getUrl().toString();
+        final HttpUrl url = HttpUrl.parse(mirrorHostUrl);
+        return new StreamsStateHost(Objects.requireNonNull(url, "Invalid mirror host URL"));
     }
 
     /**
      * Generates a URL for fetching partition info.
      */
     public HttpUrl getPartitionToHostUrl() {
-        final HttpUrl httpUrl = new HttpUrl.Builder()
-            .scheme(DEFAULT_MIRROR_SCHEME)
-            .host(this.host)
-            .addPathSegment("streams")
-            .addPathSegment("partitions")
-            .build();
-
-        log.debug("Preparing StreamStateHost URL: {}", httpUrl);
-        return httpUrl;
+        log.debug("Preparing StreamStateHost URL: {}", this.url);
+        final HttpUrl.Builder builder = Objects.requireNonNull(this.url, "The url is not valid").newBuilder();
+        return builder.addPathSegment("streams")
+            .addPathSegment("partitions").build();
     }
 
     @Override
     public String toString() {
-        return String.format("http://%s/", this.host);
+        return this.url.toString();
     }
 }

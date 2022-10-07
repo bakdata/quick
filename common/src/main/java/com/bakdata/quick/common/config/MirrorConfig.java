@@ -59,13 +59,4 @@ public class MirrorConfig {
     public MirrorConfig(final Optional<String> prefix) {
         this.prefix = prefix.orElse(DEFAULT_MIRROR_HOST_PREFIX);
     }
-
-    /**
-     * Config when accessing a mirror directly, i.e., not through a service but an IP.
-     *
-     * @return config with empty prefix.
-     */
-    public static MirrorConfig directAccess() {
-        return new MirrorConfig(Optional.of(""));
-    }
 }

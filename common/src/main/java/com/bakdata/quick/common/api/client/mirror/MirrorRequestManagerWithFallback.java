@@ -19,7 +19,6 @@ package com.bakdata.quick.common.api.client.mirror;
 import static com.bakdata.quick.common.api.client.ClientUtils.createMirrorUrlFromRequest;
 
 import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
 import com.bakdata.quick.common.exception.MirrorException;
 import io.micronaut.http.HttpStatus;
 import java.io.IOException;
