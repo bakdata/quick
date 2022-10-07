@@ -1,7 +1,8 @@
 # Working with Quick
 
 With Quick and Quick CLI installed, you can start working with Quick.
-This guide looks into different aspects when working with Quick by following an example use case of an e-commerce application:
+This guide looks into different aspects when working with Quick by following an example use case of an e-commerce 
+application:
 
 - The [Gateway](gateway.md) is one of Quick's core modules.
   You start by creating a new gateway, applying a schema, and connecting to the gateway.
@@ -10,6 +11,9 @@ This guide looks into different aspects when working with Quick by following an 
 - The [ingest service](ingest-data.md) lets you get data into the platform through a REST API.
 - In [Querying data](query-data.md), you connect your gateway and topics.
   This lets you query the data of topics and create relationships between them.
+- In [Range Queries](range-query.md), you can learn how to use range queries, which is a new feature available from 
+  version 0.8. It enables you to retrieve values from a given topic according to a specific range of a particular 
+  field.
 - The guide closes this section with [subscriptions](subscriptions.md).
   They let you receive real-time updates from the gateway.
 
