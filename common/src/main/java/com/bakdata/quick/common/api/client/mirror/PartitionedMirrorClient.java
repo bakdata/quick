@@ -61,7 +61,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public V fetchValue(final K key) {
         final MirrorHost currentKeyHost = this.router.findHost(key);
-        log.debug("Host {} will answer the request for the key: {}.", currentKeyHost.getTopic(), key);
+        log.debug("Host {} will answer the request for the key: {}.", currentKeyHost.getUrl().host(), key);
         final ResponseWrapper response = this.requestManager.makeRequest(currentKeyHost.forKey(key.toString()));
         if (response.isUpdateCacheHeaderSet()) {
             log.debug("The update header has been set. Updating router info.");
@@ -76,7 +76,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         final List<V> valuesFromAllHosts = new ArrayList<>();
         log.debug("Fetching the values for all possible keys that are distributed across {} hosts.", knownHosts.size());
         for (final MirrorHost host : knownHosts) {
-            log.debug("Fetching the value from the following host: {}", host.getTopic());
+            log.debug("Fetching the value from the following host: {}", host.getUrl().host());
             final ResponseWrapper response = this.requestManager.makeRequest(host.forAll());
             final List<V> valuesFromSingleHost =
                 Objects.requireNonNullElse(this.requestManager.processResponse(response, this.parser::deserializeList),

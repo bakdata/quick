@@ -20,7 +20,6 @@ import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.routing.DefaultPartitionFinder;
 import com.bakdata.quick.common.api.client.routing.PartitionRouter;
 import com.bakdata.quick.common.api.client.routing.Router;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
@@ -33,13 +32,14 @@ public class PartitionedMirrorClientFactory implements MirrorClientFactory {
     @Override
     public <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
         final String topic,
-        final MirrorConfig mirrorConfig,
         final Lazy<QuickTopicData<K, V>> quickTopicData) {
-        final MirrorHost mirrorHost = new MirrorHost(topic, mirrorConfig);
+        final MirrorHost mirrorHost = MirrorHost.createMirrorHostForService(topic);
         final MirrorRequestManager requestManager = new MirrorRequestManagerWithFallback(client, mirrorHost);
+        final StreamsStateHost streamsStateHost = StreamsStateHost.createStreamStateHost(mirrorHost);
         final Serde<K> keySerde = quickTopicData.get().getKeyData().getSerde();
         final Router<K> partitionRouter =
-            new PartitionRouter<>(client, mirrorHost, keySerde, new DefaultPartitionFinder(), requestManager);
+            new PartitionRouter<>(client, streamsStateHost, keySerde, new DefaultPartitionFinder(), requestManager,
+                topic);
         final TypeResolver<V> valueTypeResolver = quickTopicData.get().getValueData().getResolver();
         return new PartitionedMirrorClient<>(client, valueTypeResolver, requestManager, partitionRouter);
     }

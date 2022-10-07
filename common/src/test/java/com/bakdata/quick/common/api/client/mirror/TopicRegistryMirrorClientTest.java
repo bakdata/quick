@@ -24,12 +24,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
-import com.bakdata.quick.common.config.MirrorConfig;
-import com.bakdata.quick.common.resolver.KnownTypeResolver;
-import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicType;
 import java.util.List;
 import java.util.Objects;
@@ -37,14 +33,12 @@ import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Test;
 
 class TopicRegistryMirrorClientTest {
-    private final MirrorHost mirrorHost = new MirrorHost("internal-topic-registry", MirrorConfig.directAccess());
-    private final HttpClient mockClient = mock(HttpClient.class);
-    private final TypeResolver<TopicData> mockTypeResolver = mock(KnownTypeResolver.class);
+    private final MirrorHost mirrorHost = MirrorHost.createMirrorHostForDirectIpAccess("internal-topic-registry");
+    private final MirrorValueParser<TopicData> mockMirrorValueParser = mock(MirrorValueParser.class);
     private final MirrorRequestManager mockRequestManager = mock(MirrorRequestManager.class);
     private final MirrorClient<String, TopicData> topicRegistryMirrorClient =
         new DefaultMirrorClient<>(this.mirrorHost,
-            this.mockClient,
-            this.mockTypeResolver,
+            this.mockMirrorValueParser,
             this.mockRequestManager);
 
     @Test
@@ -73,7 +67,8 @@ class TopicRegistryMirrorClientTest {
         when(this.mockRequestManager.makeRequest(eq(httpUrl))).thenReturn(response);
         when(this.mockRequestManager.processResponse(eq(response), any())).thenReturn(List.of(topicData, topicData2));
 
-        final List<TopicData> topic = this.topicRegistryMirrorClient.fetchValues(List.of("test-topic-1", "test-topic-2"));
+        final List<TopicData> topic =
+            this.topicRegistryMirrorClient.fetchValues(List.of("test-topic-1", "test-topic-2"));
 
         verify(this.mockRequestManager).makeRequest(any());
         verify(this.mockRequestManager).processResponse(any(), any());

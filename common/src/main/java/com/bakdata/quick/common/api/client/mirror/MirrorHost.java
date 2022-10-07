@@ -27,26 +27,41 @@ import okhttp3.HttpUrl;
  */
 @Getter
 @Slf4j
-public class MirrorHost {
+public final class MirrorHost {
     private static final String DEFAULT_MIRROR_HOST_PATH = "mirror";
     private static final String DEFAULT_MIRROR_SCHEME = "http";
-    private final String topic;
-    private final MirrorConfig config;
-    private final String host;
     private final HttpUrl url;
 
     /**
      * Private to creates the host with the topic name and mirror config. The host can be a service name or an IP.
      *
-     * @param topic the topic of the mirror.
-     * @param config mirror config to use. This can set the service prefix and REST path.
+     * @param url the full URL to connect to a Mirror.
      */
-    public MirrorHost(final String topic, final MirrorConfig config) {
-        this.config = config;
-        this.topic = topic;
-        this.host = this.config.getPrefix() + this.topic;
-        final String stringUrl = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, this.host);
-        this.url = HttpUrl.parse(stringUrl);
+    private MirrorHost(final HttpUrl url) {
+        this.url = url;
+    }
+
+    /**
+     * Creates the mirror host with the mirrorName. It adds the default {@link MirrorConfig#DEFAULT_MIRROR_HOST_PREFIX}
+     * to the mirror name
+     *
+     * @param mirrorName the name of the Mirror.
+     */
+    public static MirrorHost createMirrorHostForService(final String mirrorName) {
+        final MirrorConfig mirrorConfig = new MirrorConfig();
+        final String host = mirrorConfig.getPrefix() + mirrorName;
+        final HttpUrl httpUrl = createUrlFromString(host);
+        return new MirrorHost(httpUrl);
+    }
+
+    /**
+     * Creates the mirror host without any prefix. Useful if the mirror host object should be created for an IP.
+     *
+     * @param mirrorIp the name of the Mirror.
+     */
+    public static MirrorHost createMirrorHostForDirectIpAccess(final String mirrorIp) {
+        final HttpUrl httpUrl = createUrlFromString(mirrorIp);
+        return new MirrorHost(httpUrl);
     }
 
     /**
@@ -135,16 +150,22 @@ public class MirrorHost {
             return false;
         }
         final MirrorHost that = (MirrorHost) otherMirrorHost;
-        return Objects.equals(this.topic, that.topic);
+        return Objects.equals(this.url, that.url);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.topic);
+        return Objects.hash(this.url);
+    }
+
+    private static HttpUrl createUrlFromString(final String hostName) {
+        final String stringUrl = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, hostName);
+        final HttpUrl httpUrl = HttpUrl.parse(stringUrl);
+        return Objects.requireNonNull(httpUrl, "The URL is invalid");
     }
 
     private HttpUrl.Builder getBaseUrlBuilder() {
-        return Objects.requireNonNull(this.url, "The url is not valid")
+        return this.url
             .newBuilder()
             .addPathSegment(DEFAULT_MIRROR_HOST_PATH);
     }

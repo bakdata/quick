@@ -21,9 +21,9 @@ import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.mirror.MirrorClient;
 import com.bakdata.quick.common.api.client.mirror.MirrorHost;
+import com.bakdata.quick.common.api.client.mirror.MirrorValueParser;
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import com.bakdata.quick.common.api.model.TopicWriteType;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
@@ -43,17 +43,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class IngestFilter {
     private final HttpClient client;
-    private final MirrorConfig mirrorConfig;
 
     /**
      * Default constructor.
      *
      * @param client http client
-     * @param mirrorConfig config for Quick mirror
      */
-    public IngestFilter(final HttpClient client, final MirrorConfig mirrorConfig) {
+    public IngestFilter(final HttpClient client) {
         this.client = client;
-        this.mirrorConfig = mirrorConfig;
     }
 
     /**
@@ -80,11 +77,14 @@ public class IngestFilter {
 
     private <K, V> Single<IngestLists<K, V>> getExistingKeys(final QuickTopicData<K, V> topicData,
         final List<KeyValuePair<K, V>> pairs) {
-        final MirrorClient<K, V> mirrorClient =
-            new DefaultMirrorClient<>(new MirrorHost(topicData.getName(), this.mirrorConfig),
-                this.client,
-                topicData.getValueData().getResolver(),
-                new DefaultMirrorRequestManager(this.client));
+        final MirrorHost mirrorHost = MirrorHost.createMirrorHostForService(topicData.getName());
+
+        final MirrorValueParser<V> mirrorValueParser =
+            new MirrorValueParser<>(topicData.getValueData().getResolver(), this.client.objectMapper());
+
+        final MirrorClient<K, V> mirrorClient = new DefaultMirrorClient<>(mirrorHost,
+            mirrorValueParser,
+            new DefaultMirrorRequestManager(this.client));
 
         return Flowable.fromIterable(pairs)
             .map(pair -> {

@@ -19,7 +19,6 @@ package com.bakdata.quick.gateway.fetcher;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClientFactory;
 import com.bakdata.quick.common.config.KafkaConfig;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
@@ -71,9 +70,9 @@ public class FetcherFactory {
      */
     @Inject
     public FetcherFactory(final KafkaConfig kafkaConfig, final HttpClient client,
-        final MirrorConfig mirrorConfig, final TopicTypeService topicTypeService) {
+        final TopicTypeService topicTypeService) {
         this(kafkaConfig, client.objectMapper(), topicTypeService,
-            new DefaultClientSupplier(client, mirrorConfig, new PartitionedMirrorClientFactory()));
+            new DefaultClientSupplier(client, new PartitionedMirrorClientFactory()));
     }
 
     /**
