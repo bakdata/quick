@@ -25,4 +25,6 @@ public interface ZeroPadder<T> {
     String padZero(final T number);
 
     Class<T> getPadderClass();
+
+    T convertStringToNumber(final String stringValue);
 }

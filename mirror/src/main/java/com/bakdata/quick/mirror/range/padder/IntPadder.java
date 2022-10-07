@@ -25,6 +25,17 @@ public class IntPadder implements ZeroPadder<Integer> {
     private static final int MAX_INTEGER_LENGTH = 10;
     private final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_INTEGER_LENGTH));
 
+    private final boolean isExclusive;
+
+    /**
+     * Default constructor.
+     *
+     * @param isExclusive determines if the value should be exclusive or not
+     */
+    public IntPadder(final boolean isExclusive) {
+        this.isExclusive = isExclusive;
+    }
+
     @Override
     public String padZero(final Integer number) {
         return this.decimalFormat.format(number);
@@ -33,5 +44,14 @@ public class IntPadder implements ZeroPadder<Integer> {
     @Override
     public Class<Integer> getPadderClass() {
         return Integer.class;
+    }
+
+    @Override
+    public Integer convertStringToNumber(final String stringValue) {
+        final int intNumber = Integer.parseInt(stringValue);
+        if (this.isExclusive) {
+            return intNumber - 1;
+        }
+        return intNumber;
     }
 }

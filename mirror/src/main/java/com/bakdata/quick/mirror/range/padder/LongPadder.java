@@ -24,6 +24,16 @@ import java.text.DecimalFormat;
 public class LongPadder implements ZeroPadder<Long> {
     private static final int MAX_LONG_LENGTH = 19;
     private final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_LONG_LENGTH));
+    private final boolean isExclusive;
+
+    /**
+     * Default constructor.
+     *
+     * @param isExclusive determines if the value should be exclusive or not
+     */
+    public LongPadder(final boolean isExclusive) {
+        this.isExclusive = isExclusive;
+    }
 
     @Override
     public String padZero(final Long number) {
@@ -33,5 +43,14 @@ public class LongPadder implements ZeroPadder<Long> {
     @Override
     public Class<Long> getPadderClass() {
         return Long.class;
+    }
+
+    @Override
+    public Long convertStringToNumber(final String stringValue) {
+        final long longNumber = Long.parseLong(stringValue);
+        if (this.isExclusive) {
+            return longNumber - 1L;
+        }
+        return longNumber;
     }
 }

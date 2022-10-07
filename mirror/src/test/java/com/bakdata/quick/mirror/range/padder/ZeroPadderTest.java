@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -44,7 +45,7 @@ class ZeroPadderTest {
     @ParameterizedTest
     @MethodSource("integerNumberProvider")
     void shouldPadZerosToIntegers(final int number, final String expected) {
-        final ZeroPadder<Integer> integerZeroPadder = new IntPadder();
+        final ZeroPadder<Integer> integerZeroPadder = new IntPadder(false);
         assertThat(integerZeroPadder.getPadderClass()).isEqualTo(Integer.class);
         assertThat(integerZeroPadder.padZero(number)).isEqualTo(expected);
     }
@@ -52,11 +53,34 @@ class ZeroPadderTest {
     @ParameterizedTest
     @MethodSource("longNumberProvider")
     void shouldPadZerosToLongs(final long number, final String expected) {
-        final ZeroPadder<Long> longZeroPadder = new LongPadder();
+        final ZeroPadder<Long> longZeroPadder = new LongPadder(false);
         assertThat(longZeroPadder.getPadderClass()).isEqualTo(Long.class);
         assertThat(longZeroPadder.padZero(number)).isEqualTo(expected);
     }
 
+    @Test
+    void shouldConvertNumericalStringToIntegers() {
+        final ZeroPadder<Integer> integerZeroPadder = new IntPadder(false);
+        assertThat(integerZeroPadder.convertStringToNumber("5")).isEqualTo(5);
+    }
+
+    @Test
+    void shouldConvertNumericalStringToIntegersAndExclusive() {
+        final ZeroPadder<Integer> integerZeroPadder = new IntPadder(true);
+        assertThat(integerZeroPadder.convertStringToNumber("5")).isEqualTo(4);
+    }
+
+    @Test
+    void shouldConvertNumericalStringToLongs() {
+        final ZeroPadder<Long> longZeroPadder = new LongPadder(false);
+        assertThat(longZeroPadder.convertStringToNumber("5")).isEqualTo(5L);
+    }
+
+    @Test
+    void shouldConvertNumericalStringToLongsAndExclusive() {
+        final ZeroPadder<Long> longZeroPadder = new LongPadder(true);
+        assertThat(longZeroPadder.convertStringToNumber("5")).isEqualTo(4L);
+    }
 
     static Stream<Arguments> integerNumberProvider() {
         return Stream.of(
