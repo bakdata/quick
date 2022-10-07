@@ -33,24 +33,25 @@ In any case, it's a key-value store, meaning all keys are unique.
 Storing different values for the same key is impossible.
 Consider the following entries that are saved in a topic:
 
-| key (UserId) | value                                       |
-|:------------:|---------------------------------------------|
-|     `1`      | `{userId: 1, purchaseId: "abc", rating: 2}` |
-|     `1`      | `{userId: 1, purchaseId: "def", rating: 4}` |
-|     `2`      | `{userId: 2, purchaseId: "ghi", rating: 4}` |
+| key (productId) | value                                             |
+|:---------------:|---------------------------------------------------|
+|      `123`      | `{productId: 123, name: "T-Shirt", timestamp: 2}` |
+|      `123`      | `{productId: 123, name: "T-Shirt", timestamp: 3}` |
+|      `234`      | `{productId: 234, name: "Hoodie", timestamp: 4}`  |
 
-The table indicates that there are two entries for the `userId=1`.
+The table indicates that there are two entries for the `productId=123`.
 The second entry is newer, meaning its value is the current one in the store.
-Suppose you query the store with `userId=1`.
-In that case, you get `{userId: 1, purchaseId: "def", rating: 4}`,
+Suppose you query the store with `productId=123`.
+In that case, you get `{productId: 123, name: "T-Shirt", timestamp: 3}`,
 and there is no possibility of accessing the earlier value.  
 In subsequent parts of this section,
 we refer to queries that can only retrieve the latest record as point queries.
-Similarly, suppose a specific mirror is only capable of supporting such queries. In that case,
-we say this is a mirror with a point index.  
+Similarly, suppose a specific mirror is only capable of supporting such queries.
+In that case, we say this is a mirror with a point index.  
 Because of the intrinsic nature of state stores,
-providing a possibility to access previous values (making a range query that encompasses more than one value
-associated with `userId=1`) demands a change in the key representation.
+providing a possibility to access previous values
+(making a range query that encompasses more than one value
+associated with `productId=123`) demands a change in the key representation.
 
 ### Introducing the possibility of carrying out range queries
 
@@ -62,24 +63,24 @@ The keys are padded (depending on the type `Int` 10 digits or `Long` 19 digits)
 with zeros to keep the lexicographic order.
 The general format of the key in the state store is:
 <nobr>`<zero_paddings><topicKeyValue>_<zero_paddings><rangeFieldValue>`</nobr>.  
-Following the example from the table: If we have a topic with `userId` as its key
-and want to create a range over the `rating`,
+Following the example from the table: If we have a topic with `productId` as its key
+and want to create a range over the `timestamp`,
 the key in the state store for the first entry looks like this:
 ``` 
-00000000001_00000000002
+00000000123_00000000002
 ```
 And for the second:
 ``` 
-00000000001_00000000004
+00000000123_00000000003
 ```
 Regarding negative values, the minus sign is appended at the beginning of the padded string.
-For example, consider a user with the negative (for whatever reason) id number `userId=-10`
-and `rating=10`.
+For example, consider a product with the negative (for whatever reason) id number `productId=-10`
+and `timestamp=10`.
 Then, the index looks as follows:
 ``` 
 -00000000010_00000000010
 ```
-The flatten-key approach creates unique keys for each user with a given rating.
+The flatten-key approach creates unique keys for each product with a given timestamp.
 Consequently, all the values will be accessible when running a range query.
 In later parts of this section, a mirror that can support range queries
 is called a mirror with a range index.

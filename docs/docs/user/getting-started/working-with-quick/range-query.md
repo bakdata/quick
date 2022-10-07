@@ -1,13 +1,22 @@
 # Range queries
 
-We now extend the [e-commerce example](query-data.md) with user ratings.
-Thus, users can then rank their purchases.
-This allows the company to find purchases that did not satisfy customers.
-It could then provide promo codes to the unhappy ones.
+We now extend the `Product` type
+from the [e-commerce example](query-data.md)
+with time information.
+This allows a company to analyse
+the development of the price in time.
+Using this information,
+a company could investigate
+what factors might have influenced 
+the price of a specific product
+Correspondingly, it can come up with a strategy 
+for increasing sales.
 
-The company could fetch all purchases and filter them accordingly to find disappointing purchases.
-However, range queries allow you to specify a specific range of bad ratings
-(say, from 1 to 4 on a 10-point grading scale)
+The company could fetch all products
+and filter them accordingly
+to find the desired product's prices in a given period.
+However, range queries allow you 
+to specify an id of a product a desired time-range
 and receive the corresponding records immediately.
 
 To integrate range queries into your application, you must take the following steps:
@@ -22,35 +31,42 @@ To integrate range queries into your application, you must take the following st
 To introduce range queries, we will extend the previous schema as follows:
 ```graphql title="schema.gql"
 type Query {
-    userRatings(
-        userId: Int
-        ratingFrom: Int
-        ratingTo: Int
-    ): [UserRating] @topic(name: "user-rating-range",
-        keyArgument: "userId",
-        rangeFrom: "ratingFrom",
-        rangeTo: "ratingTo")
+    productPriceInTime(
+        productId: Int
+        timestampFrom: Int
+        timestampTo: Int
+    ): [Product] @topic(name: "product-price-range",
+        keyArgument: "productId",
+        rangeFrom: "timestampFrom",
+        rangeTo: "timestampTo")
 }
-type UserRating {
-    userId: Int!
-    purchaseId: String!
-    purchase: Purchase @topic(name: "purchase", keyField: "purchaseId")
-    rating: Int
+
+type Product {
+    productId: Int!
+    name: String
+    description: String
+    price: Price
+    timestamp: Int
+}
+
+type Price {
+    total: Float
+    currency: String
 }
 ```
-Let's start with the new type called `UserRating`.
-It describes a numerical rating a given user assigns
-to a specific purchase previously made (identified by `purchaseId`).
+As you can see, the `Product` type has been extended.
+It contains a timestamp that can describe
+the price of the product at a given time.
 
 However, the most notable changes are in the `Query` type.
-First, (`userRatings`) has new fields: `ratingFrom` and `ratingTo`.
+First, your query (`productPriceInTime`) has new fields: `timestampFrom` and `timestampTo`.
 Second, the `@topic` directive has changed:
-In the query `userRatings`, you declare the two fields that describe your desired range
-(here, the rating range).
+In the query `productPriceInTime`, you declare the two fields that describe your desired range
+(here, the timestamp range).
 These field values are later assigned to two new parameters of the
 `@topic` directive, `rangeFrom` and `rangeTo` respectively.
 
-In our example, `ratingFrom` and `ratingTo` follow the naming scheme _field**From**_ and _field**To**_
+In our example, `timestampFrom` and `timestampTo` follow the naming scheme _field**From**_ and _field**To**_
 where _field_ is the field declared in the topic creation command (see later step 3).
 Following this convention is not mandatory.
 You can name the parameters that define your range as you wish.
@@ -70,14 +86,23 @@ quick gateway apply example -f schema.gql
 
 To use range queries, you must set the `--range-field` parameter when creating the topic.
 Under the hood, Quick creates additional data structures that enable the execution of range queries.
-Use the Quick CLI as follows:
+!!! Note
+    Because of the change in the `Product` type,
+    you must delete the `product` topic
+    (if you created it before)
+    and create it again.
+    To delete the topic,
+    use the following command:
+    `quick topic delete product`
+Use the Quick CLI as follows
+to create a topic with the new parameter:
 ```
-quick topic create user-rating-range --key int --value schema --schema example.UserRating --range-field rating
+quick topic create product-price-range --key int --value schema --schema example.Product --range-field timestamp
 ```
 
 Note that `--range-field` links a particular field you can later use for range queries.
-In our example, the `rating` field of the `UserRating` is linked with a range.
-Tha changes in the `Query` described above refer to this field you define here with `--range-field`.
+In our example, the `timestamp` field of the `Product` is linked with a range.
+The changes in the `Query` described above refer to this field you define here with `--range-field`.
 
 `--range-field` is an optional flag.
 If you do not specify it, Quick can solely return values for a given key.
@@ -90,107 +115,163 @@ Note the constraints on the values (which you define via the `--value` option):
 2. The range field type has to be `Long` or `Int`.
 
 If you are interested in details of the query processing,
-visit the developer [section on ranges](https://bakdata.github.io/quick/latest/developer/range-queries-details/).
+visit the developer [section on ranges](../../../developer/range-query-details.md).
 
 ## Execute the query
 
-Before executing our range query, we need some data ;)  
-You can send purchases and ratings into Quick using [the ingest service](ingest-data.md).
-If you followed the previous parts of this guide,
-you should already have data in the `purchase` topic.
-If you didn't, please complete the [section about ingesting data](ingest-data.md)
-and add some purchases:
+Before executing our range query, you need some data ;)  
+You can send products into Quick using [the ingest service](ingest-data.md).
 
-The command below sends ratings to the `user-rating-range` topic.
+The command below sends products to the `product-price-range` topic.
 ```shell
- curl --request POST --url "$QUICK_URL/ingest/user-rating-range" \
+ curl --request POST --url "$QUICK_URL/ingest/product-price-range" \
   --header "content-type:application/json" \
   --header "X-API-Key:$QUICK_API_KEY"\
-  --data "@./ratings.json"
+  --data "@./products.json"
 ```
-Here is an example of the `ratings.json` file:
-??? "Example `ratings.json`"
-    ``` 
+Here is an example of the `products.json` file:
+??? "Example `products.json`"
+    ```
     [
       {
-        "key": 1,
+        "key": 123,
         "value": {
-          "userId": 1,
-          "purchaseId": "abc",
-          "rating": 7
+          "productId": 123,
+          "name": "T-Shirt",
+          "description": "black",
+          "price": {
+            "total": 14.99,
+            "currency": "DOLLAR"
+          },
+          "timestamp": 1
         }
       },
       {
-        "key": 2,
+        "key": 123,
         "value": {
-          "userId": 2,
-          "purchaseId": "def",
-          "rating": 2
+          "productId": 123,
+          "name": "T-Shirt",
+          "description": "black",
+          "price": {
+            "total": 19.99,
+            "currency": "DOLLAR"
+          },
+          "timestamp": 2
         }
       },
       {
-        "key": 2,
+        "key": 456,
         "value": {
-          "userId": 2,
-          "purchaseId": "ghi",
-          "rating": 6
+          "productId": 456,
+          "name": "Jeans",
+          "description": "Non-stretch denim",
+          "price": {
+            "total": 79.99,
+            "currency": "EURO"
+          },
+          "timestamp": 1
         }
       },
       {
-        "key": 2,
+        "key": 789,
         "value": {
-          "userId": 2,
-          "purchaseId": "jkl",
-          "rating": 1
+          "productId": 789,
+          "name": "Shoes",
+          "description": "Sneaker",
+          "price": {
+            "total": 99.99,
+            "currency": "DOLLAR"
+          },
+          "timestamp": 1
         }
+      },
+      {
+        "key": 123,
+        "value": {
+          "productId": 123,
+          "name": "T-Shirt",
+          "description": "black",
+          "price": {
+            "total": 24.99,
+            "currency": "DOLLAR"
+          },
+          "timestamp": 3
+          }
+      },
+        {
+        "key": 456,
+        "value": {
+          "productId": 456,
+          "name": "Jeans",
+          "description": "Non-stretch denim",
+          "price": {
+            "total": 99.99,
+            "currency": "EURO"
+          },
+          "timestamp": 2
+          }
+        },
+        {
+        "key": 123,
+        "value": {
+          "productId": 123,
+          "name": "T-Shirt",
+          "description": "black",
+          "price": {
+            "total": 29.99,
+            "currency": "DOLLAR"
+          },
+          "timestamp": 4
+          }
       }
     ]
     ```
-Let's now find purchases the client with `userId=2` was unsatisfied with.
-Assuming that a disappointing purchase has a rating lower than 5,
-you can execute the following query to obtain the results.
+Let's now find the prices of the product
+identified by `productId=123`.
+Additionally, say we want to analyse the prices
+in the time-window between `1` and `3`.
+!!! Note
+    The provided upper bound of a range
+    is exclusive.
+    If you want to have a specific number
+    in your range, you must provide
+    a number that is one bigger than 
+    the desired value.
 ```graphql
 query {
-    userRatings(userId: 2, ratingFrom:1, ratingTo:4) {
-        userId
-        rating
-        purchase {
-            purchaseId
-            productId
-            price {
-                total
-                currency
-            }
-        }
+  productPriceInTime(productId:123, timestampFrom:1, timestampTo:4) {
+    productId,
+    price
+    {
+      total
     }
+    timestamp
+  }
 }
 ```
-Here you go - this is the list of poorly rated purchases.
+Here you go - this is the list of the desired products.
 ```json
 [
   {
-    "userId": 2,
-    "rating": 2,
-    "purchase": {
-      "purchaseId": "def",
-      "productId": 123,
-      "price": {
-        "total": 30,
-        "currency": "DOLLAR"
-      }
-    }
+    "productId": 123,
+    "price": {
+      "total": 14.99
+    },
+    "timestamp": 1
   },
   {
-    "userId": 2,
-    "rating": 4,
-    "purchase": {
-      "purchaseId": "jkl",
-      "productId": 456,
-      "price": {
-        "total": 99.99,
-        "currency": "DOLLAR"
-      }
-    }
+    "productId": 123,
+    "price": {
+      "total": 19.99
+    },
+    "timestamp": 2
+  },
+  {
+    "productId": 123,
+    "price": {
+      "total": 24.99
+    },
+    "timestamp": 3
   }
 ]
 ```
