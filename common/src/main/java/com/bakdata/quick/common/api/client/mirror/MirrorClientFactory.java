@@ -17,7 +17,6 @@
 package com.bakdata.quick.common.api.client.mirror;
 
 import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
 
@@ -27,6 +26,5 @@ import com.bakdata.quick.common.util.Lazy;
 public interface MirrorClientFactory {
     <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
         final String topic,
-        final MirrorConfig mirrorConfig,
         final Lazy<QuickTopicData<K, V>> quickTopicData);
 }

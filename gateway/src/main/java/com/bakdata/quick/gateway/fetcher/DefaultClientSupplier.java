@@ -18,19 +18,16 @@ package com.bakdata.quick.gateway.fetcher;
 
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.MirrorClientFactory;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
 
 final class DefaultClientSupplier implements ClientSupplier {
     private final HttpClient client;
-    private final MirrorConfig mirrorConfig;
     private final MirrorClientFactory mirrorClientFactory;
 
-    DefaultClientSupplier(final HttpClient client, final MirrorConfig mirrorConfig,
+    DefaultClientSupplier(final HttpClient client,
         final MirrorClientFactory mirrorClientFactory) {
         this.client = client;
-        this.mirrorConfig = mirrorConfig;
         this.mirrorClientFactory = mirrorClientFactory;
     }
 
@@ -38,6 +35,6 @@ final class DefaultClientSupplier implements ClientSupplier {
     public <K, V> DataFetcherClient<K, V> createClient(final String topic,
         final Lazy<QuickTopicData<K, V>> quickTopicData) {
         return new MirrorDataFetcherClient<>(new Lazy<>(() ->
-            this.mirrorClientFactory.createMirrorClient(this.client, topic, this.mirrorConfig, quickTopicData)));
+            this.mirrorClientFactory.createMirrorClient(this.client, topic, quickTopicData)));
     }
 }

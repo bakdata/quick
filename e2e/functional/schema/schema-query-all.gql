@@ -1,5 +1,5 @@
 type Query {
-  findProduct(productId: Long): Product @topic(name: "schema-product-topic-test", keyArgument: "productId")
+  findProduct(productId: Int): Product @topic(name: "schema-product-topic-test", keyArgument: "productId")
   findProducts(productId: [Int]): [Product] @topic(name: "schema-product-topic-test", keyArgument: "productId")
   allProducts: [Product] @topic(name: "schema-product-topic-test")
 }
