@@ -26,7 +26,7 @@ class StreamsStateHostTest {
 
     @Test
     void shouldConstructCorrectUrlForStreamStateHost() {
-        final MirrorHost mirrorHost = MirrorHost.createMirrorHostForService("test-for-streams");
+        final MirrorHost mirrorHost = MirrorHost.createMirrorHostWithDefaultPrefix("test-for-streams");
         final StreamsStateHost streamsStateHost = StreamsStateHost.createStreamStateHost(mirrorHost);
         final HttpUrl actual = streamsStateHost.getPartitionToHostUrl();
         final String url = "http://%s-test-for-streams/streams/partitions";
@@ -36,7 +36,7 @@ class StreamsStateHostTest {
 
     @Test
     void shouldConstructCorrectUrlWithPortAndIpForStreamStateHost() {
-        final MirrorHost mirrorHost = MirrorHost.createMirrorHostForDirectIpAccess("10.20.40.0:8080");
+        final MirrorHost mirrorHost = MirrorHost.createMirrorHostWithNoPrefix("10.20.40.0:8080");
         final StreamsStateHost streamsStateHost = StreamsStateHost.createStreamStateHost(mirrorHost);
         final HttpUrl actual = streamsStateHost.getPartitionToHostUrl();
         final String expected = "http://10.20.40.0:8080/streams/partitions";

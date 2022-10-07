@@ -47,7 +47,7 @@ public final class MirrorHost {
      *
      * @param mirrorName the name of the Mirror.
      */
-    public static MirrorHost createMirrorHostForService(final String mirrorName) {
+    public static MirrorHost createMirrorHostWithDefaultPrefix(final String mirrorName) {
         final MirrorConfig mirrorConfig = new MirrorConfig();
         final String host = mirrorConfig.getPrefix() + mirrorName;
         final HttpUrl httpUrl = createUrlFromString(host);
@@ -59,7 +59,7 @@ public final class MirrorHost {
      *
      * @param mirrorIp the name of the Mirror.
      */
-    public static MirrorHost createMirrorHostForDirectIpAccess(final String mirrorIp) {
+    public static MirrorHost createMirrorHostWithNoPrefix(final String mirrorIp) {
         final HttpUrl httpUrl = createUrlFromString(mirrorIp);
         return new MirrorHost(httpUrl);
     }

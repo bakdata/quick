@@ -26,18 +26,18 @@ import org.junit.jupiter.api.Test;
 class ClientUtilsTest {
     @Test
     void shouldCreateCorrectMirrorUrlFromRequestWithNoQueryParameter() {
-        final MirrorHost unreachableMirror = MirrorHost.createMirrorHostForService("unreachable-mirror");
+        final MirrorHost unreachableMirror = MirrorHost.createMirrorHostWithDefaultPrefix("unreachable-mirror");
         final Request failedRequest = new Request.Builder().url(unreachableMirror.forKey("123")).build();
-        final MirrorHost reachableMirror = MirrorHost.createMirrorHostForService("healthy-mirror");
+        final MirrorHost reachableMirror = MirrorHost.createMirrorHostWithDefaultPrefix("healthy-mirror");
         final HttpUrl mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
         assertThat(mirrorUrlFromRequest.toString()).isEqualTo("http://quick-mirror-healthy-mirror/mirror/123");
     }
 
     @Test
     void shouldCreateCorrectMirrorUrlFromRequestWithQueryParameter() {
-        final MirrorHost unreachableMirror = MirrorHost.createMirrorHostForService("unreachable-mirror");
+        final MirrorHost unreachableMirror = MirrorHost.createMirrorHostWithDefaultPrefix("unreachable-mirror");
         final Request failedRequest = new Request.Builder().url(unreachableMirror.forRange("123", "1", "3")).build();
-        final MirrorHost reachableMirror = MirrorHost.createMirrorHostForService("healthy-mirror");
+        final MirrorHost reachableMirror = MirrorHost.createMirrorHostWithDefaultPrefix("healthy-mirror");
         final HttpUrl mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
         assertThat(mirrorUrlFromRequest.toString()).isEqualTo(
             "http://quick-mirror-healthy-mirror/mirror/range/123?from=1&to=3");
@@ -45,9 +45,9 @@ class ClientUtilsTest {
 
     @Test
     void shouldCreateCorrectMirrorUrlWithDirectAccessFromRequestWithNoQueryParameter() {
-        final MirrorHost unreachableMirror = MirrorHost.createMirrorHostForDirectIpAccess("10.20.30.40:8080");
+        final MirrorHost unreachableMirror = MirrorHost.createMirrorHostWithNoPrefix("10.20.30.40:8080");
         final Request failedRequest = new Request.Builder().url(unreachableMirror.forKey("123")).build();
-        final MirrorHost reachableMirror = MirrorHost.createMirrorHostForService("healthy-mirror");
+        final MirrorHost reachableMirror = MirrorHost.createMirrorHostWithDefaultPrefix("healthy-mirror");
         final HttpUrl mirrorUrlFromRequest = createMirrorUrlFromRequest(failedRequest, reachableMirror);
         assertThat(mirrorUrlFromRequest.toString()).isEqualTo("http://quick-mirror-healthy-mirror/mirror/123");
     }

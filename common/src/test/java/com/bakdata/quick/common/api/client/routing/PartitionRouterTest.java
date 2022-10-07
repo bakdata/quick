@@ -59,7 +59,7 @@ class PartitionRouterTest {
         when(this.partitionFinder.getForSerializedKey(eq(serializedKey1), eq(2))).thenReturn(0);
         when(this.partitionFinder.getForSerializedKey(eq(serializedKey2), eq(2))).thenReturn(1);
 
-        final MirrorHost serviceName = MirrorHost.createMirrorHostForService("test-topic");
+        final MirrorHost serviceName = MirrorHost.createMirrorHostWithDefaultPrefix("test-topic");
         final StreamsStateHost streamsStateHost = StreamsStateHost.createStreamStateHost(serviceName);
         final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse(body));
         when(this.mockRequestManager.makeRequest(eq(streamsStateHost.getPartitionToHostUrl()))).thenReturn(response);
@@ -80,7 +80,7 @@ class PartitionRouterTest {
         final String body = this.objectMapper.writeValueAsString(singleReplica);
         final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse(body));
 
-        final MirrorHost serviceName = MirrorHost.createMirrorHostForService("test-topic");
+        final MirrorHost serviceName = MirrorHost.createMirrorHostWithDefaultPrefix("test-topic");
         final StreamsStateHost streamsStateHost = StreamsStateHost.createStreamStateHost(serviceName);
         when(this.mockRequestManager.makeRequest(eq(streamsStateHost.getPartitionToHostUrl()))).thenReturn(response);
 
@@ -108,7 +108,7 @@ class PartitionRouterTest {
     void shouldThrowExceptionWhenPartitionToMirrorHostIsEmpty() {
         final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
 
-        final MirrorHost serviceName = MirrorHost.createMirrorHostForService("test-topic");
+        final MirrorHost serviceName = MirrorHost.createMirrorHostWithDefaultPrefix("test-topic");
         final StreamsStateHost streamsStateHost = StreamsStateHost.createStreamStateHost(serviceName);
         when(this.mockRequestManager.makeRequest(eq(streamsStateHost.getPartitionToHostUrl()))).thenReturn(response);
 
