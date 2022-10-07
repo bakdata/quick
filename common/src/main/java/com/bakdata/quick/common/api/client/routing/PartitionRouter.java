@@ -17,10 +17,9 @@
 package com.bakdata.quick.common.api.client.routing;
 
 import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.api.client.mirror.MirrorHost;
 import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
 import com.bakdata.quick.common.api.client.mirror.StreamsStateHost;
-import com.bakdata.quick.common.api.model.mirror.MirrorHost;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.micronaut.http.HttpStatus;
@@ -63,13 +62,14 @@ public class PartitionRouter<K> implements Router<K> {
      */
     public PartitionRouter(
         final HttpClient client,
-        final MirrorHost mirrorHost,
+        final StreamsStateHost streamsStateHost,
         final Serde<? super K> keySerde,
         final PartitionFinder partitionFinder,
-        final MirrorRequestManager requestManager) {
+        final MirrorRequestManager requestManager,
+        final String topic) {
         this.client = client;
-        this.streamsStateHost = StreamsStateHost.fromMirrorHost(mirrorHost);
-        this.topic = mirrorHost.getTopic();
+        this.streamsStateHost = streamsStateHost;
+        this.topic = topic;
         this.keySerde = keySerde;
         this.partitionFinder = partitionFinder;
         this.requestManager = requestManager;
@@ -109,16 +109,17 @@ public class PartitionRouter<K> implements Router<K> {
 
     private List<MirrorHost> findDistinctHosts() {
         final Set<String> distinctHosts = new HashSet<>(this.partitionToMirrorHost.size());
+
         return this.partitionToMirrorHost.values()
             .stream()
-            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getTopic()))
+            .filter(mirrorHost -> distinctHosts.add(mirrorHost.getUrl().host()))
             .collect(Collectors.toList());
     }
 
     private static Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
         return partitionToHost.entrySet().stream().collect(
             Collectors.toMap(Map.Entry::getKey,
-                entry -> new MirrorHost(entry.getValue(), MirrorConfig.directAccess())));
+                entry -> MirrorHost.createWithNoPrefix(entry.getValue())));
     }
 
     /**
