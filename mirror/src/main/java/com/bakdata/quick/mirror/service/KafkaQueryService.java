@@ -256,7 +256,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     private DefaultMirrorClient<K, V> getDefaultMirrorClient(final HostInfo replicaHostInfo) {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
-        final MirrorHost mirrorHost = MirrorHost.createMirrorHostWithNoPrefix(host);
+        final MirrorHost mirrorHost = MirrorHost.createWithNoPrefix(host);
 
         final MirrorValueParser<V> mirrorValueParser =
             new MirrorValueParser<>(this.valueResolver, this.client.objectMapper());

@@ -77,7 +77,7 @@ public class IngestFilter {
 
     private <K, V> Single<IngestLists<K, V>> getExistingKeys(final QuickTopicData<K, V> topicData,
         final List<KeyValuePair<K, V>> pairs) {
-        final MirrorHost mirrorHost = MirrorHost.createMirrorHostWithDefaultPrefix(topicData.getName());
+        final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topicData.getName());
 
         final MirrorValueParser<V> mirrorValueParser =
             new MirrorValueParser<>(topicData.getValueData().getResolver(), this.client.objectMapper());

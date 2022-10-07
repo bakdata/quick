@@ -33,9 +33,9 @@ public class PartitionedMirrorClientFactory implements MirrorClientFactory {
     public <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
         final String topic,
         final Lazy<QuickTopicData<K, V>> quickTopicData) {
-        final MirrorHost mirrorHost = MirrorHost.createMirrorHostWithDefaultPrefix(topic);
+        final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
         final MirrorRequestManager requestManager = new MirrorRequestManagerWithFallback(client, mirrorHost);
-        final StreamsStateHost streamsStateHost = StreamsStateHost.createStreamStateHost(mirrorHost);
+        final StreamsStateHost streamsStateHost = StreamsStateHost.createFromMirrorHost(mirrorHost);
         final Serde<K> keySerde = quickTopicData.get().getKeyData().getSerde();
         final Router<K> partitionRouter =
             new PartitionRouter<>(client, streamsStateHost, keySerde, new DefaultPartitionFinder(), requestManager,

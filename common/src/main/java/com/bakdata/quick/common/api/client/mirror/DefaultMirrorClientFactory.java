@@ -28,7 +28,7 @@ public class DefaultMirrorClientFactory implements MirrorClientFactory {
     @Override
     public <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client, final String topic,
         final Lazy<QuickTopicData<K, V>> quickTopicData) {
-        final MirrorHost mirrorHost = MirrorHost.createMirrorHostWithDefaultPrefix(topic);
+        final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
         final MirrorRequestManager requestManager = new DefaultMirrorRequestManager(client);
         final TypeResolver<V> valueTypeResolver = quickTopicData.get().getValueData().getResolver();
         final MirrorValueParser<V> mirrorValueParser =

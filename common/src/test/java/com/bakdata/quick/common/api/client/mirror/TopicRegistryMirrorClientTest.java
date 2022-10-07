@@ -33,7 +33,7 @@ import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Test;
 
 class TopicRegistryMirrorClientTest {
-    private final MirrorHost mirrorHost = MirrorHost.createMirrorHostWithNoPrefix("internal-topic-registry");
+    private final MirrorHost mirrorHost = MirrorHost.createWithNoPrefix("internal-topic-registry");
     private final MirrorValueParser<TopicData> mockMirrorValueParser = mock(MirrorValueParser.class);
     private final MirrorRequestManager mockRequestManager = mock(MirrorRequestManager.class);
     private final MirrorClient<String, TopicData> topicRegistryMirrorClient =

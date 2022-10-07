@@ -47,10 +47,13 @@ public final class MirrorHost {
      *
      * @param mirrorName the name of the Mirror.
      */
-    public static MirrorHost createMirrorHostWithDefaultPrefix(final String mirrorName) {
+    public static MirrorHost createWithPrefix(final String mirrorName) {
         final MirrorConfig mirrorConfig = new MirrorConfig();
         final String host = mirrorConfig.getPrefix() + mirrorName;
-        final HttpUrl httpUrl = createUrlFromString(host);
+        final HttpUrl httpUrl = new HttpUrl.Builder()
+            .host(host)
+            .scheme(DEFAULT_MIRROR_SCHEME)
+            .build();
         return new MirrorHost(httpUrl);
     }
 
@@ -59,8 +62,9 @@ public final class MirrorHost {
      *
      * @param mirrorIp the name of the Mirror.
      */
-    public static MirrorHost createMirrorHostWithNoPrefix(final String mirrorIp) {
-        final HttpUrl httpUrl = createUrlFromString(mirrorIp);
+    public static MirrorHost createWithNoPrefix(final String mirrorIp) {
+        final String stringUrl = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, mirrorIp);
+        final HttpUrl httpUrl = Objects.requireNonNull(HttpUrl.parse(stringUrl), "The URL is invalid");
         return new MirrorHost(httpUrl);
     }
 
@@ -156,12 +160,6 @@ public final class MirrorHost {
     @Override
     public int hashCode() {
         return Objects.hash(this.url);
-    }
-
-    private static HttpUrl createUrlFromString(final String hostName) {
-        final String stringUrl = String.format("%s://%s", DEFAULT_MIRROR_SCHEME, hostName);
-        final HttpUrl httpUrl = HttpUrl.parse(stringUrl);
-        return Objects.requireNonNull(httpUrl, "The URL is invalid");
     }
 
     private HttpUrl.Builder getBaseUrlBuilder() {

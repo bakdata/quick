@@ -119,7 +119,7 @@ public class PartitionRouter<K> implements Router<K> {
     private static Map<Integer, MirrorHost> convertHostStringToMirrorHost(final Map<Integer, String> partitionToHost) {
         return partitionToHost.entrySet().stream().collect(
             Collectors.toMap(Map.Entry::getKey,
-                entry -> MirrorHost.createMirrorHostWithNoPrefix(entry.getValue())));
+                entry -> MirrorHost.createWithNoPrefix(entry.getValue())));
     }
 
     /**

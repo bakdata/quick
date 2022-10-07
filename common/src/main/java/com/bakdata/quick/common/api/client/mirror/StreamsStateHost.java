@@ -43,7 +43,7 @@ public final class StreamsStateHost {
      * @param mirrorHost mirror host
      * @return an instance of StreamsStateHost
      */
-    public static StreamsStateHost createStreamStateHost(final MirrorHost mirrorHost) {
+    public static StreamsStateHost createFromMirrorHost(final MirrorHost mirrorHost) {
         final String mirrorHostUrl = mirrorHost.getUrl().toString();
         final HttpUrl url = HttpUrl.parse(mirrorHostUrl);
         return new StreamsStateHost(Objects.requireNonNull(url, "Invalid mirror host URL"));
