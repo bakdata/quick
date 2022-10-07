@@ -17,7 +17,6 @@
 package com.bakdata.quick.common.api.client.mirror;
 
 import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
@@ -28,10 +27,12 @@ import com.bakdata.quick.common.util.Lazy;
 public class DefaultMirrorClientFactory implements MirrorClientFactory {
     @Override
     public <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client, final String topic,
-        final MirrorConfig mirrorConfig, final Lazy<QuickTopicData<K, V>> quickTopicData) {
-        final MirrorHost mirrorHost = new MirrorHost(topic, mirrorConfig);
+        final Lazy<QuickTopicData<K, V>> quickTopicData) {
+        final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
         final MirrorRequestManager requestManager = new DefaultMirrorRequestManager(client);
         final TypeResolver<V> valueTypeResolver = quickTopicData.get().getValueData().getResolver();
-        return new DefaultMirrorClient<>(mirrorHost, client, valueTypeResolver, requestManager);
+        final MirrorValueParser<V> mirrorValueParser =
+            new MirrorValueParser<>(valueTypeResolver, client.objectMapper());
+        return new DefaultMirrorClient<>(mirrorHost, mirrorValueParser, requestManager);
     }
 }

@@ -28,7 +28,6 @@ import com.bakdata.quick.common.api.client.mirror.MirrorHost;
 import com.bakdata.quick.common.api.client.mirror.MirrorRequestManager;
 import com.bakdata.quick.common.api.client.mirror.ResponseWrapper;
 import com.bakdata.quick.common.api.client.mirror.StreamsStateHost;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,7 +48,7 @@ class PartitionRouterTest {
 
     @Test
     void shouldReturnCorrectHostForGivenPartition() throws JsonProcessingException {
-        final Map<Integer, String> multiReplica = Map.of(0, "123.456.789.000", 1, "000.987.654.321");
+        final Map<Integer, String> multiReplica = Map.of(0, "123.456.789.000:8080", 1, "000.987.654.321:8080");
         final String body = this.objectMapper.writeValueAsString(multiReplica);
 
         final String key = "abc";
@@ -60,40 +59,40 @@ class PartitionRouterTest {
         when(this.partitionFinder.getForSerializedKey(eq(serializedKey1), eq(2))).thenReturn(0);
         when(this.partitionFinder.getForSerializedKey(eq(serializedKey2), eq(2))).thenReturn(1);
 
-        final MirrorHost serviceName = new MirrorHost("test-topic", new MirrorConfig());
-        final StreamsStateHost streamsStateHost = StreamsStateHost.fromMirrorHost(serviceName);
+        final MirrorHost serviceName = MirrorHost.createWithPrefix("test-topic");
+        final StreamsStateHost streamsStateHost = StreamsStateHost.createFromMirrorHost(serviceName);
         final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse(body));
         when(this.mockRequestManager.makeRequest(eq(streamsStateHost.getPartitionToHostUrl()))).thenReturn(response);
 
-        final Router<String> partitionRouter = new PartitionRouter<>(this.client, serviceName, new StringSerde(),
+        final Router<String> partitionRouter = new PartitionRouter<>(this.client, streamsStateHost, new StringSerde(),
             this.partitionFinder,
-            this.mockRequestManager);
+            this.mockRequestManager, "test-topic");
 
-        final String host1 = partitionRouter.findHost(key).getTopic();
-        final String host2 = partitionRouter.findHost(key2).getTopic();
+        final String host1 = partitionRouter.findHost(key).getUrl().host();
+        final String host2 = partitionRouter.findHost(key2).getUrl().host();
         assertThat(host1).isEqualTo("123.456.789.000");
         assertThat(host2).isEqualTo("000.987.654.321");
     }
 
     @Test
     void shouldReturnSingleHostWhenTheyAreEqualAndTwoIfTheyDiffer() throws JsonProcessingException {
-        final Map<Integer, String> singleReplica = Map.of(0, "123.456.789.000", 1, "123.456.789.000");
+        final Map<Integer, String> singleReplica = Map.of(0, "123.456.789.000:8080", 1, "123.456.789.000:8080");
         final String body = this.objectMapper.writeValueAsString(singleReplica);
         final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse(body));
 
-        final MirrorHost serviceName = new MirrorHost("test-topic", new MirrorConfig());
-        final StreamsStateHost streamsStateHost = StreamsStateHost.fromMirrorHost(serviceName);
+        final MirrorHost serviceName = MirrorHost.createWithPrefix("test-topic");
+        final StreamsStateHost streamsStateHost = StreamsStateHost.createFromMirrorHost(serviceName);
         when(this.mockRequestManager.makeRequest(eq(streamsStateHost.getPartitionToHostUrl()))).thenReturn(response);
 
-        final Router<String> partitionRouter = new PartitionRouter<>(this.client, serviceName, new StringSerde(),
+        final Router<String> partitionRouter = new PartitionRouter<>(this.client, streamsStateHost, new StringSerde(),
             this.partitionFinder,
-            this.mockRequestManager);
+            this.mockRequestManager, "test-topic");
 
         final List<MirrorHost> allHosts = partitionRouter.getAllHosts();
 
         assertThat(allHosts).hasSize(1);
 
-        final Map<Integer, String> multiReplica = Map.of(0, "123.456.789.000", 1, "000.987.654.321");
+        final Map<Integer, String> multiReplica = Map.of(0, "123.456.789.000:8080", 1, "000.987.654.321:8080");
         final String updateValue = this.objectMapper.writeValueAsString(multiReplica);
         final ResponseWrapper updateResponse = ResponseWrapper.fromResponse(mockResponse(updateValue));
         when(this.mockRequestManager.makeRequest(eq(streamsStateHost.getPartitionToHostUrl()))).thenReturn(
@@ -109,13 +108,13 @@ class PartitionRouterTest {
     void shouldThrowExceptionWhenPartitionToMirrorHostIsEmpty() {
         final ResponseWrapper response = ResponseWrapper.fromResponse(mockResponse());
 
-        final MirrorHost serviceName = new MirrorHost("test-topic", new MirrorConfig());
-        final StreamsStateHost streamsStateHost = StreamsStateHost.fromMirrorHost(serviceName);
+        final MirrorHost serviceName = MirrorHost.createWithPrefix("test-topic");
+        final StreamsStateHost streamsStateHost = StreamsStateHost.createFromMirrorHost(serviceName);
         when(this.mockRequestManager.makeRequest(eq(streamsStateHost.getPartitionToHostUrl()))).thenReturn(response);
 
-        final Router<String> partitionRouter = new PartitionRouter<>(this.client, serviceName, new StringSerde(),
+        final Router<String> partitionRouter = new PartitionRouter<>(this.client, streamsStateHost, new StringSerde(),
             this.partitionFinder,
-            this.mockRequestManager);
+            this.mockRequestManager, "test-topic");
 
         assertThatThrownBy(partitionRouter::getAllHosts)
             .isInstanceOf(MirrorException.class)

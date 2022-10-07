@@ -21,8 +21,8 @@ import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
 import com.bakdata.quick.common.api.client.mirror.HeaderConstants;
 import com.bakdata.quick.common.api.client.mirror.MirrorHost;
+import com.bakdata.quick.common.api.client.mirror.MirrorValueParser;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
@@ -257,9 +257,12 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     private DefaultMirrorClient<K, V> getDefaultMirrorClient(final HostInfo replicaHostInfo) {
         final String host = String.format("%s:%s", replicaHostInfo.host(), replicaHostInfo.port());
-        final MirrorHost mirrorHost = new MirrorHost(host, MirrorConfig.directAccess());
+        final MirrorHost mirrorHost = MirrorHost.createWithNoPrefix(host);
 
-        return new DefaultMirrorClient<>(mirrorHost, this.client, this.valueResolver,
+        final MirrorValueParser<V> mirrorValueParser =
+            new MirrorValueParser<>(this.valueResolver, this.client.objectMapper());
+
+        return new DefaultMirrorClient<>(mirrorHost, mirrorValueParser,
             new DefaultMirrorRequestManager(this.client));
     }
 

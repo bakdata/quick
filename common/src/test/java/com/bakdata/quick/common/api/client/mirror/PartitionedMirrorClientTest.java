@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.routing.PartitionRouter;
-import com.bakdata.quick.common.config.MirrorConfig;
 import com.bakdata.quick.common.resolver.StringResolver;
 import java.util.List;
 import okhttp3.HttpUrl;
@@ -43,8 +42,8 @@ class PartitionedMirrorClientTest {
     @Test
     void shouldCallUpdateRoutingInfoWhenUpdateHeaderIsSetWhenFetchingValue() {
         final List<MirrorHost> singleReplicaMirrorWithTwoPartitions = List.of(
-            new MirrorHost("123.456.789.000", MirrorConfig.directAccess()),
-            new MirrorHost("123.456.789.000", MirrorConfig.directAccess())
+            MirrorHost.createWithNoPrefix("123.456.789.000:8080"),
+            MirrorHost.createWithNoPrefix("123.456.789.000:8080")
         );
         final MirrorHost firstPartition = singleReplicaMirrorWithTwoPartitions.get(0);
         final MirrorHost secondPartition = singleReplicaMirrorWithTwoPartitions.get(1);
@@ -75,8 +74,8 @@ class PartitionedMirrorClientTest {
     @Test
     void shouldReturnAllValuesFromMirrorWithTwoReplicaWhenFetchingAll() {
         final List<MirrorHost> multiReplicaMirror = List.of(
-            new MirrorHost("123.456.789.000", MirrorConfig.directAccess()),
-            new MirrorHost("000.987.654.321", MirrorConfig.directAccess())
+            MirrorHost.createWithNoPrefix("123.456.789.000:8080"),
+            MirrorHost.createWithNoPrefix("000.987.654.321:8080")
         );
 
         final List<String> firstMirrorValues = List.of("value1", "value2");
@@ -98,8 +97,8 @@ class PartitionedMirrorClientTest {
     @Test
     void shouldReturnAllValuesFromMirrorWithTwoReplicaWhenFetchValues() {
         final List<MirrorHost> multiReplicaMirror = List.of(
-            new MirrorHost("123.456.789.000", MirrorConfig.directAccess()),
-            new MirrorHost("000.987.654.321", MirrorConfig.directAccess())
+            MirrorHost.createWithNoPrefix("123.456.789.000:8080"),
+            MirrorHost.createWithNoPrefix("000.987.654.321:8080")
         );
 
         final List<String> queriedKeys = List.of("key-1", "key-2", "key-3", "key-4");
@@ -135,8 +134,8 @@ class PartitionedMirrorClientTest {
     @Test
     void shouldReturnAllValuesFromMirrorWithOneReplicaAndTwoPartitionsWhenFetchValues() {
         final List<MirrorHost> singleReplicaMirrorWithTwoPartitions = List.of(
-            new MirrorHost("123.456.789.000", MirrorConfig.directAccess()),
-            new MirrorHost("123.456.789.000", MirrorConfig.directAccess())
+            MirrorHost.createWithNoPrefix("123.456.789.000:8080"),
+            MirrorHost.createWithNoPrefix("123.456.789.000:8080")
         );
 
         final MirrorHost firstPartitions = singleReplicaMirrorWithTwoPartitions.get(0);
@@ -161,7 +160,7 @@ class PartitionedMirrorClientTest {
 
     @Test
     void shouldReturnAllValuesFromMirrorWithOneReplicaWhenFetchRange() {
-        final MirrorHost singleReplica = new MirrorHost("123.456.789.000", MirrorConfig.directAccess());
+        final MirrorHost singleReplica = MirrorHost.createWithNoPrefix("123.456.789.000:8080");
 
         when(this.mockRouter.findHost("key-1")).thenReturn(singleReplica);
         final HttpUrl rangeUrl = singleReplica.forRange("key-1", "1", "4");
