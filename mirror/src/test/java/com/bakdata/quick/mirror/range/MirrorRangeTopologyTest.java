@@ -20,6 +20,7 @@ import static com.bakdata.quick.common.TestTypeUtils.newAvroData;
 import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
 import static com.bakdata.quick.common.TestTypeUtils.newLongData;
 import static com.bakdata.quick.common.TestTypeUtils.newProtobufData;
+import static com.bakdata.quick.common.TestTypeUtils.newStringData;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
@@ -38,18 +39,21 @@ import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
+import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -69,8 +73,9 @@ class MirrorRangeTopologyTest {
 
     @Test
     void shouldAddRangeValueWithAvroSchema() {
-        final TestTopology<Object, Object> testTopology = new TestTopology<>(
-            MirrorRangeTopologyTest::createAvroTopology, avroTestProps()
+        final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
+            createTopology(properties, newIntegerData(), avroData()),
+            setTestProperties(Serdes.Integer(), new GenericAvroSerde())
         );
 
         testTopology.start();
@@ -91,14 +96,14 @@ class MirrorRangeTopologyTest {
             .add(-10, avroRecord4);
         final KeyValueStore<String, GenericRecord> store =
             testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
-        assertThat(store.range("0000000001_0000000000000000001", "0000000001_0000000000000000003")).toIterable()
+        assertThat(store.range("1_0000000000000000001", "1_0000000000000000003")).toIterable()
             .hasSize(3)
             .satisfies(keyValues -> {
                 assertThat(keyValues).extracting(keyValue -> keyValue.key)
                     .containsExactly(
-                        "0000000001_0000000000000000001",
-                        "0000000001_0000000000000000002",
-                        "0000000001_0000000000000000003");
+                        "1_0000000000000000001",
+                        "1_0000000000000000002",
+                        "1_0000000000000000003");
                 assertThat(keyValues).extracting(keyValue -> keyValue.value.get(RANGE_FIELD))
                     .containsExactly(1L, 2L, 3L);
             });
@@ -107,9 +112,10 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldAddRangeValueWithAvroSchemaWithNegativeValues() {
-        final TestTopology<Object, Object> testTopology = new TestTopology<>(
-            MirrorRangeTopologyTest::createAvroTopology, avroTestProps()
+    void shouldAddRangeValueWithAvroSchemaWithNegativeIntegerKeys() {
+        final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
+            createTopology(properties, newIntegerData(), avroData()),
+            setTestProperties(Serdes.Integer(), new GenericAvroSerde())
         );
         testTopology.start();
 
@@ -131,14 +137,14 @@ class MirrorRangeTopologyTest {
 
         final KeyValueStore<String, GenericRecord> store =
             testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
-        assertThat(store.range("-0000000001_0000000000000000001", "-0000000001_0000000000000000003")).toIterable()
+        assertThat(store.range("-1_0000000000000000001", "-1_0000000000000000003")).toIterable()
             .hasSize(3)
             .satisfies(keyValues -> {
                 assertThat(keyValues).extracting(keyValue -> keyValue.key)
                     .containsExactly(
-                        "-0000000001_0000000000000000001",
-                        "-0000000001_0000000000000000002",
-                        "-0000000001_0000000000000000003");
+                        "-1_0000000000000000001",
+                        "-1_0000000000000000002",
+                        "-1_0000000000000000003");
                 assertThat(keyValues).extracting(keyValue -> keyValue.value.get(RANGE_FIELD))
                     .containsExactly(1L, 2L, 3L);
             });
@@ -148,8 +154,9 @@ class MirrorRangeTopologyTest {
 
     @Test
     void shouldAddRangeForMinAndMaxValuesWithAvroSchema() {
-        final TestTopology<Object, Object> testTopology = new TestTopology<>(
-            MirrorRangeTopologyTest::createAvroTopology, avroTestProps()
+        final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
+            createTopology(properties, newIntegerData(), avroData()),
+            setTestProperties(Serdes.Integer(), new GenericAvroSerde())
         );
 
         testTopology.start();
@@ -187,9 +194,47 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
+    void shouldAddRangeValueWithAvroSchemaAndStringKeys() {
+        final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
+            createTopology(properties, newStringData(), avroData()),
+            setTestProperties(Serdes.String(), new GenericAvroSerde())
+        );
+
+        testTopology.start();
+        final AvroRangeQueryTest avroRecord1 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
+        final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
+        final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
+        final AvroRangeQueryTest avroRecord4 = AvroRangeQueryTest.newBuilder().setUserId(2).setTimestamp(1L).build();
+        testTopology.input()
+            .add("1:0", avroRecord1)
+            .add("1:0", avroRecord2)
+            .add("1:0", avroRecord3)
+            .add("0:0", avroRecord4)
+            .add("2:0", avroRecord4)
+            .add("3:0", avroRecord4)
+            .add("10:0", avroRecord4);
+        final KeyValueStore<String, GenericRecord> store =
+            testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
+        assertThat(store.range("1:0_0000000000000000001", "1:0_0000000000000000003")).toIterable()
+            .hasSize(3)
+            .satisfies(keyValues -> {
+                assertThat(keyValues).extracting(keyValue -> keyValue.key)
+                    .containsExactly(
+                        "1:0_0000000000000000001",
+                        "1:0_0000000000000000002",
+                        "1:0_0000000000000000003");
+                assertThat(keyValues).extracting(keyValue -> keyValue.value.get(RANGE_FIELD))
+                    .containsExactly(1L, 2L, 3L);
+            });
+
+        testTopology.stop();
+    }
+
+    @Test
     void shouldAddRangeValueWithProto() {
-        final TestTopology<Object, Object> testTopology = new TestTopology<>(
-            MirrorRangeTopologyTest::createProtoTopology, protoTestProps()
+        final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
+            createTopology(properties, newLongData(), protoData()),
+            setTestProperties(Serdes.Long(), new KafkaProtobufSerde<>())
         ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new ProtobufSchemaProvider())));
 
         testTopology.start();
@@ -207,17 +252,21 @@ class MirrorRangeTopologyTest {
             .add(3L, protoRecord4)
             .add(10L, protoRecord4)
             .add(-2L, protoRecord4)
+            .add(-3L, protoRecord1)
+            .add(-3L, protoRecord2)
+            .add(-3L, protoRecord3)
             .add(-3L, protoRecord4)
             .add(-10L, protoRecord4);
         final KeyValueStore<String, Message> store = testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
-        assertThat(store.range("0000000000000000001_0000000001", "0000000000000000001_0000000003")).toIterable()
+
+        assertThat(store.range("1_0000000001", "1_0000000003")).toIterable()
             .hasSize(3)
             .satisfies(keyValues -> {
                 assertThat(keyValues).extracting(keyValue -> keyValue.key)
                     .containsExactly(
-                        "0000000000000000001_0000000001",
-                        "0000000000000000001_0000000002",
-                        "0000000000000000001_0000000003");
+                        "1_0000000001",
+                        "1_0000000002",
+                        "1_0000000003");
                 assertThat(keyValues).extracting(keyValue -> getField(keyValue.value))
                     .containsExactly(1, 2, 3);
             });
@@ -227,8 +276,9 @@ class MirrorRangeTopologyTest {
 
     @Test
     void shouldAddRangeValueWithProtoWithNegativeValues() {
-        final TestTopology<Object, Object> testTopology = new TestTopology<>(
-            MirrorRangeTopologyTest::createProtoTopology, protoTestProps()
+        final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
+            createTopology(properties, newLongData(), protoData()),
+            setTestProperties(Serdes.Long(), new KafkaProtobufSerde<>())
         ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new ProtobufSchemaProvider())));
 
         testTopology.start();
@@ -251,14 +301,14 @@ class MirrorRangeTopologyTest {
             .add(-10L, protoRecord4)
         ;
         final KeyValueStore<String, Message> store = testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
-        assertThat(store.range("-0000000000000000001_0000000001", "-0000000000000000001_0000000003")).toIterable()
+        assertThat(store.range("-1_0000000001", "-1_0000000003")).toIterable()
             .hasSize(3)
             .satisfies(keyValues -> {
                 assertThat(keyValues).extracting(keyValue -> keyValue.key)
                     .containsExactly(
-                        "-0000000000000000001_0000000001",
-                        "-0000000000000000001_0000000002",
-                        "-0000000000000000001_0000000003");
+                        "-1_0000000001",
+                        "-1_0000000002",
+                        "-1_0000000003");
                 assertThat(keyValues).extracting(keyValue -> getField(keyValue.value))
                     .containsExactly(1, 2, 3);
             });
@@ -268,8 +318,9 @@ class MirrorRangeTopologyTest {
 
     @Test
     void shouldAddRangeForMinAndMaxValuesWithProto() {
-        final TestTopology<Object, Object> testTopology = new TestTopology<>(
-            MirrorRangeTopologyTest::createProtoTopology, protoTestProps()
+        final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
+            createTopology(properties, newLongData(), protoData()),
+            setTestProperties(Serdes.Long(), new KafkaProtobufSerde<>())
         ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new ProtobufSchemaProvider())));
 
         testTopology.start();
@@ -304,45 +355,21 @@ class MirrorRangeTopologyTest {
         testTopology.stop();
     }
 
-    private static Topology createAvroTopology(final Properties properties) {
+    private static <K, V> Topology createTopology(final Properties properties, final QuickData<K> quickKeyData,
+        final QuickData<V> quickValueData) {
         final String topic = INPUT_TOPICS.get(0);
-        final QuickTopicData<Integer, GenericRecord> data =
-            new QuickTopicData<>(topic, TopicWriteType.MUTABLE, newIntegerData(), avroData());
+        final QuickTopicData<K, V> data =
+            new QuickTopicData<>(topic, TopicWriteType.MUTABLE, quickKeyData, quickValueData);
         data.getKeyData().getSerde().configure(Maps.fromProperties(properties), true);
         data.getValueData().getSerde().configure(Maps.fromProperties(properties), false);
 
-        final QuickTopologyData<Integer, GenericRecord> topologyInfo =
-            QuickTopologyData.<Integer, GenericRecord>builder()
+        final QuickTopologyData<K, V> topologyInfo =
+            QuickTopologyData.<K, V>builder()
                 .inputTopics(INPUT_TOPICS)
                 .topicData(data)
                 .build();
 
-        final MirrorTopology<Integer, GenericRecord> mirrorTopology = MirrorTopology.<Integer, GenericRecord>builder()
-            .topologyData(topologyInfo)
-            .storeName(MIRROR_STORE)
-            .rangeStoreName(RANGE_STORE_NAME)
-            .rangeField(RANGE_FIELD)
-            .storeType(StoreType.INMEMORY)
-            .build();
-
-        final StreamsBuilder builder = new StreamsBuilder();
-        return mirrorTopology.createTopology(builder);
-    }
-
-    private static Topology createProtoTopology(final Properties properties) {
-        final String topic = INPUT_TOPICS.get(0);
-        final QuickTopicData<Long, Message> data =
-            new QuickTopicData<>(topic, TopicWriteType.MUTABLE, newLongData(), protoData());
-        data.getKeyData().getSerde().configure(Maps.fromProperties(properties), true);
-        data.getValueData().getSerde().configure(Maps.fromProperties(properties), false);
-
-        final QuickTopologyData<Long, Message> topologyInfo =
-            QuickTopologyData.<Long, Message>builder()
-                .inputTopics(INPUT_TOPICS)
-                .topicData(data)
-                .build();
-
-        final MirrorTopology<Long, Message> mirrorTopology = MirrorTopology.<Long, Message>builder()
+        final MirrorTopology<K, V> mirrorTopology = MirrorTopology.<K, V>builder()
             .topologyData(topologyInfo)
             .storeName(MIRROR_STORE)
             .rangeStoreName(RANGE_STORE_NAME)
@@ -362,16 +389,10 @@ class MirrorRangeTopologyTest {
         return newProtobufData(ProtoRangeQueryTest.getDescriptor());
     }
 
-    private static Map<String, String> avroTestProps() {
+    private static <K, V> Map<String, String> setTestProperties(final Serde<K> keySerde, final Serde<V> valueSerde) {
         return Map.of("bootstrap.servers", "test:123", "application.id", "mirror-test",
-            StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.Integer().getClass().getName(),
-            StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class.getName());
-    }
-
-    private static Map<String, String> protoTestProps() {
-        return Map.of("bootstrap.servers", "test:123", "application.id", "mirror-test",
-            StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.Long().getClass().getName(),
-            StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, KafkaProtobufSerde.class.getName());
+            StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, keySerde.getClass().getName(),
+            StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, valueSerde.getClass().getName());
     }
 
     private static Object getField(final MessageOrBuilder keyValue) {
