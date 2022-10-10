@@ -24,17 +24,20 @@ import java.text.DecimalFormat;
 public class LongPadder implements ZeroPadder<Long> {
     private static final int MAX_LONG_LENGTH = 19;
     private final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_LONG_LENGTH));
-    private final boolean isExclusive;
+    private final EndRange endRange;
 
     /**
      * Default constructor.
      *
-     * @param isExclusive determines if the value should be exclusive or not
+     * @param endRange determines if the value should be exclusive or not
      */
-    public LongPadder(final boolean isExclusive) {
-        this.isExclusive = isExclusive;
+    public LongPadder(final EndRange endRange) {
+        this.endRange = endRange;
     }
 
+    /**
+     * Pads the long number with zeros and converts it into a string with 19 digits.
+     */
     @Override
     public String padZero(final Long number) {
         return this.decimalFormat.format(number);
@@ -45,10 +48,13 @@ public class LongPadder implements ZeroPadder<Long> {
         return Long.class;
     }
 
+    /**
+     * Converts a given numeric string value to a long. If the end range is exclusive the value is decreased.
+     */
     @Override
-    public Long convertStringToNumber(final String stringValue) {
+    public Long getEndOfRange(final String stringValue) {
         final long longNumber = Long.parseLong(stringValue);
-        if (this.isExclusive) {
+        if (this.endRange == EndRange.EXCLUSIVE) {
             return longNumber - 1L;
         }
         return longNumber;

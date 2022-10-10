@@ -21,6 +21,7 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.range.extractor.AvroValueExtractor;
 import com.bakdata.quick.mirror.range.extractor.ProtoValueExtractor;
 import com.bakdata.quick.mirror.range.extractor.RangeFieldValueExtractor;
+import com.bakdata.quick.mirror.range.padder.EndRange;
 import com.bakdata.quick.mirror.range.padder.IntPadder;
 import com.bakdata.quick.mirror.range.padder.LongPadder;
 import com.bakdata.quick.mirror.range.padder.ZeroPadder;
@@ -64,7 +65,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
         final ParsedSchema parsedSchema,
         final String rangeField) {
 
-        final ZeroPadder<K> keyZeroPadder = createZeroPadderForTopicType(keyType, false);
+        final ZeroPadder<K> keyZeroPadder = createZeroPadderForTopicType(keyType, EndRange.INCLUSIVE);
 
         switch (parsedSchema.schemaType()) {
             case (AvroSchema.TYPE):
@@ -113,7 +114,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
             throw new MirrorTopologyException("The string value should be a series of digits");
         }
 
-        final F number = this.valueZeroPadder.convertStringToNumber(value);
+        final F number = this.valueZeroPadder.getEndOfRange(value);
         final String paddedValue = this.valueZeroPadder.padZero(number);
 
         final String paddedKey = this.keyZeroPadder.padZero(key);
@@ -126,7 +127,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
         final String rangeField, final ZeroPadder<K> keyZeroPadder) {
         log.debug("Type Avro detected");
         final QuickTopicType rangeValueType = getValueTypeForAvroSchema((Schema) parsedSchema.rawSchema(), rangeField);
-        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, true);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, EndRange.EXCLUSIVE);
         final RangeFieldValueExtractor avroExtractor = new AvroValueExtractor<>(valueZeroPadder.getPadderClass());
         return new DefaultRangeIndexer<>(keyZeroPadder, valueZeroPadder, avroExtractor, rangeField);
     }
@@ -137,20 +138,20 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
         log.debug("Type Protobuf detected");
         final QuickTopicType rangeValueType =
             getValueTypeForProtobufSchema((ProtobufSchema) parsedSchema, rangeField);
-        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, true);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, EndRange.EXCLUSIVE);
         final RangeFieldValueExtractor protoExtractor = new ProtoValueExtractor<>(valueZeroPadder.getPadderClass());
         return new DefaultRangeIndexer<>(keyZeroPadder, valueZeroPadder, protoExtractor, rangeField);
     }
 
     @SuppressWarnings("unchecked")
     private static <K> ZeroPadder<K> createZeroPadderForTopicType(final QuickTopicType topicType,
-        final boolean isExclusive) {
+        final EndRange endRange) {
         if (topicType == QuickTopicType.INTEGER) {
             log.trace("Creating integer zero padder for key");
-            return (ZeroPadder<K>) new IntPadder(isExclusive);
+            return (ZeroPadder<K>) new IntPadder(endRange);
         } else if (topicType == QuickTopicType.LONG) {
             log.trace("Creating long zero padder for key");
-            return (ZeroPadder<K>) new LongPadder(isExclusive);
+            return (ZeroPadder<K>) new LongPadder(endRange);
         }
         throw new MirrorTopologyException("Key value should be either integer or long");
     }

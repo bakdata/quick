@@ -34,7 +34,7 @@ setup() {
     [ "$output" = "Applied schema to gateway ${GATEWAY}" ]
 }
 
-@test "should create product-price-range topic with key integer and value schema" {
+@test "should create product-price-range topic" {
     run quick topic create ${PRODUCT_PRICE_TOPIC} --key-type int --value-type schema --schema "${GATEWAY}.${PRODUCT_TYPE}" --range-field timestamp
     echo "$output"
     [ "$status" -eq 0 ]

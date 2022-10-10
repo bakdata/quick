@@ -24,18 +24,20 @@ import java.text.DecimalFormat;
 public class IntPadder implements ZeroPadder<Integer> {
     private static final int MAX_INTEGER_LENGTH = 10;
     private final DecimalFormat decimalFormat = new DecimalFormat("0".repeat(MAX_INTEGER_LENGTH));
-
-    private final boolean isExclusive;
+    private final EndRange endRange;
 
     /**
      * Default constructor.
      *
-     * @param isExclusive determines if the value should be exclusive or not
+     * @param endRange determines if the value should be exclusive or not
      */
-    public IntPadder(final boolean isExclusive) {
-        this.isExclusive = isExclusive;
+    public IntPadder(final EndRange endRange) {
+        this.endRange = endRange;
     }
 
+    /**
+     * Pads the int number with zeros and converts it into a string with 10 digits.
+     */
     @Override
     public String padZero(final Integer number) {
         return this.decimalFormat.format(number);
@@ -46,10 +48,13 @@ public class IntPadder implements ZeroPadder<Integer> {
         return Integer.class;
     }
 
+    /**
+     * Converts a given numeric string value to a integer. If the end range is exclusive the value is decreased.
+     */
     @Override
-    public Integer convertStringToNumber(final String stringValue) {
+    public Integer getEndOfRange(final String stringValue) {
         final int intNumber = Integer.parseInt(stringValue);
-        if (this.isExclusive) {
+        if (this.endRange == EndRange.EXCLUSIVE) {
             return intNumber - 1;
         }
         return intNumber;
