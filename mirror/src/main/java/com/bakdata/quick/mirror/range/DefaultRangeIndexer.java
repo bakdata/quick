@@ -72,7 +72,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
             case (ProtobufSchema.TYPE):
                 return getDefaultRangeIndexerForProtobuf(parsedSchema, rangeField, keyZeroPadder);
             default:
-                throw new MirrorTopologyException("Value should be of type schema.");
+                throw new MirrorTopologyException("Unsupported schema type.");
         }
     }
 
