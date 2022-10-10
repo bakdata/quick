@@ -72,7 +72,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
             case (ProtobufSchema.TYPE):
                 return getDefaultRangeIndexerForProtobuf(parsedSchema, rangeField, keyZeroPadder);
             default:
-                throw new MirrorTopologyException("Key value should be either integer or mirror");
+                throw new MirrorTopologyException("Key value should be either integer or long");
         }
     }
 
@@ -152,7 +152,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
             log.trace("Creating long zero padder for key");
             return (ZeroPadder<K>) new LongPadder(isExclusive);
         }
-        throw new MirrorTopologyException("Key value should be either integer or mirror");
+        throw new MirrorTopologyException("Key value should be either integer or long");
     }
 
     private static QuickTopicType getValueTypeForAvroSchema(final Schema avroSchema,
