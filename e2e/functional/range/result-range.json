@@ -1,26 +1,23 @@
 [
   {
-    "userId": 2,
-    "rating": 1,
-    "purchase": {
-      "purchaseId": "jkl",
-      "productId": 789,
-      "price": {
-        "total": 99.99,
-        "currency": "DOLLAR"
-      }
-    }
+    "productId": 123,
+    "price": {
+      "total": 14.99
+    },
+    "timestamp": 1
   },
   {
-    "userId": 2,
-    "rating": 2,
-    "purchase": {
-      "purchaseId": "def",
-      "productId": 123,
-      "price": {
-        "total": 30,
-        "currency": "DOLLAR"
-      }
-    }
+    "productId": 123,
+    "price": {
+      "total": 19.99
+    },
+    "timestamp": 2
+  },
+  {
+    "productId": 123,
+    "price": {
+      "total": 24.99
+    },
+    "timestamp": 3
   }
 ]
