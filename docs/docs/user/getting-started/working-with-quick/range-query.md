@@ -90,7 +90,7 @@ Note the constraints on the values (which you define via the `--value` option):
 2. The range field type has to be `Long` or `Int`.
 
 If you are interested in details of the query processing,
-visit the developer [section on ranges](https://bakdata.github.io/quick/latest/developer/range-queries-details/).
+visit the developer [section on ranges](../../../developer/range-query-details.md).
 
 ## Execute the query
 
