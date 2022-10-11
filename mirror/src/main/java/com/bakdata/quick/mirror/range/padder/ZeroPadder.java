@@ -24,7 +24,7 @@ package com.bakdata.quick.mirror.range.padder;
 public interface ZeroPadder<T> {
 
     /**
-     * Converts the value T to a String.
+     * Converts the value T to a numerical string with zeros padded to the left to keep the lexicographical order.
      */
     String padZero(final T number);
 
@@ -34,7 +34,8 @@ public interface ZeroPadder<T> {
     Class<T> getPadderClass();
 
     /**
-     * Converts a given string to the value T.
+     * The implementation of this method should return the end of the range. The end of the range could be exclusive or
+     * inclusive.
      */
     T getEndOfRange(final String stringValue);
 }

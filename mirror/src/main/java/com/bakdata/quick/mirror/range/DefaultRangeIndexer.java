@@ -125,7 +125,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
         final String rangeField) {
         log.debug("Type Avro detected");
         final QuickTopicType rangeValueType = getValueTypeForAvroSchema((Schema) parsedSchema.rawSchema(), rangeField);
-        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, EndRange.EXCLUSIVE);
         final RangeFieldValueExtractor avroExtractor = new AvroValueExtractor<>(valueZeroPadder.getPadderClass());
         return new DefaultRangeIndexer<>(valueZeroPadder, avroExtractor, rangeField);
     }
@@ -136,7 +136,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
         log.debug("Type Protobuf detected");
         final QuickTopicType rangeValueType =
             getValueTypeForProtobufSchema((ProtobufSchema) parsedSchema, rangeField);
-        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, EndRange.EXCLUSIVE);
         final RangeFieldValueExtractor protoExtractor = new ProtoValueExtractor<>(valueZeroPadder.getPadderClass());
         return new DefaultRangeIndexer<>(valueZeroPadder, protoExtractor, rangeField);
     }
@@ -144,13 +144,11 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
     @SuppressWarnings("unchecked")
     private static <K> ZeroPadder<K> createZeroPadderForTopicType(final QuickTopicType topicType) {
         if (topicType == QuickTopicType.INTEGER) {
-            log.trace("Creating integer zero padder for key");
             return (ZeroPadder<K>) new IntPadder(EndRange.EXCLUSIVE);
         } else if (topicType == QuickTopicType.LONG) {
-            log.trace("Creating long zero padder for key");
             return (ZeroPadder<K>) new LongPadder(EndRange.EXCLUSIVE);
         }
-        throw new MirrorTopologyException("Key value should be either integer or long");
+        throw new MirrorTopologyException("Range field should be either of type integer or long");
     }
 
     private static QuickTopicType getValueTypeForAvroSchema(final Schema avroSchema,
