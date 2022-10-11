@@ -206,23 +206,23 @@ class MirrorRangeTopologyTest {
         final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
         final AvroRangeQueryTest avroRecord4 = AvroRangeQueryTest.newBuilder().setUserId(2).setTimestamp(1L).build();
         testTopology.input()
-            .add("1:0", avroRecord1)
-            .add("1:0", avroRecord2)
-            .add("1:0", avroRecord3)
-            .add("0:0", avroRecord4)
-            .add("2:0", avroRecord4)
-            .add("3:0", avroRecord4)
-            .add("10:0", avroRecord4);
+            .add("abc", avroRecord1)
+            .add("abc", avroRecord2)
+            .add("abc", avroRecord3)
+            .add("fff", avroRecord4)
+            .add("eee", avroRecord4)
+            .add("rrr", avroRecord4)
+            .add("kkk", avroRecord4);
         final KeyValueStore<String, GenericRecord> store =
             testTopology.getTestDriver().getKeyValueStore(RANGE_STORE_NAME);
-        assertThat(store.range("1:0_0000000000000000001", "1:0_0000000000000000003")).toIterable()
+        assertThat(store.range("abc_0000000000000000001", "abc_0000000000000000003")).toIterable()
             .hasSize(3)
             .satisfies(keyValues -> {
                 assertThat(keyValues).extracting(keyValue -> keyValue.key)
                     .containsExactly(
-                        "1:0_0000000000000000001",
-                        "1:0_0000000000000000002",
-                        "1:0_0000000000000000003");
+                        "abc_0000000000000000001",
+                        "abc_0000000000000000002",
+                        "abc_0000000000000000003");
                 assertThat(keyValues).extracting(keyValue -> keyValue.value.get(RANGE_FIELD))
                     .containsExactly(1L, 2L, 3L);
             });
