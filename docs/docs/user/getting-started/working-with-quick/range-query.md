@@ -14,7 +14,7 @@ The company could fetch all products
 and filter them accordingly
 to find the desired product's prices in a given period.
 However, range queries allow
-to specify a product id and a time-range
+specifying a product id and a time-range
 to retrieve the corresponding records immediately.
 
 To integrate range queries into your application, you must take the following steps:
