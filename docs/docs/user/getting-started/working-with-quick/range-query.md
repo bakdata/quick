@@ -4,20 +4,18 @@ We now extend the `Product` type
 from the [e-commerce example](query-data.md)
 with time information.
 This allows a company to analyse
-the development of the price in time.
+the development of the price over time.
 Using this information,
 a company could investigate
-what factors might have influenced 
-the price of a specific product
-Correspondingly, it can come up with a strategy 
-for increasing sales.
+which factors might have influenced 
+the price of a specific product.
 
 The company could fetch all products
 and filter them accordingly
 to find the desired product's prices in a given period.
-However, range queries allow you 
-to specify an id of a product a desired time-range
-and receive the corresponding records immediately.
+However, range queries allow
+to specify a product id and a time-range
+to retrieve the corresponding records immediately.
 
 To integrate range queries into your application, you must take the following steps:
 
@@ -59,7 +57,7 @@ It contains a timestamp that can describe
 the price of the product at a given time.
 
 However, the most notable changes are in the `Query` type.
-First, your query (`productPriceInTime`) has new fields: `timestampFrom` and `timestampTo`.
+First, the query (`productPriceInTime`) has new fields: `timestampFrom` and `timestampTo`.
 Second, the `@topic` directive has changed:
 In the query `productPriceInTime`, you declare the two fields that describe your desired range
 (here, the timestamp range).
@@ -70,7 +68,7 @@ In our example, `timestampFrom` and `timestampTo` follow the naming scheme _fiel
 where _field_ is the field declared in the topic creation command (see later step 3).
 Following this convention is not mandatory.
 You can name the parameters that define your range as you wish.
-However, we think that following this pattern increases readability.
+However, we suggest to follow this pattern to increase readability.
 
 When you execute a range query, you receive a list of entries.
 Therefore, the return type of the query is a list of _UserRating_.
@@ -94,8 +92,7 @@ Under the hood, Quick creates additional data structures that enable the executi
     To delete the topic,
     use the following command:
     `quick topic delete product`
-Use the Quick CLI as follows
-to create a topic with the new parameter:
+To create a topic with the new parameter, use the Quick CLI as follows:
 ```
 quick topic create product-price-range --key int --value schema --schema example.Product --range-field timestamp
 ```
@@ -134,9 +131,9 @@ Here is an example of the `products.json` file:
     ```
     [
       {
-        "key": 123,
+        "key": 111,
         "value": {
-          "productId": 123,
+          "productId": 111,
           "name": "T-Shirt",
           "description": "black",
           "price": {
@@ -147,9 +144,9 @@ Here is an example of the `products.json` file:
         }
       },
       {
-        "key": 123,
+        "key": 111,
         "value": {
-          "productId": 123,
+          "productId": 111,
           "name": "T-Shirt",
           "description": "black",
           "price": {
@@ -160,9 +157,9 @@ Here is an example of the `products.json` file:
         }
       },
       {
-        "key": 456,
+        "key": 222,
         "value": {
-          "productId": 456,
+          "productId": 222,
           "name": "Jeans",
           "description": "Non-stretch denim",
           "price": {
@@ -173,9 +170,9 @@ Here is an example of the `products.json` file:
         }
       },
       {
-        "key": 789,
+        "key": 333,
         "value": {
-          "productId": 789,
+          "productId": 333,
           "name": "Shoes",
           "description": "Sneaker",
           "price": {
@@ -186,9 +183,9 @@ Here is an example of the `products.json` file:
         }
       },
       {
-        "key": 123,
+        "key": 111,
         "value": {
-          "productId": 123,
+          "productId": 111,
           "name": "T-Shirt",
           "description": "black",
           "price": {
@@ -199,9 +196,9 @@ Here is an example of the `products.json` file:
           }
       },
         {
-        "key": 456,
+        "key": 222,
         "value": {
-          "productId": 456,
+          "productId": 222,
           "name": "Jeans",
           "description": "Non-stretch denim",
           "price": {
@@ -212,9 +209,9 @@ Here is an example of the `products.json` file:
           }
         },
         {
-        "key": 123,
+        "key": 111,
         "value": {
-          "productId": 123,
+          "productId": 111,
           "name": "T-Shirt",
           "description": "black",
           "price": {
@@ -226,20 +223,14 @@ Here is an example of the `products.json` file:
       }
     ]
     ```
-Let's now find the prices of the product
-identified by `productId=123`.
-Additionally, say we want to analyse the prices
-in the time-window between `1` and `3`.
+
+Let's now find the prices for product `111` in the time-window `1` to `3`.
 !!! Note
-    The provided upper bound of a range
-    is exclusive.
-    If you want to have a specific number
-    in your range, you must provide
-    a number that is one bigger than 
-    the desired value.
+    The upper bound of a range is exclusive.
+    Therefore, we use `timestampTo:4`.
 ```graphql
 query {
-  productPriceInTime(productId:123, timestampFrom:1, timestampTo:4) {
+  productPriceInTime(productId:111, timestampFrom:1, timestampTo:4) {
     productId,
     price
     {
@@ -249,25 +240,26 @@ query {
   }
 }
 ```
+
 Here you go - this is the list of the desired products.
 ```json
 [
   {
-    "productId": 123,
+    "productId": 111,
     "price": {
       "total": 14.99
     },
     "timestamp": 1
   },
   {
-    "productId": 123,
+    "productId": 111,
     "price": {
       "total": 19.99
     },
     "timestamp": 2
   },
   {
-    "productId": 123,
+    "productId": 111,
     "price": {
       "total": 24.99
     },
@@ -275,6 +267,7 @@ Here you go - this is the list of the desired products.
   }
 ]
 ```
+
 ## Limitations
 
 The following listing describes the limitations of the current range queries implementation:
