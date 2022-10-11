@@ -4,7 +4,7 @@ In [Subscriptions](subscriptions.md), you learned
 how to get real-time updates using the `Subscription` type.
 The example discussed receiving updates from a single topic.
 
-Quick also allows to create a so-called multi-subscription.
+Quick also allows you to create a so-called multi-subscription.
 A multi-subscription enables you to
 retrieve complex objects where elements
 come from more than one Kafka topic.
@@ -57,7 +57,7 @@ type UserStatistics {
 }
 ```
 
-Note that, multi-subscriptions need a different modelling then single subscriptions.
+Note that multi-subscriptions need different modelling than single subscriptions.
 In a [single subscription](subscriptions.md), you add a topic directive
 (which references a Kafka topic) to the field that describes the entities
 you want to receive updates for, i.e.:
@@ -80,9 +80,9 @@ You can now apply the modified schema to your gateway:
 
 To demo the multi-subscription,
 we use a GraphQL client, e.g., [Altair](https://altair.sirmuel.design/).
-The setup is described in [here](subscriptions.md).
+The setup is described [here](subscriptions.md).
 
-Subscribe to user statistics with following query:
+Subscribe to user statistics with the following query:
 ```graphql title="subscription.gql"
 subscription {
   userStatistics {
@@ -142,8 +142,8 @@ As a result, you see the following JSON response in your GraphQL client:
 }
 ```
 
-Since you did not add a click event yet,
-the response contains only purchase data.
+There hasn't been any click event yet,
+so the response contains only purchase data.
 
 Now, send the following click event via the ingest service.
 !!! Note
@@ -201,7 +201,7 @@ with elements of the different types stored in different topics.
 
 This mechanism can be generalized to multi-subscriptions
 that comprise more than two types (topics).
-For example, in a type that consists of three elements,
+For example, in a type that consists of three elements
 a new event causes a fetch of the corresponding other types
 to create a response immediately.
 

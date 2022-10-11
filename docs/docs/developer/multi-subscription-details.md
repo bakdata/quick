@@ -51,8 +51,8 @@ there are three scenarios for building complex objects via multi subscriptions:
 
 ## Ingest data
 
-Say you first ingest a single `Purchase`
-A `Click` is missing.
+Say you first ingest a single `Purchase`.
+Thus, a `Click` is missing.
 _MultiSubscriptionFetcher_ first checks the internal cache to see
 whether there is a `Click` that refers to the particular id
 (the same the `Purchase` refers to).
