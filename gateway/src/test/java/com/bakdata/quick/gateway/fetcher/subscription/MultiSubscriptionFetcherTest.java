@@ -102,13 +102,15 @@ class MultiSubscriptionFetcherTest {
     @DisabledIfEnvironmentVariable(named = "CI", matches = "true", disabledReason = "Flaky on CI")
     void shouldFetchValuesForStringKeyAndAvroValue() {
 
-        final com.bakdata.quick.avro.ClickStats key1clickStats = newClickStatsInputAvro("key1", 1);
-        final com.bakdata.quick.avro.PurchaseStats key1purchaseStats = newPurchaseStatsInputAvro("key1", 2);
-        final com.bakdata.quick.avro.ClickStats key2clickStats = newClickStatsInputAvro("key2", 3);
-        final com.bakdata.quick.avro.PurchaseStats key2purchaseStats = newPurchaseStatsInputAvro("key2", 4);
+        final com.bakdata.quick.avro.ClickStats key1clickStats = newClickStatsAvro("key1", 1);
+        final com.bakdata.quick.avro.PurchaseStats key1purchaseStats = newPurchaseStatsAvro("key1", 2);
+        final com.bakdata.quick.avro.ClickStats key2clickStats = newClickStatsAvro("key2", 3);
+        final com.bakdata.quick.avro.PurchaseStats key2purchaseStats = newPurchaseStatsAvro("key2", 4);
 
-        final DataFetcherClient<String, com.bakdata.quick.avro.ClickStats> clickStatsClient = Mockito.mock(DataFetcherClient.class);
-        final DataFetcherClient<String, com.bakdata.quick.avro.PurchaseStats> purchaseStatsClient = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<String, com.bakdata.quick.avro.ClickStats> clickStatsClient =
+            Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<String, com.bakdata.quick.avro.PurchaseStats> purchaseStatsClient =
+            Mockito.mock(DataFetcherClient.class);
         Mockito.doReturn(key1purchaseStats).when(purchaseStatsClient).fetchResult("key1");
         Mockito.doReturn(key2clickStats).when(clickStatsClient).fetchResult("key2");
 
@@ -140,22 +142,22 @@ class MultiSubscriptionFetcherTest {
         testSubscriber.assertComplete();
 
         testSubscriber.assertValueAt(0, Map.of(
-            "field1", newAvroClickStatsOutput("key1", 1),
-            "field2", newAvroPurchaseStatsOutput("key1", 2)
+            "field1", (GenericRecord) newClickStatsAvro("key1", 1),
+            "field2", (GenericRecord) newPurchaseStatsAvro("key1", 2)
         ));
         testSubscriber.assertValueAt(0, Map.of(
-            "field1", newAvroPurchaseStatsOutput("key2", 4),
-            "field2", newAvroClickStatsOutput("key2", 3)
+            "field1", (GenericRecord) newPurchaseStatsAvro("key2", 4),
+            "field2", (GenericRecord) newClickStatsAvro("key2", 3)
         ));
     }
 
     @Test
     @DisabledIfEnvironmentVariable(named = "CI", matches = "true", disabledReason = "Flaky on CI")
     void shouldFetchValuesForDoubleKeyAndProtoValue() {
-        final ClickStats key1clickStats = newClickStatsRecord("key1", 1);
-        final PurchaseStats key1purchaseStats = newPurchaseStatsRecord("key1", 2);
-        final ClickStats key2clickStats = newClickStatsRecord("key2", 3);
-        final PurchaseStats key2purchaseStats = newPurchaseStatsRecord("key2", 4);
+        final ClickStats key1clickStats = newClickStatsProto("key1", 1);
+        final PurchaseStats key1purchaseStats = newPurchaseStatsProto("key1", 2);
+        final ClickStats key2clickStats = newClickStatsProto("key2", 3);
+        final PurchaseStats key2purchaseStats = newPurchaseStatsProto("key2", 4);
 
         final DataFetcherClient<Double, ClickStats> clickStatsClient = Mockito.mock(DataFetcherClient.class);
         final DataFetcherClient<Double, PurchaseStats> purchaseStatsClient = Mockito.mock(DataFetcherClient.class);
@@ -189,46 +191,26 @@ class MultiSubscriptionFetcherTest {
         testSubscriber.awaitTerminalEvent(2, TimeUnit.SECONDS);
         testSubscriber.assertComplete();
         testSubscriber.assertValueAt(0, Map.of(
-            "field1", newProtoClickStatsOutput("key1", 1),
-            "field2", newProtoPurchaseStatsOutput("key1", 2)));
+            "field1", (Message) newClickStatsProto("key1", 1),
+            "field2", (Message) newPurchaseStatsProto("key1", 2)));
         testSubscriber.assertValueAt(1, Map.of(
-            "field2", newProtoPurchaseStatsOutput("key2", 4),
-            "field1", newProtoClickStatsOutput("key2", 3)));
+            "field2", (Message) newPurchaseStatsProto("key2", 4),
+            "field1", (Message) newClickStatsProto("key2", 3)));
     }
 
-    private static GenericRecord newAvroClickStatsOutput(final String id, final long amount) {
-        return newClickStatsInputAvro(id, amount);
-    }
-
-    private static GenericRecord newAvroPurchaseStatsOutput(final String id, final long amount) {
-        return newPurchaseStatsInputAvro(id, amount);
-    }
-
-    private static com.bakdata.quick.avro.ClickStats newClickStatsInputAvro(final String id, final long amount) {
+    private static com.bakdata.quick.avro.ClickStats newClickStatsAvro(final String id, final long amount) {
         return com.bakdata.quick.avro.ClickStats.newBuilder().setId(id).setAmount(amount).build();
     }
 
-    private static com.bakdata.quick.avro.PurchaseStats newPurchaseStatsInputAvro(final String id, final long amount) {
+    private static com.bakdata.quick.avro.PurchaseStats newPurchaseStatsAvro(final String id, final long amount) {
         return com.bakdata.quick.avro.PurchaseStats.newBuilder().setId(id).setAmount(amount).build();
     }
 
-    private static ClickStats newClickStatsRecord(final String id, final long amount) {
+    private static ClickStats newClickStatsProto(final String id, final long amount) {
         return ClickStats.newBuilder().setId(id).setAmount(amount).build();
     }
 
-    private static PurchaseStats newPurchaseStatsRecord(final String id, final long amount) {
+    private static PurchaseStats newPurchaseStatsProto(final String id, final long amount) {
         return PurchaseStats.newBuilder().setId(id).setAmount(amount).build();
     }
-
-    private static Message newProtoClickStatsOutput(final String id, final long amount) {
-        return ClickStats.newBuilder().setId(id).setAmount(amount).build();
-    }
-
-    private static Message newProtoPurchaseStatsOutput(final String id, final long amount) {
-        return PurchaseStats.newBuilder().setId(id).setAmount(amount).build();
-    }
-
-
-
-
 }

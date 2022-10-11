@@ -11,7 +11,7 @@ come from more than one Kafka topic.
 To integrate a multi-subscription into your application,
 we take the following steps:
 
-1. Modify your schema with and define the multi-subscription.
+1. Define the multi-subscription.
 2. Apply the new schema.
 3. Run the multi-subscription.
 4. Ingest data.
@@ -26,26 +26,26 @@ Information about clicks and purchases is stored
 in separate Kafka topics.
 To retrieve such combined users' statistics,
 you create a multi-subscription.
-
-## Modify your schema with and define the multi-subscription
-
-As a first step,
-add the following to your schema `example.graphql`:
+Before you define the multi-subscription,
+add the following type to your schema `schema.gql`:
 ```graphql
 type Click {
     userId: Int!
-    timestamp: Int
+    timestamp: Int!
 }
 ```
-
 Next, create a topic that holds `Click` entries:
 ```shell
 quick topic create click --key-type string
  --value-type schema --schema example.Click
 ```
 
-We can now extend the schema
-(from earlier sections of this documentation) as follows:
+
+## Modify your schema with and define the multi-subscription
+
+As a first step, you extend the schema
+(from earlier sections of this documentation)
+with the definition of a multi-subscription as follows:
 ```graphql
 type Subscription {
     userStatistics: UserStatistics
@@ -74,7 +74,9 @@ This `UserStatistics` comprises the desired fields, each followed by the `@topic
 ## Apply the new schema
 
 You can now apply the modified schema to your gateway:  
-`quick gateway apply example -f schema.graphql`.
+```console
+quick gateway apply example -f schema.gql
+```
 
 ## Run the multi-subscription
 
@@ -197,13 +199,12 @@ As you can see, when a new event of one type, say `Click`, arrives,
 you immediately receive the latest state of the other type, here `Purchase`.
 
 Thus, Quick automatically creates an up-to-date response
-with elements of the different types stored in different topics.  
-
+with elements of the different types stored in different topics.
 This mechanism can be generalized to multi-subscriptions
 that comprise more than two types (topics).
 For example, in a type that consists of three elements
 a new event causes a fetch of the corresponding other types
 to create a response immediately.
 
-Please see the [developer section on multi-subscriptions](https://bakdata.github.io/quick/latest/developer/multi-subscriptions-details/),
+Please see the [developer section on multi-subscriptions](../../../developer/multi-subscription-details.md),
 where we discuss the subtleties of that process.
