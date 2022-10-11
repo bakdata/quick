@@ -125,7 +125,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
         final String rangeField) {
         log.debug("Type Avro detected");
         final QuickTopicType rangeValueType = getValueTypeForAvroSchema((Schema) parsedSchema.rawSchema(), rangeField);
-        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, EndRange.EXCLUSIVE);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType);
         final RangeFieldValueExtractor avroExtractor = new AvroValueExtractor<>(valueZeroPadder.getPadderClass());
         return new DefaultRangeIndexer<>(valueZeroPadder, avroExtractor, rangeField);
     }
@@ -136,7 +136,7 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
         log.debug("Type Protobuf detected");
         final QuickTopicType rangeValueType =
             getValueTypeForProtobufSchema((ProtobufSchema) parsedSchema, rangeField);
-        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, EndRange.EXCLUSIVE);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType);
         final RangeFieldValueExtractor protoExtractor = new ProtoValueExtractor<>(valueZeroPadder.getPadderClass());
         return new DefaultRangeIndexer<>(valueZeroPadder, protoExtractor, rangeField);
     }
