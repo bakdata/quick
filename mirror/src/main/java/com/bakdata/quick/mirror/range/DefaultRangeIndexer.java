@@ -43,14 +43,12 @@ import org.apache.avro.Schema.Field;
  */
 @Slf4j
 public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
-    private final ZeroPadder<K> keyZeroPadder;
     private final ZeroPadder<F> valueZeroPadder;
     private final RangeFieldValueExtractor<V, F> rangeFieldValueExtractor;
     private final String rangeField;
 
-    private DefaultRangeIndexer(final ZeroPadder<K> keyZeroPadder, final ZeroPadder<F> valueZeroPadder,
+    private DefaultRangeIndexer(final ZeroPadder<F> valueZeroPadder,
         final RangeFieldValueExtractor<V, F> rangeFieldValueExtractor, final String rangeField) {
-        this.keyZeroPadder = keyZeroPadder;
         this.valueZeroPadder = valueZeroPadder;
         this.rangeFieldValueExtractor = rangeFieldValueExtractor;
         this.rangeField = rangeField;
@@ -61,17 +59,14 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
      * reads the range field type form the schema and sets the value zero padder for the range field.
      */
     public static <K, V, F> DefaultRangeIndexer<K, V, F> createRangeIndexer(
-        final QuickTopicType keyType,
         final ParsedSchema parsedSchema,
         final String rangeField) {
 
-        final ZeroPadder<K> keyZeroPadder = createZeroPadderForTopicType(keyType, EndRange.INCLUSIVE);
-
         switch (parsedSchema.schemaType()) {
             case (AvroSchema.TYPE):
-                return getDefaultRangeIndexerForAvroSchema(parsedSchema, rangeField, keyZeroPadder);
+                return getDefaultRangeIndexerForAvroSchema(parsedSchema, rangeField);
             case (ProtobufSchema.TYPE):
-                return getDefaultRangeIndexerForProtobuf(parsedSchema, rangeField, keyZeroPadder);
+                return getDefaultRangeIndexerForProtobuf(parsedSchema, rangeField);
             default:
                 throw new MirrorTopologyException("Unsupported schema type.");
         }
@@ -98,12 +93,13 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
      *
      * <p>
      * And the <i>range field</i> is <i>timestamp</i> with the value of 5. The returned value would be
-     * 0000000001_0000000005
+     * 1_0000000005
      */
     @Override
     public String createIndex(final K key, final V value) {
         final F rangeFieldValue = this.rangeFieldValueExtractor.extractValue(value, this.rangeField);
-        return String.format("%s_%s", this.keyZeroPadder.padZero(key), this.valueZeroPadder.padZero(rangeFieldValue));
+        final String paddedValue = this.valueZeroPadder.padZero(rangeFieldValue);
+        return createRangeIndexFormat(key, paddedValue);
     }
 
     /**
@@ -117,43 +113,42 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
         final F number = this.valueZeroPadder.getEndOfRange(value);
         final String paddedValue = this.valueZeroPadder.padZero(number);
 
-        final String paddedKey = this.keyZeroPadder.padZero(key);
+        return createRangeIndexFormat(key, paddedValue);
+    }
 
-        return String.format("%s_%s", paddedKey, paddedValue);
+    private static <T> String createRangeIndexFormat(final T key, final String paddedValue) {
+        return String.format("%s_%s", key, paddedValue);
     }
 
     private static <K, V, F> DefaultRangeIndexer<K, V, F> getDefaultRangeIndexerForAvroSchema(
         final ParsedSchema parsedSchema,
-        final String rangeField, final ZeroPadder<K> keyZeroPadder) {
+        final String rangeField) {
         log.debug("Type Avro detected");
         final QuickTopicType rangeValueType = getValueTypeForAvroSchema((Schema) parsedSchema.rawSchema(), rangeField);
-        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, EndRange.EXCLUSIVE);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType);
         final RangeFieldValueExtractor avroExtractor = new AvroValueExtractor<>(valueZeroPadder.getPadderClass());
-        return new DefaultRangeIndexer<>(keyZeroPadder, valueZeroPadder, avroExtractor, rangeField);
+        return new DefaultRangeIndexer<>(valueZeroPadder, avroExtractor, rangeField);
     }
 
     private static <K, V, F> DefaultRangeIndexer<K, V, F> getDefaultRangeIndexerForProtobuf(
         final ParsedSchema parsedSchema,
-        final String rangeField, final ZeroPadder<K> keyZeroPadder) {
+        final String rangeField) {
         log.debug("Type Protobuf detected");
         final QuickTopicType rangeValueType =
             getValueTypeForProtobufSchema((ProtobufSchema) parsedSchema, rangeField);
-        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType, EndRange.EXCLUSIVE);
+        final ZeroPadder<F> valueZeroPadder = createZeroPadderForTopicType(rangeValueType);
         final RangeFieldValueExtractor protoExtractor = new ProtoValueExtractor<>(valueZeroPadder.getPadderClass());
-        return new DefaultRangeIndexer<>(keyZeroPadder, valueZeroPadder, protoExtractor, rangeField);
+        return new DefaultRangeIndexer<>(valueZeroPadder, protoExtractor, rangeField);
     }
 
     @SuppressWarnings("unchecked")
-    private static <K> ZeroPadder<K> createZeroPadderForTopicType(final QuickTopicType topicType,
-        final EndRange endRange) {
+    private static <K> ZeroPadder<K> createZeroPadderForTopicType(final QuickTopicType topicType) {
         if (topicType == QuickTopicType.INTEGER) {
-            log.trace("Creating integer zero padder for key");
-            return (ZeroPadder<K>) new IntPadder(endRange);
+            return (ZeroPadder<K>) new IntPadder(EndRange.EXCLUSIVE);
         } else if (topicType == QuickTopicType.LONG) {
-            log.trace("Creating long zero padder for key");
-            return (ZeroPadder<K>) new LongPadder(endRange);
+            return (ZeroPadder<K>) new LongPadder(EndRange.EXCLUSIVE);
         }
-        throw new MirrorTopologyException("Key value should be either integer or long");
+        throw new MirrorTopologyException("Range field should be either of type integer or long");
     }
 
     private static QuickTopicType getValueTypeForAvroSchema(final Schema avroSchema,
