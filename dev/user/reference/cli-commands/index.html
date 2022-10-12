@@ -1535,7 +1535,7 @@
 <p>Create a new topic</p>
 <p><strong>Usage:</strong></p>
 <p><div class="highlight"><pre><span></span><code>quick topic create [-h] -k TYPE -v TYPE [-s SCHEMA] [--immutable] [--retention-time RETENTION_TIME]
-                          [--context CONTEXT] [--debug]
+                          [--range-field RANGE_FIELD] [--context CONTEXT] [--debug]
                           NAME
 </code></pre></div>
 <strong>Required:</strong></p>
@@ -1549,6 +1549,7 @@
 <li><code>-s, --schema</code>: The location of the schema file or std in</li>
 <li><code>--immutable</code>: An immutable topic does not allow ingesting the same key twice (default: False)</li>
 <li><code>--retention-time</code>: Retention time of data in the topic in (if not given, the data is kept indefinitely)</li>
+<li><code>--range-field</code>: The field name, which the range index should be built on</li>
 <li><code>--context</code>: Context of quick</li>
 <li><code>--debug</code>: Enable debug output</li>
 </ul>
@@ -1687,7 +1688,9 @@
 <h3 id="quick-mirror-create"><code>quick mirror create</code><a class="headerlink" href="#quick-mirror-create" title="Permanent link">&para;</a></h3>
 <p>Create a mirror for a topic and make it queryable through a gateway</p>
 <p><strong>Usage:</strong></p>
-<p><div class="highlight"><pre><span></span><code>quick mirror create [-h] [--tag TAG] [--replicas REPLICAS] [--context CONTEXT] [--debug] TOPIC
+<p><div class="highlight"><pre><span></span><code>quick mirror create [-h] [--tag TAG] [--replicas REPLICAS] [--range-field RANGE_FIELD] [--context CONTEXT]
+                           [--debug]
+                           TOPIC
 </code></pre></div>
 <strong>Required:</strong></p>
 <ul>
@@ -1697,6 +1700,7 @@
 <ul>
 <li><code>--tag</code>: Docker image tag (defaults to currently installed tag)</li>
 <li><code>--replicas</code>: Number of replicas (default: 1)</li>
+<li><code>--range-field</code>: The field name, which the range index should be built on</li>
 <li><code>--context</code>: Context of quick</li>
 <li><code>--debug</code>: Enable debug output</li>
 </ul>
@@ -1729,8 +1733,8 @@
 <p>Deploy a new application.
 The application must be provided as a Docker image. You can specify the registry.</p>
 <p><strong>Usage:</strong></p>
-<p><div class="highlight"><pre><span></span><code>quick app deploy [-h] --registry REGISTRY_URL --image IMAGE --tag TAG [--replicas REPLICAS]
-                        [--args [ARG=VALUE [ARG=VALUE ...]]] [--context CONTEXT] [--debug]
+<p><div class="highlight"><pre><span></span><code>quick app deploy [-h] --registry REGISTRY_URL --image IMAGE --tag TAG [--image-pull-secret IMAGE_PULL_SECRET]
+                        [--replicas REPLICAS] [--args [ARG=VALUE ...]] [--port PORT] [--context CONTEXT] [--debug]
                         NAME
 </code></pre></div>
 <strong>Required:</strong></p>
@@ -1742,8 +1746,10 @@ The application must be provided as a Docker image. You can specify the registry
 </ul>
 <p><strong>Optional:</strong></p>
 <ul>
+<li><code>--image-pull-secret</code>: A secret in a string format for pulling an image from a private registry</li>
 <li><code>--replicas</code>: Number of replicas</li>
 <li><code>--args</code>: CLI arguments of the application (broker and schema registry not required)</li>
+<li><code>--port</code>: The container port of the application</li>
 <li><code>--context</code>: Context of quick</li>
 <li><code>--debug</code>: Enable debug output</li>
 </ul>

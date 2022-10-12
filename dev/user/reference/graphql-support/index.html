@@ -1252,6 +1252,8 @@ Furthermore, it describes the GraphQL extensions that are introduced in Quick.</
     <span class="err">name:</span> <span class="err">String!</span><span class="p">,</span> <span class="c"># Name of the topic.</span>
     <span class="err">keyArgument:</span> <span class="err">String</span><span class="p">,</span> <span class="c"># The argument which contains the key. This also supports arguments from parents.</span>
     <span class="err">keyField:</span> <span class="err">String</span> <span class="c"># The field which contains the key. This can be used when the key is part of a different mirror.</span>
+    <span class="err">rangeFrom:</span> <span class="err">Int</span> <span class="c"># The lower bound (inclusive) of a range over a specific field.  </span>
+    <span class="err">rangeTo:</span> <span class="err">Int</span> <span class="c"># The upper bound (exclusive) of the range over the given field (the same as above). </span>
 <span class="err">)</span> <span class="err">on</span> <span class="k">FIELD_DEFINITION</span>
 </code></pre></div>
 <h3 id="rest"><code>@rest</code><a class="headerlink" href="#rest" title="Permanent link">&para;</a></h3>
