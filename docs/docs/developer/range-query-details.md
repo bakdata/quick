@@ -67,7 +67,8 @@ Quick uses an alternative approach to deal with keys.
 Each key is a flattened string with a combination of the topic key
 and the zero-padded value
 for which the range queries are requested.
-The values are padded (depending on the type `Int` 10 digits or `Long` 19 digits)
+The values of the range field are padded
+(depending on the type `Int` 10 digits or `Long` 19 digits)
 with zeros to keep the lexicographic order.
 The general format of the key in the state store is:
 <nobr>`<topicKeyValue>_<zero_paddings><rangeFieldValue>`</nobr>.  
