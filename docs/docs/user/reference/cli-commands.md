@@ -112,7 +112,7 @@ Create a new topic
 
 ```
 quick topic create [-h] -k TYPE -v TYPE [-s SCHEMA] [--immutable] [--retention-time RETENTION_TIME]
-                          [--context CONTEXT] [--debug]
+                          [--range-field RANGE_FIELD] [--context CONTEXT] [--debug]
                           NAME
 ```
 **Required:**
@@ -126,6 +126,7 @@ quick topic create [-h] -k TYPE -v TYPE [-s SCHEMA] [--immutable] [--retention-t
 * `-s, --schema`: The location of the schema file or std in
 * `--immutable`: An immutable topic does not allow ingesting the same key twice (default: False)
 * `--retention-time`: Retention time of data in the topic in (if not given, the data is kept indefinitely)
+* `--range-field`: The field name, which the range index should be built on
 * `--context`: Context of quick
 * `--debug`: Enable debug output
 
@@ -297,7 +298,9 @@ Create a mirror for a topic and make it queryable through a gateway
 **Usage:**
 
 ```
-quick mirror create [-h] [--tag TAG] [--replicas REPLICAS] [--context CONTEXT] [--debug] TOPIC
+quick mirror create [-h] [--tag TAG] [--replicas REPLICAS] [--range-field RANGE_FIELD] [--context CONTEXT]
+                           [--debug]
+                           TOPIC
 ```
 **Required:**
 
@@ -307,6 +310,7 @@ quick mirror create [-h] [--tag TAG] [--replicas REPLICAS] [--context CONTEXT] [
 
 * `--tag`: Docker image tag (defaults to currently installed tag)
 * `--replicas`: Number of replicas (default: 1)
+* `--range-field`: The field name, which the range index should be built on
 * `--context`: Context of quick
 * `--debug`: Enable debug output
 
@@ -348,8 +352,8 @@ The application must be provided as a Docker image. You can specify the registry
 **Usage:**
 
 ```
-quick app deploy [-h] --registry REGISTRY_URL --image IMAGE --tag TAG [--replicas REPLICAS]
-                        [--args [ARG=VALUE [ARG=VALUE ...]]] [--context CONTEXT] [--debug]
+quick app deploy [-h] --registry REGISTRY_URL --image IMAGE --tag TAG [--image-pull-secret IMAGE_PULL_SECRET]
+                        [--replicas REPLICAS] [--args [ARG=VALUE ...]] [--port PORT] [--context CONTEXT] [--debug]
                         NAME
 ```
 **Required:**
@@ -361,8 +365,10 @@ quick app deploy [-h] --registry REGISTRY_URL --image IMAGE --tag TAG [--replica
 
 **Optional:**
 
+* `--image-pull-secret`: A secret in a string format for pulling an image from a private registry
 * `--replicas`: Number of replicas
 * `--args`: CLI arguments of the application (broker and schema registry not required)
+* `--port`: The container port of the application
 * `--context`: Context of quick
 * `--debug`: Enable debug output
 
