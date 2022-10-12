@@ -120,12 +120,12 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
         final QuickTopicType keyType = this.getTopicData().getKeyData().getType();
         final ParsedSchema parsedSchema = this.getTopicData().getValueData().getParsedSchema();
         log.debug("keyType is {} and parsedSchema is {}", keyType, parsedSchema);
-        final RangeIndexer<K, V> rangeIndexer = this.getRangeIndexer(rangeField, keyType, parsedSchema);
+        final RangeIndexer<K, V> rangeIndexer = this.getRangeIndexer(rangeField, parsedSchema);
         stream.process(() -> new MirrorRangeProcessor<>(this.rangeStoreName, rangeIndexer),
             Named.as(RANGE_PROCESSOR_NAME), this.rangeStoreName);
     }
 
-    private RangeIndexer<K, V> getRangeIndexer(final String rangeField, final QuickTopicType keyType,
+    private RangeIndexer<K, V> getRangeIndexer(final String rangeField,
         @Nullable final ParsedSchema parsedSchema) {
         if (parsedSchema == null) {
             log.debug("Parsed schema is null and cleanup flag is set to {}.", this.isCleanup);
@@ -135,7 +135,7 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
             throw new MirrorTopologyException("Could not get the parsed schema.");
         } else {
             log.debug("Setting up default range indexer.");
-            return DefaultRangeIndexer.createRangeIndexer(keyType, parsedSchema, rangeField);
+            return DefaultRangeIndexer.createRangeIndexer(parsedSchema, rangeField);
         }
     }
 
