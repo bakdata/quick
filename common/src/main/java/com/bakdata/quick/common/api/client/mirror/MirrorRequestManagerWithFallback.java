@@ -89,8 +89,10 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
             final Response fallbackResponse = this.client.newCall(fallbackRequest).execute();
             return ResponseWrapper.fromFallbackResponse(fallbackResponse);
         } catch (final IOException fallbackException) {
-            throw new MirrorException("Unable to process the request. Load Balancer is not available.",
-                HttpStatus.INTERNAL_SERVER_ERROR, fallbackException);
+            final String errorMessage =
+                String.format("Unable to process the request. The requested Mirror %s is not available.",
+                    this.fallbackServiceHost.getUrl().host());
+            throw new MirrorException(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR, fallbackException);
         }
     }
 }

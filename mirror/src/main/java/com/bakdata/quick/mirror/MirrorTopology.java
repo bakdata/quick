@@ -100,9 +100,8 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
             }
             log.debug("The topology is {}", builder.build().describe());
             return builder.build();
-        } else {
-            return this.createRetentionTopology(builder, keySerDe, stream);
         }
+        return this.createRetentionTopology(builder, keySerDe, stream);
     }
 
     private void createPointTopology(final StreamsBuilder builder, final Serde<K> keySerDe,
@@ -132,9 +131,8 @@ public class MirrorTopology<K, V> extends QuickTopology<K, V> {
             log.debug("Parsed schema is null and cleanup flag is set to {}.", this.isCleanup);
             if (this.isCleanup) {
                 return new NoOpRangeIndexer<>();
-            } else {
-                throw new MirrorTopologyException("Could not get the parsed schema.");
             }
+            throw new MirrorTopologyException("Could not get the parsed schema.");
         } else {
             log.debug("Setting up default range indexer.");
             return DefaultRangeIndexer.createRangeIndexer(keyType, parsedSchema, rangeField);

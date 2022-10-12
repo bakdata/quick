@@ -1,14 +1,10 @@
 query {
-	userRatings(userId: 2, ratingFrom:1, ratingTo:4) {
-		userId
-		rating
-		purchase {
-			purchaseId
-			productId
-			price {
-				total
-				currency
-			}
+	productPriceInTime(productId:123, timestampFrom:1, timestampTo:4) {
+		productId, 
+		price 
+		{
+			total
 		}
+		timestamp
 	}
 }
