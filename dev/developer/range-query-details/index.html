@@ -1225,74 +1225,86 @@ As a reminder, these steps are:</p>
 a technical context is provided
 for arriving at a better understanding of the range queries.</p>
 <h3 id="mirrors">Mirrors<a class="headerlink" href="#mirrors" title="Permanent link">&para;</a></h3>
-<p>A corresponding mirror is deployed each time you create a new topic in Quick.
-A mirror is a Kafka Streams application that reads the content of a topic
+<p>A corresponding mirror is deployed each time
+you create a new topic in Quick.
+A mirror is a Kafka Streams application
+that reads the content of a topic
 and exposes it through a key-value REST API.
 The API is linked with a specific state store.
-A state store in Kafka can either be a persistent state store (by default RocksDB)
-or in-memory state store.
-Regardless of the chosen state store type, their functionality is the same.
-In any case, it's a key-value store, meaning all keys are unique.
+A state store in Kafka can either be a persistent state store
+(by default RocksDB) or in-memory state store.
+Regardless of the chosen state store type,
+their functionality is the same.
+In any case, it's a key-value store,
+meaning all keys are unique.
 Storing different values for the same key is impossible.
 Consider the following entries that are saved in a topic:</p>
 <table>
 <thead>
 <tr>
-<th align="center">key (UserId)</th>
+<th align="center">key (productId)</th>
 <th>value</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="center"><code>1</code></td>
-<td><code>{userId: 1, purchaseId: "abc", rating: 2}</code></td>
+<td align="center"><code>123</code></td>
+<td><code>{productId: 123, name: "T-Shirt", timestamp: 2}</code></td>
 </tr>
 <tr>
-<td align="center"><code>1</code></td>
-<td><code>{userId: 1, purchaseId: "def", rating: 4}</code></td>
+<td align="center"><code>123</code></td>
+<td><code>{productId: 123, name: "T-Shirt", timestamp: 3}</code></td>
 </tr>
 <tr>
-<td align="center"><code>2</code></td>
-<td><code>{userId: 2, purchaseId: "ghi", rating: 4}</code></td>
+<td align="center"><code>234</code></td>
+<td><code>{productId: 234, name: "Hoodie", timestamp: 4}</code></td>
 </tr>
 </tbody>
 </table>
-<p>The table indicates that there are two entries for the <code>userId=1</code>.
+<p>The table indicates that there are two entries for the <code>productId=123</code>.
 The second entry is newer, meaning its value is the current one in the store.
-Suppose you query the store with <code>userId=1</code>.
-In that case, you get <code>{userId: 1, purchaseId: "def", rating: 4}</code>,
+Suppose you query the store with <code>productId=123</code>.
+In that case, you get <code>{productId: 123, name: "T-Shirt", timestamp: 3}</code>,
 and there is no possibility of accessing the earlier value.<br />
 In subsequent parts of this section,
-we refer to queries that can only retrieve the latest record as point queries.
-Similarly, suppose a specific mirror is only capable of supporting such queries. In that case,
-we say this is a mirror with a point index.<br />
+we refer to queries that can only retrieve
+the latest record as point queries.
+Similarly, suppose a specific mirror is only
+capable of supporting such queries.
+In that case, we say this is a mirror with a point index.<br />
 Because of the intrinsic nature of state stores,
-providing a possibility to access previous values (making a range query that encompasses more than one value
-associated with <code>userId=1</code>) demands a change in the key representation.</p>
+providing a possibility to access previous values
+(making a range query that encompasses more than one value
+associated with <code>productId=123</code>) demands a change in the key representation.</p>
 <h3 id="introducing-the-possibility-of-carrying-out-range-queries">Introducing the possibility of carrying out range queries<a class="headerlink" href="#introducing-the-possibility-of-carrying-out-range-queries" title="Permanent link">&para;</a></h3>
-<p>To circumvent the limitation of a key-value store and be able to perform range queries,
+<p>To circumvent the limitation of a key-value store
+and be able to perform range queries,
 Quick uses an alternative approach to deal with keys.
-Each key is a flattened string with a combination of the topic key and the value
+Each key is a flattened string with a combination of the topic key
+and the zero-padded value
 for which the range queries are requested.
-The keys are padded (depending on the type <code>Int</code> 10 digits or <code>Long</code> 19 digits)
+The values of the range field are padded
+(depending on the type <code>Int</code> 10 digits or <code>Long</code> 19 digits)
 with zeros to keep the lexicographic order.
 The general format of the key in the state store is:
-<nobr><code>&lt;zero_paddings&gt;&lt;topicKeyValue&gt;_&lt;zero_paddings&gt;&lt;rangeFieldValue&gt;</code></nobr>.<br />
-Following the example from the table: If we have a topic with <code>userId</code> as its key
-and want to create a range over the <code>rating</code>,
+<nobr><code>&lt;topicKeyValue&gt;_&lt;zero_paddings&gt;&lt;rangeFieldValue&gt;</code></nobr>.<br />
+Following the example from the table:
+If we have a topic with <code>productId</code> as its key
+and want to create a range over the <code>timestamp</code>,
 the key in the state store for the first entry looks like this:
-<div class="highlight"><pre><span></span><code>00000000001_00000000002
+<div class="highlight"><pre><span></span><code>123_00000000002
 </code></pre></div>
 And for the second:
-<div class="highlight"><pre><span></span><code>00000000001_00000000004
+<div class="highlight"><pre><span></span><code>123_00000000003
 </code></pre></div>
-Regarding negative values, the minus sign is appended at the beginning of the padded string.
-For example, consider a user with the negative (for whatever reason) id number <code>userId=-10</code>
-and <code>rating=10</code>.
+Regarding negative values, the minus sign is appended
+at the beginning of the padded string.
+For example, consider a product with the negative (for whatever reason)
+id number <code>productId=-10</code> and <code>timestamp=10</code>.
 Then, the index looks as follows:
-<div class="highlight"><pre><span></span><code>-00000000010_00000000010
+<div class="highlight"><pre><span></span><code>-10_00000000010
 </code></pre></div>
-The flatten-key approach creates unique keys for each user with a given rating.
+The flatten-key approach creates unique keys for each product with a given timestamp.
 Consequently, all the values will be accessible when running a range query.
 In later parts of this section, a mirror that can support range queries
 is called a mirror with a range index.</p>
@@ -1303,7 +1315,7 @@ until it is applied.</p>
 <p>When you apply a schema that
 contains the topic directive with the additional fields
 (<code>rangeFrom</code> and <code>rangeTo</code>),
-a <a href="https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java">RangeQueryFetcher</a>
+a <a href="https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java"><code>RangeQueryFetcher</code></a>
 is created.
 This class will be later used
 to deliver a result of a range query to the user.</p>
@@ -1313,10 +1325,12 @@ a request is sent to the Manager.
 The Manager prepares the deployment of a mirror, which contains
 both <a href="https://github.com/bakdata/quick/blob/6fed9f20f237663cc00e3359de92efaf40307f28/mirror/src/main/java/com/bakdata/quick/mirror/point/MirrorProcessor.java">Point Index Processor</a>
 and <a href="https://github.com/bakdata/quick/blob/6fed9f20f237663cc00e3359de92efaf40307f28/mirror/src/main/java/com/bakdata/quick/mirror/range/MirrorRangeProcessor.java">Range Index Processor</a>.
-Each time a new value is sent to the topic, both processors are called.
+Each time a new value is sent to the topic,
+both processors are called.
 The first one creates a new key-value pair
 if the specified key does not exist.
-If it does, the value for the given key is overwritten (precisely as described above).
+If it does, the value for the given key is overwritten
+(precisely as described above).
 If the key exists, but you specify <code>null</code> as the value,
 the key and the corresponding (previous) value will be deleted from the state store.
 The second processor creates the range index in the way that was
@@ -1326,8 +1340,8 @@ discussed above.</p>
 you provide two additional parameters in the entry point.
 These attributes define your range.
 After you have executed the query, it hits the gateway.
-There, it is processed by the <a href="https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java">RangeQueryFetcher</a>.
-<em>RangeQueryFetcher</em> is responsible for extracting the information
+There, it is processed by the <a href="https://github.com/bakdata/quick/blob/c8778ce527575c545a864ccbc3d98e3502fbb2a2/gateway/src/main/java/com/bakdata/quick/gateway/fetcher/RangeQueryFetcher.java"><code>RangeQueryFetcher</code></a>.
+<code>RangeQueryFetcher</code> is responsible for extracting the information
 about the range from the query you passed.
 Having collected the necessary data
 (information about the key, the start of the range,

@@ -1171,14 +1171,21 @@
 
 
 <h1 id="range-queries">Range queries<a class="headerlink" href="#range-queries" title="Permanent link">&para;</a></h1>
-<p>We now extend the <a href="../query-data/">e-commerce example</a> with user ratings.
-Thus, users can then rank their purchases.
-This allows the company to find purchases that did not satisfy customers.
-It could then provide promo codes to the unhappy ones.</p>
-<p>The company could fetch all purchases and filter them accordingly to find disappointing purchases.
-However, range queries allow you to specify a specific range of bad ratings
-(say, from 1 to 4 on a 10-point grading scale)
-and receive the corresponding records immediately.</p>
+<p>We now extend the <code>Product</code> type
+from the <a href="../query-data/">e-commerce example</a>
+with time information.
+This allows a company to analyse
+the development of the price over time.
+Using this information,
+a company could investigate
+which factors might have influenced 
+the price of a specific product.</p>
+<p>The company could fetch all products
+and filter them accordingly
+to find the desired product's prices in a given period.
+However, range queries allow
+specifying a product id and a time-range
+to retrieve the corresponding records immediately.</p>
 <p>To integrate range queries into your application, you must take the following steps:</p>
 <ol>
 <li>Modify your GraphQL schema and define a range in the query.</li>
@@ -1189,37 +1196,44 @@ and receive the corresponding records immediately.</p>
 <h2 id="define-a-range-in-the-graphql-query-type">Define a range in the GraphQL query type<a class="headerlink" href="#define-a-range-in-the-graphql-query-type" title="Permanent link">&para;</a></h2>
 <p>To introduce range queries, we will extend the previous schema as follows:
 <div class="highlight"><span class="filename">schema.gql</span><pre><span></span><code><span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
-    <span class="n">userRatings</span><span class="p">(</span>
-        <span class="n">userId</span><span class="p">:</span> <span class="no">Int</span>
-        <span class="n">ratingFrom</span><span class="p">:</span> <span class="no">Int</span>
-        <span class="n">ratingTo</span><span class="p">:</span> <span class="no">Int</span>
-    <span class="p">)</span><span class="err">:</span> <span class="err">[</span><span class="n">UserRating</span><span class="err">]</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;user-rating-range&quot;</span><span class="p">,</span>
-        <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;userId&quot;</span><span class="p">,</span>
-        <span class="n">rangeFrom</span><span class="p">:</span> <span class="s">&quot;ratingFrom&quot;</span><span class="p">,</span>
-        <span class="n">rangeTo</span><span class="p">:</span> <span class="s">&quot;ratingTo&quot;</span><span class="p">)</span>
+    <span class="n">productPriceInTime</span><span class="p">(</span>
+        <span class="n">productId</span><span class="p">:</span> <span class="no">Int</span>
+        <span class="n">timestampFrom</span><span class="p">:</span> <span class="no">Int</span>
+        <span class="n">timestampTo</span><span class="p">:</span> <span class="no">Int</span>
+    <span class="p">)</span><span class="err">:</span> <span class="err">[</span><span class="n">Product</span><span class="err">]</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;product-price-range&quot;</span><span class="p">,</span>
+        <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;productId&quot;</span><span class="p">,</span>
+        <span class="n">rangeFrom</span><span class="p">:</span> <span class="s">&quot;timestampFrom&quot;</span><span class="p">,</span>
+        <span class="n">rangeTo</span><span class="p">:</span> <span class="s">&quot;timestampTo&quot;</span><span class="p">)</span>
 <span class="p">}</span>
-<span class="k">type</span> <span class="err">UserRating</span> <span class="p">{</span>
-    <span class="nl">userId</span><span class="p">:</span> <span class="n">Int</span><span class="err">!</span>
-    <span class="nl">purchaseId</span><span class="p">:</span> <span class="n">String</span><span class="err">!</span>
-    <span class="nl">purchase</span><span class="p">:</span> <span class="n">Purchase</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;purchase&quot;</span><span class="p">,</span> <span class="n">keyField</span><span class="p">:</span> <span class="s">&quot;purchaseId&quot;</span><span class="p">)</span>
-    <span class="nl">rating</span><span class="p">:</span> <span class="n">Int</span>
+
+<span class="k">type</span> <span class="err">Product</span> <span class="p">{</span>
+    <span class="nl">productId</span><span class="p">:</span> <span class="n">Int</span><span class="err">!</span>
+    <span class="nl">name</span><span class="p">:</span> <span class="n">String</span>
+    <span class="nl">description</span><span class="p">:</span> <span class="n">String</span>
+    <span class="nl">price</span><span class="p">:</span> <span class="n">Price</span>
+    <span class="nl">timestamp</span><span class="p">:</span> <span class="n">Int</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">Price</span> <span class="p">{</span>
+    <span class="nl">total</span><span class="p">:</span> <span class="n">Float</span>
+    <span class="nl">currency</span><span class="p">:</span> <span class="n">String</span>
 <span class="p">}</span>
 </code></pre></div>
-Let's start with the new type called <code>UserRating</code>.
-It describes a numerical rating a given user assigns
-to a specific purchase previously made (identified by <code>purchaseId</code>).</p>
+As you can see, the <code>Product</code> type has been extended.
+It contains a timestamp that can describe
+the price of the product at a given time.</p>
 <p>However, the most notable changes are in the <code>Query</code> type.
-First, (<code>userRatings</code>) has new fields: <code>ratingFrom</code> and <code>ratingTo</code>.
+First, the query (<code>productPriceInTime</code>) has new fields: <code>timestampFrom</code> and <code>timestampTo</code>.
 Second, the <code>@topic</code> directive has changed:
-In the query <code>userRatings</code>, you declare the two fields that describe your desired range
-(here, the rating range).
+In the query <code>productPriceInTime</code>, you declare the two fields that describe your desired range
+(here, the timestamp range).
 These field values are later assigned to two new parameters of the
 <code>@topic</code> directive, <code>rangeFrom</code> and <code>rangeTo</code> respectively.</p>
-<p>In our example, <code>ratingFrom</code> and <code>ratingTo</code> follow the naming scheme <em>field<strong>From</strong></em> and <em>field<strong>To</strong></em>
+<p>In our example, <code>timestampFrom</code> and <code>timestampTo</code> follow the naming scheme <em>field<strong>From</strong></em> and <em>field<strong>To</strong></em>
 where <em>field</em> is the field declared in the topic creation command (see later step 3).
 Following this convention is not mandatory.
 You can name the parameters that define your range as you wish.
-However, we think that following this pattern increases readability.</p>
+However, we suggest to follow this pattern to increase readability.</p>
 <p>When you execute a range query, you receive a list of entries.
 Therefore, the return type of the query is a list of <em>UserRating</em>.</p>
 <h2 id="apply-the-schema-to-the-gateway">Apply the schema to the gateway<a class="headerlink" href="#apply-the-schema-to-the-gateway" title="Permanent link">&para;</a></h2>
@@ -1228,13 +1242,23 @@ Therefore, the return type of the query is a list of <em>UserRating</em>.</p>
 </code></pre></div></p>
 <h2 id="configure-your-topic-with-the-range-information">Configure your topic with the range information<a class="headerlink" href="#configure-your-topic-with-the-range-information" title="Permanent link">&para;</a></h2>
 <p>To use range queries, you must set the <code>--range-field</code> parameter when creating the topic.
-Under the hood, Quick creates additional data structures that enable the execution of range queries.
-Use the Quick CLI as follows:
-<div class="highlight"><pre><span></span><code>quick topic create user-rating-range --key int --value schema --schema example.UserRating --range-field rating
+Under the hood, Quick creates additional data structures that enable the execution of range queries.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because of the change in the <code>Product</code> type,
+you must delete the <code>product</code> topic
+(if you created it before)
+and create it again.
+To delete the topic,
+use the following command:
+<code>quick topic delete product</code></p>
+</div>
+<p>To create a topic with the new parameter, use the Quick CLI as follows:
+<div class="highlight"><pre><span></span><code>quick topic create product-price-range --key int --value schema --schema example.Product --range-field timestamp
 </code></pre></div></p>
 <p>Note that <code>--range-field</code> links a particular field you can later use for range queries.
-In our example, the <code>rating</code> field of the <code>UserRating</code> is linked with a range.
-Tha changes in the <code>Query</code> described above refer to this field you define here with <code>--range-field</code>.</p>
+In our example, the <code>timestamp</code> field of the <code>Product</code> is linked with a range.
+The changes in the <code>Query</code> described above refer to this field you define here with <code>--range-field</code>.</p>
 <p><code>--range-field</code> is an optional flag.
 If you do not specify it, Quick can solely return values for a given key.
 If you specify it, Quick will return values for a given key and a range of desired values.
@@ -1247,100 +1271,151 @@ That is, it executes point queries and range queries.</p>
 <p>If you are interested in details of the query processing,
 visit the developer <a href="../../../../developer/range-query-details/">section on ranges</a>.</p>
 <h2 id="execute-the-query">Execute the query<a class="headerlink" href="#execute-the-query" title="Permanent link">&para;</a></h2>
-<p>Before executing our range query, we need some data ;)<br />
-You can send purchases and ratings into Quick using <a href="../ingest-data/">the ingest service</a>.
-If you followed the previous parts of this guide,
-you should already have data in the <code>purchase</code> topic.
-If you didn't, please complete the <a href="../ingest-data/">section about ingesting data</a>
-and add some purchases:</p>
-<p>The command below sends ratings to the <code>user-rating-range</code> topic.
-<div class="highlight"><pre><span></span><code> curl --request POST --url <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/ingest/user-rating-range&quot;</span> <span class="se">\</span>
+<p>Before executing our range query, you need some data ;)<br />
+You can send products into Quick using <a href="../ingest-data/">the ingest service</a>.</p>
+<p>The command below sends products to the <code>product-price-range</code> topic.
+<div class="highlight"><pre><span></span><code> curl --request POST --url <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/ingest/product-price-range&quot;</span> <span class="se">\</span>
   --header <span class="s2">&quot;content-type:application/json&quot;</span> <span class="se">\</span>
   --header <span class="s2">&quot;X-API-Key:</span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span><span class="se">\</span>
-  --data <span class="s2">&quot;@./ratings.json&quot;</span>
+  --data <span class="s2">&quot;@./products.json&quot;</span>
 </code></pre></div>
-Here is an example of the <code>ratings.json</code> file:</p>
+Here is an example of the <code>products.json</code> file:</p>
 <details>
-<summary>Example <code>ratings.json</code></summary>
+<summary>Example <code>products.json</code></summary>
 <div class="highlight"><pre><span></span><code>[
   {
-    &quot;key&quot;: 1,
+    &quot;key&quot;: 111,
     &quot;value&quot;: {
-      &quot;userId&quot;: 1,
-      &quot;purchaseId&quot;: &quot;abc&quot;,
-      &quot;rating&quot;: 7
+      &quot;productId&quot;: 111,
+      &quot;name&quot;: &quot;T-Shirt&quot;,
+      &quot;description&quot;: &quot;black&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 14.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 1
     }
   },
   {
-    &quot;key&quot;: 2,
+    &quot;key&quot;: 111,
     &quot;value&quot;: {
-      &quot;userId&quot;: 2,
-      &quot;purchaseId&quot;: &quot;def&quot;,
-      &quot;rating&quot;: 2
+      &quot;productId&quot;: 111,
+      &quot;name&quot;: &quot;T-Shirt&quot;,
+      &quot;description&quot;: &quot;black&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 19.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 2
     }
   },
   {
-    &quot;key&quot;: 2,
+    &quot;key&quot;: 222,
     &quot;value&quot;: {
-      &quot;userId&quot;: 2,
-      &quot;purchaseId&quot;: &quot;ghi&quot;,
-      &quot;rating&quot;: 6
+      &quot;productId&quot;: 222,
+      &quot;name&quot;: &quot;Jeans&quot;,
+      &quot;description&quot;: &quot;Non-stretch denim&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 79.99,
+        &quot;currency&quot;: &quot;EURO&quot;
+      },
+      &quot;timestamp&quot;: 1
     }
   },
   {
-    &quot;key&quot;: 2,
+    &quot;key&quot;: 333,
     &quot;value&quot;: {
-      &quot;userId&quot;: 2,
-      &quot;purchaseId&quot;: &quot;jkl&quot;,
-      &quot;rating&quot;: 1
+      &quot;productId&quot;: 333,
+      &quot;name&quot;: &quot;Shoes&quot;,
+      &quot;description&quot;: &quot;Sneaker&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 99.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 1
     }
+  },
+  {
+    &quot;key&quot;: 111,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 111,
+      &quot;name&quot;: &quot;T-Shirt&quot;,
+      &quot;description&quot;: &quot;black&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 24.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 3
+      }
+  },
+    {
+    &quot;key&quot;: 222,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 222,
+      &quot;name&quot;: &quot;Jeans&quot;,
+      &quot;description&quot;: &quot;Non-stretch denim&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 99.99,
+        &quot;currency&quot;: &quot;EURO&quot;
+      },
+      &quot;timestamp&quot;: 2
+      }
+    },
+    {
+    &quot;key&quot;: 111,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 111,
+      &quot;name&quot;: &quot;T-Shirt&quot;,
+      &quot;description&quot;: &quot;black&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 29.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 4
+      }
   }
 ]
 </code></pre></div>
 </details>
-<p>Let's now find purchases the client with <code>userId=2</code> was unsatisfied with.
-Assuming that a disappointing purchase has a rating lower than 5,
-you can execute the following query to obtain the results.
+<p>Let's now find the prices for product <code>111</code> in the time-window <code>1</code> to <code>3</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The upper bound of a range is exclusive.
+Therefore, we use <code>timestampTo:4</code>.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="k">query</span> <span class="p">{</span>
-    <span class="n">userRatings</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ratingFrom</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="n">ratingTo</span><span class="p">:</span><span class="mi">4</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">userId</span>
-        <span class="n">rating</span>
-        <span class="n">purchase</span> <span class="p">{</span>
-            <span class="n">purchaseId</span>
-            <span class="n">productId</span>
-            <span class="n">price</span> <span class="p">{</span>
-                <span class="n">total</span>
-                <span class="n">currency</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
+  <span class="n">productPriceInTime</span><span class="p">(</span><span class="n">productId</span><span class="p">:</span><span class="mi">111</span><span class="p">,</span> <span class="n">timestampFrom</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="n">timestampTo</span><span class="p">:</span><span class="mi">4</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">productId</span><span class="p">,</span>
+    <span class="n">price</span>
+    <span class="p">{</span>
+      <span class="n">total</span>
     <span class="p">}</span>
+    <span class="n">timestamp</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-Here you go - this is the list of poorly rated purchases.
+<p>Here you go - this is the list of the desired products.
 <div class="highlight"><pre><span></span><code><span class="p">[</span><span class="w"></span>
 <span class="w">  </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="nt">&quot;rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="nt">&quot;purchase&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">      </span><span class="nt">&quot;purchaseId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;def&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">      </span><span class="nt">&quot;productId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span><span class="w"></span>
-<span class="w">      </span><span class="nt">&quot;price&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="nt">&quot;currency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DOLLAR&quot;</span><span class="w"></span>
-<span class="w">      </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;productId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">111</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;price&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">14.99</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
 <span class="w">  </span><span class="p">},</span><span class="w"></span>
 <span class="w">  </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="nt">&quot;rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="nt">&quot;purchase&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">      </span><span class="nt">&quot;purchaseId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;jkl&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">      </span><span class="nt">&quot;productId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">456</span><span class="p">,</span><span class="w"></span>
-<span class="w">      </span><span class="nt">&quot;price&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">99.99</span><span class="p">,</span><span class="w"></span>
-<span class="w">        </span><span class="nt">&quot;currency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DOLLAR&quot;</span><span class="w"></span>
-<span class="w">      </span><span class="p">}</span><span class="w"></span>
-<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;productId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">111</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;price&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">19.99</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;productId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">111</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;price&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">24.99</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w"></span>
 <span class="w">  </span><span class="p">}</span><span class="w"></span>
 <span class="p">]</span><span class="w"></span>
 </code></pre></div></p>
