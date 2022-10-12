@@ -104,7 +104,7 @@ class RangeIndexMirrorIntegrationTest {
             .untilAsserted(
                 () -> RestAssured.given()
                     .queryParam("from", "1")
-                    .queryParam("to", "3")
+                    .queryParam("to", "4")
                     .when()
                     .get("http://" + this.hostConfig.toConnectionString() + "/mirror/range/{id}", 1)
                     .then()

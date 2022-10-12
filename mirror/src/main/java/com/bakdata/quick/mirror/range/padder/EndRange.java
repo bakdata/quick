@@ -17,25 +17,9 @@
 package com.bakdata.quick.mirror.range.padder;
 
 /**
- * Pads zeros to the left number.
- *
- * @param <T> Type of the number
+ * Defines the type of the end range.
  */
-public interface ZeroPadder<T> {
-
-    /**
-     * Converts the value T to a numerical string with zeros padded to the left to keep the lexicographical order.
-     */
-    String padZero(final T number);
-
-    /**
-     * Return the class type of T.
-     */
-    Class<T> getPadderClass();
-
-    /**
-     * The implementation of this method should return the end of the range. The end of the range could be exclusive or
-     * inclusive.
-     */
-    T getEndOfRange(final String stringValue);
+public enum EndRange {
+    INCLUSIVE,
+    EXCLUSIVE
 }
