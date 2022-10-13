@@ -36,6 +36,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://d9p.io/dev/developer/multi-subscription-details/</loc>
+         <lastmod>2022-10-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://d9p.io/dev/developer/notice/</loc>
          <lastmod>2022-10-13</lastmod>
          <changefreq>daily</changefreq>
@@ -107,6 +112,11 @@
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/working-with-quick/ingest-data/</loc>
+         <lastmod>2022-10-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://d9p.io/dev/user/getting-started/working-with-quick/multi-subscriptions/</loc>
          <lastmod>2022-10-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
