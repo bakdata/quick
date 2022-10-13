@@ -1300,7 +1300,7 @@ helm repo update
 This configuration deploys a single Broker, a Schema Registry and Zookeeper with minimal resources.
 <div class="highlight"><span class="filename">kafka.yaml</span><pre><span></span><code><span class="nt">cp-zookeeper</span><span class="p">:</span><span class="w"></span>
 <span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"></span>
-<span class="w">  </span><span class="nt">imageTag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6.1.1</span><span class="w"></span>
+<span class="w">  </span><span class="nt">imageTag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7.1.3</span><span class="w"></span>
 <span class="w">  </span><span class="nt">servers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"></span>
 <span class="w">  </span><span class="nt">heapOptions</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-Xms124M</span><span class="nv"> </span><span class="s">-Xmx124M&quot;</span><span class="w"></span>
 <span class="w">  </span><span class="nt">overrideGroupId</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">k8kafka</span><span class="w"></span>
@@ -1318,7 +1318,7 @@ This configuration deploys a single Broker, a Schema Registry and Zookeeper with
 
 <span class="nt">cp-kafka</span><span class="p">:</span><span class="w"></span>
 <span class="w">  </span><span class="nt">brokers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"></span>
-<span class="w">  </span><span class="nt">imageTag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6.1.1</span><span class="w"></span>
+<span class="w">  </span><span class="nt">imageTag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7.1.3</span><span class="w"></span>
 <span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"></span>
 <span class="w">  </span><span class="nt">podManagementPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Parallel</span><span class="w"></span>
 <span class="w">  </span><span class="nt">configurationOverrides</span><span class="p">:</span><span class="w"></span>
@@ -1341,7 +1341,7 @@ This configuration deploys a single Broker, a Schema Registry and Zookeeper with
 
 <span class="nt">cp-schema-registry</span><span class="p">:</span><span class="w"></span>
 <span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"></span>
-<span class="w">  </span><span class="nt">imageTag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6.1.1</span><span class="w"></span>
+<span class="w">  </span><span class="nt">imageTag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7.1.3</span><span class="w"></span>
 <span class="w">  </span><span class="nt">fullnameOverride</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;k8kafka-cp-schema-registry&quot;</span><span class="w"></span>
 <span class="w">  </span><span class="nt">overrideGroupId</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;k8kafka&quot;</span><span class="w"></span>
 <span class="w">  </span><span class="nt">kafka</span><span class="p">:</span><span class="w"></span>
