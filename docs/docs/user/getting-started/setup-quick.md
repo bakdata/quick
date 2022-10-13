@@ -133,7 +133,7 @@ To deploy Kafka, this guide uses Confluent's Helm Chart.
 	```yaml title="kafka.yaml"
 	cp-zookeeper:
 	  enabled: true
-	  imageTag: 6.1.1
+	  imageTag: 7.1.3
 	  servers: 1
 	  heapOptions: "-Xms124M -Xmx124M"
 	  overrideGroupId: k8kafka
@@ -151,7 +151,7 @@ To deploy Kafka, this guide uses Confluent's Helm Chart.
 
 	cp-kafka:
 	  brokers: 1
-	  imageTag: 6.1.1
+	  imageTag: 7.1.3
 	  enabled: true
 	  podManagementPolicy: Parallel
 	  configurationOverrides:
@@ -174,7 +174,7 @@ To deploy Kafka, this guide uses Confluent's Helm Chart.
 
 	cp-schema-registry:
 	  enabled: true
-	  imageTag: 6.1.1
+	  imageTag: 7.1.3
 	  fullnameOverride: "k8kafka-cp-schema-registry"
 	  overrideGroupId: "k8kafka"
 	  kafka:
