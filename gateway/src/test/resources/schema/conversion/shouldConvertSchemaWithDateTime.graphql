@@ -17,6 +17,6 @@ type Product {
 }
 
 type Metadata {
-    created_at: DateTime,
+    createdAt: DateTime,
     source: String
 }

@@ -1,0 +1,9 @@
+type Query {
+    findMetadata(id: String): Metadata @topic(name: "metadata-topic", keyArgument: "id")
+}
+
+type Metadata {
+    id: String!
+    createdAt: DateTime!,
+    source: String
+}

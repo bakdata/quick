@@ -521,7 +521,7 @@ class GraphQLSchemaGeneratorTest {
             .containsKeys("Purchase", "Product", "Metadata", "Query");
 
         final GraphQLFieldDefinition fieldDefinition =
-            GraphQLTestUtil.getFieldDefinition("Metadata", "created_at", schema);
+            GraphQLTestUtil.getFieldDefinition("Metadata", "createdAt", schema);
         assertThat(fieldDefinition)
             .isNotNull()
             .extracting(GraphQLFieldDefinition::getType)

@@ -41,6 +41,8 @@ import graphql.schema.GraphQLSchema;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -310,6 +312,26 @@ class GraphQLQueryExecutionTest {
             });
     }
 
+    @Test
+    void shouldExecuteQueryWithDateTime(final TestInfo testInfo) throws IOException {
+        final String name = testInfo.getTestMethod().orElseThrow().getName();
+        final Path schemaPath = workingDirectory.resolve(name + ".graphql");
+        final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
+
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
+
+        final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClient("metadata-topic");
+        final Metadata meta = Metadata.builder().id("test").createdAt(ZonedDateTime.now(ZoneId.systemDefault())).source("s1").build();
+        when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> meta);
+
+        final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
+        final Map<String, Map<String, Object>> data = executionResult.getData();
+        assertThat(data.get("findMetadata"))
+            .containsEntry("createdAt", ZonedDateTime.now(ZoneId.systemDefault()));
+
+    }
+
     private GraphQL getGraphQL(final Path schemaPath, final ClientSupplier clientSupplier) throws IOException {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy", "dummy");
 
@@ -397,5 +419,13 @@ class GraphQLQueryExecutionTest {
         int userId;
         int timestamp;
         int requests;
+    }
+
+    @Value
+    @Builder
+    private static class Metadata {
+        String id;
+        ZonedDateTime createdAt;
+        String source;
     }
 }
