@@ -67,7 +67,7 @@ public class GraphQLSchemaGenerator {
         this.directiveWirings = directiveWirings;
         this.quickGraphQLTypes = quickGraphQLTypes;
         this.postProcessings = postProcessings;
-        this.customScalars = List.of(ExtendedScalars.GraphQLLong);
+        this.customScalars = List.of(ExtendedScalars.GraphQLLong, ExtendedScalars.DateTime);
     }
 
     // TODO: remove. Currently exists only for old tests

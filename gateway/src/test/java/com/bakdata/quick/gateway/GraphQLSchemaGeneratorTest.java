@@ -32,6 +32,7 @@ import com.bakdata.quick.gateway.fetcher.QueryListFetcher;
 import com.bakdata.quick.gateway.fetcher.subscription.MultiSubscriptionFetcher;
 import com.bakdata.quick.gateway.fetcher.subscription.SubscriptionFetcher;
 import graphql.Scalars;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
@@ -509,6 +510,23 @@ class GraphQLSchemaGeneratorTest {
     @Test
     void shouldNotCovertIfReturnTypeOfRangeQueryIsNotList(final TestInfo testInfo) throws  IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "The return type of range queries should be a list.");
+    }
+
+    @Test
+    void shouldConvertSchemaWithDateTime(final TestInfo testInfo) throws IOException {
+        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
+
+        assertThat(schema.getTypeMap())
+            .containsKeys("Purchase", "Product", "Metadata", "Query");
+
+        final GraphQLFieldDefinition fieldDefinition =
+            GraphQLTestUtil.getFieldDefinition("Metadata", "created_at", schema);
+        assertThat(fieldDefinition)
+            .isNotNull()
+            .extracting(GraphQLFieldDefinition::getType)
+            .isInstanceOf(GraphQLScalarType.class)
+            .isExactlyInstanceOf(ExtendedScalars.DateTime.getClass());
     }
 
     private void registerTopics() {
