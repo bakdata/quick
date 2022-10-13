@@ -15,12 +15,12 @@ message ComplexProtoTestRecord {
   ProtoTestRecord protoTestRecord = 2;
 }
 
-message ClickStats {
+message ClickStatsProto {
   string id = 1;
   int64 amount = 2;
 }
 
-message PurchaseStats {
+message PurchaseStatsProto {
   string id = 1;
   int64 amount = 2;
 }

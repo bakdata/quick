@@ -1,6 +1,6 @@
 {
   "namespace": "com.bakdata.quick.avro",
-  "name": "PurchaseStats",
+  "name": "PurchaseStatsAvro",
   "type": "record",
   "fields": [
     {
