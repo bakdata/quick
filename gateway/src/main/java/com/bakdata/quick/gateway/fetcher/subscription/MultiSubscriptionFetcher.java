@@ -182,7 +182,7 @@ public class MultiSubscriptionFetcher<K> implements DataFetcher<Publisher<Map<St
      * Create one Flux that streams the elements of ALL topics selected by the user query.
      */
     private Flux<? extends NamedRecord<K, ?>> combineElementStreams(final List<String> selectedFields,
-                                                                    final DataFetchingEnvironment env) {
+        final DataFetchingEnvironment env) {
         final List<Flux<? extends NamedRecord<K, ?>>> fluxes = selectedFields.stream()
             .map(name -> this.createSubscriptionFlux(env, name)).collect(Collectors.toList());
         return Flux.merge(fluxes);
@@ -195,7 +195,7 @@ public class MultiSubscriptionFetcher<K> implements DataFetcher<Publisher<Map<St
      * The field name points to a topics for which a {@link SubscriptionProvider} emits the consumed records.
      */
     private Flux<? extends NamedRecord<K, ?>> createSubscriptionFlux(final DataFetchingEnvironment env,
-                                                                     final String name) {
+        final String name) {
         final SubscriptionProvider<K, ?> kafkaSubscriber = Objects.requireNonNull(
             this.fieldSubscriptionProviders.get(name),
             () -> "No subscription provider found for field " + name

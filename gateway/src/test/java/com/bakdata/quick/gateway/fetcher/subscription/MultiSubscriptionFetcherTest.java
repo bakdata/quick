@@ -17,18 +17,20 @@
 package com.bakdata.quick.gateway.fetcher.subscription;
 
 
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+
 import com.bakdata.quick.avro.ClickStatsAvro;
 import com.bakdata.quick.avro.PurchaseStatsAvro;
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
 import com.bakdata.quick.testutil.ClickStatsProto;
 import com.bakdata.quick.testutil.PurchaseStatsProto;
-import com.google.protobuf.Message;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import io.reactivex.subscribers.TestSubscriber;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
@@ -37,14 +39,13 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
 class MultiSubscriptionFetcherTest {
-
     @Test
     @DisabledIfEnvironmentVariable(named = "CI", matches = "true", disabledReason = "Flaky on CI")
     void shouldReturnComplexType() {
-        final DataFetcherClient<String, ?> field1Client = Mockito.mock(DataFetcherClient.class);
-        final DataFetcherClient<String, ?> field2Client = Mockito.mock(DataFetcherClient.class);
-        Mockito.doReturn("field1Key2").when(field1Client).fetchResult("key2");
-        Mockito.doReturn("field2Key1").when(field2Client).fetchResult("key1");
+        final DataFetcherClient<String, ?> field1Client = mock(DataFetcherClient.class);
+        final DataFetcherClient<String, ?> field2Client = mock(DataFetcherClient.class);
+        doReturn("field1Key2").when(field1Client).fetchResult("key2");
+        doReturn("field2Key1").when(field2Client).fetchResult("key1");
 
         final SubscriptionProvider<?, ?> field1Subscriber =
             env -> Flux.just(new ConsumerRecord<>("topic1", 0, 0, "key1", "field1Key1"));
@@ -73,8 +74,8 @@ class MultiSubscriptionFetcherTest {
 
     @Test
     void shouldReturnSingleFieldOfComplexType() {
-        final DataFetcherClient<String, ?> field1Client = Mockito.mock(DataFetcherClient.class);
-        final DataFetcherClient<String, ?> field2Client = Mockito.mock(DataFetcherClient.class);
+        final DataFetcherClient<String, ?> field1Client = mock(DataFetcherClient.class);
+        final DataFetcherClient<String, ?> field2Client = mock(DataFetcherClient.class);
 
         final SubscriptionProvider<?, ?> field1Subscriber =
             env -> Flux.just(new ConsumerRecord<>("topic1", 0, 0, "key1", "field1Key1"));
@@ -103,18 +104,15 @@ class MultiSubscriptionFetcherTest {
     @Test
     @DisabledIfEnvironmentVariable(named = "CI", matches = "true", disabledReason = "Flaky on CI")
     void shouldFetchValuesForStringKeyAndAvroValue() {
-
         final ClickStatsAvro key1clickStats = newClickStatsAvro("key1", 1);
         final PurchaseStatsAvro key1purchaseStats = newPurchaseStatsAvro("key1", 2);
         final ClickStatsAvro key2clickStats = newClickStatsAvro("key2", 3);
         final PurchaseStatsAvro key2purchaseStats = newPurchaseStatsAvro("key2", 4);
 
-        final DataFetcherClient<String, ClickStatsAvro> clickStatsClient =
-            Mockito.mock(DataFetcherClient.class);
-        final DataFetcherClient<String, PurchaseStatsAvro> purchaseStatsClient =
-            Mockito.mock(DataFetcherClient.class);
-        Mockito.doReturn(key1purchaseStats).when(purchaseStatsClient).fetchResult("key1");
-        Mockito.doReturn(key2clickStats).when(clickStatsClient).fetchResult("key2");
+        final DataFetcherClient<String, ClickStatsAvro> clickStatsClient = mock(DataFetcherClient.class);
+        final DataFetcherClient<String, PurchaseStatsAvro> purchaseStatsClient = mock(DataFetcherClient.class);
+        doReturn(key1purchaseStats).when(purchaseStatsClient).fetchResult("key1");
+        doReturn(key2clickStats).when(clickStatsClient).fetchResult("key2");
 
         final SubscriptionProvider<String, ClickStatsAvro> clickStatsProvider =
             env -> Flux.just(new ConsumerRecord<>("topic1", 0, 0, "key1", key1clickStats));
@@ -122,15 +120,15 @@ class MultiSubscriptionFetcherTest {
             env -> Flux.just(new ConsumerRecord<>("topic2", 0, 0, "key2", key2purchaseStats));
 
         final Map<String, DataFetcherClient<String, ?>> fieldClients = Map.of(
-            "field1", clickStatsClient,
-            "field2", purchaseStatsClient
+            "clicks", clickStatsClient,
+            "purchases", purchaseStatsClient
         );
         final Map<String, SubscriptionProvider<String, ?>> fieldSubscribers = Map.of(
-            "field1", clickStatsProvider,
-            "field2", purchaseStatsProvider
+            "clicks", clickStatsProvider,
+            "purchases", purchaseStatsProvider
         );
 
-        final List<String> selectedFields = List.of("field1", "field2");
+        final List<String> selectedFields = List.of("clicks", "purchases");
         final MultiSubscriptionFetcher<String> fetcher =
             new MultiSubscriptionFetcher<>(fieldClients, fieldSubscribers, env -> selectedFields);
 
@@ -138,19 +136,20 @@ class MultiSubscriptionFetcherTest {
             DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build()
         );
 
-        final TestSubscriber<Object> testSubscriber = TestSubscriber.create();
+        final TestSubscriber<Map<String, ?>> testSubscriber = TestSubscriber.create();
         mapPublisher.subscribe(testSubscriber);
         testSubscriber.awaitTerminalEvent(2, TimeUnit.SECONDS);
         testSubscriber.assertComplete();
 
-        testSubscriber.assertValueAt(0, Map.of(
-            "field1", (GenericRecord) newClickStatsAvro("key1", 1),
-            "field2", (GenericRecord) newPurchaseStatsAvro("key1", 2)
-        ));
-        testSubscriber.assertValueAt(0, Map.of(
-            "field1", (GenericRecord) newPurchaseStatsAvro("key2", 4),
-            "field2", (GenericRecord) newClickStatsAvro("key2", 3)
-        ));
+        final Map<String, Object> expected = new HashMap<>();
+        expected.put("clicks", newClickStatsAvro("key1", 1));
+        expected.put("purchases", newPurchaseStatsAvro("key1", 2));
+        testSubscriber.assertValueAt(0, expected);
+
+        final Map<String, Object> expected2 = new HashMap<>();
+        expected2.put("clicks", newClickStatsAvro("key2", 3));
+        expected2.put("purchases", newPurchaseStatsAvro("key2", 4));
+        testSubscriber.assertValueAt(1, expected2);
     }
 
     @Test
@@ -161,27 +160,27 @@ class MultiSubscriptionFetcherTest {
         final ClickStatsProto key2clickStats = newClickStatsProto("key2", 3);
         final PurchaseStatsProto key2purchaseStats = newPurchaseStatsProto("key2", 4);
 
-        final DataFetcherClient<Double, ClickStatsProto> clickStatsClient = Mockito.mock(DataFetcherClient.class);
-        final DataFetcherClient<Double, PurchaseStatsProto> purchaseStatsClient = Mockito.mock(DataFetcherClient.class);
-        Mockito.doReturn(key1purchaseStats).when(purchaseStatsClient).fetchResult(1d);
-        Mockito.doReturn(key2clickStats).when(clickStatsClient).fetchResult(2d);
+        final DataFetcherClient<Integer, ClickStatsProto> clickStatsClient = mock(DataFetcherClient.class);
+        final DataFetcherClient<Integer, PurchaseStatsProto> purchaseStatsClient = mock(DataFetcherClient.class);
+        doReturn(key1purchaseStats).when(purchaseStatsClient).fetchResult(1);
+        doReturn(key2clickStats).when(clickStatsClient).fetchResult(2);
 
-        final SubscriptionProvider<Double, ClickStatsProto> clickStatsProvider =
-            env -> Flux.just(new ConsumerRecord<>("topic1", 0, 0, 1d, key1clickStats));
-        final SubscriptionProvider<Double, PurchaseStatsProto> purchaseStatsProvider =
-            env -> Flux.just(new ConsumerRecord<>("topic2", 0, 0, 2d, key2purchaseStats));
+        final SubscriptionProvider<Integer, ClickStatsProto> clickStatsProvider =
+            env -> Flux.just(new ConsumerRecord<>("topic1", 0, 0, 1, key1clickStats));
+        final SubscriptionProvider<Integer, PurchaseStatsProto> purchaseStatsProvider =
+            env -> Flux.just(new ConsumerRecord<>("topic2", 0, 0, 2, key2purchaseStats));
 
-        final Map<String, DataFetcherClient<Double, ?>> fieldClients = Map.of(
-            "field1", clickStatsClient,
-            "field2", purchaseStatsClient
+        final Map<String, DataFetcherClient<Integer, ?>> fieldClients = Map.of(
+            "clicks", clickStatsClient,
+            "purchases", purchaseStatsClient
         );
-        final Map<String, SubscriptionProvider<Double, ?>> fieldSubscribers = Map.of(
-            "field1", clickStatsProvider,
-            "field2", purchaseStatsProvider
+        final Map<String, SubscriptionProvider<Integer, ?>> fieldSubscribers = Map.of(
+            "clicks", clickStatsProvider,
+            "purchases", purchaseStatsProvider
         );
 
-        final List<String> selectedFields = List.of("field1", "field2");
-        final MultiSubscriptionFetcher<Double> fetcher =
+        final List<String> selectedFields = List.of("clicks", "purchases");
+        final MultiSubscriptionFetcher<Integer> fetcher =
             new MultiSubscriptionFetcher<>(fieldClients, fieldSubscribers, env -> selectedFields);
 
         final Publisher<Map<String, Object>> mapPublisher = fetcher.get(
@@ -193,11 +192,11 @@ class MultiSubscriptionFetcherTest {
         testSubscriber.awaitTerminalEvent(2, TimeUnit.SECONDS);
         testSubscriber.assertComplete();
         testSubscriber.assertValueAt(0, Map.of(
-            "field1", (Message) newClickStatsProto("key1", 1),
-            "field2", (Message) newPurchaseStatsProto("key1", 2)));
+            "clicks", newClickStatsProto("key1", 1),
+            "purchases", newPurchaseStatsProto("key1", 2)));
         testSubscriber.assertValueAt(1, Map.of(
-            "field2", (Message) newPurchaseStatsProto("key2", 4),
-            "field1", (Message) newClickStatsProto("key2", 3)));
+            "purchases", newPurchaseStatsProto("key2", 4),
+            "clicks", newClickStatsProto("key2", 3)));
     }
 
     private static ClickStatsAvro newClickStatsAvro(final String id, final long amount) {
