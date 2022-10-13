@@ -17,17 +17,15 @@ giving users a possibility to:
     * make a range exclusively on keys
     * make a range query with a composite key
     * make a range using DateTime
-* Simplifying the `@topic` directive - using additional 
-directives with smaller responsibilities instead
-* Redefining topic semantics
-* Improving Gateway Performance (using JSON instead of generic types)
-
 
 ### Further ideas
 
 * A possibility to deploy a mirror without creating a topic
 * Extending `Mutation` possibilities, for example, to ingest an array of values
 * Providing a `between` semantics for having a range open on two fields
+* Simplifying the `@topic` directive
+* Redefining topic semantics
+* Improving Gateway Performance (using JSON instead of generic types)
 
 
 ## Completed releases
