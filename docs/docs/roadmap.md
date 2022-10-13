@@ -20,6 +20,7 @@ giving users a possibility to:
 * Simplifying the `@topic` directive - using additional 
 directives with smaller responsibilities instead
 * Redefining topic semantics
+* Improving Gateway Performance (using JSON instead of generic types)
 
 
 ### Further ideas
