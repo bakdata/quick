@@ -41,6 +41,8 @@ directive @topic(
     name: String!, # Name of the topic.
     keyArgument: String, # The argument which contains the key. This also supports arguments from parents.
     keyField: String # The field which contains the key. This can be used when the key is part of a different mirror.
+    rangeFrom: Int # The lower bound (inclusive) of a range over a specific field.  
+    rangeTo: Int # The upper bound (exclusive) of the range over the given field (the same as above). 
 ) on FIELD_DEFINITION
 ``` 
 

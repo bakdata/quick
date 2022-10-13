@@ -103,7 +103,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             StoreQueryParameters.fromNameAndType(pointStoreName, QueryableStoreTypes.keyValueStore());
 
         if (this.context.getRangeIndexProperties() != null) {
-            this.initializeQueryServiceForRange(topicData);
+            this.initializeQueryServiceForRange();
         }
     }
 
@@ -182,7 +182,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         return Single.just(HttpResponse.created(new MirrorValue<>(values)).status(HttpStatus.OK));
     }
 
-    private void initializeQueryServiceForRange(final QuickTopicData<K, V> topicData) {
+    private void initializeQueryServiceForRange() {
         log.debug("Initializing KafkaQueryService for range index");
         final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
         final String rangeStoreName = rangeIndexProperties.getStoreName();
@@ -191,7 +191,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         final ParsedSchema parsedSchema = this.context.getQuickTopicData().getValueData().getParsedSchema();
 
-        this.rangeIndexer = DefaultRangeIndexer.createRangeIndexer(topicData.getKeyData().getType(),
+        this.rangeIndexer = DefaultRangeIndexer.createRangeIndexer(
             Objects.requireNonNull(parsedSchema),
             Objects.requireNonNull(rangeIndexProperties.getRangeField()));
     }
