@@ -2,7 +2,7 @@
 
 This part of the documentation describes the details of processing range queries.
 For the introduction of range queries, see:
-[Range queries](https://bakdata.github.io/quick/{{ quick_version }}/user/getting-started/working-with-quick/range-queries/).
+[Range queries](../user/getting-started/working-with-quick/range-query.md).
 
 This part outlines what happens under the hood
 when users follow the steps for integrating range queries
