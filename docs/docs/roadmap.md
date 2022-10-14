@@ -11,16 +11,13 @@ and [project boards](https://github.com/bakdata/quick/projects).
 Development: Q4 2022
 
 * Providing DateTime support
-* Addressing limitations and extending range queries, which means
-giving users a possibility to:
-    * make a range over the value field 
-    * make a range exclusively on keys
-    * make a range query with a composite key
-    * make a range using DateTime
+* Extending range queries by giving users a possibility to
+make a range over the value field 
 
 ### Further ideas
 
 * A possibility to deploy a mirror without creating a topic
+* Further extension of range queries (range exclusively on keys, range using DateTime)
 * Extending `Mutation` possibilities, for example, to ingest an array of values
 * Providing a `between` semantics for having a range open on two fields
 * Simplifying the `@topic` directive
