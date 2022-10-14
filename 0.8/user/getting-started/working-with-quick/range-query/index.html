@@ -1,0 +1,1537 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://d9p.io/0.8/user/getting-started/working-with-quick/range-query/">
+      
+      <link rel="icon" href="../../../../assets/images/favicon.webp">
+      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-8.2.5">
+    
+    
+      
+        <title>Range queries - Quick</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.2d9f7617.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.e6a45f82.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#000000">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="black" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#range-queries" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../.." title="Quick" class="md-header__button md-logo" aria-label="Quick" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 89">
+  <path d="M3.136,17.387l0,42.932l42.932,21.467l-42.932,-64.399Z" />
+  <path d="M21.91,8l42.933,64.398l-18.775,9.388l-42.932,-64.399l18.774,-9.387Z" style="fill-opacity: 0.5" />
+  <path d="M67.535,17.387l-27.262,18.156l21.878,32.818l5.384,2.691l0,-53.665Z" />
+  <path d="M67.535,17.387l0,53.666l18.774,-9.388l0,-53.665l-18.774,9.387Z" style="fill-opacity: 0.25" />
+</svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Quick
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Range queries
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/bakdata/quick/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../.." class="md-tabs__link">
+      Home
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../" class="md-tabs__link md-tabs__link--active">
+        User guide
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../developer/architecture/" class="md-tabs__link">
+        Developer guide
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../../changelog/" class="md-tabs__link">
+      Changelog
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../../../roadmap/" class="md-tabs__link">
+      Roadmap
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="Quick" class="md-nav__button md-logo" aria-label="Quick" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 89">
+  <path d="M3.136,17.387l0,42.932l42.932,21.467l-42.932,-64.399Z" />
+  <path d="M21.91,8l42.933,64.398l-18.775,9.388l-42.932,-64.399l18.774,-9.387Z" style="fill-opacity: 0.5" />
+  <path d="M67.535,17.387l-27.262,18.156l21.878,32.818l5.384,2.691l0,-53.665Z" />
+  <path d="M67.535,17.387l0,53.666l18.774,-9.388l0,-53.665l-18.774,9.387Z" style="fill-opacity: 0.25" />
+</svg>
+
+    </a>
+    Quick
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bakdata/quick/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../">User guide</a>
+          
+            <label for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="User guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          User guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_2" type="checkbox" id="__nav_2_2" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../">Getting started</a>
+          
+            <label for="__nav_2_2">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Getting started" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          Getting started
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup-quick/" class="md-nav__link">
+        Setup Quick
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup-cli/" class="md-nav__link">
+        Setup Quick CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_2_4" type="checkbox" id="__nav_2_2_4" checked>
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../">Working with Quick</a>
+          
+            <label for="__nav_2_2_4">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Working with Quick" data-md-level="3">
+        <label class="md-nav__title" for="__nav_2_2_4">
+          <span class="md-nav__icon md-icon"></span>
+          Working with Quick
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gateway/" class="md-nav__link">
+        Gateway
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../topics/" class="md-nav__link">
+        Topics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ingest-data/" class="md-nav__link">
+        Ingest data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../query-data/" class="md-nav__link">
+        Query data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../subscriptions/" class="md-nav__link">
+        Subscriptions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multi-subscriptions/" class="md-nav__link">
+        Multi-subscriptions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Range queries
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Range queries
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-range-in-the-graphql-query-type" class="md-nav__link">
+    Define a range in the GraphQL query type
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apply-the-schema-to-the-gateway" class="md-nav__link">
+    Apply the schema to the gateway
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-your-topic-with-the-range-information" class="md-nav__link">
+    Configure your topic with the range information
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute-the-query" class="md-nav__link">
+    Execute the query
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    Limitations
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../teardown-resources/" class="md-nav__link">
+        Teardown resources
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_3" type="checkbox" id="__nav_2_3" >
+      
+      
+      
+        
+          
+            
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        
+        
+        <div class="md-nav__link md-nav__link--index ">
+          <a href="../../../examples/">Examples</a>
+          
+            <label for="__nav_2_3">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
+          
+        </div>
+      
+      <nav class="md-nav" aria-label="Examples" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_3">
+          <span class="md-nav__icon md-icon"></span>
+          Examples
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../examples/TinyURL/" class="md-nav__link">
+        TinyURL
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../examples/real-time-monitoring/" class="md-nav__link">
+        Real-time monitoring and analytics
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../examples/real-time-customer-profiles/" class="md-nav__link">
+        Real-time customer profiles
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2_4" type="checkbox" id="__nav_2_4" >
+      
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_2_4">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="2">
+        <label class="md-nav__title" for="__nav_2_4">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/graphql-support/" class="md-nav__link">
+        GraphQL support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/cli-commands/" class="md-nav__link">
+        Quick CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/helm-chart/" class="md-nav__link">
+        Quick Helm chart
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/configuration/" class="md-nav__link">
+        Quick configuration
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/dependency-versions/" class="md-nav__link">
+        Dependency versions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/breaking-changes/" class="md-nav__link">
+        Breaking changes
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Developer guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Developer guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Developer guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/architecture/" class="md-nav__link">
+        Architecture
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/contributing/" class="md-nav__link">
+        Contributing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/development/" class="md-nav__link">
+        Development
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/operations/" class="md-nav__link">
+        Operations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/cli/" class="md-nav__link">
+        CLI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/notice/" class="md-nav__link">
+        Dependencies notice
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/multi-subscription-details/" class="md-nav__link">
+        Multi-subscriptions details
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../developer/range-query-details/" class="md-nav__link">
+        Range queries details
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../changelog/" class="md-nav__link">
+        Changelog
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../roadmap/" class="md-nav__link">
+        Roadmap
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#define-a-range-in-the-graphql-query-type" class="md-nav__link">
+    Define a range in the GraphQL query type
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apply-the-schema-to-the-gateway" class="md-nav__link">
+    Apply the schema to the gateway
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure-your-topic-with-the-range-information" class="md-nav__link">
+    Configure your topic with the range information
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute-the-query" class="md-nav__link">
+    Execute the query
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    Limitations
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+<a href="https://github.com/bakdata/quick/edit/master/docs/user/getting-started/working-with-quick/range-query.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+
+<h1 id="range-queries">Range queries<a class="headerlink" href="#range-queries" title="Permanent link">&para;</a></h1>
+<p>We now extend the <code>Product</code> type
+from the <a href="../query-data/">e-commerce example</a>
+with time information.
+This allows a company to analyse
+the development of the price over time.
+Using this information,
+a company could investigate
+which factors might have influenced 
+the price of a specific product.</p>
+<p>The company could fetch all products
+and filter them accordingly
+to find the desired product's prices in a given period.
+However, range queries allow
+specifying a product id and a time-range
+to retrieve the corresponding records immediately.</p>
+<p>To integrate range queries into your application, you must take the following steps:</p>
+<ol>
+<li>Modify your GraphQL schema and define a range in the query.</li>
+<li>Apply the schema to the gateway.</li>
+<li>Configure your topic with the range information.</li>
+<li>Create and execute the range query as defined in step (1).</li>
+</ol>
+<h2 id="define-a-range-in-the-graphql-query-type">Define a range in the GraphQL query type<a class="headerlink" href="#define-a-range-in-the-graphql-query-type" title="Permanent link">&para;</a></h2>
+<p>To introduce range queries, we will extend the previous schema as follows:
+<div class="highlight"><span class="filename">schema.gql</span><pre><span></span><code><span class="k">type</span> <span class="err">Query</span> <span class="p">{</span>
+    <span class="n">productPriceInTime</span><span class="p">(</span>
+        <span class="n">productId</span><span class="p">:</span> <span class="no">Int</span>
+        <span class="n">timestampFrom</span><span class="p">:</span> <span class="no">Int</span>
+        <span class="n">timestampTo</span><span class="p">:</span> <span class="no">Int</span>
+    <span class="p">)</span><span class="err">:</span> <span class="err">[</span><span class="n">Product</span><span class="err">]</span> <span class="nd">@topic</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;product-price-range&quot;</span><span class="p">,</span>
+        <span class="n">keyArgument</span><span class="p">:</span> <span class="s">&quot;productId&quot;</span><span class="p">,</span>
+        <span class="n">rangeFrom</span><span class="p">:</span> <span class="s">&quot;timestampFrom&quot;</span><span class="p">,</span>
+        <span class="n">rangeTo</span><span class="p">:</span> <span class="s">&quot;timestampTo&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">Product</span> <span class="p">{</span>
+    <span class="nl">productId</span><span class="p">:</span> <span class="n">Int</span><span class="err">!</span>
+    <span class="nl">name</span><span class="p">:</span> <span class="n">String</span>
+    <span class="nl">description</span><span class="p">:</span> <span class="n">String</span>
+    <span class="nl">price</span><span class="p">:</span> <span class="n">Price</span>
+    <span class="nl">timestamp</span><span class="p">:</span> <span class="n">Int</span>
+<span class="p">}</span>
+
+<span class="k">type</span> <span class="err">Price</span> <span class="p">{</span>
+    <span class="nl">total</span><span class="p">:</span> <span class="n">Float</span>
+    <span class="nl">currency</span><span class="p">:</span> <span class="n">String</span>
+<span class="p">}</span>
+</code></pre></div>
+As you can see, the <code>Product</code> type has been extended.
+It contains a timestamp that can describe
+the price of the product at a given time.</p>
+<p>However, the most notable changes are in the <code>Query</code> type.
+First, the query (<code>productPriceInTime</code>) has new fields: <code>timestampFrom</code> and <code>timestampTo</code>.
+Second, the <code>@topic</code> directive has changed:
+In the query <code>productPriceInTime</code>, you declare the two fields that describe your desired range
+(here, the timestamp range).
+These field values are later assigned to two new parameters of the
+<code>@topic</code> directive, <code>rangeFrom</code> and <code>rangeTo</code> respectively.</p>
+<p>In our example, <code>timestampFrom</code> and <code>timestampTo</code> follow the naming scheme <em>field<strong>From</strong></em> and <em>field<strong>To</strong></em>
+where <em>field</em> is the field declared in the topic creation command (see later step 3).
+Following this convention is not mandatory.
+You can name the parameters that define your range as you wish.
+However, we suggest to follow this pattern to increase readability.</p>
+<p>When you execute a range query, you receive a list of entries.
+Therefore, the return type of the query is a list of <em>UserRating</em>.</p>
+<h2 id="apply-the-schema-to-the-gateway">Apply the schema to the gateway<a class="headerlink" href="#apply-the-schema-to-the-gateway" title="Permanent link">&para;</a></h2>
+<p>Just like before, you need to apply the modified schema to the gateway as follows:
+<div class="highlight"><pre><span></span><code>quick gateway apply example -f schema.gql
+</code></pre></div></p>
+<h2 id="configure-your-topic-with-the-range-information">Configure your topic with the range information<a class="headerlink" href="#configure-your-topic-with-the-range-information" title="Permanent link">&para;</a></h2>
+<p>To use range queries, you must set the <code>--range-field</code> parameter when creating the topic.
+Under the hood, Quick creates additional data structures that enable the execution of range queries.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because of the change in the <code>Product</code> type,
+you must delete the <code>product</code> topic
+(if you created it before)
+and create it again.
+To delete the topic,
+use the following command:
+<code>quick topic delete product</code></p>
+</div>
+<p>To create a topic with the new parameter, use the Quick CLI as follows:
+<div class="highlight"><pre><span></span><code>quick topic create product-price-range --key int --value schema --schema example.Product --range-field timestamp
+</code></pre></div></p>
+<p>Note that <code>--range-field</code> links a particular field you can later use for range queries.
+In our example, the <code>timestamp</code> field of the <code>Product</code> is linked with a range.
+The changes in the <code>Query</code> described above refer to this field you define here with <code>--range-field</code>.</p>
+<p><code>--range-field</code> is an optional flag.
+If you do not specify it, Quick can solely return values for a given key.
+If you specify it, Quick will return values for a given key and a range of desired values.
+That is, it executes point queries and range queries.</p>
+<p>Note the constraints on the values (which you define via the <code>--value</code> option):</p>
+<ol>
+<li>The value has to be a complex type, i.e., <code>Avro</code> or <code>Proto</code>.</li>
+<li>The range field type has to be <code>Long</code> or <code>Int</code>.</li>
+</ol>
+<p>If you are interested in details of the query processing,
+visit the developer <a href="../../../../developer/range-query-details/">section on ranges</a>.</p>
+<h2 id="execute-the-query">Execute the query<a class="headerlink" href="#execute-the-query" title="Permanent link">&para;</a></h2>
+<p>Before executing our range query, you need some data ;)<br />
+You can send products into Quick using <a href="../ingest-data/">the ingest service</a>.</p>
+<p>The command below sends products to the <code>product-price-range</code> topic.
+<div class="highlight"><pre><span></span><code> curl --request POST --url <span class="s2">&quot;</span><span class="nv">$QUICK_URL</span><span class="s2">/ingest/product-price-range&quot;</span> <span class="se">\</span>
+  --header <span class="s2">&quot;content-type:application/json&quot;</span> <span class="se">\</span>
+  --header <span class="s2">&quot;X-API-Key:</span><span class="nv">$QUICK_API_KEY</span><span class="s2">&quot;</span><span class="se">\</span>
+  --data <span class="s2">&quot;@./products.json&quot;</span>
+</code></pre></div>
+Here is an example of the <code>products.json</code> file:</p>
+<details>
+<summary>Example <code>products.json</code></summary>
+<div class="highlight"><pre><span></span><code>[
+  {
+    &quot;key&quot;: 111,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 111,
+      &quot;name&quot;: &quot;T-Shirt&quot;,
+      &quot;description&quot;: &quot;black&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 14.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 1
+    }
+  },
+  {
+    &quot;key&quot;: 111,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 111,
+      &quot;name&quot;: &quot;T-Shirt&quot;,
+      &quot;description&quot;: &quot;black&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 19.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 2
+    }
+  },
+  {
+    &quot;key&quot;: 222,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 222,
+      &quot;name&quot;: &quot;Jeans&quot;,
+      &quot;description&quot;: &quot;Non-stretch denim&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 79.99,
+        &quot;currency&quot;: &quot;EURO&quot;
+      },
+      &quot;timestamp&quot;: 1
+    }
+  },
+  {
+    &quot;key&quot;: 333,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 333,
+      &quot;name&quot;: &quot;Shoes&quot;,
+      &quot;description&quot;: &quot;Sneaker&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 99.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 1
+    }
+  },
+  {
+    &quot;key&quot;: 111,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 111,
+      &quot;name&quot;: &quot;T-Shirt&quot;,
+      &quot;description&quot;: &quot;black&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 24.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 3
+      }
+  },
+    {
+    &quot;key&quot;: 222,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 222,
+      &quot;name&quot;: &quot;Jeans&quot;,
+      &quot;description&quot;: &quot;Non-stretch denim&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 99.99,
+        &quot;currency&quot;: &quot;EURO&quot;
+      },
+      &quot;timestamp&quot;: 2
+      }
+    },
+    {
+    &quot;key&quot;: 111,
+    &quot;value&quot;: {
+      &quot;productId&quot;: 111,
+      &quot;name&quot;: &quot;T-Shirt&quot;,
+      &quot;description&quot;: &quot;black&quot;,
+      &quot;price&quot;: {
+        &quot;total&quot;: 29.99,
+        &quot;currency&quot;: &quot;DOLLAR&quot;
+      },
+      &quot;timestamp&quot;: 4
+      }
+  }
+]
+</code></pre></div>
+</details>
+<p>Let's now find the prices for product <code>111</code> in the time-window <code>1</code> to <code>3</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The upper bound of a range is exclusive.
+Therefore, we use <code>timestampTo:4</code>.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="k">query</span> <span class="p">{</span>
+  <span class="n">productPriceInTime</span><span class="p">(</span><span class="n">productId</span><span class="p">:</span><span class="mi">111</span><span class="p">,</span> <span class="n">timestampFrom</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="n">timestampTo</span><span class="p">:</span><span class="mi">4</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">productId</span><span class="p">,</span>
+    <span class="n">price</span>
+    <span class="p">{</span>
+      <span class="n">total</span>
+    <span class="p">}</span>
+    <span class="n">timestamp</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Here you go - this is the list of the desired products.
+<div class="highlight"><pre><span></span><code><span class="p">[</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;productId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">111</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;price&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">14.99</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;productId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">111</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;price&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">19.99</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;productId&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">111</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;price&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">24.99</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">]</span><span class="w"></span>
+</code></pre></div></p>
+<h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
+<p>The following listing describes the limitations of the current range queries implementation:</p>
+<ol>
+<li>Defining ranges over several fields isn't supported.</li>
+<li>A range can only be defined on a field whose type is <code>Int</code> or <code>Long</code>.</li>
+<li>Changing the field associated with a given range index isn't supported.</li>
+</ol>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../multi-subscriptions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Multi-subscriptions" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Multi-subscriptions
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../../teardown-resources/" class="md-footer__link md-footer__link--next" aria-label="Next: Teardown resources" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Teardown resources
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2022 bakdata
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.sections", "navigation.tabs", "navigation.indexes", "content.code.annotate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../../../assets/javascripts/workers/search.bd0b6b67.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.467223ff.min.js"></script>
+      
+    
+  </body>
+</html>
