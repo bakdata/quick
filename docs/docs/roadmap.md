@@ -13,7 +13,7 @@ Development: Q4 2022
 * Providing DateTime support
 * Addressing limitations and extending range queries, which means
 giving users a possibility to:
-    * make a range exclusively on values 
+    * make a range over the value field 
     * make a range exclusively on keys
     * make a range query with a composite key
     * make a range using DateTime
@@ -26,6 +26,10 @@ giving users a possibility to:
 * Simplifying the `@topic` directive
 * Redefining topic semantics
 * Improving Gateway Performance (using JSON instead of generic types)
+* Supporting additional query arguments (for example, filters)
+* Supporting custom authorization
+* Supporting different ingress controllers like nginx
+* Implementing a Kafka-Streams library for custom REST APIs in Quick
 
 
 ## Completed releases
