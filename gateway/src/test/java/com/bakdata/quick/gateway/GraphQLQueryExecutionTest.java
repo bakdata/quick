@@ -16,6 +16,11 @@
 
 package com.bakdata.quick.gateway;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.NANO_OF_SECOND;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,8 +46,9 @@ import graphql.schema.GraphQLSchema;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +58,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 class GraphQLQueryExecutionTest {
-    private static final TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {
+    };
     private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "execution");
     private final TopicRegistryClient registryClient = new TestTopicRegistryClient();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -321,15 +328,31 @@ class GraphQLQueryExecutionTest {
         final TestClientSupplier testClientSupplier = new TestClientSupplier();
         final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
 
+        final ZonedDateTime zonedNow = ZonedDateTime.now();
         final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClient("metadata-topic");
-        final Metadata meta = Metadata.builder().id("test").createdAt(ZonedDateTime.now(ZoneId.systemDefault())).source("s1").build();
+        final Metadata meta = Metadata.builder().id("test").createdAt(zonedNow).source("s1").build();
         when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> meta);
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
         final Map<String, Map<String, Object>> data = executionResult.getData();
         assertThat(data.get("findMetadata"))
-            .containsEntry("createdAt", ZonedDateTime.now(ZoneId.systemDefault()));
+            .containsEntry("createdAt", zonedNow.format(getCustomDateTimeFormatter()));
 
+    }
+
+    private static DateTimeFormatter getCustomDateTimeFormatter() {
+        return new DateTimeFormatterBuilder()
+            .parseCaseInsensitive()
+            .append(ISO_LOCAL_DATE)
+            .appendLiteral('T')
+            .appendValue(HOUR_OF_DAY, 2)
+            .appendLiteral(':')
+            .appendValue(MINUTE_OF_HOUR, 2)
+            .appendLiteral(':')
+            .appendValue(SECOND_OF_MINUTE, 2)
+            .appendFraction(NANO_OF_SECOND, 3, 3, true)
+            .appendOffset("+HH:MM", "Z")
+            .toFormatter();
     }
 
     private GraphQL getGraphQL(final Path schemaPath, final ClientSupplier clientSupplier) throws IOException {
