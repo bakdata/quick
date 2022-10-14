@@ -65,6 +65,7 @@ nav:
             - user/getting-started/working-with-quick/ingest-data.md
             - user/getting-started/working-with-quick/query-data.md
             - user/getting-started/working-with-quick/subscriptions.md
+            - user/getting-started/working-with-quick/multi-subscriptions.md
             - user/getting-started/working-with-quick/range-query.md
           - user/getting-started/teardown-resources.md
       - Examples:
@@ -87,6 +88,7 @@ nav:
       - developer/operations.md
       - developer/cli.md
       - developer/notice.md
+      - developer/multi-subscription-details.md
       - developer/range-query-details.md
   - Changelog: changelog.md
   - Roadmap: roadmap.md
