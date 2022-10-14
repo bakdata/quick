@@ -340,6 +340,7 @@ class GraphQLQueryExecutionTest {
 
     }
 
+    // Taken from: {@link graphql.scalars.datetime.DateTimeScalar}
     private static DateTimeFormatter getCustomDateTimeFormatter() {
         return new DateTimeFormatterBuilder()
             .parseCaseInsensitive()
