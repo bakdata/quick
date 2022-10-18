@@ -2,172 +2,172 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://d9p.io/dev/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/changelog/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/roadmap/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/developer/architecture/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/developer/cli/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/developer/contributing/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/developer/development/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/developer/multi-subscription-details/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/developer/notice/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/developer/operations/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/developer/range-query-details/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/examples/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/examples/TinyURL/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/examples/real-time-customer-profiles/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/examples/real-time-monitoring/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/setup-cli/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/setup-quick/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/teardown-resources/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/working-with-quick/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/working-with-quick/gateway/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/working-with-quick/ingest-data/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/working-with-quick/multi-subscriptions/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/working-with-quick/query-data/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/working-with-quick/range-query/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/working-with-quick/subscriptions/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/getting-started/working-with-quick/topics/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/reference/breaking-changes/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/reference/cli-commands/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/reference/configuration/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/reference/dependency-versions/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/reference/graphql-support/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://d9p.io/dev/user/reference/helm-chart/</loc>
-         <lastmod>2022-10-14</lastmod>
+         <lastmod>2022-10-18</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
