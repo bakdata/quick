@@ -35,6 +35,9 @@ import com.bakdata.quick.mirror.service.context.QueryContextProvider;
 import com.bakdata.quick.mirror.service.context.QueryServiceContext;
 import com.bakdata.quick.mirror.service.context.QueryServiceContext.QueryServiceContextBuilder;
 import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
+import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
+import com.bakdata.quick.mirror.topology.MirrorTopology;
+import com.bakdata.quick.mirror.topology.TopologyContext;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
@@ -120,18 +123,16 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     public Topology createTopology() {
-        final StreamsBuilder streamsBuilder = new StreamsBuilder();
-        return MirrorTopology.<K, V>builder()
-            .topologyData(this.getTopologyData())
-            .storeName(POINT_STORE)
-            .rangeStoreName(RANGE_STORE)
-            .retentionTime(this.retentionTime)
-            .retentionStoreName(RETENTION_STORE)
+        final TopologyContext<K, V> topologyContext = TopologyContext.<K, V>builder()
+            .quickTopologyData(this.getTopologyData())
+            .pointStoreName(POINT_STORE)
+            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
+            .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
             .storeType(this.storeType)
-            .rangeField(this.rangeField)
             .isCleanup(this.cleanUp)
-            .build()
-            .createTopology(streamsBuilder);
+            .build();
+
+        return new MirrorTopology<>(topologyContext).createTopology();
     }
 
     @Override

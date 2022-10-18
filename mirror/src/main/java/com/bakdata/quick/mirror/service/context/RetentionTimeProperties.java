@@ -14,29 +14,27 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.base;
+package com.bakdata.quick.mirror.service.context;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import java.util.List;
+import static com.bakdata.quick.mirror.MirrorApplication.RETENTION_STORE;
+
+import edu.umd.cs.findbugs.annotations.Nullable;
+import java.time.Duration;
+import lombok.Value;
 
 /**
- * Kafka Streams topology.
- *
- * @param <K> key type
- * @param <V> value type
+ * Contains the retention time index properties.
  */
-public abstract class QuickTopology<K, V> {
-    private final QuickTopologyData<K, V> data;
+@Value
+public class RetentionTimeProperties {
+    String storeName;
+    @Nullable
+    Duration retentionTime;
 
-    protected QuickTopology(final QuickTopologyData<K, V> topologyData) {
-        this.data = topologyData;
-    }
-
-    protected List<String> getInputTopics() {
-        return this.data.getInputTopics();
-    }
-
-    protected QuickTopicData<K, V> getTopicData() {
-        return this.data.getTopicData();
+    /**
+     * Default retention time properties.
+     */
+    public static RetentionTimeProperties createDefault() {
+        return new RetentionTimeProperties(RETENTION_STORE, null);
     }
 }
