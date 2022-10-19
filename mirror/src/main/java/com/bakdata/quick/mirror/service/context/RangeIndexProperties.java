@@ -17,8 +17,6 @@
 package com.bakdata.quick.mirror.service.context;
 
 
-import static com.bakdata.quick.mirror.MirrorApplication.RANGE_STORE;
-
 import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.Value;
 
@@ -32,9 +30,9 @@ public class RangeIndexProperties {
     String rangeField;
 
     /**
-     * Default range index properties.
+     * Checks if the range index should be built or not.
      */
-    public static RangeIndexProperties createDefault() {
-        return new RangeIndexProperties(RANGE_STORE, null);
+    public boolean isEnabled() {
+        return this.rangeField != null;
     }
 }
