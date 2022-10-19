@@ -45,10 +45,8 @@ public class TopologyContext<K, V> {
     RangeIndexProperties rangeIndexProperties = RangeIndexProperties.createDefault();
     @Default
     RetentionTimeProperties retentionTimeProperties = RetentionTimeProperties.createDefault();
-    @Default
-    StoreType storeType = StoreType.INMEMORY;
-    @Default
-    boolean isCleanup = false;
+    StoreType storeType;
+    boolean isCleanup;
 
     /**
      * Gets the list of input topics.

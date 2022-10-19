@@ -38,6 +38,7 @@ import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
 import com.bakdata.quick.mirror.topology.TopologyContext;
+import com.bakdata.quick.mirror.topology.TopologyContext.TopologyContextBuilder;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
@@ -123,16 +124,30 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     public Topology createTopology() {
-        final TopologyContext<K, V> topologyContext = TopologyContext.<K, V>builder()
-            .quickTopologyData(this.getTopologyData())
-            .pointStoreName(POINT_STORE)
-            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
-            .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
-            .storeType(this.storeType)
-            .isCleanup(this.cleanUp)
-            .build();
+        final TopologyContext<K, V> topologyContext = this.buildTopologyContext();
 
         return new MirrorTopology<>(topologyContext).createTopology();
+    }
+
+    private TopologyContext<K, V> buildTopologyContext() {
+        final TopologyContextBuilder<K, V> contextBuilder = TopologyContext.<K, V>builder()
+            .quickTopologyData(this.getTopologyData())
+            .pointStoreName(POINT_STORE)
+            .storeType(this.storeType)
+            .isCleanup(this.cleanUp);
+
+        final TopologyContextBuilder<K, V> enrichedContext = this.enrichContext(contextBuilder);
+
+        return enrichedContext.build();
+    }
+
+    private TopologyContextBuilder<K, V> enrichContext(final TopologyContextBuilder<K, V> contextBuilder) {
+        if (this.rangeField != null) {
+            contextBuilder.rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField));
+        } else if (this.retentionTime != null) {
+            contextBuilder.retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime));
+        }
+        return contextBuilder;
     }
 
     @Override

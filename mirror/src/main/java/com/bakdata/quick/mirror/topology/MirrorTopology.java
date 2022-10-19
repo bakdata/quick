@@ -18,7 +18,6 @@ package com.bakdata.quick.mirror.topology;
 
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.kafka.streams.Topology;
 
 
@@ -46,11 +45,7 @@ public class MirrorTopology<K, V> {
         final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.topologyContext);
 
         Topology topology = new Topology();
-        final List<TopologyStrategy> appliedStrategies = topologyStrategies.stream()
-            .filter(TopologyStrategy::apply)
-            .collect(Collectors.toList());
-
-        for (final TopologyStrategy topologyStrategy : appliedStrategies) {
+        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
             topologyStrategy.create();
             topology = topologyStrategy.buildTopology(this.topologyContext.getStreamsBuilder());
         }

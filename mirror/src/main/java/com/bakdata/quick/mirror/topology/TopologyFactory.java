@@ -21,6 +21,8 @@ import com.bakdata.quick.mirror.topology.strategy.RangeTopology;
 import com.bakdata.quick.mirror.topology.strategy.RetentionTopology;
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.kafka.streams.Topology;
 
 /**
  * A simple static factory that creates a list of topology strategies.
@@ -34,10 +36,15 @@ public final class TopologyFactory {
      * Returns a list of concrete implementation of {@link TopologyStrategy}.
      */
     public static List<TopologyStrategy> getStrategies(final TopologyContext<?, ?> topologyContext) {
-        return List.of(
+        final List<TopologyStrategy> topologyStrategies = List.of(
             new PointTopology<>(topologyContext),
             new RangeTopology<>(topologyContext),
             new RetentionTopology<>(topologyContext)
         );
+
+        return topologyStrategies.stream()
+            .filter(TopologyStrategy::apply)
+            .collect(Collectors.toList());
+
     }
 }
