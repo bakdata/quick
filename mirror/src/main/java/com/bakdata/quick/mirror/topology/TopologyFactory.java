@@ -22,7 +22,6 @@ import com.bakdata.quick.mirror.topology.strategy.RetentionTopology;
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.kafka.streams.Topology;
 
 /**
  * A simple static factory that creates a list of topology strategies.
@@ -43,7 +42,7 @@ public final class TopologyFactory {
         );
 
         return topologyStrategies.stream()
-            .filter(TopologyStrategy::apply)
+            .filter(TopologyStrategy::applicable)
             .collect(Collectors.toList());
 
     }

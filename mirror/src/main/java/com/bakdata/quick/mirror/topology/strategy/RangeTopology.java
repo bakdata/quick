@@ -56,7 +56,7 @@ public class RangeTopology<K, V> implements TopologyStrategy {
      * Validates if the range topology should be built.
      */
     @Override
-    public boolean apply() {
+    public boolean applicable() {
         final Duration retentionTime = this.topologyContext.getRetentionTimeProperties().getRetentionTime();
         final String rangeField = this.topologyContext.getRangeIndexProperties().getRangeField();
 

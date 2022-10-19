@@ -53,7 +53,7 @@ public class RetentionTopology<K, V> implements TopologyStrategy {
      * Validates if retention time topology should be crated.
      */
     @Override
-    public boolean apply() {
+    public boolean applicable() {
         final RetentionTimeProperties retentionTimeProperties = this.topologyContext.getRetentionTimeProperties();
         final RangeIndexProperties rangeIndexProperties = this.topologyContext.getRangeIndexProperties();
         return retentionTimeProperties.getRetentionTime() != null && rangeIndexProperties.getRangeField() == null;

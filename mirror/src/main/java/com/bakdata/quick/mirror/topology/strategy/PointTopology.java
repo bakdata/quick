@@ -49,7 +49,7 @@ public class PointTopology<K, V> implements TopologyStrategy {
      * Always apply point query index.
      */
     @Override
-    public boolean apply() {
+    public boolean applicable() {
         return true;
     }
 

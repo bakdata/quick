@@ -30,7 +30,7 @@ public interface TopologyStrategy {
     /**
      * Validates if a topology strategy should be created or not.
      */
-    boolean apply();
+    boolean applicable();
 
     /**
      * Includes the implementation logic of the topology.
