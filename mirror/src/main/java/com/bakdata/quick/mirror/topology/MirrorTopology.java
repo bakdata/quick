@@ -18,6 +18,7 @@ package com.bakdata.quick.mirror.topology;
 
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.Topology;
 
 
@@ -27,6 +28,7 @@ import org.apache.kafka.streams.Topology;
  * @param <K> key type
  * @param <V> value type
  */
+@Slf4j
 public class MirrorTopology<K, V> {
 
     private final TopologyContext<K, V> topologyContext;
@@ -44,11 +46,15 @@ public class MirrorTopology<K, V> {
     public Topology createTopology() {
         final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.topologyContext);
 
-        Topology topology = new Topology();
         for (final TopologyStrategy topologyStrategy : topologyStrategies) {
             topologyStrategy.create();
-            topology = topologyStrategy.buildTopology(this.topologyContext.getStreamsBuilder());
         }
+
+        Topology topology = this.topologyContext.getStreamsBuilder().build();
+        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
+            topology = topologyStrategy.buildTopology(topology);
+        }
+        log.debug("The topology is {}", topology.describe());
         return topology;
     }
 }

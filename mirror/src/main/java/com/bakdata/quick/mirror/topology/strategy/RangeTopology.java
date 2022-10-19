@@ -69,10 +69,7 @@ public class RangeTopology<K, V> implements TopologyStrategy {
     @Override
     public void create() {
         final StreamsBuilder builder = this.topologyContext.getStreamsBuilder();
-
         this.createRangeTopology(builder);
-        log.debug("The topology is {}", builder.build().describe());
-        this.topologyContext.setStreamsBuilder(builder);
     }
 
     private void createRangeTopology(final StreamsBuilder streamsBuilder) {

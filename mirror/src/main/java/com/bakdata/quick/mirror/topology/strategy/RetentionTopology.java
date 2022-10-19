@@ -22,7 +22,6 @@ import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.topology.TopologyContext;
 import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -39,7 +38,6 @@ import org.apache.kafka.streams.state.Stores;
  * @param <K> Type of the key
  * @param <V> Type of the value
  */
-@Slf4j
 public class RetentionTopology<K, V> implements TopologyStrategy {
     public static final String RETENTION_SINK = "same-topic-sink";
     private static final String PROCESSOR_NAME = "mirror-processor";
@@ -95,17 +93,13 @@ public class RetentionTopology<K, V> implements TopologyStrategy {
             storeName,
             retentionStoreName
         );
-
-        this.topologyContext.setStreamsBuilder(builder);
     }
 
     /**
      * Builds the retention time topology and adds the sink to the topology.
      */
     @Override
-    public Topology buildTopology(final StreamsBuilder streamsBuilder) {
-        final Topology topology = streamsBuilder.build();
-
+    public Topology buildTopology(final Topology topology) {
         final Serde<K> keySerDe = this.topologyContext.getKeySerde();
         topology.addSink(
             RETENTION_SINK,
@@ -114,7 +108,6 @@ public class RetentionTopology<K, V> implements TopologyStrategy {
             keySerDe.serializer(),
             PROCESSOR_NAME
         );
-        log.debug("The topology is {}", topology.describe());
         return topology;
     }
 }

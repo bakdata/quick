@@ -40,8 +40,8 @@ public interface TopologyStrategy {
     /**
      * Builds the {@link StreamsBuilder} into a {@link Topology}.
      */
-    default Topology buildTopology(final StreamsBuilder streamsBuilder) {
-        return streamsBuilder.build();
+    default Topology buildTopology(final Topology topology) {
+        return topology;
     }
 
     /**

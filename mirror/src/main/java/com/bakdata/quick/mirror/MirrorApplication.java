@@ -134,20 +134,11 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .quickTopologyData(this.getTopologyData())
             .pointStoreName(POINT_STORE)
             .storeType(this.storeType)
+            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
+            .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
             .isCleanup(this.cleanUp);
 
-        final TopologyContextBuilder<K, V> enrichedContext = this.enrichContext(contextBuilder);
-
-        return enrichedContext.build();
-    }
-
-    private TopologyContextBuilder<K, V> enrichContext(final TopologyContextBuilder<K, V> contextBuilder) {
-        if (this.rangeField != null) {
-            contextBuilder.rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField));
-        } else if (this.retentionTime != null) {
-            contextBuilder.retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime));
-        }
-        return contextBuilder;
+        return contextBuilder.build();
     }
 
     @Override

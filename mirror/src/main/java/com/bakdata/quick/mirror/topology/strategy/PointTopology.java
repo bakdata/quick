@@ -73,6 +73,5 @@ public class PointTopology<K, V> implements TopologyStrategy {
         final KStream<K, V> stream =
             streamsBuilder.stream(quickTopologyData.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
         stream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
-        this.topologyContext.setStreamsBuilder(streamsBuilder);
     }
 }
