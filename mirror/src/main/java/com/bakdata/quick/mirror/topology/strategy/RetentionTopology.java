@@ -54,7 +54,7 @@ public class RetentionTopology<K, V> implements TopologyStrategy {
     public boolean applicable() {
         final RetentionTimeProperties retentionTimeProperties = this.topologyContext.getRetentionTimeProperties();
         final RangeIndexProperties rangeIndexProperties = this.topologyContext.getRangeIndexProperties();
-        return retentionTimeProperties.getRetentionTime() != null && rangeIndexProperties.getRangeField() == null;
+        return retentionTimeProperties.isEnabled() && !rangeIndexProperties.isEnabled();
     }
 
     /**

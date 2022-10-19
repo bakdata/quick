@@ -41,10 +41,8 @@ public class TopologyContext<K, V> {
     StreamsBuilder streamsBuilder = new StreamsBuilder();
     QuickTopologyData<K, V> quickTopologyData;
     String pointStoreName;
-    @Default
-    RangeIndexProperties rangeIndexProperties = RangeIndexProperties.createDefault();
-    @Default
-    RetentionTimeProperties retentionTimeProperties = RetentionTimeProperties.createDefault();
+    RangeIndexProperties rangeIndexProperties;
+    RetentionTimeProperties retentionTimeProperties;
     StoreType storeType;
     boolean isCleanup;
 

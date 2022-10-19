@@ -26,7 +26,6 @@ import com.bakdata.quick.mirror.range.RangeIndexer;
 import com.bakdata.quick.mirror.topology.TopologyContext;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
-import java.time.Duration;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
@@ -57,10 +56,8 @@ public class RangeTopology<K, V> implements TopologyStrategy {
      */
     @Override
     public boolean applicable() {
-        final Duration retentionTime = this.topologyContext.getRetentionTimeProperties().getRetentionTime();
-        final String rangeField = this.topologyContext.getRangeIndexProperties().getRangeField();
-
-        return retentionTime == null && rangeField != null;
+        return this.topologyContext.getRangeIndexProperties().isEnabled()
+            && !this.topologyContext.getRetentionTimeProperties().isEnabled();
     }
 
     /**

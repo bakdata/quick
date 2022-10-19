@@ -21,12 +21,15 @@ import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
 import static com.bakdata.quick.common.TestTypeUtils.newLongData;
 import static com.bakdata.quick.common.TestTypeUtils.newProtobufData;
 import static com.bakdata.quick.common.TestTypeUtils.newStringData;
+import static com.bakdata.quick.mirror.MirrorApplication.RANGE_STORE;
+import static com.bakdata.quick.mirror.MirrorApplication.RETENTION_STORE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
+import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.topology.TopologyContext;
@@ -373,6 +376,7 @@ class MirrorRangeTopologyTest {
             .pointStoreName(MIRROR_STORE)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE_NAME, RANGE_FIELD))
             .storeType(StoreType.INMEMORY)
+            .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, null))
             .build();
 
         return new MirrorTopology<>(topologyContext).createTopology();

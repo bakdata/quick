@@ -16,8 +16,6 @@
 
 package com.bakdata.quick.mirror.service.context;
 
-import static com.bakdata.quick.mirror.MirrorApplication.RETENTION_STORE;
-
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.time.Duration;
 import lombok.Value;
@@ -32,9 +30,9 @@ public class RetentionTimeProperties {
     Duration retentionTime;
 
     /**
-     * Default retention time properties.
+     * Checks if the retention time topology is enabled or not.
      */
-    public static RetentionTimeProperties createDefault() {
-        return new RetentionTimeProperties(RETENTION_STORE, null);
+    public boolean isEnabled() {
+        return this.retentionTime != null;
     }
 }
