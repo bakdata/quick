@@ -90,6 +90,10 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     private Duration retentionTime;
 
     @Nullable
+    @Option(names = "--range-key", description = "The key field which the Mirror should do the range on")
+    private String rangeKey;
+
+    @Nullable
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;
 
