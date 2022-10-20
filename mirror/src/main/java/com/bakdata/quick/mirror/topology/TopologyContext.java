@@ -24,18 +24,18 @@ import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
 import java.util.List;
 import lombok.Builder;
 import lombok.Builder.Default;
-import lombok.Data;
+import lombok.Value;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 
 /**
- * A context containing all the necessary information for crating the Mirror topology context.
+ * A context containing all the necessary information for creating the Mirror topology context.
  *
  * @param <K> The type of the key
  * @param <V> The type of the value
  */
 @Builder
-@Data
+@Value
 public class TopologyContext<K, V> {
     @Default
     StreamsBuilder streamsBuilder = new StreamsBuilder();
