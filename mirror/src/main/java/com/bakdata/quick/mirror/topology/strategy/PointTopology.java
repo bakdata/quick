@@ -16,7 +16,6 @@
 
 package com.bakdata.quick.mirror.topology.strategy;
 
-import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.point.MirrorProcessor;
@@ -61,10 +60,9 @@ public class PointTopology<K, V> implements TopologyStrategy {
         final StreamsBuilder streamsBuilder = this.topologyContext.getStreamsBuilder();
 
         final QuickTopologyData<K, V> quickTopologyData = this.topologyContext.getQuickTopologyData();
-        final QuickTopicData<K, V> topicData = quickTopologyData.getTopicData();
 
-        final Serde<K> keySerDe = topicData.getKeyData().getSerde();
-        final Serde<V> valueSerDe = topicData.getValueData().getSerde();
+        final Serde<K> keySerDe = this.topologyContext.getKeySerde();
+        final Serde<V> valueSerDe = this.topologyContext.getValueSerde();
 
         final String storeName = this.topologyContext.getPointStoreName();
         final StoreType storeType = this.topologyContext.getStoreType();

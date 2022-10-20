@@ -17,7 +17,6 @@
 package com.bakdata.quick.mirror.topology.strategy;
 
 import com.bakdata.quick.mirror.StoreType;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
 import org.apache.kafka.streams.state.Stores;
@@ -38,7 +37,7 @@ public interface TopologyStrategy {
     void create();
 
     /**
-     * Builds the {@link StreamsBuilder} into a {@link Topology}.
+     * Adds source, processor, or sink to the {@link Topology}. The default returns the passed in {@link Topology}.
      */
     default Topology buildTopology(final Topology topology) {
         return topology;
