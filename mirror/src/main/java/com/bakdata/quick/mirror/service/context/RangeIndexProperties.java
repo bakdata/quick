@@ -28,4 +28,11 @@ public class RangeIndexProperties {
     String storeName;
     @Nullable
     String rangeField;
+
+    /**
+     * Checks if the range index should be built or not.
+     */
+    public boolean isEnabled() {
+        return this.rangeField != null;
+    }
 }

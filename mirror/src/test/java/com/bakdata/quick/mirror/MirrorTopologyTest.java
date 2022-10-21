@@ -17,18 +17,23 @@
 package com.bakdata.quick.mirror;
 
 import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
+import static com.bakdata.quick.mirror.MirrorApplication.RANGE_STORE;
+import static com.bakdata.quick.mirror.MirrorApplication.RETENTION_STORE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
+import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
+import com.bakdata.quick.mirror.topology.MirrorTopology;
+import com.bakdata.quick.mirror.topology.TopologyContext;
 import com.google.common.collect.Maps;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.Test;
@@ -56,14 +61,15 @@ class MirrorTopologyTest {
                 .topicData(data)
                 .build();
 
-        final MirrorTopology<Integer, Integer> mirrorTopology = MirrorTopology.<Integer, Integer>builder()
-            .topologyData(topologyInfo)
-            .storeName(STORE_NAME)
+        final TopologyContext<Integer, Integer> topologyContext = TopologyContext.<Integer, Integer>builder()
+            .quickTopologyData(topologyInfo)
+            .pointStoreName(STORE_NAME)
             .storeType(StoreType.INMEMORY)
+            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, null))
+            .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, null))
             .build();
 
-        final StreamsBuilder builder = new StreamsBuilder();
-        return mirrorTopology.createTopology(builder);
+        return new MirrorTopology<>(topologyContext).createTopology();
     }
 
     private static Map<String, String> testProps() {

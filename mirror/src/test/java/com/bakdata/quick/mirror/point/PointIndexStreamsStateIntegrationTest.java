@@ -76,7 +76,7 @@ class PointIndexStreamsStateIntegrationTest {
 
     @Test
     void shouldReceiveCorrectPartitionHostFromMirrorApplication() throws InterruptedException {
-        this.sendValuesToKafka();
+        sendValuesToKafka();
         final MirrorApplication<String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();

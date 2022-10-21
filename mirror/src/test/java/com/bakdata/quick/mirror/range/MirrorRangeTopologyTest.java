@@ -21,15 +21,20 @@ import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
 import static com.bakdata.quick.common.TestTypeUtils.newLongData;
 import static com.bakdata.quick.common.TestTypeUtils.newProtobufData;
 import static com.bakdata.quick.common.TestTypeUtils.newStringData;
+import static com.bakdata.quick.mirror.MirrorApplication.RANGE_STORE;
+import static com.bakdata.quick.mirror.MirrorApplication.RETENTION_STORE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
-import com.bakdata.quick.mirror.MirrorTopology;
+import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
+import com.bakdata.quick.mirror.topology.MirrorTopology;
 import com.bakdata.quick.mirror.StoreType;
+import com.bakdata.quick.mirror.topology.TopologyContext;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ProtoRangeQueryTest;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
@@ -40,7 +45,6 @@ import com.google.protobuf.MessageOrBuilder;
 import io.confluent.kafka.schemaregistry.avro.AvroSchemaProvider;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import java.util.List;
 import java.util.Map;
@@ -48,12 +52,10 @@ import java.util.Properties;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -369,16 +371,15 @@ class MirrorRangeTopologyTest {
                 .topicData(data)
                 .build();
 
-        final MirrorTopology<K, V> mirrorTopology = MirrorTopology.<K, V>builder()
-            .topologyData(topologyInfo)
-            .storeName(MIRROR_STORE)
-            .rangeStoreName(RANGE_STORE_NAME)
-            .rangeField(RANGE_FIELD)
+        final TopologyContext<K, V> topologyContext = TopologyContext.<K, V>builder()
+            .quickTopologyData(topologyInfo)
+            .pointStoreName(MIRROR_STORE)
+            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE_NAME, RANGE_FIELD))
             .storeType(StoreType.INMEMORY)
+            .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, null))
             .build();
 
-        final StreamsBuilder builder = new StreamsBuilder();
-        return mirrorTopology.createTopology(builder);
+        return new MirrorTopology<>(topologyContext).createTopology();
     }
 
     private static QuickData<GenericRecord> avroData() {
