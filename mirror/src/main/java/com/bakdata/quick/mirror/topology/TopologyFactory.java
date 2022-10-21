@@ -36,13 +36,13 @@ public final class TopologyFactory {
      */
     public static List<TopologyStrategy> getStrategies(final TopologyContext<?, ?> topologyContext) {
         final List<TopologyStrategy> topologyStrategies = List.of(
-            new PointTopology<>(topologyContext),
-            new RangeTopology<>(topologyContext),
-            new RetentionTopology<>(topologyContext)
+            new PointTopology(),
+            new RangeTopology(),
+            new RetentionTopology()
         );
 
         return topologyStrategies.stream()
-            .filter(TopologyStrategy::applicable)
+            .filter(topologyStrategy -> topologyStrategy.isApplicable(topologyContext))
             .collect(Collectors.toList());
 
     }

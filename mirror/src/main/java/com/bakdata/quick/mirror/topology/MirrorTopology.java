@@ -47,12 +47,12 @@ public class MirrorTopology<K, V> {
         final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.topologyContext);
 
         for (final TopologyStrategy topologyStrategy : topologyStrategies) {
-            topologyStrategy.create();
+            topologyStrategy.create(this.topologyContext);
         }
 
         Topology topology = this.topologyContext.getStreamsBuilder().build();
         for (final TopologyStrategy topologyStrategy : topologyStrategies) {
-            topology = topologyStrategy.buildTopology(topology);
+            topology = topologyStrategy.extendTopology(this.topologyContext, topology);
         }
         log.debug("The topology is {}", topology.describe());
         return topology;

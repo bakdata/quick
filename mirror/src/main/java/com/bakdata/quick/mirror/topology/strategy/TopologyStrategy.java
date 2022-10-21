@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.topology.strategy;
 
 import com.bakdata.quick.mirror.StoreType;
+import com.bakdata.quick.mirror.topology.TopologyContext;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
 import org.apache.kafka.streams.state.Stores;
@@ -29,17 +30,17 @@ public interface TopologyStrategy {
     /**
      * Validates if a topology strategy should be created or not.
      */
-    boolean applicable();
+    <K, V> boolean isApplicable(final TopologyContext<K, V> topologyContext);
 
     /**
      * Includes the implementation logic of the topology.
      */
-    void create();
+    <K, V> void create(final TopologyContext<K, V> topologyContext);
 
     /**
      * Adds source, processor, or sink to the {@link Topology}. The default returns the passed in {@link Topology}.
      */
-    default Topology buildTopology(final Topology topology) {
+    default <K, V> Topology extendTopology(final TopologyContext<K, V> topologyContext, final Topology topology) {
         return topology;
     }
 
