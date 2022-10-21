@@ -16,28 +16,20 @@
 
 package com.bakdata.quick.mirror.range.extractor.value;
 
-import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
-import com.bakdata.quick.mirror.range.padder.ZeroPadder;
-import io.confluent.kafka.schemaregistry.ParsedSchema;
-import lombok.Getter;
-
 /**
  * An extractor for retrieving values from schemas.
  *
  * @param <V> Type of the schema
- * @param <F> Type of the field in the schema
  */
-
-public abstract class FieldValueExtractor<V, F> {
-    protected ZeroPadder<F> zeroPadder;
-
-    protected FieldValueExtractor(ZeroPadder<F> zeroPadder) {
-        this.zeroPadder =  zeroPadder;
-    }
-
-    public ZeroPadder<F> getZeroPadder() {
-        return this.zeroPadder;
-    }
-
-    public abstract F extractValue(final V complexValue, final String rangeField);
+public interface FieldValueExtractor<V> {
+    /**
+     * Extracts the value of a field from a complex value (Avro record, or Protobuf message).
+     *
+     * @param complexValue Avro record or Protobuf message
+     * @param fieldName Name of the field
+     * @param fieldClass Class of the field
+     * @param <F> Type of the field to be extracted
+     * @return The value of the field
+     */
+    <F> F extractValue(final V complexValue, final String fieldName, final Class<F> fieldClass);
 }

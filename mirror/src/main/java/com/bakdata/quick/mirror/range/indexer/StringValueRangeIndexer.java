@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.range.indexer;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
+import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
@@ -27,8 +28,12 @@ import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.micronaut.core.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * An indexer for string values. This indexer is used to build the default range index pattern when querying for
+ * ranges.
+ */
 @Slf4j
-public final class StringValueRangeIndexer<K> implements RangeIndexer<K, String>{
+public final class StringValueRangeIndexer<K> implements RangeIndexer<K, String> {
     private final FieldTypeExtractor fieldTypeExtractor;
     private final ParsedSchema parsedSchema;
     private final String rangeField;
@@ -40,6 +45,9 @@ public final class StringValueRangeIndexer<K> implements RangeIndexer<K, String>
         this.rangeField = rangeField;
     }
 
+    /**
+     * Creates the range index for a given key and a value string type.
+     */
     public static <K> StringValueRangeIndexer<K> create(final ParsedSchema parsedSchema,
         final String rangeField) {
         log.debug("Type Avro detected");
@@ -56,8 +64,8 @@ public final class StringValueRangeIndexer<K> implements RangeIndexer<K, String>
         if (!StringUtils.isDigits(value)) {
             throw new MirrorTopologyException("The string value should be a series of digits");
         }
-        final ZeroPadder<F> zeroPadder = this.fieldTypeExtractor.extractType(this.parsedSchema, this.rangeField);
-
+        final QuickTopicType topicType = this.fieldTypeExtractor.extractType(this.parsedSchema, this.rangeField);
+        final ZeroPadder<F> zeroPadder = this.fieldTypeExtractor.getZeroPadder(topicType);
         final F number = zeroPadder.getEndOfRange(value);
         final String paddedValue = zeroPadder.padZero(number);
 

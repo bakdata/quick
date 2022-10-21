@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.range.indexer;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
+import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
@@ -24,38 +25,49 @@ import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.GenericRecordValueExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
 import com.bakdata.quick.mirror.range.padder.ZeroPadder;
-import com.google.protobuf.Message;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.generic.GenericRecord;
 
 /**
  * Creates range indexes for a Mirror's state store.
  */
-@Slf4j
 public final class DefaultRangeIndexer<K, V> implements RangeIndexer<K, V> {
     private final FieldTypeExtractor fieldTypeExtractor;
+    private final FieldValueExtractor<? super V> fieldValueExtractor;
     private final ParsedSchema parsedSchema;
     private final String rangeField;
 
-    private DefaultRangeIndexer(final FieldTypeExtractor fieldTypeExtractor, final ParsedSchema parsedSchema,
+    private DefaultRangeIndexer(final FieldTypeExtractor fieldTypeExtractor,
+        final FieldValueExtractor<? super V> fieldValueExtractor,
+        final ParsedSchema parsedSchema,
         final String rangeField) {
         this.fieldTypeExtractor = fieldTypeExtractor;
+        this.fieldValueExtractor = fieldValueExtractor;
         this.parsedSchema = parsedSchema;
         this.rangeField = rangeField;
     }
 
-    public static <K, V> DefaultRangeIndexer<K, V> create(final ParsedSchema parsedSchema,
-        final String rangeField) {
-        log.debug("Type Avro detected");
-        if (parsedSchema.schemaType().equals(AvroSchema.TYPE)) {
-            return new DefaultRangeIndexer<>(new AvroTypeExtractor(), parsedSchema, rangeField);
-        } else if (parsedSchema.schemaType().equals(ProtobufSchema.TYPE)) {
-            return new DefaultRangeIndexer<>(new ProtoTypeExtractor(), parsedSchema, rangeField);
+    /**
+     * Creates the zero padder for the key and sets the range field value extractor based on the schema type. It then
+     * reads the range field type form the schema and sets the value zero padder for the range field.
+     */
+    @SuppressWarnings("unchecked")
+    public static <K, V> DefaultRangeIndexer<K, V> create(final ParsedSchema parsedSchema, final String rangeField) {
+        switch (parsedSchema.schemaType()) {
+            case (AvroSchema.TYPE):
+                final FieldValueExtractor<V> fieldValueExtractor =
+                    (FieldValueExtractor<V>) new GenericRecordValueExtractor();
+                return new DefaultRangeIndexer<>(new AvroTypeExtractor(), fieldValueExtractor, parsedSchema,
+                    rangeField);
+            case (ProtobufSchema.TYPE):
+                final FieldValueExtractor<V> messageValueExtractor =
+                    (FieldValueExtractor<V>) new MessageValueExtractor();
+                return new DefaultRangeIndexer<>(new ProtoTypeExtractor(), messageValueExtractor, parsedSchema,
+                    rangeField);
+            default:
+                throw new MirrorTopologyException("Unsupported schema type.");
         }
-        throw new MirrorTopologyException("Not supported schema type. Supported ones: Avro, Protobuf");
     }
 
     /**
@@ -82,16 +94,10 @@ public final class DefaultRangeIndexer<K, V> implements RangeIndexer<K, V> {
      */
     @Override
     public <F> String createIndex(final K key, final V value) {
-        final ZeroPadder<F> zeroPadder = this.fieldTypeExtractor.extractType(this.parsedSchema, this.rangeField);
-        if(value instanceof GenericRecord) {
-            final FieldValueExtractor<GenericRecord, F> rangeFieldValue = new GenericRecordValueExtractor<>(zeroPadder);
-            final String paddedValue = zeroPadder.padZero(rangeFieldValue.extractValue((GenericRecord) value, this.rangeField));
-            return this.createRangeIndexFormat(key, paddedValue);
-        } else if (value instanceof Message) {
-            final FieldValueExtractor<Message, F> rangeFieldValue = new MessageValueExtractor<>(zeroPadder);
-            final String paddedValue = zeroPadder.padZero(rangeFieldValue.extractValue((Message) value, this.rangeField));
-            return this.createRangeIndexFormat(key, paddedValue);
-        }
-        throw new MirrorTopologyException("Not supported type.");
+        final QuickTopicType topicType = this.fieldTypeExtractor.extractType(this.parsedSchema, this.rangeField);
+        final ZeroPadder<F> zeroPadder = this.fieldTypeExtractor.getZeroPadder(topicType);
+        final F number = this.fieldValueExtractor.extractValue(value, this.rangeField, zeroPadder.getPadderClass());
+        final String paddedValue = zeroPadder.padZero(number);
+        return this.createRangeIndexFormat(key, paddedValue);
     }
 }

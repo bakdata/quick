@@ -18,47 +18,36 @@ package com.bakdata.quick.mirror.range.extractor.value;
 
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
-import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.mirror.range.padder.ZeroPadder;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Implements the extraction logic for a Protobuf message.
- *
- * @param <F> Type of the field value
+ * Implements the value extraction logic for a Protobuf message.
  */
 @Slf4j
-public class MessageValueExtractor<F> extends FieldValueExtractor<Message, F> {
-    /**
-     * Standard constructor.
-     *
-     * @param fieldClass Class of the field
-     */
-    public MessageValueExtractor(final ZeroPadder<F> zeroPadder) {
-        super(zeroPadder);
-    }
+public class MessageValueExtractor implements FieldValueExtractor<Message> {
 
     /**
      * Extracts the value from a Protobuf message for a given field name.
      *
      * @param message The Protobuf message
-     * @param rangeField The name of the field to get extracted
+     * @param fieldName The name of the field to get extracted
+     * @param fieldClass The class of the field
      * @return The field value
      */
     @Override
-    public F extractValue(final Message message, final String rangeField) {
+    public <F> F extractValue(final Message message, final String fieldName, final Class<F> fieldClass) {
         log.trace("Record value of type Protobuf Message");
 
-        final FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(rangeField);
+        final FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(fieldName);
         if (fieldDescriptor == null) {
-            final String errorMessage = String.format("Could not find range field with name %s", rangeField);
+            final String errorMessage = String.format("Could not find range field with name %s", fieldName);
             throw new MirrorTopologyException(errorMessage);
         }
 
         final Object rangeFieldValue = message.getField(fieldDescriptor);
         log.trace("Extracted range field value is: {}", rangeFieldValue);
-        return this.zeroPadder.getPadderClass().cast(rangeFieldValue);
+        return fieldClass.cast(rangeFieldValue);
     }
 }
