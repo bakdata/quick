@@ -16,8 +16,7 @@
 
 package com.bakdata.quick.mirror.topology.strategy;
 
-import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
-
+import com.bakdata.quick.common.TestTypeUtils;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.StoreType;
@@ -70,7 +69,9 @@ class TopologyStrategyTest {
         final RetentionTimeProperties retentionTimeProperties) {
 
         final QuickTopicData<Integer, Integer> data =
-            new QuickTopicData<>("input-topic", TopicWriteType.MUTABLE, newIntegerData(), newIntegerData());
+            new QuickTopicData<>("input-topic", TopicWriteType.MUTABLE,
+                TestTypeUtils.newIntegerData(),
+                TestTypeUtils.newIntegerData());
 
         final QuickTopologyData<Integer, Integer> topologyInfo =
             QuickTopologyData.<Integer, Integer>builder()
