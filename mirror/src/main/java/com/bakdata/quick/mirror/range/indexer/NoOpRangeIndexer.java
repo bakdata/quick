@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range;
+package com.bakdata.quick.mirror.range.indexer;
 
 import io.micronaut.core.util.StringUtils;
 
@@ -29,7 +29,7 @@ import io.micronaut.core.util.StringUtils;
 public class NoOpRangeIndexer<K, V> implements RangeIndexer<K, V> {
 
     @Override
-    public String createIndex(final K key, final V value) {
+    public <F> String createIndex(final K key, final V value) {
         return StringUtils.EMPTY_STRING;
     }
 }

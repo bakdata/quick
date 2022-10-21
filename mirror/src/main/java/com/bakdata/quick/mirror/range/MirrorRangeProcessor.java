@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.mirror.range;
 
+import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.api.Processor;

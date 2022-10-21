@@ -19,10 +19,10 @@ package com.bakdata.quick.mirror.topology.strategy;
 import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.StoreType;
-import com.bakdata.quick.mirror.range.DefaultRangeIndexer;
+import com.bakdata.quick.mirror.range.indexer.DefaultRangeIndexer;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
-import com.bakdata.quick.mirror.range.NoOpRangeIndexer;
-import com.bakdata.quick.mirror.range.RangeIndexer;
+import com.bakdata.quick.mirror.range.indexer.NoOpRangeIndexer;
+import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
 import com.bakdata.quick.mirror.topology.TopologyContext;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
@@ -104,7 +104,7 @@ public class RangeTopology<K, V> implements TopologyStrategy {
             throw new MirrorTopologyException("Could not get the parsed schema.");
         } else {
             log.debug("Setting up default range indexer.");
-            return DefaultRangeIndexer.createRangeIndexer(parsedSchema, rangeField);
+            return DefaultRangeIndexer.create(parsedSchema, rangeField);
         }
     }
 }

@@ -14,9 +14,13 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range.extractor;
+package com.bakdata.quick.mirror.range.extractor.value;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
+import com.bakdata.quick.common.type.QuickTopicType;
+import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
+import com.bakdata.quick.mirror.range.padder.ZeroPadder;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.generic.GenericRecord;
@@ -28,17 +32,15 @@ import org.apache.avro.generic.GenericRecord;
  * @param <F> Type of the field value
  */
 @Slf4j
-public class AvroValueExtractor<F> implements RangeFieldValueExtractor<GenericRecord, F> {
-
-    private final Class<F> fieldClass;
+public class GenericRecordValueExtractor<F> extends FieldValueExtractor<GenericRecord, F> {
 
     /**
      * Standard constructor.
      *
      * @param fieldClass Class of the field
      */
-    public AvroValueExtractor(final Class<F> fieldClass) {
-        this.fieldClass = fieldClass;
+    public GenericRecordValueExtractor(final ZeroPadder<F> zeroPadder) {
+        super(zeroPadder);
     }
 
     /**
@@ -54,7 +56,7 @@ public class AvroValueExtractor<F> implements RangeFieldValueExtractor<GenericRe
             log.trace("Record value of type Avro Generic Record");
             final Object rangeFieldValue = record.get(rangeField);
             log.trace("Extracted range field value is: {}", rangeFieldValue);
-            return this.fieldClass.cast(rangeFieldValue);
+            return this.zeroPadder.getPadderClass().cast(rangeFieldValue);
         } catch (final AvroRuntimeException exception) {
             final String errorMessage = String.format("Could not find range field with name %s", rangeField);
             throw new MirrorTopologyException(errorMessage);

@@ -20,6 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
+import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
+import com.bakdata.quick.mirror.range.extractor.value.GenericRecordValueExtractor;
+import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
+import com.bakdata.quick.mirror.range.padder.EndRange;
+import com.bakdata.quick.mirror.range.padder.IntPadder;
+import com.bakdata.quick.mirror.range.padder.LongPadder;
+import com.bakdata.quick.mirror.range.padder.ZeroPadder;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ProtoRangeQueryTest;
 import com.google.protobuf.Message;
@@ -33,21 +40,26 @@ class FieldValueExtractorTest {
     @Test
     void shouldExtractValueFromAvroSchema() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
-        final RangeFieldValueExtractor<GenericRecord, Long> avroExtractor = new AvroValueExtractor<>(Long.class);
+        final ZeroPadder<Long> longZeroPadder = new LongPadder(EndRange.EXCLUSIVE);
+        final FieldValueExtractor<GenericRecord, Long> avroExtractor =
+            new GenericRecordValueExtractor<>(longZeroPadder);
         assertThat(avroExtractor.extractValue(avroRecord, TIMESTAMP_FIELD)).isEqualTo(3L);
     }
 
     @Test
     void shouldExtractValueFromProtobufSchema() {
         final ProtoRangeQueryTest protoMessage = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(5).build();
-        final RangeFieldValueExtractor<Message, Integer> protoExtractor = new ProtoValueExtractor<>(Integer.class);
+        final ZeroPadder<Integer> intZeroPadder = new IntPadder(EndRange.EXCLUSIVE);
+        final FieldValueExtractor<Message, Integer> protoExtractor = new MessageValueExtractor<>(intZeroPadder);
         assertThat(protoExtractor.extractValue(protoMessage, TIMESTAMP_FIELD)).isEqualTo(5);
     }
 
     @Test
     void shouldThrowExceptionWhenFieldDoesNotExistInAvroSchema() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
-        final RangeFieldValueExtractor<GenericRecord, Long> avroExtractor = new AvroValueExtractor<>(Long.class);
+        final ZeroPadder<Long> longZeroPadder = new LongPadder(EndRange.EXCLUSIVE);
+        final FieldValueExtractor<GenericRecord, Long> avroExtractor =
+            new GenericRecordValueExtractor<>(longZeroPadder);
         final String errorMessage = String.format("Could not find range field with name %s", NON_EXISTING_FIELD);
 
         assertThatThrownBy(() -> avroExtractor.extractValue(avroRecord, NON_EXISTING_FIELD)).isInstanceOf(
@@ -57,7 +69,8 @@ class FieldValueExtractorTest {
     @Test
     void shouldThrowExceptionWhenFieldDoesNotExistInProtobufSchema() {
         final ProtoRangeQueryTest protoMessage = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(5).build();
-        final RangeFieldValueExtractor<Message, Integer> protoExtractor = new ProtoValueExtractor<>(Integer.class);
+        final ZeroPadder<Integer> intZeroPadder = new IntPadder(EndRange.EXCLUSIVE);
+        final FieldValueExtractor<Message, Integer> protoExtractor = new MessageValueExtractor<>(intZeroPadder);
         final String errorMessage = String.format("Could not find range field with name %s", NON_EXISTING_FIELD);
 
         assertThatThrownBy(() -> protoExtractor.extractValue(protoMessage, NON_EXISTING_FIELD))

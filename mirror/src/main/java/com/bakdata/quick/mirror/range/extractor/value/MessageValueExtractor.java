@@ -14,10 +14,12 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range.extractor;
+package com.bakdata.quick.mirror.range.extractor.value;
 
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
+import com.bakdata.quick.common.type.QuickTopicType;
+import com.bakdata.quick.mirror.range.padder.ZeroPadder;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import lombok.extern.slf4j.Slf4j;
@@ -28,16 +30,14 @@ import lombok.extern.slf4j.Slf4j;
  * @param <F> Type of the field value
  */
 @Slf4j
-public class ProtoValueExtractor<F> implements RangeFieldValueExtractor<Message, F> {
-    private final Class<F> fieldClass;
-
+public class MessageValueExtractor<F> extends FieldValueExtractor<Message, F> {
     /**
      * Standard constructor.
      *
      * @param fieldClass Class of the field
      */
-    public ProtoValueExtractor(final Class<F> fieldClass) {
-        this.fieldClass = fieldClass;
+    public MessageValueExtractor(final ZeroPadder<F> zeroPadder) {
+        super(zeroPadder);
     }
 
     /**
@@ -59,6 +59,6 @@ public class ProtoValueExtractor<F> implements RangeFieldValueExtractor<Message,
 
         final Object rangeFieldValue = message.getField(fieldDescriptor);
         log.trace("Extracted range field value is: {}", rangeFieldValue);
-        return this.fieldClass.cast(rangeFieldValue);
+        return this.zeroPadder.getPadderClass().cast(rangeFieldValue);
     }
 }

@@ -14,7 +14,12 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range.extractor;
+package com.bakdata.quick.mirror.range.extractor.value;
+
+import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
+import com.bakdata.quick.mirror.range.padder.ZeroPadder;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
+import lombok.Getter;
 
 /**
  * An extractor for retrieving values from schemas.
@@ -22,6 +27,17 @@ package com.bakdata.quick.mirror.range.extractor;
  * @param <V> Type of the schema
  * @param <F> Type of the field in the schema
  */
-public interface RangeFieldValueExtractor<V, F> {
-    F extractValue(final V complexValue, final String rangeField);
+
+public abstract class FieldValueExtractor<V, F> {
+    protected ZeroPadder<F> zeroPadder;
+
+    protected FieldValueExtractor(ZeroPadder<F> zeroPadder) {
+        this.zeroPadder =  zeroPadder;
+    }
+
+    public ZeroPadder<F> getZeroPadder() {
+        return this.zeroPadder;
+    }
+
+    public abstract F extractValue(final V complexValue, final String rangeField);
 }
