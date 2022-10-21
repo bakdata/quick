@@ -54,10 +54,6 @@ public class RetentionTopology implements TopologyStrategy {
      */
     @Override
     public <K, V> void create(final TopologyContext<K, V> topologyContext) {
-        createRetentionTopology(topologyContext);
-    }
-
-    private static <K, V> void createRetentionTopology(final TopologyContext<K, V> topologyContext) {
         final RetentionTimeProperties retentionTimeProperties = topologyContext.getRetentionTimeProperties();
         final Serde<K> keySerDe = topologyContext.getKeySerde();
         final Serde<V> valueSerDe = topologyContext.getValueSerde();

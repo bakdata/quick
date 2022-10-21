@@ -44,6 +44,5 @@ public final class TopologyFactory {
         return topologyStrategies.stream()
             .filter(topologyStrategy -> topologyStrategy.isApplicable(topologyContext))
             .collect(Collectors.toList());
-
     }
 }
