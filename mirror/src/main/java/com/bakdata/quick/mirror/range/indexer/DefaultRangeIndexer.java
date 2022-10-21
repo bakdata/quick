@@ -25,6 +25,7 @@ import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.GenericRecordValueExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
 import com.bakdata.quick.mirror.range.padder.ZeroPadder;
+import com.bakdata.quick.mirror.range.padder.ZeroPadderFactory;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
@@ -95,7 +96,7 @@ public final class DefaultRangeIndexer<K, V> implements RangeIndexer<K, V> {
     @Override
     public <F> String createIndex(final K key, final V value) {
         final QuickTopicType topicType = this.fieldTypeExtractor.extractType(this.parsedSchema, this.rangeField);
-        final ZeroPadder<F> zeroPadder = this.fieldTypeExtractor.getZeroPadder(topicType);
+        final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
         final F number = this.fieldValueExtractor.extractValue(value, this.rangeField, zeroPadder.getPadderClass());
         final String paddedValue = zeroPadder.padZero(number);
         return this.createRangeIndexFormat(key, paddedValue);

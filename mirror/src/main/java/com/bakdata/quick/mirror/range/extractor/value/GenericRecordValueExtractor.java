@@ -41,10 +41,10 @@ public class GenericRecordValueExtractor implements FieldValueExtractor<GenericR
         try {
             log.trace("Record value of type Avro Generic Record");
             final Object rangeFieldValue = record.get(fieldName);
-            log.trace("Extracted range field value is: {}", rangeFieldValue);
+            log.trace("Extracted field value is: {}", rangeFieldValue);
             return fieldClass.cast(rangeFieldValue);
         } catch (final AvroRuntimeException exception) {
-            final String errorMessage = String.format("Could not find range field with name %s", fieldName);
+            final String errorMessage = String.format("Could not find field with name %s", fieldName);
             throw new MirrorTopologyException(errorMessage);
         }
     }

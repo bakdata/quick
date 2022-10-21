@@ -14,20 +14,25 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range.extractor.type;
+package com.bakdata.quick.mirror.range.padder;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.mirror.range.padder.EndRange;
-import com.bakdata.quick.mirror.range.padder.IntPadder;
-import com.bakdata.quick.mirror.range.padder.LongPadder;
-import com.bakdata.quick.mirror.range.padder.ZeroPadder;
-import io.confluent.kafka.schemaregistry.ParsedSchema;
 
-/**
- * Extracts the {@link QuickTopicType} of given field name in the {@link ParsedSchema}.
- */
-@FunctionalInterface
-public interface FieldTypeExtractor {
-    QuickTopicType extractType(final ParsedSchema parsedSchema, final String fieldName);
+public final class ZeroPadderFactory {
+    private ZeroPadderFactory() {
+    }
+
+    /**
+     * Returns the {@link ZeroPadder} for a given {@link QuickTopicType}.
+     */
+    @SuppressWarnings("unchecked")
+    public static <F> ZeroPadder<F> create(final QuickTopicType topicType) {
+        if (topicType == QuickTopicType.INTEGER) {
+            return (ZeroPadder<F>) new IntPadder(EndRange.EXCLUSIVE);
+        } else if (topicType == QuickTopicType.LONG) {
+            return (ZeroPadder<F>) new LongPadder(EndRange.EXCLUSIVE);
+        }
+        throw new MirrorTopologyException("Range field should be either of type integer or long");
+    }
 }

@@ -22,6 +22,7 @@ import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
 import com.bakdata.quick.mirror.range.padder.ZeroPadder;
+import com.bakdata.quick.mirror.range.padder.ZeroPadderFactory;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
@@ -65,7 +66,7 @@ public final class StringValueRangeIndexer<K> implements RangeIndexer<K, String>
             throw new MirrorTopologyException("The string value should be a series of digits");
         }
         final QuickTopicType topicType = this.fieldTypeExtractor.extractType(this.parsedSchema, this.rangeField);
-        final ZeroPadder<F> zeroPadder = this.fieldTypeExtractor.getZeroPadder(topicType);
+        final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
         final F number = zeroPadder.getEndOfRange(value);
         final String paddedValue = zeroPadder.padZero(number);
 

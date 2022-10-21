@@ -39,15 +39,14 @@ public class MessageValueExtractor implements FieldValueExtractor<Message> {
     @Override
     public <F> F extractValue(final Message message, final String fieldName, final Class<F> fieldClass) {
         log.trace("Record value of type Protobuf Message");
-
         final FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(fieldName);
         if (fieldDescriptor == null) {
-            final String errorMessage = String.format("Could not find range field with name %s", fieldName);
+            final String errorMessage = String.format("Could not find field with name %s", fieldName);
             throw new MirrorTopologyException(errorMessage);
         }
 
-        final Object rangeFieldValue = message.getField(fieldDescriptor);
-        log.trace("Extracted range field value is: {}", rangeFieldValue);
-        return fieldClass.cast(rangeFieldValue);
+        final Object fieldValue = message.getField(fieldDescriptor);
+        log.trace("Extracted field value is: {}", fieldValue);
+        return fieldClass.cast(fieldValue);
     }
 }
