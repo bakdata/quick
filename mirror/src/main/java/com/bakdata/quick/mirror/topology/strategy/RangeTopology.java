@@ -17,14 +17,12 @@
 package com.bakdata.quick.mirror.topology.strategy;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
-import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.range.indexer.DefaultRangeIndexer;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
 import com.bakdata.quick.mirror.range.indexer.NoOpRangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
 import com.bakdata.quick.mirror.topology.TopologyContext;
-import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -38,71 +36,60 @@ import org.apache.kafka.streams.state.Stores;
 
 /**
  * Crates the range topology.
- *
- * @param <K> The key type
- * @param <V> The value type
  */
 @Slf4j
-public class RangeTopology<K, V> implements TopologyStrategy {
-    private final TopologyContext<K, V> topologyContext;
+public class RangeTopology implements TopologyStrategy {
     private static final String RANGE_PROCESSOR_NAME = "mirror-range-processor";
-
-    public RangeTopology(final TopologyContext<K, V> topologyContext) {
-        this.topologyContext = topologyContext;
-    }
 
     /**
      * Validates if the range topology should be built.
      */
     @Override
-    public boolean applicable() {
-        return this.topologyContext.getRangeIndexProperties().isEnabled()
-            && !this.topologyContext.getRetentionTimeProperties().isEnabled();
+    public <K, V> boolean isApplicable(final TopologyContext<K, V> topologyContext) {
+        return topologyContext.getRangeIndexProperties().isEnabled()
+            && !topologyContext.getRetentionTimeProperties().isEnabled();
     }
 
     /**
      * Creates a range topology.
      */
     @Override
-    public void create() {
-        final StreamsBuilder builder = this.topologyContext.getStreamsBuilder();
-        this.createRangeTopology(builder);
+    public <K, V> void create(final TopologyContext<K, V> topologyContext) {
+        this.createRangeTopology(topologyContext);
     }
 
-    private void createRangeTopology(final StreamsBuilder streamsBuilder) {
-        final Serde<K> keySerDe = this.topologyContext.getKeySerde();
-        final Serde<V> valueSerDe = this.topologyContext.getValueSerde();
+    private <K, V> void createRangeTopology(final TopologyContext<K, V> topologyContext) {
+        final StreamsBuilder streamsBuilder = topologyContext.getStreamsBuilder();
+        final Serde<K> keySerDe = topologyContext.getKeySerde();
+        final Serde<V> valueSerDe = topologyContext.getValueSerde();
 
-        final String rangeStoreName = this.topologyContext.getRangeIndexProperties().getStoreName();
-        final StoreType storeType = this.topologyContext.getStoreType();
+        final String rangeStoreName = topologyContext.getRangeIndexProperties().getStoreName();
+        final StoreType storeType = topologyContext.getStoreType();
 
         // key serde is string because the store saves zero padded range index string as keys
         streamsBuilder.addStateStore(
             Stores.keyValueStoreBuilder(this.createStore(rangeStoreName, storeType), Serdes.String(), valueSerDe));
 
-        final QuickTopicType keyType = this.topologyContext.getTopicData().getKeyData().getType();
-        final ParsedSchema parsedSchema = this.topologyContext.getTopicData().getValueData().getParsedSchema();
-        log.debug("keyType is {} and parsedSchema is {}", keyType, parsedSchema);
-
-        final String rangeField =
-            Objects.requireNonNull(this.topologyContext.getRangeIndexProperties().getRangeField());
-        final RangeIndexer<K, V> rangeIndexer = this.getRangeIndexer(rangeField, parsedSchema);
+        final RangeIndexer<K, V> rangeIndexer = getRangeIndexer(topologyContext);
 
         final KStream<K, V> stream =
-            streamsBuilder.stream(this.topologyContext.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
+            streamsBuilder.stream(topologyContext.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
         stream.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
             Named.as(RANGE_PROCESSOR_NAME), rangeStoreName);
     }
 
-    private RangeIndexer<K, V> getRangeIndexer(final String rangeField, @Nullable final ParsedSchema parsedSchema) {
+    private static <K, V> RangeIndexer<K, V> getRangeIndexer(final TopologyContext<K, V> topologyContext) {
+        final ParsedSchema parsedSchema = topologyContext.getTopicData().getValueData().getParsedSchema();
         if (parsedSchema == null) {
-            final boolean isCleanup = this.topologyContext.isCleanup();
+            final boolean isCleanup = topologyContext.isCleanup();
             log.debug("Parsed schema is null and cleanup flag is set to {}.", isCleanup);
             if (isCleanup) {
                 return new NoOpRangeIndexer<>();
             }
             throw new MirrorTopologyException("Could not get the parsed schema.");
         } else {
+            final String rangeField =
+                Objects.requireNonNull(topologyContext.getRangeIndexProperties().getRangeField());
             log.debug("Setting up default range indexer.");
             return DefaultRangeIndexer.create(parsedSchema, rangeField);
         }

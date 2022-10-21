@@ -34,26 +34,18 @@ import org.apache.kafka.streams.state.Stores;
 
 /**
  * Creates a retention topology.
- *
- * @param <K> Type of the key
- * @param <V> Type of the value
  */
-public class RetentionTopology<K, V> implements TopologyStrategy {
+public class RetentionTopology implements TopologyStrategy {
     public static final String RETENTION_SINK = "same-topic-sink";
     private static final String PROCESSOR_NAME = "mirror-processor";
-    private final TopologyContext<K, V> topologyContext;
-
-    public RetentionTopology(final TopologyContext<K, V> topologyContext) {
-        this.topologyContext = topologyContext;
-    }
 
     /**
      * Validates if retention time topology should be crated.
      */
     @Override
-    public boolean applicable() {
-        final RetentionTimeProperties retentionTimeProperties = this.topologyContext.getRetentionTimeProperties();
-        final RangeIndexProperties rangeIndexProperties = this.topologyContext.getRangeIndexProperties();
+    public <K, V> boolean isApplicable(final TopologyContext<K, V> topologyContext) {
+        final RetentionTimeProperties retentionTimeProperties = topologyContext.getRetentionTimeProperties();
+        final RangeIndexProperties rangeIndexProperties = topologyContext.getRangeIndexProperties();
         return retentionTimeProperties.isEnabled() && !rangeIndexProperties.isEnabled();
     }
 
@@ -61,29 +53,29 @@ public class RetentionTopology<K, V> implements TopologyStrategy {
      * Creates retention time topology.
      */
     @Override
-    public void create() {
-        // key serde is long because the store saves the timestamps as keys
-        // value serde is key serde because the store save the keys as values
-        final RetentionTimeProperties retentionTimeProperties = this.topologyContext.getRetentionTimeProperties();
-
-        this.createRetentionTopology(retentionTimeProperties);
+    public <K, V> void create(final TopologyContext<K, V> topologyContext) {
+        createRetentionTopology(topologyContext);
     }
 
-    private void createRetentionTopology(final RetentionTimeProperties retentionTimeProperties) {
-        final QuickTopologyData<K, V> quickTopologyData = this.topologyContext.getQuickTopologyData();
-        final Serde<K> keySerDe = this.topologyContext.getKeySerde();
-        final Serde<V> valueSerDe = this.topologyContext.getValueSerde();
+    private static <K, V> void createRetentionTopology(final TopologyContext<K, V> topologyContext) {
+        final RetentionTimeProperties retentionTimeProperties = topologyContext.getRetentionTimeProperties();
+        final Serde<K> keySerDe = topologyContext.getKeySerde();
+        final Serde<V> valueSerDe = topologyContext.getValueSerde();
 
-        final StreamsBuilder builder = this.topologyContext.getStreamsBuilder();
+        final StreamsBuilder builder = topologyContext.getStreamsBuilder();
         final String retentionStoreName = retentionTimeProperties.getStoreName();
         final KeyValueBytesStoreSupplier retentionStore = Stores.inMemoryKeyValueStore(retentionStoreName);
-        final long millisRetentionTime = Objects.requireNonNull(retentionTimeProperties.getRetentionTime()).toMillis();
 
+        // key serde is long because the store saves the timestamps as keys
+        // value serde is key serde because the store save the keys as values
         builder.addStateStore(Stores.keyValueStoreBuilder(retentionStore, Serdes.Long(), keySerDe));
-        final String storeName = this.topologyContext.getRetentionTimeProperties().getStoreName();
 
+        final QuickTopologyData<K, V> quickTopologyData = topologyContext.getQuickTopologyData();
         final KStream<K, V> stream =
             builder.stream(quickTopologyData.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
+
+        final String storeName = retentionTimeProperties.getStoreName();
+        final long millisRetentionTime = Objects.requireNonNull(retentionTimeProperties.getRetentionTime()).toMillis();
         stream.process(() -> new RetentionMirrorProcessor<>(
                 storeName,
                 millisRetentionTime,
@@ -99,11 +91,11 @@ public class RetentionTopology<K, V> implements TopologyStrategy {
      * Builds the retention time topology and adds the sink to the topology.
      */
     @Override
-    public Topology buildTopology(final Topology topology) {
-        final Serde<K> keySerDe = this.topologyContext.getKeySerde();
+    public <K, V> Topology extendTopology(final TopologyContext<K, V> topologyContext, final Topology topology) {
+        final Serde<K> keySerDe = topologyContext.getKeySerde();
         topology.addSink(
             RETENTION_SINK,
-            this.topologyContext.getTopicData().getName(),
+            topologyContext.getTopicData().getName(),
             Serdes.Long().serializer(),
             keySerDe.serializer(),
             PROCESSOR_NAME
