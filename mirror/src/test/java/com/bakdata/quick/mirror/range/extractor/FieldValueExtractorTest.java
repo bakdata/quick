@@ -51,7 +51,7 @@ class FieldValueExtractorTest {
     void shouldThrowExceptionWhenFieldDoesNotExistInAvroSchema() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
         final FieldValueExtractor<GenericRecord> avroExtractor = new GenericRecordValueExtractor();
-        final String errorMessage = String.format("Could not find range field with name %s", NON_EXISTING_FIELD);
+        final String errorMessage = String.format("Could not find field with name %s", NON_EXISTING_FIELD);
 
         assertThatThrownBy(() -> avroExtractor.extractValue(avroRecord, NON_EXISTING_FIELD, Long.class)).isInstanceOf(
             MirrorTopologyException.class).hasMessageContaining(errorMessage);
@@ -61,7 +61,7 @@ class FieldValueExtractorTest {
     void shouldThrowExceptionWhenFieldDoesNotExistInProtobufSchema() {
         final ProtoRangeQueryTest protoMessage = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(5).build();
         final FieldValueExtractor<Message> protoExtractor = new MessageValueExtractor();
-        final String errorMessage = String.format("Could not find range field with name %s", NON_EXISTING_FIELD);
+        final String errorMessage = String.format("Could not find field with name %s", NON_EXISTING_FIELD);
 
         assertThatThrownBy(() -> protoExtractor.extractValue(protoMessage, NON_EXISTING_FIELD, Integer.class))
             .isInstanceOf(MirrorTopologyException.class).hasMessageContaining(errorMessage);

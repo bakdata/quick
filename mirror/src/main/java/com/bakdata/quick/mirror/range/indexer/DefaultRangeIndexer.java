@@ -33,19 +33,16 @@ import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 /**
  * Creates range indexes for a Mirror's state store.
  */
-public final class DefaultRangeIndexer<K, V> implements RangeIndexer<K, V> {
-    private final FieldTypeExtractor fieldTypeExtractor;
+public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
+    private final ZeroPadder<F> zeroPadder;
     private final FieldValueExtractor<? super V> fieldValueExtractor;
-    private final ParsedSchema parsedSchema;
     private final String rangeField;
 
-    private DefaultRangeIndexer(final FieldTypeExtractor fieldTypeExtractor,
+    private DefaultRangeIndexer(final ZeroPadder<F> zeroPadder,
         final FieldValueExtractor<? super V> fieldValueExtractor,
-        final ParsedSchema parsedSchema,
         final String rangeField) {
-        this.fieldTypeExtractor = fieldTypeExtractor;
+        this.zeroPadder = zeroPadder;
         this.fieldValueExtractor = fieldValueExtractor;
-        this.parsedSchema = parsedSchema;
         this.rangeField = rangeField;
     }
 
@@ -54,21 +51,27 @@ public final class DefaultRangeIndexer<K, V> implements RangeIndexer<K, V> {
      * reads the range field type form the schema and sets the value zero padder for the range field.
      */
     @SuppressWarnings("unchecked")
-    public static <K, V> DefaultRangeIndexer<K, V> create(final ParsedSchema parsedSchema, final String rangeField) {
-        switch (parsedSchema.schemaType()) {
-            case (AvroSchema.TYPE):
-                final FieldValueExtractor<V> fieldValueExtractor =
-                    (FieldValueExtractor<V>) new GenericRecordValueExtractor();
-                return new DefaultRangeIndexer<>(new AvroTypeExtractor(), fieldValueExtractor, parsedSchema,
-                    rangeField);
-            case (ProtobufSchema.TYPE):
-                final FieldValueExtractor<V> messageValueExtractor =
-                    (FieldValueExtractor<V>) new MessageValueExtractor();
-                return new DefaultRangeIndexer<>(new ProtoTypeExtractor(), messageValueExtractor, parsedSchema,
-                    rangeField);
-            default:
-                throw new MirrorTopologyException("Unsupported schema type.");
+    public static <K, V, F> DefaultRangeIndexer<K, V, F> create(final ParsedSchema parsedSchema,
+        final String rangeField) {
+        if (AvroSchema.TYPE.equals(parsedSchema.schemaType())) {
+            final FieldValueExtractor<V> fieldValueExtractor =
+                (FieldValueExtractor<V>) new GenericRecordValueExtractor();
+            final FieldTypeExtractor fieldTypeExtractor = new AvroTypeExtractor();
+            final QuickTopicType topicType = fieldTypeExtractor.extractType(parsedSchema, rangeField);
+            final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
+            return new DefaultRangeIndexer<>(zeroPadder, fieldValueExtractor,
+                rangeField);
+        } else if (ProtobufSchema.TYPE.equals(parsedSchema.schemaType())) {
+            final FieldValueExtractor<V> messageValueExtractor =
+                (FieldValueExtractor<V>) new MessageValueExtractor();
+            final FieldTypeExtractor fieldTypeExtractor = new ProtoTypeExtractor();
+            final QuickTopicType topicType = fieldTypeExtractor.extractType(parsedSchema, rangeField);
+            final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
+            return new DefaultRangeIndexer<>(zeroPadder, messageValueExtractor,
+                rangeField);
         }
+        throw new MirrorTopologyException("Unsupported schema type.");
+
     }
 
     /**
@@ -94,11 +97,10 @@ public final class DefaultRangeIndexer<K, V> implements RangeIndexer<K, V> {
      * And the <i>range field</i> is <i>timestamp</i> with the value of 5. The returned value would be 1_0000000005
      */
     @Override
-    public <F> String createIndex(final K key, final V value) {
-        final QuickTopicType topicType = this.fieldTypeExtractor.extractType(this.parsedSchema, this.rangeField);
-        final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
-        final F number = this.fieldValueExtractor.extractValue(value, this.rangeField, zeroPadder.getPadderClass());
-        final String paddedValue = zeroPadder.padZero(number);
+    public String createIndex(final K key, final V value) {
+        final F number =
+            this.fieldValueExtractor.extractValue(value, this.rangeField, this.zeroPadder.getPadderClass());
+        final String paddedValue = this.zeroPadder.padZero(number);
         return this.createRangeIndexFormat(key, paddedValue);
     }
 }

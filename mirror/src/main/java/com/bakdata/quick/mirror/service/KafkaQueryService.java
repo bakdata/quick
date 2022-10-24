@@ -78,7 +78,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     @Nullable
     private StoreQueryParameters<ReadOnlyKeyValueStore<String, V>> rangeStoreQueryParameters;
     @Nullable
-    private StringValueRangeIndexer<K> rangeIndexer = null;
+    private StringValueRangeIndexer<K, ?> rangeIndexer = null;
 
     /**
      * Injectable constructor.

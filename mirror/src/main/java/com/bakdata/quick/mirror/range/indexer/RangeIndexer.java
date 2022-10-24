@@ -22,7 +22,7 @@ import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
  * Creates the range index in the {@link MirrorRangeProcessor}.
  */
 public interface RangeIndexer<K, V> {
-    <F> String createIndex(final K key, final V value);
+    String createIndex(final K key, final V value);
 
     default <T> String createRangeIndexFormat(final T key, final String paddedValue) {
         return String.format("%s_%s", key, paddedValue);
