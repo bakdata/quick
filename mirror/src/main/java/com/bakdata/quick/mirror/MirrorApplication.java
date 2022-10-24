@@ -89,9 +89,14 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Option(names = "--store-type", description = "Kafka Store to use. Choices: ${COMPLETION-CANDIDATES}",
         defaultValue = "inmemory")
     private final StoreType storeType = StoreType.INMEMORY;
+
     @Nullable
     @Option(names = "--retention-time", description = "Retention time defined in ISO_8601")
     private Duration retentionTime;
+
+    @Nullable
+    @Option(names = "--range-key", description = "The key which the Mirror builds its range index on")
+    private String rangeKey;
 
     @Nullable
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
@@ -137,7 +142,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .quickTopologyData(this.getTopologyData())
             .pointStoreName(POINT_STORE)
             .storeType(this.storeType)
-            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
+            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeKey, this.rangeField))
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
             .isCleanup(this.cleanUp);
 

@@ -20,6 +20,8 @@ import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.point.MirrorProcessor;
+import com.bakdata.quick.mirror.range.KeySelector;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -59,6 +61,15 @@ public class PointTopology implements TopologyStrategy {
         final QuickTopologyData<K, V> quickTopologyData = mirrorContext.getQuickTopologyData();
         final KStream<K, V> stream =
             streamsBuilder.stream(quickTopologyData.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
+
+        final String rangeKey = mirrorContext.getRangeIndexProperties().getRangeKey();
+        final ParsedSchema parsedSchema = mirrorContext.getTopicData().getValueData().getParsedSchema();
+
+        if (rangeKey != null && parsedSchema != null) {
+            final KeySelector<K, V> keySelector = KeySelector.create(parsedSchema);
+            stream.selectKey((key, value) -> keySelector.getKey(rangeKey, parsedSchema, value));
+        }
+
         stream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
     }
 }
