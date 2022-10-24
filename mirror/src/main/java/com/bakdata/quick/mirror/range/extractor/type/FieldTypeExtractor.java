@@ -16,12 +16,7 @@
 
 package com.bakdata.quick.mirror.range.extractor.type;
 
-import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.mirror.range.padder.EndRange;
-import com.bakdata.quick.mirror.range.padder.IntPadder;
-import com.bakdata.quick.mirror.range.padder.LongPadder;
-import com.bakdata.quick.mirror.range.padder.ZeroPadder;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 
 /**
@@ -29,5 +24,5 @@ import io.confluent.kafka.schemaregistry.ParsedSchema;
  */
 @FunctionalInterface
 public interface FieldTypeExtractor {
-    QuickTopicType extractType(final ParsedSchema parsedSchema, final String fieldName);
+    QuickTopicType extract(final ParsedSchema parsedSchema, final String fieldName);
 }

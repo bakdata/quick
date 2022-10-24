@@ -37,7 +37,7 @@ public class MessageValueExtractor implements FieldValueExtractor<Message> {
      * @return The field value
      */
     @Override
-    public <F> F extractValue(final Message message, final String fieldName, final Class<F> fieldClass) {
+    public <F> F extract(final Message message, final String fieldName, final Class<F> fieldClass) {
         log.trace("Record value of type Protobuf Message");
         final FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(fieldName);
         if (fieldDescriptor == null) {

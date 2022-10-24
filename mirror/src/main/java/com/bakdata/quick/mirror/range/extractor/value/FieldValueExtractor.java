@@ -31,5 +31,5 @@ public interface FieldValueExtractor<V> {
      * @param <F> Type of the field to be extracted
      * @return The value of the field
      */
-    <F> F extractValue(final V complexValue, final String fieldName, final Class<F> fieldClass);
+    <F> F extract(final V complexValue, final String fieldName, final Class<F> fieldClass);
 }

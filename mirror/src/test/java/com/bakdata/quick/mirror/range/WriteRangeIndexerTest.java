@@ -19,9 +19,9 @@ package com.bakdata.quick.mirror.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import com.bakdata.quick.mirror.range.indexer.DefaultRangeIndexer;
+import com.bakdata.quick.mirror.range.indexer.WriteRangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
-import com.bakdata.quick.mirror.range.indexer.StringValueRangeIndexer;
+import com.bakdata.quick.mirror.range.indexer.ReadRangeIndexer;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ProtoRangeQueryTest;
 import com.google.protobuf.Message;
@@ -34,7 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class DefaultRangeIndexerTest {
+class WriteRangeIndexerTest {
 
     private static final int INT_ZERO = 0;
     private static final int ONE_DIGIT_INT_NUMBER = 1;
@@ -57,7 +57,7 @@ class DefaultRangeIndexerTest {
     void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final GenericRecord avroRecord,
         final String rangeIndex) {
         final RangeIndexer<Integer, GenericRecord> defaultRangeIndexer =
-            DefaultRangeIndexer.create(
+            WriteRangeIndexer.create(
                 new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
 
         assertThat(defaultRangeIndexer.createIndex(key, avroRecord)).isEqualTo(rangeIndex);
@@ -68,7 +68,7 @@ class DefaultRangeIndexerTest {
     void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key, final Message protoMessage,
         final String rangeIndex) {
         final RangeIndexer<Long, Message> defaultRangeIndexer =
-            DefaultRangeIndexer.create(
+            WriteRangeIndexer.create(
                 new ProtobufSchema(protoMessage.getDescriptorForType()), RANGE_FIELD);
         assertThat(defaultRangeIndexer.createIndex(key, protoMessage)).isEqualTo(rangeIndex);
     }
@@ -77,7 +77,7 @@ class DefaultRangeIndexerTest {
     void shouldCreateRangeIndexOnKeyAndStringAndExclusive() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
         final RangeIndexer<Integer, String> stringValueRangeIndexer =
-            StringValueRangeIndexer.create(
+            ReadRangeIndexer.create(
                 new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
 
         assertThat(stringValueRangeIndexer.createIndex(1, "2")).isEqualTo("1_0000000000000000001");
@@ -88,7 +88,7 @@ class DefaultRangeIndexerTest {
         final AvroRangeQueryTest avroRecord =
             AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).setAge(45).build();
         final RangeIndexer<Integer, String> stringValueRangeIndexer =
-            StringValueRangeIndexer.create(
+            ReadRangeIndexer.create(
                 new AvroSchema(avroRecord.getSchema()), "age");
 
         assertThat(stringValueRangeIndexer.createIndex(1, "45")).isEqualTo("1_0000000044");

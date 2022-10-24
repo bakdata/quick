@@ -37,7 +37,7 @@ public class GenericRecordValueExtractor implements FieldValueExtractor<GenericR
      * @return The field value
      */
     @Override
-    public <F> F extractValue(final GenericRecord record, final String fieldName, final Class<F> fieldClass) {
+    public <F> F extract(final GenericRecord record, final String fieldName, final Class<F> fieldClass) {
         try {
             log.trace("Record value of type Avro Generic Record");
             final Object rangeFieldValue = record.get(fieldName);

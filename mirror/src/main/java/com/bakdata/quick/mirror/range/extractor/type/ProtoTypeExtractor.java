@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProtoTypeExtractor implements FieldTypeExtractor {
 
     @Override
-    public QuickTopicType extractType(final ParsedSchema parsedSchema, final String fieldName) {
+    public QuickTopicType extract(final ParsedSchema parsedSchema, final String fieldName) {
         final ProtobufSchema protobufSchema = (ProtobufSchema) parsedSchema;
         final Descriptors.Descriptor descriptor = protobufSchema.toDescriptor();
         final FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);

@@ -19,9 +19,9 @@ package com.bakdata.quick.mirror.topology.strategy;
 import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
-import com.bakdata.quick.mirror.range.indexer.DefaultRangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.NoOpRangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
+import com.bakdata.quick.mirror.range.indexer.WriteRangeIndexer;
 import com.bakdata.quick.mirror.topology.TopologyContext;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import java.util.Objects;
@@ -91,7 +91,7 @@ public class RangeTopology implements TopologyStrategy {
             final String rangeField =
                 Objects.requireNonNull(topologyContext.getRangeIndexProperties().getRangeField());
             log.debug("Setting up default range indexer.");
-            return DefaultRangeIndexer.create(parsedSchema, rangeField);
+            return WriteRangeIndexer.create(parsedSchema, rangeField);
         }
     }
 }

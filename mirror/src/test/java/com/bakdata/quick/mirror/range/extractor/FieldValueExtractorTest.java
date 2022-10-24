@@ -37,14 +37,14 @@ class FieldValueExtractorTest {
     void shouldExtractValueFromAvroSchema() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
         final FieldValueExtractor<GenericRecord> avroExtractor = new GenericRecordValueExtractor();
-        assertThat(avroExtractor.extractValue(avroRecord, TIMESTAMP_FIELD, Long.class)).isEqualTo(3L);
+        assertThat(avroExtractor.extract(avroRecord, TIMESTAMP_FIELD, Long.class)).isEqualTo(3L);
     }
 
     @Test
     void shouldExtractValueFromProtobufSchema() {
         final ProtoRangeQueryTest protoMessage = ProtoRangeQueryTest.newBuilder().setUserId(1).setTimestamp(5).build();
         final FieldValueExtractor<Message> protoExtractor = new MessageValueExtractor();
-        assertThat(protoExtractor.extractValue(protoMessage, TIMESTAMP_FIELD, Integer.class)).isEqualTo(5);
+        assertThat(protoExtractor.extract(protoMessage, TIMESTAMP_FIELD, Integer.class)).isEqualTo(5);
     }
 
     @Test
@@ -53,7 +53,7 @@ class FieldValueExtractorTest {
         final FieldValueExtractor<GenericRecord> avroExtractor = new GenericRecordValueExtractor();
         final String errorMessage = String.format("Could not find field with name %s", NON_EXISTING_FIELD);
 
-        assertThatThrownBy(() -> avroExtractor.extractValue(avroRecord, NON_EXISTING_FIELD, Long.class)).isInstanceOf(
+        assertThatThrownBy(() -> avroExtractor.extract(avroRecord, NON_EXISTING_FIELD, Long.class)).isInstanceOf(
             MirrorTopologyException.class).hasMessageContaining(errorMessage);
     }
 
@@ -63,7 +63,7 @@ class FieldValueExtractorTest {
         final FieldValueExtractor<Message> protoExtractor = new MessageValueExtractor();
         final String errorMessage = String.format("Could not find field with name %s", NON_EXISTING_FIELD);
 
-        assertThatThrownBy(() -> protoExtractor.extractValue(protoMessage, NON_EXISTING_FIELD, Integer.class))
+        assertThatThrownBy(() -> protoExtractor.extract(protoMessage, NON_EXISTING_FIELD, Integer.class))
             .isInstanceOf(MirrorTopologyException.class).hasMessageContaining(errorMessage);
     }
 }

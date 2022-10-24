@@ -32,7 +32,7 @@ import org.apache.avro.Schema.Type;
 @Slf4j
 public class AvroTypeExtractor implements FieldTypeExtractor {
     @Override
-    public QuickTopicType extractType(final ParsedSchema parsedSchema, final String fieldName) {
+    public QuickTopicType extract(final ParsedSchema parsedSchema, final String fieldName) {
         final Schema avroSchema = (Schema) parsedSchema.rawSchema();
         final Schema.Type fieldType = getAvroFieldType(avroSchema, fieldName);
         log.debug("Field Type is {}", fieldType);
