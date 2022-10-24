@@ -19,6 +19,9 @@ package com.bakdata.quick.mirror.range.padder;
 import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.type.QuickTopicType;
 
+/**
+ * Creates a {@link ZeroPadder} object.
+ */
 public final class ZeroPadderFactory {
     private ZeroPadderFactory() {
     }
