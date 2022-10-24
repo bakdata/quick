@@ -18,13 +18,10 @@ package com.bakdata.quick.mirror.range.indexer;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.padder.ZeroPadder;
 import com.bakdata.quick.mirror.range.padder.ZeroPadderFactory;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
-import io.confluent.kafka.schemaregistry.avro.AvroSchema;
-import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import io.micronaut.core.util.StringUtils;
 
 /**
@@ -41,20 +38,12 @@ public final class ReadRangeIndexer<K, F> implements RangeIndexer<K, String> {
     /**
      * Creates the range index for a given key and a value string type.
      */
-    public static <K, F> ReadRangeIndexer<K, F> create(final ParsedSchema parsedSchema,
+    public static <K, F> ReadRangeIndexer<K, F> create(final FieldTypeExtractor fieldTypeExtractor,
+        final ParsedSchema parsedSchema,
         final String rangeField) {
-        if (parsedSchema.schemaType().equals(AvroSchema.TYPE)) {
-            final FieldTypeExtractor fieldTypeExtractor = new AvroTypeExtractor();
-            final QuickTopicType topicType = fieldTypeExtractor.extract(parsedSchema, rangeField);
-            final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
-            return new ReadRangeIndexer<>(zeroPadder);
-        } else if (parsedSchema.schemaType().equals(ProtobufSchema.TYPE)) {
-            final FieldTypeExtractor fieldTypeExtractor = new AvroTypeExtractor();
-            final QuickTopicType topicType = fieldTypeExtractor.extract(parsedSchema, rangeField);
-            final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
-            return new ReadRangeIndexer<>(zeroPadder);
-        }
-        throw new MirrorTopologyException("Unsupported schema type.");
+        final QuickTopicType topicType = fieldTypeExtractor.extract(parsedSchema, rangeField);
+        final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
+        return new ReadRangeIndexer<>(zeroPadder);
     }
 
     @Override

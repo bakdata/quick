@@ -19,6 +19,8 @@ package com.bakdata.quick.mirror.topology.strategy;
 import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
+import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
+import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import com.bakdata.quick.mirror.range.indexer.NoOpRangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.WriteRangeIndexer;
@@ -91,7 +93,10 @@ public class RangeTopology implements TopologyStrategy {
             final String rangeField =
                 Objects.requireNonNull(topologyContext.getRangeIndexProperties().getRangeField());
             log.debug("Setting up default range indexer.");
-            return WriteRangeIndexer.create(parsedSchema, rangeField);
+
+            final FieldTypeExtractor fieldTypeExtractor = topologyContext.getFieldTypeExtractor();
+            final FieldValueExtractor<V> fieldValueExtractor = topologyContext.getFieldValueExtractor();
+            return WriteRangeIndexer.create(fieldTypeExtractor, fieldValueExtractor, parsedSchema, rangeField);
         }
     }
 }

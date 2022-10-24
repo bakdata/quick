@@ -26,19 +26,20 @@ import lombok.extern.slf4j.Slf4j;
  * Implements the value extraction logic for a Protobuf message.
  */
 @Slf4j
-public class MessageValueExtractor implements FieldValueExtractor<Message> {
+public class MessageValueExtractor<V> implements FieldValueExtractor<V> {
 
     /**
      * Extracts the value from a Protobuf message for a given field name.
      *
-     * @param message The Protobuf message
+     * @param complexValue The Protobuf message
      * @param fieldName The name of the field to get extracted
      * @param fieldClass The class of the field
      * @return The field value
      */
     @Override
-    public <F> F extract(final Message message, final String fieldName, final Class<F> fieldClass) {
+    public <F> F extract(final V complexValue, final String fieldName, final Class<F> fieldClass) {
         log.trace("Record value of type Protobuf Message");
+        final Message message = (Message) complexValue;
         final FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(fieldName);
         if (fieldDescriptor == null) {
             final String errorMessage = String.format("Could not find field with name %s", fieldName);

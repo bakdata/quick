@@ -28,6 +28,7 @@ import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.indexer.ReadRangeIndexer;
 import com.bakdata.quick.mirror.service.context.QueryContextProvider;
 import com.bakdata.quick.mirror.service.context.QueryServiceContext;
@@ -190,8 +191,9 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             StoreQueryParameters.fromNameAndType(rangeStoreName, QueryableStoreTypes.keyValueStore());
 
         final ParsedSchema parsedSchema = this.context.getQuickTopicData().getValueData().getParsedSchema();
+        final FieldTypeExtractor fieldTypeExtractor = this.context.getFieldTypeExtractor();
 
-        this.rangeIndexer = ReadRangeIndexer.create(
+        this.rangeIndexer = ReadRangeIndexer.create(fieldTypeExtractor,
             Objects.requireNonNull(parsedSchema),
             Objects.requireNonNull(rangeIndexProperties.getRangeField()));
     }

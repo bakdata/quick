@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.service.context;
 
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import lombok.Builder;
 import lombok.Value;
 import org.apache.kafka.streams.KafkaStreams;
@@ -33,6 +34,7 @@ public class QueryServiceContext {
     String pointStoreName;
     RangeIndexProperties rangeIndexProperties;
     QuickTopicData<?, ?> quickTopicData;
+    FieldTypeExtractor fieldTypeExtractor;
 
     @SuppressWarnings("unchecked")
     public <K, V> QuickTopicData<K, V> getQuickTopicData() {

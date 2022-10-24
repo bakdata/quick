@@ -19,6 +19,8 @@ package com.bakdata.quick.mirror.topology;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
+import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
 import java.util.List;
@@ -45,6 +47,8 @@ public class TopologyContext<K, V> {
     RetentionTimeProperties retentionTimeProperties;
     StoreType storeType;
     boolean isCleanup;
+    FieldTypeExtractor fieldTypeExtractor;
+    FieldValueExtractor<V> fieldValueExtractor;
 
     /**
      * Gets the list of input topics.

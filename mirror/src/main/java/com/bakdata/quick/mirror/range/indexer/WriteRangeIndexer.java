@@ -16,19 +16,12 @@
 
 package com.bakdata.quick.mirror.range.indexer;
 
-import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
-import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.GenericRecordValueExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
 import com.bakdata.quick.mirror.range.padder.ZeroPadder;
 import com.bakdata.quick.mirror.range.padder.ZeroPadderFactory;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
-import io.confluent.kafka.schemaregistry.avro.AvroSchema;
-import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 
 /**
  * Implements the logic for range index for incoming data.
@@ -49,25 +42,13 @@ public final class WriteRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
     /**
      * Creates the zero padder for the key and sets the range field value extractor based on the schema type.
      */
-    @SuppressWarnings("unchecked")
-    public static <K, V, F> WriteRangeIndexer<K, V, F> create(final ParsedSchema parsedSchema,
+    public static <K, V, F> WriteRangeIndexer<K, V, F> create(final FieldTypeExtractor fieldTypeExtractor,
+        final FieldValueExtractor<? super V> fieldValueExtractor,
+        final ParsedSchema parsedSchema,
         final String rangeField) {
-        if (AvroSchema.TYPE.equals(parsedSchema.schemaType())) {
-            final FieldValueExtractor<V> fieldValueExtractor =
-                (FieldValueExtractor<V>) new GenericRecordValueExtractor();
-            final FieldTypeExtractor fieldTypeExtractor = new AvroTypeExtractor();
-            final QuickTopicType topicType = fieldTypeExtractor.extract(parsedSchema, rangeField);
-            final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
-            return new WriteRangeIndexer<>(zeroPadder, fieldValueExtractor, rangeField);
-        } else if (ProtobufSchema.TYPE.equals(parsedSchema.schemaType())) {
-            final FieldValueExtractor<V> messageValueExtractor =
-                (FieldValueExtractor<V>) new MessageValueExtractor();
-            final FieldTypeExtractor fieldTypeExtractor = new ProtoTypeExtractor();
-            final QuickTopicType topicType = fieldTypeExtractor.extract(parsedSchema, rangeField);
-            final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
-            return new WriteRangeIndexer<>(zeroPadder, messageValueExtractor, rangeField);
-        }
-        throw new MirrorTopologyException("Unsupported schema type.");
+        final QuickTopicType topicType = fieldTypeExtractor.extract(parsedSchema, rangeField);
+        final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
+        return new WriteRangeIndexer<>(zeroPadder, fieldValueExtractor, rangeField);
     }
 
     /**

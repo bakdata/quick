@@ -26,19 +26,20 @@ import org.apache.avro.generic.GenericRecord;
  * Implements the value extraction logic for an Avro's Generic Record.
  */
 @Slf4j
-public class GenericRecordValueExtractor implements FieldValueExtractor<GenericRecord> {
+public class GenericRecordValueExtractor<V> implements FieldValueExtractor<V> {
 
     /**
      * Extracts the value from an Avro record for a given field name.
      *
-     * @param record The Avro record
+     * @param complexValue The Avro record
      * @param fieldName The name of the field to get extracted
      * @param fieldClass The class of the field
      * @return The field value
      */
     @Override
-    public <F> F extract(final GenericRecord record, final String fieldName, final Class<F> fieldClass) {
+    public <F> F extract(final V complexValue, final String fieldName, final Class<F> fieldClass) {
         try {
+            final GenericRecord record = (GenericRecord) complexValue;
             log.trace("Record value of type Avro Generic Record");
             final Object rangeFieldValue = record.get(fieldName);
             log.trace("Extracted field value is: {}", rangeFieldValue);
