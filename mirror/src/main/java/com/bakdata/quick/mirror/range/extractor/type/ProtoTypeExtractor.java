@@ -43,10 +43,8 @@ public class ProtoTypeExtractor implements FieldTypeExtractor {
         }
         final JavaType fieldType = fieldDescriptor.getJavaType();
         if (fieldType == JavaType.INT) {
-            log.trace("Creating integer zero padder for avro value");
             return QuickTopicType.INTEGER;
         } else if (fieldType == JavaType.LONG) {
-            log.trace("Creating long zero padder for avro value");
             return QuickTopicType.LONG;
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");

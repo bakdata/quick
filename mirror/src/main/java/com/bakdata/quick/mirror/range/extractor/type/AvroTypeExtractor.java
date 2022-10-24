@@ -38,10 +38,8 @@ public class AvroTypeExtractor implements FieldTypeExtractor {
         log.debug("Field Type is {}", fieldType);
 
         if (fieldType == Schema.Type.INT) {
-            log.trace("Creating integer zero padder for avro value");
             return QuickTopicType.INTEGER;
         } else if (fieldType == Schema.Type.LONG) {
-            log.trace("Creating long zero padder for avro value");
             return QuickTopicType.LONG;
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
