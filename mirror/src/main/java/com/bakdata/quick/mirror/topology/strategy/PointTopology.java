@@ -23,10 +23,12 @@ import com.bakdata.quick.mirror.point.MirrorProcessor;
 import com.bakdata.quick.mirror.range.KeySelector;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Repartitioned;
 import org.apache.kafka.streams.state.Stores;
 
 /**
@@ -66,10 +68,17 @@ public class PointTopology implements TopologyStrategy {
         final ParsedSchema parsedSchema = mirrorContext.getTopicData().getValueData().getParsedSchema();
 
         if (rangeKey != null && parsedSchema != null) {
-            final KeySelector<K, V> keySelector = KeySelector.create(parsedSchema);
-            stream.selectKey((key, value) -> keySelector.getKey(rangeKey, parsedSchema, value));
+            final KeySelector<V> keySelector = KeySelector.create(parsedSchema, rangeKey);
+            streamsBuilder.addStateStore(
+                Stores.keyValueStoreBuilder(this.createStore(storeName, storeType), new Serdes.IntegerSerde(),
+                    valueSerDe));
+            stream.selectKey((key, value) -> keySelector.getRangeKey(rangeKey, value))
+                .repartition(Repartitioned.with(keySelector.getKeySerde(), valueSerDe))
+                .process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
+        } else {
+            streamsBuilder.addStateStore(
+                Stores.keyValueStoreBuilder(this.createStore(storeName, storeType), keySerDe, valueSerDe));
+            stream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
         }
-
-        stream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
     }
 }

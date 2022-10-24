@@ -65,7 +65,7 @@ class MirrorTopologyTest {
             .quickTopologyData(topologyInfo)
             .pointStoreName(STORE_NAME)
             .storeType(StoreType.INMEMORY)
-            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, null))
+            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, null, null))
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, null))
             .build();
 

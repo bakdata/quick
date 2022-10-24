@@ -387,7 +387,7 @@ class MirrorRangeTopologyTest {
         final MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder()
             .quickTopologyData(topologyInfo)
             .pointStoreName(MIRROR_STORE)
-            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE_NAME, RANGE_FIELD))
+            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE_NAME, null, RANGE_FIELD))
             .storeType(StoreType.INMEMORY)
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, null))
             .fieldTypeExtractor(fieldTypeExtractor)

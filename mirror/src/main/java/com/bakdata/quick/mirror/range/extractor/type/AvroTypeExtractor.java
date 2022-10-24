@@ -41,6 +41,8 @@ public class AvroTypeExtractor implements FieldTypeExtractor {
             return QuickTopicType.INTEGER;
         } else if (fieldType == Schema.Type.LONG) {
             return QuickTopicType.LONG;
+        } else if (fieldType == Schema.Type.STRING) {
+            return QuickTopicType.STRING;
         }
         throw new MirrorTopologyException("Range field value should be either integer or long");
     }

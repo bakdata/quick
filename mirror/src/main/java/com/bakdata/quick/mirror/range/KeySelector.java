@@ -27,35 +27,48 @@ import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
+import java.util.Map;
+import lombok.Getter;
+import org.apache.kafka.common.serialization.Serde;
 
-public final class KeySelector<K, V> {
-    private final FieldTypeExtractor fieldTypeExtractor;
-    private final FieldValueExtractor<V> fieldValueExtractor;
+public final class KeySelector<V> {
+    @Getter
+    private final QuickTopicType keyType;
+    private final FieldValueExtractor<? super V> fieldValueExtractor;
 
-    private KeySelector(final FieldTypeExtractor fieldTypeExtractor, final FieldValueExtractor<V> fieldValueExtractor) {
-        this.fieldTypeExtractor = fieldTypeExtractor;
+    private KeySelector(final QuickTopicType keyType, final FieldValueExtractor<? super V> fieldValueExtractor) {
+        this.keyType = keyType;
         this.fieldValueExtractor = fieldValueExtractor;
     }
 
-    public K getKey(final String rangeKey, final ParsedSchema parsedSchema, final V value) {
-        if (value != null) {
-            final QuickTopicType topicType = this.fieldTypeExtractor.extractType(parsedSchema, rangeKey);
-            return this.fieldValueExtractor.extractValue(value, rangeKey, topicType.getClassType());
-        }
-        throw new MirrorTopologyException("Something went wrong!");
-    }
-
     @SuppressWarnings("unchecked")
-    public static <K, V> KeySelector<K, V> create(final ParsedSchema parsedSchema) {
+    public static <V> KeySelector<V> create(final ParsedSchema parsedSchema, final String rangeKey) {
         if (AvroSchema.TYPE.equals(parsedSchema.schemaType())) {
             final FieldTypeExtractor avroTypeExtractor = new AvroTypeExtractor();
-            final FieldValueExtractor<V> fieldValueExtractor = (FieldValueExtractor<V>) new GenericRecordValueExtractor();
-            return new KeySelector<>(avroTypeExtractor, fieldValueExtractor);
+            final QuickTopicType keyType = avroTypeExtractor.extract(parsedSchema, rangeKey);
+            final FieldValueExtractor<V> fieldValueExtractor =
+                (FieldValueExtractor<V>) new GenericRecordValueExtractor();
+            return new KeySelector<>(keyType, fieldValueExtractor);
+
         } else if (ProtobufSchema.TYPE.equals(parsedSchema.schemaType())) {
-            final FieldTypeExtractor avroTypeExtractor = new ProtoTypeExtractor();
+            final FieldTypeExtractor protoTypeExtractor = new ProtoTypeExtractor();
+            final QuickTopicType keyType = protoTypeExtractor.extract(parsedSchema, rangeKey);
             final FieldValueExtractor<V> fieldValueExtractor = (FieldValueExtractor<V>) new MessageValueExtractor();
-            return new KeySelector<>(avroTypeExtractor, fieldValueExtractor);
+            return new KeySelector<>(keyType, fieldValueExtractor);
         }
         throw new MirrorTopologyException("Unsupported schema type.");
+    }
+
+    public <T> T getRangeKey(final String fieldName, final V value) {
+        if (value != null) {
+            return this.fieldValueExtractor.extract(value, fieldName, this.keyType.getClassType());
+        }
+        throw new MirrorTopologyException("The value should not be null. Check you input topic data.");
+    }
+
+    public <T> Serde<T> getKeySerde(){
+        // TODO: Get this from KafkaConfig
+        final Map<String, String> configs = Map.of("schema.registry.url", "1.2.3.4");
+        return this.keyType.getSerde(configs, true);
     }
 }
