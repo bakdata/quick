@@ -42,7 +42,7 @@ public interface Router<K> {
     List<MirrorHost> getAllHosts();
 
     /**
-     * Updates the current routing information with a provided routing information.
+     * Updates the current routing information with provided routing information.
      */
     void updateRoutingInfo();
 }

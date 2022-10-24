@@ -37,7 +37,6 @@ public class GeneralExceptionHandler implements ExceptionHandler<Exception, Http
 
     @Override
     public HttpResponse<ErrorMessage> handle(final HttpRequest request, final Exception exception) {
-        log.error("Unexpected and not handled error: ", exception);
         final String detail = "An unexpected error occurred:" + exception.getMessage();
         final ErrorMessage error = HttpStatusError.toError(HttpStatus.INTERNAL_SERVER_ERROR, request.getPath(), detail);
         return HttpResponse.<ErrorMessage>serverError().body(error);

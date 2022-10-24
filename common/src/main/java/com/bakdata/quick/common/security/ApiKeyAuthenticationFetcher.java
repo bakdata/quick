@@ -24,7 +24,7 @@ import jakarta.inject.Singleton;
 import org.reactivestreams.Publisher;
 
 /**
- * AuthenticationFetcher for API-Key based auth.
+ * AuthenticationFetcher for API-Key-based auth.
  *
  * <p>
  * The fetcher looks up the header named 'X-API-Key' and compares it to the injected token for this deployment. If they

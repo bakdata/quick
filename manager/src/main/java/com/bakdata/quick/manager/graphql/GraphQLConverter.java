@@ -38,7 +38,8 @@ public interface GraphQLConverter {
     List<GraphQLScalarType> SCALARS = List.of(
         ExtendedScalars.GraphQLLong,
         ExtendedScalars.GraphQLShort,
-        ExtendedScalars.GraphQLChar
+        ExtendedScalars.GraphQLChar,
+        ExtendedScalars.DateTime
     );
 
     ParsedSchema convert(String graphQLSchema);

@@ -129,7 +129,7 @@ public class IngestParser {
     }
 
     private static <T> T parse(final QuickTopicData.QuickData<T> data, final JsonNode node) {
-        // the type resolver doesn't check for the JSON node type but we can always create string
+        // the type resolver doesn't check for the JSON node type, but we can always create string
         // thus, in case of string type in the topic, we manually check that the node type isn't numeric
         if (node.isNumber() && data.getType() == QuickTopicType.STRING) {
             final String message = String.format("Data must be of type string. Got: %s (%s)",
@@ -144,7 +144,6 @@ public class IngestParser {
                 String.format("Data does not conform to schema: %s", exception.getCause().getMessage());
             throw new BadArgumentException(errorMessage);
         } catch (final RuntimeException exception) {
-            log.error("Could not convert data", exception);
             final String errorMessage = String.format("Data must be of type %s. Got: %s (%s)",
                 data.getType().toString().toLowerCase(), node.getNodeType().toString().toLowerCase(), node);
             throw new BadArgumentException(errorMessage);

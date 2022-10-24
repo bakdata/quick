@@ -116,7 +116,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
-            log.info("Forward request to {}", metadata.activeHost());
+            log.debug("Forward request to {}", metadata.activeHost());
             return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).subscribeOn(Schedulers.io());
         }
 
@@ -167,7 +167,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
-            log.info("Forward request to {}", metadata.activeHost());
+            log.debug("Forward request to {}", metadata.activeHost());
             return Single.fromCallable(() -> this.fetchRange(metadata.activeHost(), key, from, to))
                 .subscribeOn(Schedulers.io());
         }
@@ -249,7 +249,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         if (rangeStore == null) {
             final String errorMessage = String.format("Store %s not found!", storeQueryParameters.storeName());
-            log.error(errorMessage);
             throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
         }
         return rangeStore;
@@ -290,7 +289,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     /**
      * Transforms a list of HttpResponses of MirrorValue of a specific type into a single HttpResponse of MirrorValue
-     * with a list of values of that type. Furthermore, if a header is present in one of the HttpResponses (function
+     * with a list of values of that type. If a header is present in one of the HttpResponses (function
      * argument), an HTTP Header that informs about the Cache-Miss is set. Because of this possibility, the function
      * returns MutableHttpResponse and not just HttpResponse.
      *

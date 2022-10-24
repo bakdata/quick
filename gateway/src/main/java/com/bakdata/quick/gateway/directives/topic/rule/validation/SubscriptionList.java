@@ -24,7 +24,7 @@ import java.util.Optional;
  * Validation for {@link com.bakdata.quick.gateway.directives.topic.TopicDirective}
  *
  * <p>
- * Subscriptions involving Kafka cannot have a list as return type, as Kafka returns all values one by one.
+ * Subscriptions involving Kafka cannot have a list as a return type, as Kafka returns all values one by one.
  */
 public class SubscriptionList implements ValidationRule {
     @Override
