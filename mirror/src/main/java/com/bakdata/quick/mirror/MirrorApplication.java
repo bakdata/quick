@@ -217,6 +217,14 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .pointStoreName(POINT_STORE)
             .quickTopicData(quickTopicData);
 
+        this.createContextForRange(contextBuilder);
+
+        this.contextProvider.setQueryContext(contextBuilder.build());
+        log.debug("Built query service context {}", this.contextProvider.get());
+        super.runStreamsApplication();
+    }
+
+    private void createContextForRange(final QueryServiceContextBuilder contextBuilder) {
         if (this.rangeField != null) {
             contextBuilder.rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField));
 
@@ -228,10 +236,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
                 contextBuilder.fieldTypeExtractor(new AvroTypeExtractor());
             }
         }
-
-        this.contextProvider.setQueryContext(contextBuilder.build());
-        log.debug("Built query service context {}", this.contextProvider.get());
-        super.runStreamsApplication();
     }
 
     @Override
