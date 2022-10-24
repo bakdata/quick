@@ -23,12 +23,10 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implements the logic of extracting the {@link QuickTopicType} from a field in a Protobuf schema.
  */
-@Slf4j
 public class ProtoTypeExtractor implements FieldTypeExtractor {
 
     @Override
