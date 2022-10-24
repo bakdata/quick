@@ -71,7 +71,6 @@ public final class DefaultRangeIndexer<K, V, F> implements RangeIndexer<K, V> {
                 rangeField);
         }
         throw new MirrorTopologyException("Unsupported schema type.");
-
     }
 
     /**

@@ -53,7 +53,7 @@ public final class StringValueRangeIndexer<K, F> implements RangeIndexer<K, Stri
             final ZeroPadder<F> zeroPadder = ZeroPadderFactory.create(topicType);
             return new StringValueRangeIndexer<>(zeroPadder);
         }
-        throw new MirrorTopologyException("Not supported");
+        throw new MirrorTopologyException("Unsupported schema type.");
     }
 
     @Override
