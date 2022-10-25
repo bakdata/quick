@@ -36,7 +36,6 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.DescriptorValidationException;
-import com.google.protobuf.Timestamp;
 import graphql.Scalars;
 import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLEnumType;
@@ -150,17 +149,6 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
                 (GraphQLObjectType) graphQLType);
 
         } else if (isScalar(graphQLType)) {
-            if (graphQLType.equals(ExtendedScalars.DateTime)) {
-                // timestamp msg
-                final FieldDescriptorProto fd = FieldDescriptorProto.newBuilder()
-                    .setName(graphQLFieldDefinition.getName())
-                    .setType(FieldDescriptorProto.Type.TYPE_MESSAGE)
-                    .setTypeName(Timestamp.getDescriptor().getFullName())
-                    .setNumber(fieldNumber)
-                    .setLabel(label)
-                    .build();
-                currentMessage.addField(fd);
-            }
             final FieldDescriptorProto scalarFieldBuilder =
                 createFieldDescriptorForScalarType((GraphQLScalarType) graphQLType,
                     graphQLFieldDefinition.getName(),
@@ -353,8 +341,7 @@ public class GraphQLToProtobufConverter implements GraphQLConverter {
             Scalars.GraphQLID.getName(), FieldDescriptorProto.Type.TYPE_STRING,
             ExtendedScalars.GraphQLLong.getName(), FieldDescriptorProto.Type.TYPE_INT64,
             ExtendedScalars.GraphQLShort.getName(), FieldDescriptorProto.Type.TYPE_INT32,
-            ExtendedScalars.GraphQLChar.getName(), FieldDescriptorProto.Type.TYPE_STRING,
-            ExtendedScalars.DateTime.getName(), FieldDescriptorProto.Type.TYPE_MESSAGE
+            ExtendedScalars.GraphQLChar.getName(), FieldDescriptorProto.Type.TYPE_STRING
         );
     }
 }

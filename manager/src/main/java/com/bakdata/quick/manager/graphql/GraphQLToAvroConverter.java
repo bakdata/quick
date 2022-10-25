@@ -46,9 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
-import org.apache.avro.SchemaBuilder;
 
 /**
  * Converts a GraphQL Schema to an Avro Schema.
@@ -105,25 +103,7 @@ public final class GraphQLToAvroConverter implements GraphQLConverter {
         final String name = fieldDefinition.getName();
         final GraphQLType type = fieldDefinition.getType();
         final String description = fieldDefinition.getDescription();
-        if (type.equals(ExtendedScalars.DateTime)) {
-            // schema union null + record
-            /*
-            {
-          "name": "timestamp",
-          "type": [
-            "null",
-            {
-              "type": "long",
-              "logicalType": "timestamp-millis"
-            }
-          ]
-        }
-             */
-            final Schema schemaWithLogicalType = SchemaBuilder.builder().type(name, this.avroNamespace);
-            final LogicalType timestamp = new LogicalType("timestamp-millis");
-            timestamp.addToSchema(schemaWithLogicalType);
-            return new Schema.Field(name, schemaWithLogicalType, description);
-        }
+
         final Schema schema = this.getSchema(type);
         return new Schema.Field(name, schema, description);
     }

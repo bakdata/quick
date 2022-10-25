@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * An implementation of MirrorRequestManager that handles the case in which a replica is removed and the corresponding
- * host is no longer-available. If this occurs, the fallback service is called.
+ * host is no longer available. If this occurs, the fallback service is called.
  */
 @Slf4j
 public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
@@ -80,7 +80,7 @@ public class MirrorRequestManagerWithFallback implements MirrorRequestManager {
      * @return an instance of ResponseWrapper with a headerSet equals true
      */
     private ResponseWrapper getResponseFromFallbackService(final Request initialRequest) {
-        log.debug("Host at {} is unavailable.", initialRequest.url());
+        log.info("Host at {} is unavailable. The request is being forwarded.", initialRequest.url());
         final HttpUrl newUrl = createMirrorUrlFromRequest(initialRequest, this.fallbackServiceHost);
         log.debug("Forwarding the request to {}", newUrl);
         final Request fallbackRequest = new Request.Builder().url(newUrl).get().build();
