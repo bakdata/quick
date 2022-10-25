@@ -23,7 +23,11 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.bakdata.quick.common.TestConfigUtils;
 import com.bakdata.quick.common.TestTopicTypeService;
+import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.config.SchemaConfig;
+import com.bakdata.quick.common.schema.SchemaFormat;
 import com.bakdata.quick.common.tags.IntegrationTest;
+import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.MirrorApplication;
@@ -39,6 +43,7 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig;
 import net.mguenther.kafka.junit.KeyValue;
@@ -96,7 +101,6 @@ class RangeStreamsStateIntegrationTest {
         runThread.interrupt();
     }
 
-
     private static void sendValuesToKafka() throws InterruptedException {
         final AvroRangeQueryTest avroRecord1 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
         final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
@@ -128,9 +132,11 @@ class RangeStreamsStateIntegrationTest {
     }
 
     private MirrorApplication<String, String> setUpApp() {
+        final KafkaConfig kafkaConfig = new KafkaConfig("dummy:123", schemaRegistry.getUrl());
+        final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
         final MirrorApplication<String, String> app = new MirrorApplication<>(
             this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.mirrorContextProvider
+            this.hostConfig, this.mirrorContextProvider, new DefaultConversionProvider(schemaConfig, kafkaConfig)
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());

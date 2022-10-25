@@ -38,7 +38,7 @@ public class QuickTopologyData<K, V> {
     /**
      * Constructor used by builder.
      */
-    @Builder
+    @Builder(toBuilder = true)
     public QuickTopologyData(final List<String> inputTopics, @Nullable final String outputTopic,
         @Nullable final String errorTopic, final QuickTopicData<K, V> topicData) {
         this.inputTopics = inputTopics;

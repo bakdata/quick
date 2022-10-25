@@ -28,7 +28,6 @@ import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.mirror.range.KeySelector;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
@@ -72,7 +71,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private final HttpClient client;
     private final KafkaStreams streams;
     private final HostInfo hostInfo;
-    private final String topicName;
     private final Serializer<K> keySerializer;
     private final TypeResolver<K> keyResolver;
     private final TypeResolver<V> valueResolver;
@@ -97,7 +95,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
         this.keyResolver = topicData.getKeyData().getResolver();
         this.valueResolver = topicData.getValueData().getResolver();
-        this.topicName = topicData.getName();
 
         log.debug("Initializing KafkaQueryService for point index");
         final String pointStoreName = this.context.getPointStoreName();
@@ -125,7 +122,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         final V value = store.get(key);
         if (value == null) {
-            throw new NotFoundException(String.format("Key %s does not exist in %s", rawKey, this.topicName));
+            throw new NotFoundException(
+                String.format("Key %s does not exist in %s", rawKey, this.context.getTopicData().getName()));
         }
         return Single.just(HttpResponse.created(new MirrorValue<>(value)).status(HttpStatus.OK));
     }
@@ -192,11 +190,6 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         final ParsedSchema parsedSchema = this.context.getTopicData().getValueData().getParsedSchema();
         final FieldTypeExtractor fieldTypeExtractor = this.context.getFieldTypeExtractor();
-
-        final String rangeKey = this.context.getRangeIndexProperties().getRangeKey();
-        if (rangeKey != null && parsedSchema != null) {
-            Serializer<Object> serializer = KeySelector.create(parsedSchema, rangeKey).getKeySerde().serializer();
-        }
 
         this.rangeIndexer = ReadRangeIndexer.create(fieldTypeExtractor,
             Objects.requireNonNull(parsedSchema),

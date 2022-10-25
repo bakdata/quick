@@ -17,8 +17,10 @@
 package com.bakdata.quick.mirror.topology.strategy;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
+import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.context.MirrorContext;
+import com.bakdata.quick.mirror.range.KeySelector;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
@@ -34,6 +36,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
+import org.apache.kafka.streams.kstream.Repartitioned;
 import org.apache.kafka.streams.state.Stores;
 
 /**
@@ -57,10 +60,6 @@ public class RangeTopology implements TopologyStrategy {
      */
     @Override
     public <K, V> void create(final MirrorContext<K, V> mirrorContext) {
-        this.createRangeTopology(mirrorContext);
-    }
-
-    private <K, V> void createRangeTopology(final MirrorContext<K, V> mirrorContext) {
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
         final Serde<K> keySerDe = mirrorContext.getKeySerde();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();
@@ -72,15 +71,42 @@ public class RangeTopology implements TopologyStrategy {
         streamsBuilder.addStateStore(
             Stores.keyValueStoreBuilder(this.createStore(rangeStoreName, storeType), Serdes.String(), valueSerDe));
 
-        final RangeIndexer<K, V> rangeIndexer = getRangeIndexer(mirrorContext);
+        final String rangeKey = mirrorContext.getRangeIndexProperties().getRangeKey();
+        final ParsedSchema parsedSchema = mirrorContext.getTopicData().getValueData().getParsedSchema();
 
         final KStream<K, V> stream =
             streamsBuilder.stream(mirrorContext.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
-        stream.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
+
+        final RangeIndexer<K, V> rangeIndexer = getRangeIndexer(mirrorContext);
+        if (rangeKey != null && parsedSchema != null) {
+            handleRepartition(mirrorContext, parsedSchema, rangeKey, stream);
+        } else {
+            stream.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
+                Named.as(RANGE_PROCESSOR_NAME), rangeStoreName);
+        }
+    }
+
+    private static <T, V> void handleRepartition(final MirrorContext<?, V> mirrorContext,
+        final ParsedSchema parsedSchema, final String rangeKey, final KStream<?, V> stream) {
+
+        final KeySelector<V> keySelector = KeySelector.create(mirrorContext, parsedSchema, rangeKey);
+        final QuickData<T> repartitionedKeyData = keySelector.getRepartitionedKeyData();
+        final Serde<T> serde = repartitionedKeyData.getSerde();
+
+        final Serde<V> valueSerDe = mirrorContext.getValueSerde();
+        final KStream<T, V> repartition =
+            stream.selectKey((key, value) -> keySelector.<T>getRangeKeyValue(rangeKey, value))
+                .repartition(Repartitioned.with(serde, valueSerDe));
+
+        final String rangeStoreName = mirrorContext.getRangeIndexProperties().getStoreName();
+
+        final RangeIndexer<T, V> rangeIndexer = getRangeIndexer(mirrorContext);
+
+        repartition.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
             Named.as(RANGE_PROCESSOR_NAME), rangeStoreName);
     }
 
-    private static <K, V> RangeIndexer<K, V> getRangeIndexer(final MirrorContext<K, V> mirrorContext) {
+    private static <K, V> RangeIndexer<K, V> getRangeIndexer(final MirrorContext<?, V> mirrorContext) {
         final ParsedSchema parsedSchema = mirrorContext.getTopicData().getValueData().getParsedSchema();
         if (parsedSchema == null) {
             final boolean isCleanup = mirrorContext.isCleanup();

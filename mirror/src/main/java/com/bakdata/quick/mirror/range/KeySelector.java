@@ -17,17 +17,14 @@
 package com.bakdata.quick.mirror.range;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
+import com.bakdata.quick.common.resolver.TypeResolver;
+import com.bakdata.quick.common.type.ConversionProvider;
+import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
+import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
-import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.GenericRecordValueExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
-import io.confluent.kafka.schemaregistry.avro.AvroSchema;
-import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
-import java.util.Map;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -35,40 +32,35 @@ public final class KeySelector<V> {
     @Getter
     private final QuickTopicType keyType;
     private final FieldValueExtractor<? super V> fieldValueExtractor;
+    private final ConversionProvider conversionProvider;
 
-    private KeySelector(final QuickTopicType keyType, final FieldValueExtractor<? super V> fieldValueExtractor) {
+    private KeySelector(final QuickTopicType keyType,
+        final FieldValueExtractor<? super V> fieldValueExtractor,
+        final ConversionProvider conversionProvider) {
         this.keyType = keyType;
         this.fieldValueExtractor = fieldValueExtractor;
+        this.conversionProvider = conversionProvider;
     }
 
-    @SuppressWarnings("unchecked")
-    public static <V> KeySelector<V> create(final ParsedSchema parsedSchema, final String rangeKey) {
-        if (AvroSchema.TYPE.equals(parsedSchema.schemaType())) {
-            final FieldTypeExtractor avroTypeExtractor = new AvroTypeExtractor();
-            final QuickTopicType keyType = avroTypeExtractor.extract(parsedSchema, rangeKey);
-            final FieldValueExtractor<V> fieldValueExtractor =
-                (FieldValueExtractor<V>) new GenericRecordValueExtractor();
-            return new KeySelector<>(keyType, fieldValueExtractor);
-
-        } else if (ProtobufSchema.TYPE.equals(parsedSchema.schemaType())) {
-            final FieldTypeExtractor protoTypeExtractor = new ProtoTypeExtractor();
-            final QuickTopicType keyType = protoTypeExtractor.extract(parsedSchema, rangeKey);
-            final FieldValueExtractor<V> fieldValueExtractor = (FieldValueExtractor<V>) new MessageValueExtractor();
-            return new KeySelector<>(keyType, fieldValueExtractor);
-        }
-        throw new MirrorTopologyException("Unsupported schema type.");
+    public static <V> KeySelector<V> create(final MirrorContext<?, V> mirrorContext, final ParsedSchema parsedSchema,
+        final String rangeKey) {
+        final FieldTypeExtractor fieldTypeExtractor = mirrorContext.getFieldTypeExtractor();
+        final FieldValueExtractor<V> fieldValueExtractor = mirrorContext.getFieldValueExtractor();
+        final QuickTopicType keyType = fieldTypeExtractor.extract(parsedSchema, rangeKey);
+        final ConversionProvider conversionProvider = mirrorContext.getConversionProvider();
+        return new KeySelector<>(keyType, fieldValueExtractor, conversionProvider);
     }
 
-    public <T> T getRangeKey(final String fieldName, final V value) {
+    public <T> T getRangeKeyValue(final String fieldName, final V value) {
         if (value != null) {
             return this.fieldValueExtractor.extract(value, fieldName, this.keyType.getClassType());
         }
         throw new MirrorTopologyException("The value should not be null. Check you input topic data.");
     }
 
-    public <T> Serde<T> getKeySerde(){
-        // TODO: Get this from KafkaConfig
-        final Map<String, String> configs = Map.of("schema.registry.url", "1.2.3.4");
-        return this.keyType.getSerde(configs, true);
+    public <T> QuickData<T> getRepartitionedKeyData() {
+        final Serde<T> repartitionedKeySerde = this.conversionProvider.getSerde(this.keyType, true);
+        final TypeResolver<T> typeResolver = this.conversionProvider.getTypeResolver(this.keyType, null);
+        return new QuickData<>(this.keyType, repartitionedKeySerde, typeResolver, null);
     }
 }

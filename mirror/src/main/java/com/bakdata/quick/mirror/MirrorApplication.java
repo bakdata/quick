@@ -26,6 +26,7 @@ import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.resolver.StringResolver;
 import com.bakdata.quick.common.schema.SchemaFormat;
+import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
@@ -84,6 +85,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     private final ApplicationContext context;
     private final HostConfig hostConfig;
     private final MirrorContextProvider<K, V> contextProvider;
+    private final ConversionProvider conversionProvider;
 
     // CLI Arguments
     @Option(names = "--store-type", description = "Kafka Store to use. Choices: ${COMPLETION-CANDIDATES}",
@@ -112,12 +114,14 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      */
     public MirrorApplication(final ApplicationContext context, final TopicTypeService topicTypeService,
         final QuickTopicConfig topicConfig, final HostConfig hostConfig,
-        final MirrorContextProvider<K, V> contextProvider) {
+        final MirrorContextProvider<K, V> contextProvider,
+        final ConversionProvider conversionProvider) {
         this.topicTypeService = topicTypeService;
         this.topicConfig = topicConfig;
         this.context = context;
         this.hostConfig = hostConfig;
         this.contextProvider = contextProvider;
+        this.conversionProvider = conversionProvider;
     }
 
     public static void main(final String[] args) {
@@ -143,6 +147,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .pointStoreName(POINT_STORE)
             .storeType(this.storeType)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeKey, this.rangeField))
+            .conversionProvider(this.conversionProvider)
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
             .isCleanup(this.cleanUp);
 
@@ -265,8 +270,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         // query the topic registry for getting information about the topic and set it during runtime
         final String inputTopic = this.getInputTopics().get(0);
         final Single<QuickTopicData<K, V>> topicDataFuture = this.topicTypeService.getTopicData(inputTopic);
-        final QuickTopicData<K, V> topicData = topicDataFuture
-            .onErrorResumeNext(e -> {
+        final QuickTopicData<K, V> topicData = topicDataFuture.onErrorResumeNext(e -> {
                 final String message = String.format("Could not find %s in registry: %s", inputTopic, e.getMessage());
                 return Single.error(new BadArgumentException(message));
             })
