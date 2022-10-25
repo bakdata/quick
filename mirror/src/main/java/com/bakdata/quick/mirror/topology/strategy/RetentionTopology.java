@@ -17,10 +17,10 @@
 package com.bakdata.quick.mirror.topology.strategy;
 
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.context.MirrorContext;
+import com.bakdata.quick.mirror.context.RangeIndexProperties;
+import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
-import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
-import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
-import com.bakdata.quick.mirror.topology.TopologyContext;
 import java.util.Objects;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -43,9 +43,9 @@ public class RetentionTopology implements TopologyStrategy {
      * Validates if retention time topology should be crated.
      */
     @Override
-    public <K, V> boolean isApplicable(final TopologyContext<K, V> topologyContext) {
-        final RetentionTimeProperties retentionTimeProperties = topologyContext.getRetentionTimeProperties();
-        final RangeIndexProperties rangeIndexProperties = topologyContext.getRangeIndexProperties();
+    public <K, V> boolean isApplicable(final MirrorContext<K, V> mirrorContext) {
+        final RetentionTimeProperties retentionTimeProperties = mirrorContext.getRetentionTimeProperties();
+        final RangeIndexProperties rangeIndexProperties = mirrorContext.getRangeIndexProperties();
         return retentionTimeProperties.isEnabled() && !rangeIndexProperties.isEnabled();
     }
 
@@ -53,12 +53,12 @@ public class RetentionTopology implements TopologyStrategy {
      * Creates retention time topology.
      */
     @Override
-    public <K, V> void create(final TopologyContext<K, V> topologyContext) {
-        final RetentionTimeProperties retentionTimeProperties = topologyContext.getRetentionTimeProperties();
-        final Serde<K> keySerDe = topologyContext.getKeySerde();
-        final Serde<V> valueSerDe = topologyContext.getValueSerde();
+    public <K, V> void create(final MirrorContext<K, V> mirrorContext) {
+        final RetentionTimeProperties retentionTimeProperties = mirrorContext.getRetentionTimeProperties();
+        final Serde<K> keySerDe = mirrorContext.getKeySerde();
+        final Serde<V> valueSerDe = mirrorContext.getValueSerde();
 
-        final StreamsBuilder builder = topologyContext.getStreamsBuilder();
+        final StreamsBuilder builder = mirrorContext.getStreamsBuilder();
         final String retentionStoreName = retentionTimeProperties.getStoreName();
         final KeyValueBytesStoreSupplier retentionStore = Stores.inMemoryKeyValueStore(retentionStoreName);
 
@@ -66,7 +66,7 @@ public class RetentionTopology implements TopologyStrategy {
         // value serde is key serde because the store save the keys as values
         builder.addStateStore(Stores.keyValueStoreBuilder(retentionStore, Serdes.Long(), keySerDe));
 
-        final QuickTopologyData<K, V> quickTopologyData = topologyContext.getQuickTopologyData();
+        final QuickTopologyData<K, V> quickTopologyData = mirrorContext.getQuickTopologyData();
         final KStream<K, V> stream =
             builder.stream(quickTopologyData.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
 
@@ -87,11 +87,11 @@ public class RetentionTopology implements TopologyStrategy {
      * Builds the retention time topology and adds the sink to the topology.
      */
     @Override
-    public <K, V> Topology extendTopology(final TopologyContext<K, V> topologyContext, final Topology topology) {
-        final Serde<K> keySerDe = topologyContext.getKeySerde();
+    public <K, V> Topology extendTopology(final MirrorContext<K, V> mirrorContext, final Topology topology) {
+        final Serde<K> keySerDe = mirrorContext.getKeySerde();
         topology.addSink(
             RETENTION_SINK,
-            topologyContext.getTopicData().getName(),
+            mirrorContext.getTopicData().getName(),
             Serdes.Long().serializer(),
             keySerDe.serializer(),
             PROCESSOR_NAME

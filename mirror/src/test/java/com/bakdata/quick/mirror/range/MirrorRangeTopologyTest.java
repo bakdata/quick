@@ -36,10 +36,10 @@ import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.GenericRecordValueExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
-import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
-import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
+import com.bakdata.quick.mirror.context.RangeIndexProperties;
+import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
-import com.bakdata.quick.mirror.topology.TopologyContext;
+import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ProtoRangeQueryTest;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
@@ -384,7 +384,7 @@ class MirrorRangeTopologyTest {
                 .topicData(data)
                 .build();
 
-        final TopologyContext<K, V> topologyContext = TopologyContext.<K, V>builder()
+        final MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder()
             .quickTopologyData(topologyInfo)
             .pointStoreName(MIRROR_STORE)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE_NAME, RANGE_FIELD))
@@ -394,7 +394,7 @@ class MirrorRangeTopologyTest {
             .fieldValueExtractor(fieldValueExtractor)
             .build();
 
-        return new MirrorTopology<>(topologyContext).createTopology();
+        return new MirrorTopology<>(mirrorContext).createTopology();
     }
 
     private static QuickData<GenericRecord> avroData() {

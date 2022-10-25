@@ -28,8 +28,9 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.MirrorApplication;
 import com.bakdata.quick.mirror.base.HostConfig;
-import com.bakdata.quick.mirror.service.context.QueryContextProvider;
+import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpStatus;
@@ -57,7 +58,7 @@ class PointIndexStreamsStateIntegrationTest {
     @Inject
     ApplicationContext applicationContext;
     @Inject
-    QueryContextProvider queryContextProvider;
+    MirrorContextProvider<String, String> mirrorContextProvider;
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
@@ -75,7 +76,7 @@ class PointIndexStreamsStateIntegrationTest {
     }
 
     @Test
-    void shouldReceiveCorrectPartitionHostFromMirrorApplication() throws InterruptedException {
+    void shouldReceiveCorrectPartitionHostFromMirrorApplication() throws InterruptedException, JsonProcessingException {
         sendValuesToKafka();
         final MirrorApplication<String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
@@ -122,7 +123,7 @@ class PointIndexStreamsStateIntegrationTest {
     private MirrorApplication<String, String> setUpApp() {
         final MirrorApplication<String, String> app = new MirrorApplication<>(
             this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.queryContextProvider
+            this.hostConfig, this.mirrorContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());

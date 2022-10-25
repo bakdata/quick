@@ -28,7 +28,7 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.MirrorApplication;
 import com.bakdata.quick.mirror.base.HostConfig;
-import com.bakdata.quick.mirror.service.context.QueryContextProvider;
+import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -65,7 +65,7 @@ class RangeIndexMirrorIntegrationTest {
     @Inject
     ApplicationContext applicationContext;
     @Inject
-    QueryContextProvider queryContextProvider;
+    MirrorContextProvider<Integer, AvroRangeQueryTest> mirrorContextProvider;
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
@@ -139,7 +139,7 @@ class RangeIndexMirrorIntegrationTest {
     private MirrorApplication<Integer, AvroRangeQueryTest> setUpApp() {
         final MirrorApplication<Integer, AvroRangeQueryTest> app = new MirrorApplication<>(
             this.applicationContext, getTopicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.queryContextProvider
+            this.hostConfig, this.mirrorContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());

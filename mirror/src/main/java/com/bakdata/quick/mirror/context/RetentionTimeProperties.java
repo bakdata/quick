@@ -14,25 +14,25 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.service.context;
-
+package com.bakdata.quick.mirror.context;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import java.time.Duration;
 import lombok.Value;
 
 /**
- * Contains the range index properties.
+ * Contains the retention time index properties.
  */
 @Value
-public class RangeIndexProperties {
+public class RetentionTimeProperties {
     String storeName;
     @Nullable
-    String rangeField;
+    Duration retentionTime;
 
     /**
-     * Checks if the range index should be built or not.
+     * Checks if the retention time topology is enabled or not.
      */
     public boolean isEnabled() {
-        return this.rangeField != null;
+        return this.retentionTime != null;
     }
 }

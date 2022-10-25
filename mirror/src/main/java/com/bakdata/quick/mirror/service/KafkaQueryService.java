@@ -28,11 +28,11 @@ import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.mirror.context.MirrorContext;
+import com.bakdata.quick.mirror.context.MirrorContextProvider;
+import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.indexer.ReadRangeIndexer;
-import com.bakdata.quick.mirror.service.context.QueryContextProvider;
-import com.bakdata.quick.mirror.service.context.QueryServiceContext;
-import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.micronaut.http.HttpResponse;
@@ -67,7 +67,7 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
  */
 @Slf4j
 public class KafkaQueryService<K, V> implements QueryService<V> {
-    private final QueryServiceContext context;
+    private final MirrorContext<K, V> context;
     private final HttpClient client;
     private final KafkaStreams streams;
     private final HostInfo hostInfo;
@@ -87,10 +87,10 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
      * @param contextProvider query service data
      */
     @Inject
-    public KafkaQueryService(final QueryContextProvider contextProvider, final HttpClient client) {
+    public KafkaQueryService(final MirrorContextProvider<K, V> contextProvider, final HttpClient client) {
         this.context = contextProvider.get();
         this.client = client;
-        final QuickTopicData<K, V> topicData = this.context.getQuickTopicData();
+        final QuickTopicData<K, V> topicData = this.context.getTopicData();
         this.streams = this.context.getStreams();
         this.hostInfo = this.context.getHostInfo();
         this.keySerializer = topicData.getKeyData().getSerde().serializer();
@@ -103,7 +103,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.pointStoreQueryParameters =
             StoreQueryParameters.fromNameAndType(pointStoreName, QueryableStoreTypes.keyValueStore());
 
-        if (this.context.getRangeIndexProperties() != null) {
+        if (this.context.getRangeIndexProperties().isEnabled()) {
             this.initializeQueryServiceForRange();
         }
     }
@@ -190,7 +190,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.rangeStoreQueryParameters =
             StoreQueryParameters.fromNameAndType(rangeStoreName, QueryableStoreTypes.keyValueStore());
 
-        final ParsedSchema parsedSchema = this.context.getQuickTopicData().getValueData().getParsedSchema();
+        final ParsedSchema parsedSchema = this.context.getTopicData().getValueData().getParsedSchema();
         final FieldTypeExtractor fieldTypeExtractor = this.context.getFieldTypeExtractor();
 
         this.rangeIndexer = ReadRangeIndexer.create(fieldTypeExtractor,

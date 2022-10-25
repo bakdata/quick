@@ -14,28 +14,25 @@
  *    limitations under the License.
  */
 
+package com.bakdata.quick.mirror.context;
 
-package com.bakdata.quick.mirror.service.context;
+
+import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.Value;
 
 /**
- * Imitates the functionality of the javax's Provider
- * and extends it with an additional method to set a context.
+ * Contains the range index properties.
  */
-public interface QueryContextProvider {
+@Value
+public class RangeIndexProperties {
+    String storeName;
+    @Nullable
+    String rangeField;
 
     /**
-     * Provides a fully-constructed and injected instance of QueryServiceContext.
-     *
-     * @return An instance of the QueryServiceContext
+     * Checks if the range index should be built or not.
      */
-    QueryServiceContext get();
-
-    /**
-     * Sets a context. The idea behind this method is to
-     * circumvent the need to a bean through the ApplicationContext
-     *
-     * @param context an instance of QueryServiceContext
-     */
-    void setQueryContext(QueryServiceContext context);
-
+    public boolean isEnabled() {
+        return this.rangeField != null;
+    }
 }

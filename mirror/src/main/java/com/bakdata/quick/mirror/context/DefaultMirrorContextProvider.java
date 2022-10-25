@@ -14,31 +14,29 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.service.context;
+package com.bakdata.quick.mirror.context;
 
-import com.bakdata.quick.common.exception.InternalErrorException;
-import edu.umd.cs.findbugs.annotations.Nullable;
+import com.bakdata.quick.common.exception.MirrorTopologyException;
 import jakarta.inject.Singleton;
 
 /**
  * Basic implementation of QueryContextProvider.
  */
 @Singleton
-public class DefaultQueryContextProvider implements QueryContextProvider {
+public class DefaultMirrorContextProvider<K, V> implements MirrorContextProvider<K, V> {
 
-    @Nullable
-    private QueryServiceContext queryServiceContext;
+    private MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder().build();
 
     @Override
-    public void setQueryContext(final QueryServiceContext context) {
-        this.queryServiceContext = context;
+    public MirrorContext<K, V> get() {
+        if (this.mirrorContext == null) {
+            throw new MirrorTopologyException("A context for the topology has not been set.");
+        }
+        return this.mirrorContext;
     }
 
     @Override
-    public QueryServiceContext get() {
-        if (this.queryServiceContext == null) {
-            throw new InternalErrorException("A context for the query service has not been set.");
-        }
-        return this.queryServiceContext;
+    public void setTopologyContext(final MirrorContext<K, V> context) {
+        this.mirrorContext = context;
     }
 }

@@ -25,10 +25,10 @@ import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
-import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
-import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
+import com.bakdata.quick.mirror.context.RangeIndexProperties;
+import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
-import com.bakdata.quick.mirror.topology.TopologyContext;
+import com.bakdata.quick.mirror.context.MirrorContext;
 import com.google.common.collect.Maps;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +61,7 @@ class MirrorTopologyTest {
                 .topicData(data)
                 .build();
 
-        final TopologyContext<Integer, Integer> topologyContext = TopologyContext.<Integer, Integer>builder()
+        final MirrorContext<Integer, Integer> mirrorContext = MirrorContext.<Integer, Integer>builder()
             .quickTopologyData(topologyInfo)
             .pointStoreName(STORE_NAME)
             .storeType(StoreType.INMEMORY)
@@ -69,7 +69,7 @@ class MirrorTopologyTest {
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, null))
             .build();
 
-        return new MirrorTopology<>(topologyContext).createTopology();
+        return new MirrorTopology<>(mirrorContext).createTopology();
     }
 
     private static Map<String, String> testProps() {
