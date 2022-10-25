@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.common.type;
 
+import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.schema.SchemaFormat;
@@ -31,9 +32,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 @Singleton
 public class DefaultConversionProvider implements ConversionProvider {
     private final SchemaConfig schemaConfig;
+    private final KafkaConfig kafkaConfig;
 
-    public DefaultConversionProvider(final SchemaConfig schemaConfig) {
+    public DefaultConversionProvider(final SchemaConfig schemaConfig, final KafkaConfig kafkaConfig) {
         this.schemaConfig = schemaConfig;
+        this.kafkaConfig = kafkaConfig;
     }
 
     @Override
@@ -45,7 +48,8 @@ public class DefaultConversionProvider implements ConversionProvider {
     }
 
     @Override
-    public <K> Serde<K> getSerde(final QuickTopicType type, final Map<String, ?> configs, final boolean isKey) {
+    public <K> Serde<K> getSerde(final QuickTopicType type, final boolean isKey) {
+        final Map<String, String> configs = Map.of("schema.registry.url", this.kafkaConfig.getSchemaRegistryUrl());
         if (type == QuickTopicType.SCHEMA) {
             return getTypeForSchemaFormat(this.schemaConfig.getFormat()).getSerde(configs, isKey);
         }

@@ -97,7 +97,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
     private String rangeField;
 
-
     /**
      * Constructor.
      *
@@ -134,7 +133,6 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     }
 
     private MirrorContext<K, V> buildTopologyContext() {
-
         final MirrorContextBuilder<K, V> builder = MirrorContext.<K, V>builder()
             .quickTopologyData(this.getTopologyData())
             .pointStoreName(POINT_STORE)
@@ -152,7 +150,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             builder.fieldValueExtractor(new GenericRecordValueExtractor<>());
         }
 
-        this.contextProvider.setTopologyContext(builder.build());
+        this.contextProvider.setMirrorContext(builder.build());
         return builder.build();
     }
 
@@ -215,7 +213,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .streams(this.getStreams())
             .hostInfo(this.hostConfig.toInfo());
 
-        this.contextProvider.setTopologyContext(builder.build());
+        this.contextProvider.setMirrorContext(builder.build());
 
         log.debug("Built query service context {}", this.contextProvider.get());
         super.runStreamsApplication();

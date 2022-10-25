@@ -36,7 +36,7 @@ public class DefaultMirrorContextProvider<K, V> implements MirrorContextProvider
     }
 
     @Override
-    public void setTopologyContext(final MirrorContext<K, V> context) {
+    public void setMirrorContext(final MirrorContext<K, V> context) {
         this.mirrorContext = context;
     }
 }

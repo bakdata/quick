@@ -36,5 +36,5 @@ public interface MirrorContextProvider<K, V> {
      *
      * @param context an instance of QueryServiceContext
      */
-    void setTopologyContext(MirrorContext<K, V> context);
+    void setMirrorContext(MirrorContext<K, V> context);
 }
