@@ -32,6 +32,7 @@ import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.reactivex.Single;
 import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.Builder;
 import org.apache.avro.Schema;
 import org.apache.kafka.common.serialization.Serde;
@@ -40,6 +41,7 @@ import org.apache.kafka.common.serialization.Serde;
  * Mock for topic type service.
  */
 public class TestTopicTypeService implements TopicTypeService {
+    private final Supplier<String> urlSupplier;
     private final QuickTopicType keyType;
     private final QuickTopicType valueType;
     private final ParsedSchema keySchema;
@@ -50,16 +52,17 @@ public class TestTopicTypeService implements TopicTypeService {
      * Constructor for builder.
      */
     @Builder
-    public TestTopicTypeService(final QuickTopicType keyType,
+    public TestTopicTypeService(final Supplier<String> urlSupplier, final QuickTopicType keyType,
         final QuickTopicType valueType,
         @Nullable final Schema keySchema,
         @Nullable final Schema valueSchema,
         final ConversionProvider conversionProvider) {
+        this.urlSupplier = urlSupplier;
         this.keyType = keyType;
         this.valueType = valueType;
         this.keySchema = keySchema == null ? null : new AvroSchema(keySchema.toString());
         this.valueSchema = valueSchema == null ? null : new AvroSchema(valueSchema.toString());
-        this.conversionProvider = conversionProvider == null ? avroConversionProvider() : conversionProvider;
+        this.conversionProvider = conversionProvider == null ? this.avroConversionProvider() : conversionProvider;
     }
 
     @Override
@@ -75,15 +78,9 @@ public class TestTopicTypeService implements TopicTypeService {
         return Single.just(topicInfo);
     }
 
-    private static ConversionProvider avroConversionProvider() {
+    private ConversionProvider avroConversionProvider() {
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
-        final KafkaConfig kafkaConfig = new KafkaConfig("localhost:9092", "https://localhost:8081");
-        return new DefaultConversionProvider(schemaConfig, kafkaConfig);
-    }
-
-    public static ConversionProvider protoConversionProvider() {
-        final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.PROTOBUF), Optional.empty());
-        final KafkaConfig kafkaConfig = new KafkaConfig("localhost:9092", "https://localhost:8081");
+        final KafkaConfig kafkaConfig = new KafkaConfig("localhost:9092", this.urlSupplier.get());
         return new DefaultConversionProvider(schemaConfig, kafkaConfig);
     }
 }
