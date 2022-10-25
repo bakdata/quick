@@ -24,7 +24,6 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Produces;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
 import jakarta.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * A fallback exception handler that will be used if there is no other handler is in place. Ideally, this class is never
@@ -32,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Produces
 @Singleton
-@Slf4j
 public class GeneralExceptionHandler implements ExceptionHandler<Exception, HttpResponse<ErrorMessage>> {
 
     @Override
