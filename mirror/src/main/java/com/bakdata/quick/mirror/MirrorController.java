@@ -26,7 +26,6 @@ import io.micronaut.http.annotation.QueryValue;
 import io.reactivex.Single;
 import jakarta.inject.Inject;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * REST API of mirror applications.
@@ -34,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
  * @param <K> key type
  * @param <V> value type
  */
-@Slf4j
 @Controller("/mirror")
 public class MirrorController<K, V> {
     private final QueryService<V> queryService;

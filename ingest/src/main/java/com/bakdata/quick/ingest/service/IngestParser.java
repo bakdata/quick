@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import tech.allegro.schema.json2avro.converter.AvroConversionException;
 
 /**
@@ -41,7 +40,6 @@ import tech.allegro.schema.json2avro.converter.AvroConversionException;
  * well as an array.
  */
 @Singleton
-@Slf4j
 public class IngestParser {
     private final ObjectMapper objectMapper;
 
