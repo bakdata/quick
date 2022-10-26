@@ -23,6 +23,7 @@ import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.point.MirrorProcessor;
 import com.bakdata.quick.mirror.range.KeySelector;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
+import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -49,30 +50,17 @@ public class PointTopology implements TopologyStrategy {
      * Creates a topology for point queries.
      */
     @Override
-    public <K, V> void create(final MirrorContext<K, V> mirrorContext) {
+    public <K, V> void create(final MirrorContext<K, V> mirrorContext, final StreamConsumer streamConsumer) {
+        final KStream<K, V> kStream = streamConsumer.consume(mirrorContext);
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
-
         final Serde<K> keySerDe = mirrorContext.getKeySerde();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();
-
         final String storeName = mirrorContext.getPointStoreName();
         final StoreType storeType = mirrorContext.getStoreType();
+        streamsBuilder.addStateStore(
+            Stores.keyValueStoreBuilder(this.createStore(storeName, storeType), keySerDe, valueSerDe));
 
-        final QuickTopologyData<K, V> quickTopologyData = mirrorContext.getQuickTopologyData();
-        final KStream<K, V> stream =
-            streamsBuilder.stream(quickTopologyData.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
-
-        final String rangeKey = mirrorContext.getRangeIndexProperties().getRangeKey();
-        final ParsedSchema parsedSchema = mirrorContext.getTopicData().getValueData().getParsedSchema();
-
-        if (rangeKey != null && parsedSchema != null) {
-            this.handleRepartition(mirrorContext, parsedSchema, rangeKey, stream);
-        }
-        else {
-            streamsBuilder.addStateStore(
-                Stores.keyValueStoreBuilder(this.createStore(storeName, storeType), keySerDe, valueSerDe));
-            stream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
-        }
+        kStream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
     }
 
     private <T, V> void handleRepartition(final MirrorContext<?, V> mirrorContext,

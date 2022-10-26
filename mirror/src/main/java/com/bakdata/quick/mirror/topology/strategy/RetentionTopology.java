@@ -21,12 +21,12 @@ import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
+import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import java.util.Objects;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
@@ -53,10 +53,10 @@ public class RetentionTopology implements TopologyStrategy {
      * Creates retention time topology.
      */
     @Override
-    public <K, V> void create(final MirrorContext<K, V> mirrorContext) {
+    public <K, V> void create(final MirrorContext<K, V> mirrorContext, final StreamConsumer streamConsumer) {
+        final KStream<K, V> kStream = streamConsumer.consume(mirrorContext);
         final RetentionTimeProperties retentionTimeProperties = mirrorContext.getRetentionTimeProperties();
         final Serde<K> keySerDe = mirrorContext.getKeySerde();
-        final Serde<V> valueSerDe = mirrorContext.getValueSerde();
 
         final StreamsBuilder builder = mirrorContext.getStreamsBuilder();
         final String retentionStoreName = retentionTimeProperties.getStoreName();
@@ -66,13 +66,9 @@ public class RetentionTopology implements TopologyStrategy {
         // value serde is key serde because the store save the keys as values
         builder.addStateStore(Stores.keyValueStoreBuilder(retentionStore, Serdes.Long(), keySerDe));
 
-        final QuickTopologyData<K, V> quickTopologyData = mirrorContext.getQuickTopologyData();
-        final KStream<K, V> stream =
-            builder.stream(quickTopologyData.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
-
         final String storeName = retentionTimeProperties.getStoreName();
         final long millisRetentionTime = Objects.requireNonNull(retentionTimeProperties.getRetentionTime()).toMillis();
-        stream.process(() -> new RetentionMirrorProcessor<>(
+        kStream.process(() -> new RetentionMirrorProcessor<>(
                 storeName,
                 millisRetentionTime,
                 retentionStoreName

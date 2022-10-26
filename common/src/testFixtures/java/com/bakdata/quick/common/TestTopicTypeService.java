@@ -52,12 +52,11 @@ public class TestTopicTypeService implements TopicTypeService {
      * Constructor for builder.
      */
     @Builder
-    public TestTopicTypeService(final QuickTopicType keyType,
+    public TestTopicTypeService(final Supplier<String> urlSupplier, final QuickTopicType keyType,
         final QuickTopicType valueType,
         @Nullable final Schema keySchema,
         @Nullable final Schema valueSchema,
-        final ConversionProvider conversionProvider,
-        final Supplier<String> urlSupplier) {
+        final ConversionProvider conversionProvider) {
         this.urlSupplier = urlSupplier;
         this.keyType = keyType;
         this.valueType = valueType;
@@ -81,12 +80,6 @@ public class TestTopicTypeService implements TopicTypeService {
 
     private ConversionProvider avroConversionProvider() {
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
-        final KafkaConfig kafkaConfig = new KafkaConfig("localhost:9092", this.urlSupplier.get());
-        return new DefaultConversionProvider(schemaConfig, kafkaConfig);
-    }
-
-    public ConversionProvider protoConversionProvider() {
-        final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.PROTOBUF), Optional.empty());
         final KafkaConfig kafkaConfig = new KafkaConfig("localhost:9092", this.urlSupplier.get());
         return new DefaultConversionProvider(schemaConfig, kafkaConfig);
     }
