@@ -57,10 +57,6 @@ public class RangeTopology implements TopologyStrategy {
      */
     @Override
     public <K, V> void create(final MirrorContext<K, V> mirrorContext) {
-        this.createRangeTopology(mirrorContext);
-    }
-
-    private <K, V> void createRangeTopology(final MirrorContext<K, V> mirrorContext) {
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
         final Serde<K> keySerDe = mirrorContext.getKeySerde();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();
@@ -76,6 +72,7 @@ public class RangeTopology implements TopologyStrategy {
 
         final KStream<K, V> stream =
             streamsBuilder.stream(mirrorContext.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
+
         stream.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
             Named.as(RANGE_PROCESSOR_NAME), rangeStoreName);
     }
