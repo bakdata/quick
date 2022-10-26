@@ -16,12 +16,10 @@
 
 package com.bakdata.quick.mirror.topology.strategy;
 
-import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
-import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import java.util.Objects;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -53,8 +51,7 @@ public class RetentionTopology implements TopologyStrategy {
      * Creates retention time topology.
      */
     @Override
-    public <K, V> void create(final MirrorContext<K, V> mirrorContext, final StreamConsumer streamConsumer) {
-        final KStream<K, V> kStream = streamConsumer.consume(mirrorContext);
+    public <K, V, R> void create(final MirrorContext<K, V> mirrorContext, final KStream<R, V> stream) {
         final RetentionTimeProperties retentionTimeProperties = mirrorContext.getRetentionTimeProperties();
         final Serde<K> keySerDe = mirrorContext.getKeySerde();
 
@@ -68,7 +65,7 @@ public class RetentionTopology implements TopologyStrategy {
 
         final String storeName = retentionTimeProperties.getStoreName();
         final long millisRetentionTime = Objects.requireNonNull(retentionTimeProperties.getRetentionTime()).toMillis();
-        kStream.process(() -> new RetentionMirrorProcessor<>(
+        stream.process(() -> new RetentionMirrorProcessor<>(
                 storeName,
                 millisRetentionTime,
                 retentionStoreName

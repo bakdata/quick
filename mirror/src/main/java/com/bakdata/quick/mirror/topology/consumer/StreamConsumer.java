@@ -26,5 +26,5 @@ public interface StreamConsumer {
     /**
      * Contains the logic of how your stream should be consumed from the input source.
      */
-    <K, V> KStream<K, V> consume(final MirrorContext<K, V> mirrorContext);
+    <K, V, R> KStream<R, V> consume(final MirrorContext<K, V> mirrorContext);
 }

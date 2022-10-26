@@ -16,13 +16,17 @@
 
 package com.bakdata.quick.mirror.topology;
 
+import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.mirror.context.MirrorContext;
+import com.bakdata.quick.mirror.range.KeySelector;
 import com.bakdata.quick.mirror.topology.consumer.MirrorStreamConsumer;
 import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.kstream.KStream;
 
 
 /**
@@ -32,7 +36,7 @@ import org.apache.kafka.streams.Topology;
  * @param <V> value type
  */
 @Slf4j
-public class MirrorTopology<K, V> {
+public class MirrorTopology<K, V, R> {
 
     private final MirrorContext<K, V> mirrorContext;
 
@@ -50,15 +54,35 @@ public class MirrorTopology<K, V> {
         final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.mirrorContext);
 
         final StreamConsumer streamConsumer = new MirrorStreamConsumer();
-        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
-            topologyStrategy.create(this.mirrorContext, streamConsumer);
-        }
 
-        Topology topology = this.mirrorContext.getStreamsBuilder().build();
-        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
-            topology = topologyStrategy.extendTopology(this.mirrorContext, topology);
+        final ParsedSchema parsedSchema = this.mirrorContext.getTopicData().getValueData().getParsedSchema();
+        final String rangeKey = this.mirrorContext.getRangeIndexProperties().getRangeKey();
+        final Topology topology;
+        if (rangeKey != null && parsedSchema != null) {
+            final KeySelector<V> keySelector = KeySelector.create(this.mirrorContext, parsedSchema, rangeKey);
+            final QuickData<R> repartitionedKeyData = keySelector.getRepartitionedKeyData();
+            final MirrorContext<R, V> newMirrorContext = this.mirrorContext.update(repartitionedKeyData);
+            final KStream<K, V> kStream = streamConsumer.consume(this.mirrorContext);
+            topology = execute(topologyStrategies, kStream, newMirrorContext);
+        } else {
+            final KStream<K, V> kStream = streamConsumer.consume(this.mirrorContext);
+            topology = execute(topologyStrategies, kStream, this.mirrorContext);
         }
         log.debug("The topology is {}", topology.describe());
+        return topology;
+    }
+
+    private static <R, V> Topology execute(final Iterable<? extends TopologyStrategy> topologyStrategies,
+        final KStream<R, V> stream,
+        final MirrorContext<?, V> mirrorContext) {
+        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
+            topologyStrategy.create(mirrorContext, stream);
+        }
+
+        Topology topology = mirrorContext.getStreamsBuilder().build();
+        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
+            topology = topologyStrategy.extendTopology(mirrorContext, topology);
+        }
         return topology;
     }
 }

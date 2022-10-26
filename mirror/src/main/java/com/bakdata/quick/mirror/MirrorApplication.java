@@ -271,10 +271,9 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         final String inputTopic = this.getInputTopics().get(0);
         final Single<QuickTopicData<K, V>> topicDataFuture = this.topicTypeService.getTopicData(inputTopic);
         final QuickTopicData<K, V> topicData = topicDataFuture.onErrorResumeNext(e -> {
-                final String message = String.format("Could not find %s in registry: %s", inputTopic, e.getMessage());
-                return Single.error(new BadArgumentException(message));
-            })
-            .blockingGet();
+            final String message = String.format("Could not find %s in registry: %s", inputTopic, e.getMessage());
+            return Single.error(new BadArgumentException(message));
+        }).blockingGet();
 
         return QuickTopologyData.<K, V>builder()
             .inputTopics(this.getInputTopics())

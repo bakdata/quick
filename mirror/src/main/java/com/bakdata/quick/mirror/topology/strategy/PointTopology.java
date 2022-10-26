@@ -16,20 +16,13 @@
 
 package com.bakdata.quick.mirror.topology.strategy;
 
-import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.mirror.StoreType;
-import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.point.MirrorProcessor;
-import com.bakdata.quick.mirror.range.KeySelector;
-import io.confluent.kafka.schemaregistry.ParsedSchema;
-import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
-import org.apache.kafka.streams.kstream.Repartitioned;
 import org.apache.kafka.streams.state.Stores;
 
 /**
@@ -50,33 +43,16 @@ public class PointTopology implements TopologyStrategy {
      * Creates a topology for point queries.
      */
     @Override
-    public <K, V> void create(final MirrorContext<K, V> mirrorContext, final StreamConsumer streamConsumer) {
-        final KStream<K, V> kStream = streamConsumer.consume(mirrorContext);
+    public <K, V, R> void create(final MirrorContext<K, V> mirrorContext, final KStream<R, V> stream) {
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
-        final Serde<K> keySerDe = mirrorContext.getKeySerde();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();
         final String storeName = mirrorContext.getPointStoreName();
         final StoreType storeType = mirrorContext.getStoreType();
+        final Serde<K> keySerDe = mirrorContext.getKeySerde();
+
         streamsBuilder.addStateStore(
             Stores.keyValueStoreBuilder(this.createStore(storeName, storeType), keySerDe, valueSerDe));
 
-        kStream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
-    }
-
-    private <T, V> void handleRepartition(final MirrorContext<?, V> mirrorContext,
-        final ParsedSchema parsedSchema, final String rangeKey, final KStream<?, V> stream) {
-        final String storeName = mirrorContext.getPointStoreName();
-        final Serde<V> valueSerDe = mirrorContext.getValueSerde();
-        final StoreType storeType = mirrorContext.getStoreType();
-        final KeySelector<V> keySelector = KeySelector.create(mirrorContext, parsedSchema, rangeKey);
-        final QuickData<T> repartitionedKeyData = keySelector.getRepartitionedKeyData();
-        final Serde<T> keySerde = repartitionedKeyData.getSerde();
-        mirrorContext.setRepartitionedKeyData(repartitionedKeyData);
-        final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
-        streamsBuilder.addStateStore(
-            Stores.keyValueStoreBuilder(this.createStore(storeName, storeType), keySerde, valueSerDe));
-        stream.selectKey((key, value) -> keySelector.<T>getRangeKeyValue(rangeKey, value))
-            .repartition(Repartitioned.with(keySerde, valueSerDe))
-            .process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
+        stream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
     }
 }

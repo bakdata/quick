@@ -26,7 +26,7 @@ import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import java.util.List;
 import lombok.Builder;
 import lombok.Builder.Default;
-import lombok.Data;
+import lombok.Value;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -39,7 +39,7 @@ import org.apache.kafka.streams.state.HostInfo;
  * @param <V> The type of the value
  */
 @Builder(toBuilder = true)
-@Data
+@Value
 public class MirrorContext<K, V> {
     // Write data
     @Default
@@ -57,15 +57,6 @@ public class MirrorContext<K, V> {
     // Read data
     KafkaStreams streams;
     HostInfo hostInfo;
-
-    QuickData<?> repartitionedKeyData;
-
-    /**
-     * Gets the list of input topics.
-     */
-    public List<String> getInputTopics() {
-        return this.quickTopologyData.getInputTopics();
-    }
 
     /**
      * Gets the {@link QuickTopicData}.
@@ -86,5 +77,32 @@ public class MirrorContext<K, V> {
      */
     public Serde<V> getValueSerde() {
         return this.getTopicData().getValueData().getSerde();
+    }
+
+    /**
+     * Creates a new mirror context with the given key.
+     */
+    public <R> MirrorContext<R, V> update(final QuickData<R> newKeyData) {
+        final QuickTopicData<K, V> topicData = this.getTopicData();
+        final QuickTopicData<R, V> newTopicData =
+            new QuickTopicData<>(topicData.getName(), topicData.getWriteType(), newKeyData, topicData.getValueData());
+        final List<String> inputTopics = this.quickTopologyData.getInputTopics();
+        final QuickTopologyData<R, V> newQuickTopologyData =
+            new QuickTopologyData<>(inputTopics, this.quickTopologyData.getOutputTopic(),
+                this.quickTopologyData.getErrorTopic(),
+                newTopicData);
+
+        return MirrorContext.<R, V>builder()
+            .streamsBuilder(this.streamsBuilder)
+            .quickTopologyData(newQuickTopologyData)
+            .pointStoreName(this.pointStoreName)
+            .storeType(this.storeType)
+            .rangeIndexProperties(this.rangeIndexProperties)
+            .conversionProvider(this.conversionProvider)
+            .retentionTimeProperties(this.retentionTimeProperties)
+            .fieldValueExtractor(this.fieldValueExtractor)
+            .fieldTypeExtractor(this.fieldTypeExtractor)
+            .isCleanup(this.isCleanup)
+            .build();
     }
 }

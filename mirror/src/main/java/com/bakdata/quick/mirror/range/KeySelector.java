@@ -28,6 +28,9 @@ import io.confluent.kafka.schemaregistry.ParsedSchema;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
+/**
+ * Extracts the type and the value from a field in a complex type.
+ */
 public final class KeySelector<V> {
     @Getter
     private final QuickTopicType keyType;
@@ -42,6 +45,9 @@ public final class KeySelector<V> {
         this.conversionProvider = conversionProvider;
     }
 
+    /**
+     * Static factory to create a key selector.
+     */
     public static <V> KeySelector<V> create(final MirrorContext<?, V> mirrorContext, final ParsedSchema parsedSchema,
         final String rangeKey) {
         final FieldTypeExtractor fieldTypeExtractor = mirrorContext.getFieldTypeExtractor();
@@ -51,6 +57,9 @@ public final class KeySelector<V> {
         return new KeySelector<>(keyType, fieldValueExtractor, conversionProvider);
     }
 
+    /**
+     * extracts the value of a given field.
+     */
     public <T> T getRangeKeyValue(final String fieldName, final V value) {
         if (value != null) {
             return this.fieldValueExtractor.extract(value, fieldName, this.keyType.getClassType());
@@ -58,6 +67,9 @@ public final class KeySelector<V> {
         throw new MirrorTopologyException("The value should not be null. Check you input topic data.");
     }
 
+    /**
+     * Gets the repartitioned key data.
+     */
     public <T> QuickData<T> getRepartitionedKeyData() {
         final Serde<T> repartitionedKeySerde = this.conversionProvider.getSerde(this.keyType, true);
         final TypeResolver<T> typeResolver = this.conversionProvider.getTypeResolver(this.keyType, null);
