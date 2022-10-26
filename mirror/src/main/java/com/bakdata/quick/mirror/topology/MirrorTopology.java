@@ -17,6 +17,8 @@
 package com.bakdata.quick.mirror.topology;
 
 import com.bakdata.quick.mirror.context.MirrorContext;
+import com.bakdata.quick.mirror.topology.consumer.MirrorStreamConsumer;
+import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +49,9 @@ public class MirrorTopology<K, V> {
     public Topology createTopology() {
         final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.mirrorContext);
 
+        final StreamConsumer streamConsumer = new MirrorStreamConsumer();
         for (final TopologyStrategy topologyStrategy : topologyStrategies) {
-            topologyStrategy.create(this.mirrorContext);
+            topologyStrategy.create(this.mirrorContext, streamConsumer);
         }
 
         Topology topology = this.mirrorContext.getStreamsBuilder().build();

@@ -25,13 +25,13 @@ import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import com.bakdata.quick.mirror.range.indexer.NoOpRangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.WriteRangeIndexer;
+import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.state.Stores;
@@ -56,9 +56,9 @@ public class RangeTopology implements TopologyStrategy {
      * Creates a range topology.
      */
     @Override
-    public <K, V> void create(final MirrorContext<K, V> mirrorContext) {
+    public <K, V> void create(final MirrorContext<K, V> mirrorContext, final StreamConsumer streamConsumer) {
+        final KStream<K, V> kStream = streamConsumer.consume(mirrorContext);
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
-        final Serde<K> keySerDe = mirrorContext.getKeySerde();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();
 
         final String rangeStoreName = mirrorContext.getRangeIndexProperties().getStoreName();
@@ -70,10 +70,7 @@ public class RangeTopology implements TopologyStrategy {
 
         final RangeIndexer<K, V> rangeIndexer = getRangeIndexer(mirrorContext);
 
-        final KStream<K, V> stream =
-            streamsBuilder.stream(mirrorContext.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
-
-        stream.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
+        kStream.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
             Named.as(RANGE_PROCESSOR_NAME), rangeStoreName);
     }
 

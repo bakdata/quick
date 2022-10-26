@@ -17,12 +17,11 @@
 package com.bakdata.quick.mirror.topology.strategy;
 
 import com.bakdata.quick.mirror.StoreType;
-import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.point.MirrorProcessor;
+import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.state.Stores;
@@ -45,20 +44,16 @@ public class PointTopology implements TopologyStrategy {
      * Creates a topology for point queries.
      */
     @Override
-    public <K, V> void create(final MirrorContext<K, V> mirrorContext) {
+    public <K, V> void create(final MirrorContext<K, V> mirrorContext, final StreamConsumer streamConsumer) {
+        final KStream<K, V> kStream = streamConsumer.consume(mirrorContext);
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
-
         final Serde<K> keySerDe = mirrorContext.getKeySerde();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();
-
         final String storeName = mirrorContext.getPointStoreName();
         final StoreType storeType = mirrorContext.getStoreType();
         streamsBuilder.addStateStore(
             Stores.keyValueStoreBuilder(this.createStore(storeName, storeType), keySerDe, valueSerDe));
 
-        final QuickTopologyData<K, V> quickTopologyData = mirrorContext.getQuickTopologyData();
-        final KStream<K, V> stream =
-            streamsBuilder.stream(quickTopologyData.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
-        stream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
+        kStream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
     }
 }
