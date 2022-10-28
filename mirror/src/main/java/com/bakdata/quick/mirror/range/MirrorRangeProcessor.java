@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.mirror.range;
 
+import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +64,8 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
         }
 
         if (value == null) {
-            log.warn("Skipping range index creation for key {}. Because the value is null.", key);
-            return;
+            log.error("Skipping range index creation for key {}. Because the value is null.", key);
+            throw new MirrorTopologyException("The value should not be null. Check you input topic data.");
         }
 
         final String rangeIndex = this.rangeIndexer.createIndex(key, value);

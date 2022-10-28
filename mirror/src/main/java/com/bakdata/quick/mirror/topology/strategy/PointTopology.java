@@ -43,12 +43,12 @@ public class PointTopology implements TopologyStrategy {
      * Creates a topology for point queries.
      */
     @Override
-    public <K, V, R> void create(final MirrorContext<K, V> mirrorContext, final KStream<R, V> stream) {
+    public <K, V> void create(final MirrorContext<?, V> mirrorContext, final KStream<K, V> stream) {
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
-        final Serde<V> valueSerDe = mirrorContext.getValueSerde();
+        final Serde<?> keySerDe = mirrorContext.getKeySerde();
+        final Serde<?> valueSerDe = mirrorContext.getValueSerde();
         final String storeName = mirrorContext.getPointStoreName();
         final StoreType storeType = mirrorContext.getStoreType();
-        final Serde<K> keySerDe = mirrorContext.getKeySerde();
 
         streamsBuilder.addStateStore(
             Stores.keyValueStoreBuilder(this.createStore(storeName, storeType), keySerDe, valueSerDe));

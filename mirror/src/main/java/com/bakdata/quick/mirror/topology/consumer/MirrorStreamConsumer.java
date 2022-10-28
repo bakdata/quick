@@ -16,17 +16,12 @@
 
 package com.bakdata.quick.mirror.topology.consumer;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
-import com.bakdata.quick.mirror.range.KeySelector;
-import io.confluent.kafka.schemaregistry.ParsedSchema;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Repartitioned;
 
 /**
  * Implements the stream consume logic from the input topic.
@@ -38,18 +33,8 @@ public class MirrorStreamConsumer implements StreamConsumer {
         final Serde<K> keySerDe = mirrorContext.getKeySerde();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();
         final QuickTopologyData<K, V> quickTopologyData = mirrorContext.getQuickTopologyData();
-        final ParsedSchema parsedSchema = mirrorContext.getTopicData().getValueData().getParsedSchema();
-        final String rangeKey = mirrorContext.getRangeIndexProperties().getRangeKey();
         final KStream<K, V> stream =
             streamsBuilder.stream(quickTopologyData.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
-        if (rangeKey == null || parsedSchema == null) {
-            return (KStream<R, V>) stream;
-        } else {
-            final KeySelector<V> keySelector = KeySelector.create(mirrorContext, parsedSchema, rangeKey);
-            final QuickData<R> repartitionedKeyData = keySelector.getRepartitionedKeyData();
-            final Serde<R> serde = repartitionedKeyData.getSerde();
-            return stream.selectKey((key, value) -> keySelector.<R>getRangeKeyValue(rangeKey, value))
-                .repartition(Repartitioned.with(serde, valueSerDe));
-        }
+        return (KStream<R, V>) stream;
     }
 }

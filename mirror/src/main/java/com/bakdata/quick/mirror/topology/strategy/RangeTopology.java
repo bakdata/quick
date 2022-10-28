@@ -55,24 +55,24 @@ public class RangeTopology implements TopologyStrategy {
      * Creates a range topology.
      */
     @Override
-    public <K, V, R> void create(final MirrorContext<K, V> mirrorContext, final KStream<R, V> stream) {
+    public <K, V> void create(final MirrorContext<?, V> mirrorContext, final KStream<K, V> stream) {
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
+        final Serde<String> keySerde = Serdes.String();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();
-
         final String rangeStoreName = mirrorContext.getRangeIndexProperties().getStoreName();
         final StoreType storeType = mirrorContext.getStoreType();
 
         // key serde is string because the store saves zero padded range index string as keys
         streamsBuilder.addStateStore(
-            Stores.keyValueStoreBuilder(this.createStore(rangeStoreName, storeType), Serdes.String(), valueSerDe));
+            Stores.keyValueStoreBuilder(this.createStore(rangeStoreName, storeType), keySerde, valueSerDe));
 
-        final RangeIndexer<R, V> rangeIndexer = getRangeIndexer(mirrorContext);
+        final RangeIndexer<K, V> rangeIndexer = getRangeIndexer(mirrorContext);
 
         stream.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
             Named.as(RANGE_PROCESSOR_NAME), rangeStoreName);
     }
 
-    private static <R, V> RangeIndexer<R, V> getRangeIndexer(final MirrorContext<?, V> mirrorContext) {
+    private static <K, V> RangeIndexer<K, V> getRangeIndexer(final MirrorContext<?, V> mirrorContext) {
         final ParsedSchema parsedSchema = mirrorContext.getTopicData().getValueData().getParsedSchema();
         if (parsedSchema == null) {
             final boolean isCleanup = mirrorContext.isCleanup();

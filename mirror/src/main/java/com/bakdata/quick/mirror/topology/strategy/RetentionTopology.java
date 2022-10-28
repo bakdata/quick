@@ -51,17 +51,17 @@ public class RetentionTopology implements TopologyStrategy {
      * Creates retention time topology.
      */
     @Override
-    public <K, V, R> void create(final MirrorContext<K, V> mirrorContext, final KStream<R, V> stream) {
-        final RetentionTimeProperties retentionTimeProperties = mirrorContext.getRetentionTimeProperties();
-        final Serde<K> keySerDe = mirrorContext.getKeySerde();
-
+    public <K, V> void create(final MirrorContext<?, V> mirrorContext, final KStream<K, V> stream) {
         final StreamsBuilder builder = mirrorContext.getStreamsBuilder();
+        final RetentionTimeProperties retentionTimeProperties = mirrorContext.getRetentionTimeProperties();
         final String retentionStoreName = retentionTimeProperties.getStoreName();
         final KeyValueBytesStoreSupplier retentionStore = Stores.inMemoryKeyValueStore(retentionStoreName);
 
         // key serde is long because the store saves the timestamps as keys
         // value serde is key serde because the store save the keys as values
-        builder.addStateStore(Stores.keyValueStoreBuilder(retentionStore, Serdes.Long(), keySerDe));
+        final Serde<Long> keySerde = Serdes.Long();
+        final Serde<?> valueSerde = mirrorContext.getKeySerde();
+        builder.addStateStore(Stores.keyValueStoreBuilder(retentionStore, keySerde, valueSerde));
 
         final String storeName = retentionTimeProperties.getStoreName();
         final long millisRetentionTime = Objects.requireNonNull(retentionTimeProperties.getRetentionTime()).toMillis();

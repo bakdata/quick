@@ -377,7 +377,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldAddRangeValueWithAvroIfRangeIsSet() {
+    void shouldWritePointStoreAndRangeStoreWithAvroSchemaWhenRangeKeyIsSet() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newStringData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), RANGE_KEY),
@@ -412,16 +412,16 @@ class MirrorRangeTopologyTest {
                     .containsExactly(1L, 2L, 3L);
             });
 
-        // TODO: fix comparison
-//        final KeyValueStore<Integer, GenericRecord> pointStore =
-//            testTopology.getTestDriver().getKeyValueStore(MIRROR_STORE);
-//        final GenericRecord expected = pointStore.get(1);
-//        assertThat(avroRecord3).isEqualTo(expected);
+        final KeyValueStore<Integer, GenericRecord> pointStore =
+            testTopology.getTestDriver().getKeyValueStore(MIRROR_STORE);
+        final GenericRecord expected = pointStore.get(1);
+        assertThat(avroRecord3.get("userId")).isEqualTo(expected.get("userId"));
+        assertThat(avroRecord3.get("timestamp")).isEqualTo(expected.get("timestamp"));
         testTopology.stop();
     }
 
     @Test
-    void shouldAddRangeValueWithProtoIfRangeKeyIsSet() {
+    void shouldWritePointStoreAndRangeStoreWithProtoSchemaWhenRangeKeyIsSet() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newStringData(), protoData(), new ProtoTypeExtractor(),
                 new MessageValueExtractor<>(), RANGE_KEY),

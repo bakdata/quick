@@ -25,14 +25,12 @@ import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
-import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 
 /**
  * Extracts the type and the value from a field in a complex type.
  */
 public final class KeySelector<V> {
-    @Getter
     private final QuickTopicType keyType;
     private final FieldValueExtractor<? super V> fieldValueExtractor;
     private final ConversionProvider conversionProvider;
