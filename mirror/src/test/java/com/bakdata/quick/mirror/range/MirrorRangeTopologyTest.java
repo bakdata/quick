@@ -481,7 +481,7 @@ class MirrorRangeTopologyTest {
 
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.empty(), Optional.empty());
         final KafkaConfig kafkaConfig = new KafkaConfig("", "");
-        final ConversionProvider conversionProvider = new DefaultConversionProvider(schemaConfig, kafkaConfig);
+        final ConversionProvider conversionProvider = new DefaultConversionProvider(kafkaConfig, schemaConfig);
         final MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder()
             .quickTopologyData(topologyInfo)
             .pointStoreName(MIRROR_STORE)

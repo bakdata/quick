@@ -146,7 +146,7 @@ class RangeIndexMirrorIntegrationTest {
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
         final MirrorApplication<Integer, AvroRangeQueryTest> app = new MirrorApplication<>(
             this.applicationContext, getTopicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.mirrorContextProvider, new DefaultConversionProvider(schemaConfig, kafkaConfig)
+            this.hostConfig, this.mirrorContextProvider, new DefaultConversionProvider(kafkaConfig, schemaConfig)
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());

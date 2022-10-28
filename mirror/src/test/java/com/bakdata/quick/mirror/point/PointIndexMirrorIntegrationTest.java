@@ -157,7 +157,7 @@ class PointIndexMirrorIntegrationTest {
             this.applicationContext,
             topicTypeService(),
             TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.mirrorContextProvider, new DefaultConversionProvider(schemaConfig, kafkaConfig)
+            this.hostConfig, this.mirrorContextProvider, new DefaultConversionProvider(kafkaConfig, schemaConfig)
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());
