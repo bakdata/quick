@@ -93,6 +93,8 @@ public class MirrorTopology<K, V, R> {
         final KStream<R, V> repartitionStream =
             stream.selectKey((key, value) -> keySelector.getRangeKeyValue(rangeKey, value))
                 .repartition(Repartitioned.with(serde, this.mirrorContext.getValueSerde()));
+
+        // TODO: Remove the update method and properly store the information.
         final MirrorContext<R, V> newMirrorContext = this.mirrorContext.update(repartitionedKeyData);
         return applyTopologies(topologyStrategies, repartitionStream, newMirrorContext);
     }
