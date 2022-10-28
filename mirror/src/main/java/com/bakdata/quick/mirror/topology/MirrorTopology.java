@@ -18,18 +18,19 @@ package com.bakdata.quick.mirror.topology;
 
 import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
+import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.range.KeySelector;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
-import com.bakdata.quick.mirror.topology.consumer.MirrorStreamConsumer;
-import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Repartitioned;
 
@@ -58,12 +59,11 @@ public class MirrorTopology<K, V, R> {
     public Topology createTopology() {
         final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.mirrorContext);
 
-        final StreamConsumer streamConsumer = new MirrorStreamConsumer();
-
         final ParsedSchema parsedSchema = this.mirrorContext.getTopicData().getValueData().getParsedSchema();
         final Topology topology;
-        final KStream<K, V> stream = streamConsumer.consume(this.mirrorContext);
+
         final String rangeKey = this.mirrorContext.getRangeKey();
+        final KStream<K, V> stream = consumeStream(this.mirrorContext);
         if (rangeKey != null && parsedSchema != null) {
             final FieldTypeExtractor fieldTypeExtractor = this.mirrorContext.getFieldTypeExtractor();
             final FieldValueExtractor<V> fieldValueExtractor = this.mirrorContext.getFieldValueExtractor();
@@ -76,6 +76,14 @@ public class MirrorTopology<K, V, R> {
         }
         log.debug("The topology is {}", topology.describe());
         return topology;
+    }
+
+    private static <K, V> KStream<K, V> consumeStream(final MirrorContext<K, V> mirrorContext) {
+        final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
+        final Serde<K> keySerDe = mirrorContext.getKeySerde();
+        final Serde<V> valueSerDe = mirrorContext.getValueSerde();
+        final QuickTopologyData<K, V> quickTopologyData = mirrorContext.getQuickTopologyData();
+        return streamsBuilder.stream(quickTopologyData.getInputTopics(), Consumed.with(keySerDe, valueSerDe));
     }
 
     private Topology createRepartitionTopology(final Iterable<? extends TopologyStrategy> topologyStrategies,
