@@ -14,19 +14,21 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.topology;
+package com.bakdata.quick.mirror.context;
 
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
-import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
-import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
+import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
+import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import java.util.List;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Value;
 import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.state.HostInfo;
 
 /**
  * A context containing all the necessary information for creating the Mirror topology context.
@@ -34,9 +36,10 @@ import org.apache.kafka.streams.StreamsBuilder;
  * @param <K> The type of the key
  * @param <V> The type of the value
  */
-@Builder
+@Builder(toBuilder = true)
 @Value
-public class TopologyContext<K, V> {
+public class MirrorContext<K, V> {
+    // Write data
     @Default
     StreamsBuilder streamsBuilder = new StreamsBuilder();
     QuickTopologyData<K, V> quickTopologyData;
@@ -45,6 +48,12 @@ public class TopologyContext<K, V> {
     RetentionTimeProperties retentionTimeProperties;
     StoreType storeType;
     boolean isCleanup;
+    FieldTypeExtractor fieldTypeExtractor;
+    FieldValueExtractor<V> fieldValueExtractor;
+
+    // Read data
+    KafkaStreams streams;
+    HostInfo hostInfo;
 
     /**
      * Gets the list of input topics.

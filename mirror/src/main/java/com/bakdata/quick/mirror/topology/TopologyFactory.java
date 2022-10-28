@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.mirror.topology;
 
+import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.topology.strategy.PointTopology;
 import com.bakdata.quick.mirror.topology.strategy.RangeTopology;
 import com.bakdata.quick.mirror.topology.strategy.RetentionTopology;
@@ -34,7 +35,7 @@ public final class TopologyFactory {
     /**
      * Returns a list of concrete implementation of {@link TopologyStrategy}.
      */
-    public static List<TopologyStrategy> getStrategies(final TopologyContext<?, ?> topologyContext) {
+    public static List<TopologyStrategy> getStrategies(final MirrorContext mirrorContext) {
         final List<TopologyStrategy> topologyStrategies = List.of(
             new PointTopology(),
             new RangeTopology(),
@@ -42,7 +43,7 @@ public final class TopologyFactory {
         );
 
         return topologyStrategies.stream()
-            .filter(topologyStrategy -> topologyStrategy.isApplicable(topologyContext))
+            .filter(topologyStrategy -> topologyStrategy.isApplicable(mirrorContext))
             .collect(Collectors.toList());
     }
 }

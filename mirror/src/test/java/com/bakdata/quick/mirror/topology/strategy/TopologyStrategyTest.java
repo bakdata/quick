@@ -21,9 +21,9 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
-import com.bakdata.quick.mirror.service.context.RangeIndexProperties;
-import com.bakdata.quick.mirror.service.context.RetentionTimeProperties;
-import com.bakdata.quick.mirror.topology.TopologyContext;
+import com.bakdata.quick.mirror.context.RangeIndexProperties;
+import com.bakdata.quick.mirror.context.RetentionTimeProperties;
+import com.bakdata.quick.mirror.context.MirrorContext;
 import java.time.Duration;
 import java.util.List;
 import org.assertj.core.api.Assertions;
@@ -37,34 +37,34 @@ class TopologyStrategyTest {
     @Test
     void shouldAlwaysApplyPointTopology() {
         final TopologyStrategy pointTopology = new PointTopology();
-        final TopologyContext<?, ?> topologyContext =
+        final MirrorContext<?, ?> mirrorContext =
             createTopologyContext(new RangeIndexProperties(RANGE_STORE, null),
                 new RetentionTimeProperties(RETENTION_STORE, null));
 
-        Assertions.assertThat(pointTopology.isApplicable(topologyContext)).isTrue();
+        Assertions.assertThat(pointTopology.isApplicable(mirrorContext)).isTrue();
     }
 
     @Test
     void shouldApplyRangeTopologyWhenRangeFieldIsSetAndRetentionIsNotSet() {
         final TopologyStrategy rangeTopology = new RangeTopology();
-        final TopologyContext<?, ?> topologyContext =
+        final MirrorContext<?, ?> mirrorContext =
             createTopologyContext(new RangeIndexProperties(RANGE_STORE, "test-field"),
                 new RetentionTimeProperties(RETENTION_STORE, null));
 
-        Assertions.assertThat(rangeTopology.isApplicable(topologyContext)).isTrue();
+        Assertions.assertThat(rangeTopology.isApplicable(mirrorContext)).isTrue();
     }
 
     @Test
     void shouldApplyRetentionTopologyWhenRangeFieldIsSet() {
         final TopologyStrategy retentionTopology = new RetentionTopology();
-        final TopologyContext<?, ?> topologyContext =
+        final MirrorContext<?, ?> mirrorContext =
             createTopologyContext(new RangeIndexProperties(RANGE_STORE, null),
                 new RetentionTimeProperties(RETENTION_STORE, Duration.ZERO));
 
-        Assertions.assertThat(retentionTopology.isApplicable(topologyContext)).isTrue();
+        Assertions.assertThat(retentionTopology.isApplicable(mirrorContext)).isTrue();
     }
 
-    private static TopologyContext<Integer, Integer> createTopologyContext(
+    private static MirrorContext<Integer, Integer> createTopologyContext(
         final RangeIndexProperties rangeIndexProperties,
         final RetentionTimeProperties retentionTimeProperties) {
 
@@ -79,7 +79,7 @@ class TopologyStrategyTest {
                 .topicData(data)
                 .build();
 
-        return TopologyContext.<Integer, Integer>builder()
+        return MirrorContext.<Integer, Integer>builder()
             .quickTopologyData(topologyInfo)
             .pointStoreName(POINT_STORE)
             .storeType(StoreType.INMEMORY)

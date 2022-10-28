@@ -14,11 +14,15 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range;
+package com.bakdata.quick.mirror.range.extractor.type;
+
+import com.bakdata.quick.common.type.QuickTopicType;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 
 /**
- * Creates the range index in the {@link MirrorRangeProcessor}.
+ * Extracts the {@link QuickTopicType} of given field name in the {@link ParsedSchema}.
  */
-public interface RangeIndexer<K, V> {
-    String createIndex(final K key, final V value);
+@FunctionalInterface
+public interface FieldTypeExtractor {
+    QuickTopicType extract(final ParsedSchema parsedSchema, final String fieldName);
 }

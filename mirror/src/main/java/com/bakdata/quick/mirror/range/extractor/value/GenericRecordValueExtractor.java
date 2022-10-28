@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range.extractor;
+package com.bakdata.quick.mirror.range.extractor.value;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
 import lombok.extern.slf4j.Slf4j;
@@ -23,40 +23,29 @@ import org.apache.avro.generic.GenericRecord;
 
 
 /**
- * Implements the extraction logic for a Avro's Generic Record.
- *
- * @param <F> Type of the field value
+ * Implements the value extraction logic for an Avro's Generic Record.
  */
 @Slf4j
-public class AvroValueExtractor<F> implements RangeFieldValueExtractor<GenericRecord, F> {
-
-    private final Class<F> fieldClass;
-
-    /**
-     * Standard constructor.
-     *
-     * @param fieldClass Class of the field
-     */
-    public AvroValueExtractor(final Class<F> fieldClass) {
-        this.fieldClass = fieldClass;
-    }
+public class GenericRecordValueExtractor<V> implements FieldValueExtractor<V> {
 
     /**
      * Extracts the value from an Avro record for a given field name.
      *
-     * @param record The Avro record
-     * @param rangeField The name of the field to get extracted
+     * @param complexValue The Avro record
+     * @param fieldName The name of the field to get extracted
+     * @param fieldClass The class of the field
      * @return The field value
      */
     @Override
-    public F extractValue(final GenericRecord record, final String rangeField) {
+    public <F> F extract(final V complexValue, final String fieldName, final Class<F> fieldClass) {
         try {
+            final GenericRecord record = (GenericRecord) complexValue;
             log.trace("Record value of type Avro Generic Record");
-            final Object rangeFieldValue = record.get(rangeField);
-            log.trace("Extracted range field value is: {}", rangeFieldValue);
-            return this.fieldClass.cast(rangeFieldValue);
+            final Object rangeFieldValue = record.get(fieldName);
+            log.trace("Extracted field value is: {}", rangeFieldValue);
+            return fieldClass.cast(rangeFieldValue);
         } catch (final AvroRuntimeException exception) {
-            final String errorMessage = String.format("Could not find range field with name %s", rangeField);
+            final String errorMessage = String.format("Could not find field with name %s", fieldName);
             throw new MirrorTopologyException(errorMessage);
         }
     }

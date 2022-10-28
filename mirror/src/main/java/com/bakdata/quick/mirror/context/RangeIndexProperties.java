@@ -14,28 +14,25 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.service.context;
+package com.bakdata.quick.mirror.context;
 
-import com.bakdata.quick.common.type.QuickTopicData;
-import lombok.Builder;
+
+import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.Value;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.state.HostInfo;
 
 /**
- * Context for holding information about Kafka state.
+ * Contains the range index properties.
  */
-@Builder
 @Value
-public class QueryServiceContext {
-    KafkaStreams streams;
-    HostInfo hostInfo;
-    String pointStoreName;
-    RangeIndexProperties rangeIndexProperties;
-    QuickTopicData<?, ?> quickTopicData;
+public class RangeIndexProperties {
+    String storeName;
+    @Nullable
+    String rangeField;
 
-    @SuppressWarnings("unchecked")
-    public <K, V> QuickTopicData<K, V> getQuickTopicData() {
-        return (QuickTopicData<K, V>) this.quickTopicData;
+    /**
+     * Checks if the range index should be built or not.
+     */
+    public boolean isEnabled() {
+        return this.rangeField != null;
     }
 }

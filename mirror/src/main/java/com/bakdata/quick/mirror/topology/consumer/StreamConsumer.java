@@ -14,28 +14,17 @@
  *    limitations under the License.
  */
 
+package com.bakdata.quick.mirror.topology.consumer;
 
-package com.bakdata.quick.mirror.service.context;
+import com.bakdata.quick.mirror.context.MirrorContext;
+import org.apache.kafka.streams.kstream.KStream;
 
 /**
- * Imitates the functionality of the javax's Provider
- * and extends it with an additional method to set a context.
+ * Provides the logic of how the stream should be read.
  */
-public interface QueryContextProvider {
-
+public interface StreamConsumer {
     /**
-     * Provides a fully-constructed and injected instance of QueryServiceContext.
-     *
-     * @return An instance of the QueryServiceContext
+     * Contains the logic of how your stream should be consumed from the input source.
      */
-    QueryServiceContext get();
-
-    /**
-     * Sets a context. The idea behind this method is to
-     * circumvent the need to a bean through the ApplicationContext
-     *
-     * @param context an instance of QueryServiceContext
-     */
-    void setQueryContext(QueryServiceContext context);
-
+    <K, V> KStream<K, V> consume(final MirrorContext<K, V> mirrorContext);
 }

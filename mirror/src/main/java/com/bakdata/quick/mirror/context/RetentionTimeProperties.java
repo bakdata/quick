@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.service.context;
+package com.bakdata.quick.mirror.context;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.time.Duration;

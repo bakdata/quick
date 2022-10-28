@@ -22,7 +22,6 @@ import static com.bakdata.quick.common.api.model.KeyValueEnum.VALUE;
 import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.KeyValueEnum;
 import com.bakdata.quick.common.api.model.TopicData;
-import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.schema.SchemaFetcher;
 import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
@@ -36,7 +35,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import jakarta.inject.Singleton;
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +48,6 @@ import org.apache.kafka.common.serialization.Serde;
 public class QuickTopicTypeService implements TopicTypeService {
     private final SchemaFetcher registryFetcher;
     private final TopicRegistryClient topicRegistryClient;
-    private final String schemaRegistryUrl;
     private final AsyncLoadingCache<String, QuickTopicData<?, ?>> cache;
     private final ConversionProvider conversionProvider;
 
@@ -59,15 +56,13 @@ public class QuickTopicTypeService implements TopicTypeService {
      *
      * @param registryFetcher http client for schema registry
      * @param topicRegistryClient http client for topic registry
-     * @param kafkaConfig configuration for kafka
      * @param conversionProvider provider for conversion operations
      */
     public QuickTopicTypeService(final SchemaFetcher registryFetcher,
-        final TopicRegistryClient topicRegistryClient, final KafkaConfig kafkaConfig,
+        final TopicRegistryClient topicRegistryClient,
         final ConversionProvider conversionProvider) {
         this.registryFetcher = registryFetcher;
         this.topicRegistryClient = topicRegistryClient;
-        this.schemaRegistryUrl = kafkaConfig.getSchemaRegistryUrl();
         this.conversionProvider = conversionProvider;
         this.cache = Caffeine.newBuilder()
             .maximumSize(1_000)
@@ -111,9 +106,8 @@ public class QuickTopicTypeService implements TopicTypeService {
         final QuickTopicType keyType = topicData.getKeyType();
         final QuickTopicType valueType = topicData.getValueType();
 
-        final Map<String, String> configs = Map.of("schema.registry.url", this.schemaRegistryUrl);
-        final Serde<K> keySerde = this.conversionProvider.getSerde(keyType, configs, true);
-        final Serde<V> valueSerde = this.conversionProvider.getSerde(valueType, configs, false);
+        final Serde<K> keySerde = this.conversionProvider.getSerde(keyType, true);
+        final Serde<V> valueSerde = this.conversionProvider.getSerde(valueType, false);
 
         final String topic = topicData.getName();
         final Single<QuickData<K>> keyData = this.createData(keyType, keySerde, topic, KEY);

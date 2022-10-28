@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range.extractor;
+package com.bakdata.quick.mirror.range.extractor.value;
 
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
@@ -23,42 +23,31 @@ import com.google.protobuf.Message;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Implements the extraction logic for a Protobuf message.
- *
- * @param <F> Type of the field value
+ * Implements the value extraction logic for a Protobuf message.
  */
 @Slf4j
-public class ProtoValueExtractor<F> implements RangeFieldValueExtractor<Message, F> {
-    private final Class<F> fieldClass;
-
-    /**
-     * Standard constructor.
-     *
-     * @param fieldClass Class of the field
-     */
-    public ProtoValueExtractor(final Class<F> fieldClass) {
-        this.fieldClass = fieldClass;
-    }
+public class MessageValueExtractor<V> implements FieldValueExtractor<V> {
 
     /**
      * Extracts the value from a Protobuf message for a given field name.
      *
-     * @param message The Protobuf message
-     * @param rangeField The name of the field to get extracted
+     * @param complexValue The Protobuf message
+     * @param fieldName The name of the field to get extracted
+     * @param fieldClass The class of the field
      * @return The field value
      */
     @Override
-    public F extractValue(final Message message, final String rangeField) {
+    public <F> F extract(final V complexValue, final String fieldName, final Class<F> fieldClass) {
         log.trace("Record value of type Protobuf Message");
-
-        final FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(rangeField);
+        final Message message = (Message) complexValue;
+        final FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(fieldName);
         if (fieldDescriptor == null) {
-            final String errorMessage = String.format("Could not find range field with name %s", rangeField);
+            final String errorMessage = String.format("Could not find field with name %s", fieldName);
             throw new MirrorTopologyException(errorMessage);
         }
 
-        final Object rangeFieldValue = message.getField(fieldDescriptor);
-        log.trace("Extracted range field value is: {}", rangeFieldValue);
-        return this.fieldClass.cast(rangeFieldValue);
+        final Object fieldValue = message.getField(fieldDescriptor);
+        log.trace("Extracted field value is: {}", fieldValue);
+        return fieldClass.cast(fieldValue);
     }
 }

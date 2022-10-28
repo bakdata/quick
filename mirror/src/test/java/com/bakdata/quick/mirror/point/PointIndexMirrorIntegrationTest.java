@@ -29,7 +29,7 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.MirrorApplication;
 import com.bakdata.quick.mirror.base.HostConfig;
-import com.bakdata.quick.mirror.service.context.QueryContextProvider;
+import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,7 +63,7 @@ class PointIndexMirrorIntegrationTest {
     @Inject
     private ApplicationContext applicationContext;
     @Inject
-    private QueryContextProvider queryContextProvider;
+    private MirrorContextProvider<String, String> mirrorContextProvider;
 
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
@@ -147,8 +147,10 @@ class PointIndexMirrorIntegrationTest {
 
     private MirrorApplication<String, String> setUpApp() {
         final MirrorApplication<String, String> app = new MirrorApplication<>(
-            this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.queryContextProvider
+            this.applicationContext,
+            topicTypeService(),
+            TestConfigUtils.newQuickTopicConfig(),
+            this.hostConfig, this.mirrorContextProvider
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());

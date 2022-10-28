@@ -16,6 +16,9 @@
 
 package com.bakdata.quick.mirror.topology;
 
+import com.bakdata.quick.mirror.context.MirrorContext;
+import com.bakdata.quick.mirror.topology.consumer.MirrorStreamConsumer;
+import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -31,28 +34,29 @@ import org.apache.kafka.streams.Topology;
 @Slf4j
 public class MirrorTopology<K, V> {
 
-    private final TopologyContext<K, V> topologyContext;
+    private final MirrorContext<K, V> mirrorContext;
 
     /**
      * Constructor used by builder.
      */
-    public MirrorTopology(final TopologyContext<K, V> topologyContext) {
-        this.topologyContext = topologyContext;
+    public MirrorTopology(final MirrorContext<K, V> mirrorContext) {
+        this.mirrorContext = mirrorContext;
     }
 
     /**
      * Creates a new mirror topology.
      */
     public Topology createTopology() {
-        final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.topologyContext);
+        final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.mirrorContext);
 
+        final StreamConsumer streamConsumer = new MirrorStreamConsumer();
         for (final TopologyStrategy topologyStrategy : topologyStrategies) {
-            topologyStrategy.create(this.topologyContext);
+            topologyStrategy.create(this.mirrorContext, streamConsumer);
         }
 
-        Topology topology = this.topologyContext.getStreamsBuilder().build();
+        Topology topology = this.mirrorContext.getStreamsBuilder().build();
         for (final TopologyStrategy topologyStrategy : topologyStrategies) {
-            topology = topologyStrategy.extendTopology(this.topologyContext, topology);
+            topology = topologyStrategy.extendTopology(this.mirrorContext, topology);
         }
         log.debug("The topology is {}", topology.describe());
         return topology;

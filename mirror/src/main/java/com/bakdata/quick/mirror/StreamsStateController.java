@@ -17,8 +17,8 @@
 package com.bakdata.quick.mirror;
 
 
-import com.bakdata.quick.mirror.service.context.QueryContextProvider;
-import com.bakdata.quick.mirror.service.context.QueryServiceContext;
+import com.bakdata.quick.mirror.context.MirrorContext;
+import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
@@ -49,8 +49,8 @@ public class StreamsStateController {
      * Injectable constructor.
      */
     @Inject
-    public StreamsStateController(final QueryContextProvider contextProvider) {
-        final QueryServiceContext queryServiceContext = contextProvider.get();
+    public StreamsStateController(final MirrorContextProvider<?, ?> contextProvider) {
+        final MirrorContext<?, ?> queryServiceContext = contextProvider.get();
         this.streams = queryServiceContext.getStreams();
         this.storeName = queryServiceContext.getPointStoreName();
     }

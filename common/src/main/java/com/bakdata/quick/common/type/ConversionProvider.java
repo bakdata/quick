@@ -41,10 +41,9 @@ public interface ConversionProvider {
      * Returns a configured serde for this type.
      *
      * @param type    the underlying topic type
-     * @param configs serde configuration
      * @param isKey   true if serde is used for keys
      * @param <K>     type to be serialized from and deserialized to
      * @return configured serde
      */
-    <K> Serde<K> getSerde(final QuickTopicType type, final Map<String, ?> configs, final boolean isKey);
+    <K> Serde<K> getSerde(final QuickTopicType type, final boolean isKey);
 }

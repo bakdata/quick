@@ -19,6 +19,13 @@ package com.bakdata.quick.mirror.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
+import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
+import com.bakdata.quick.mirror.range.extractor.value.GenericRecordValueExtractor;
+import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
+import com.bakdata.quick.mirror.range.indexer.WriteRangeIndexer;
+import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
+import com.bakdata.quick.mirror.range.indexer.ReadRangeIndexer;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.quick.testutil.ProtoRangeQueryTest;
 import com.google.protobuf.Message;
@@ -31,7 +38,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class DefaultRangeIndexerTest {
+class WriteRangeIndexerTest {
 
     private static final int INT_ZERO = 0;
     private static final int ONE_DIGIT_INT_NUMBER = 1;
@@ -53,8 +60,8 @@ class DefaultRangeIndexerTest {
     @MethodSource("integerKeyAvroValueAndRangeIndexProvider")
     void shouldCreateRangeIndexOnTimestampForIntegerKeyAndAvroValue(final int key, final GenericRecord avroRecord,
         final String rangeIndex) {
-        final DefaultRangeIndexer<Integer, GenericRecord, Long> defaultRangeIndexer =
-            DefaultRangeIndexer.createRangeIndexer(
+        final RangeIndexer<Integer, GenericRecord> defaultRangeIndexer =
+            WriteRangeIndexer.create(new AvroTypeExtractor(), new GenericRecordValueExtractor<>(),
                 new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
 
         assertThat(defaultRangeIndexer.createIndex(key, avroRecord)).isEqualTo(rangeIndex);
@@ -64,8 +71,8 @@ class DefaultRangeIndexerTest {
     @MethodSource("longKeyProtobufValueAndRangeIndexProvider")
     void shouldCreateRangeIndexOnTimestampForLongKeyAndProtobufValue(final long key, final Message protoMessage,
         final String rangeIndex) {
-        final DefaultRangeIndexer<Long, Message, Integer> defaultRangeIndexer =
-            DefaultRangeIndexer.createRangeIndexer(
+        final RangeIndexer<Long, Message> defaultRangeIndexer =
+            WriteRangeIndexer.create(new ProtoTypeExtractor(), new MessageValueExtractor<>(),
                 new ProtobufSchema(protoMessage.getDescriptorForType()), RANGE_FIELD);
         assertThat(defaultRangeIndexer.createIndex(key, protoMessage)).isEqualTo(rangeIndex);
     }
@@ -73,22 +80,22 @@ class DefaultRangeIndexerTest {
     @Test
     void shouldCreateRangeIndexOnKeyAndStringAndExclusive() {
         final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
-        final DefaultRangeIndexer<Integer, GenericRecord, Long> defaultRangeIndexer =
-            DefaultRangeIndexer.createRangeIndexer(
+        final RangeIndexer<Integer, String> stringValueRangeIndexer =
+            ReadRangeIndexer.create(new AvroTypeExtractor(),
                 new AvroSchema(avroRecord.getSchema()), RANGE_FIELD);
 
-        assertThat(defaultRangeIndexer.createIndex(1, "2")).isEqualTo("1_0000000000000000001");
+        assertThat(stringValueRangeIndexer.createIndex(1, "2")).isEqualTo("1_0000000000000000001");
     }
 
     @Test
     void shouldCreateRangeIndexOnNullableFieldWithKeyAndStringAndIsExclusive() {
         final AvroRangeQueryTest avroRecord =
             AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).setAge(45).build();
-        final DefaultRangeIndexer<Integer, GenericRecord, Integer> defaultRangeIndexer =
-            DefaultRangeIndexer.createRangeIndexer(
+        final RangeIndexer<Integer, String> stringValueRangeIndexer =
+            ReadRangeIndexer.create(new AvroTypeExtractor(),
                 new AvroSchema(avroRecord.getSchema()), "age");
 
-        assertThat(defaultRangeIndexer.createIndex(1, "45")).isEqualTo("1_0000000044");
+        assertThat(stringValueRangeIndexer.createIndex(1, "45")).isEqualTo("1_0000000044");
     }
 
     static Stream<Arguments> integerKeyAvroValueAndRangeIndexProvider() {

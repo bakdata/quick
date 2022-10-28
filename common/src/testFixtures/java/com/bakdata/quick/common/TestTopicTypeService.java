@@ -17,6 +17,7 @@
 package com.bakdata.quick.common;
 
 import com.bakdata.quick.common.api.model.TopicWriteType;
+import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.schema.SchemaFormat;
@@ -30,7 +31,6 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.reactivex.Single;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.Builder;
@@ -53,22 +53,22 @@ public class TestTopicTypeService implements TopicTypeService {
      */
     @Builder
     public TestTopicTypeService(final Supplier<String> urlSupplier, final QuickTopicType keyType,
-                                final QuickTopicType valueType, @Nullable final Schema keySchema,
-                                @Nullable final Schema valueSchema, final ConversionProvider conversionProvider) {
+        final QuickTopicType valueType,
+        @Nullable final Schema keySchema,
+        @Nullable final Schema valueSchema,
+        final ConversionProvider conversionProvider) {
         this.urlSupplier = urlSupplier;
         this.keyType = keyType;
         this.valueType = valueType;
         this.keySchema = keySchema == null ? null : new AvroSchema(keySchema.toString());
         this.valueSchema = valueSchema == null ? null : new AvroSchema(valueSchema.toString());
-        this.conversionProvider = conversionProvider == null ? avroConversionProvider() : conversionProvider;
+        this.conversionProvider = conversionProvider == null ? this.avroConversionProvider() : conversionProvider;
     }
 
     @Override
     public <K, V> Single<QuickTopicData<K, V>> getTopicData(final String topic) {
-        final String schemaRegistryUrl = this.urlSupplier.get();
-        final Map<String, String> configs = Map.of("schema.registry.url", schemaRegistryUrl);
-        final Serde<K> keySerde = this.conversionProvider.getSerde(this.keyType, configs, true);
-        final Serde<V> valueSerde = this.conversionProvider.getSerde(this.valueType, configs, false);
+        final Serde<K> keySerde = this.conversionProvider.getSerde(this.keyType, true);
+        final Serde<V> valueSerde = this.conversionProvider.getSerde(this.valueType, false);
         final TypeResolver<K> keyResolver = this.conversionProvider.getTypeResolver(this.keyType, this.keySchema);
         final TypeResolver<V> valueResolver = this.conversionProvider.getTypeResolver(this.valueType, this.valueSchema);
         final QuickData<K> quickData = new QuickData<>(this.keyType, keySerde, keyResolver, this.keySchema);
@@ -78,14 +78,9 @@ public class TestTopicTypeService implements TopicTypeService {
         return Single.just(topicInfo);
     }
 
-
-    public static ConversionProvider avroConversionProvider() {
+    private ConversionProvider avroConversionProvider() {
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
-        return new DefaultConversionProvider(schemaConfig);
-    }
-
-    public static ConversionProvider protoConversionProvider() {
-        final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.PROTOBUF), Optional.empty());
-        return new DefaultConversionProvider(schemaConfig);
+        final KafkaConfig kafkaConfig = new KafkaConfig("localhost:9092", this.urlSupplier.get());
+        return new DefaultConversionProvider(schemaConfig, kafkaConfig);
     }
 }

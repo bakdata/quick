@@ -14,14 +14,22 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.range.extractor;
+package com.bakdata.quick.mirror.range.extractor.value;
 
 /**
  * An extractor for retrieving values from schemas.
  *
  * @param <V> Type of the schema
- * @param <F> Type of the field in the schema
  */
-public interface RangeFieldValueExtractor<V, F> {
-    F extractValue(final V complexValue, final String rangeField);
+public interface FieldValueExtractor<V> {
+    /**
+     * Extracts the value of a field from a complex value (Avro record, or Protobuf message).
+     *
+     * @param complexValue Avro record or Protobuf message
+     * @param fieldName Name of the field
+     * @param fieldClass Class of the field
+     * @param <F> Type of the field to be extracted
+     * @return The value of the field
+     */
+    <F> F extract(final V complexValue, final String fieldName, final Class<F> fieldClass);
 }
