@@ -32,7 +32,7 @@ import org.apache.avro.Schema.Type;
  */
 @Slf4j
 public class AvroTypeExtractor implements FieldTypeExtractor {
-    private static final Map<Type, QuickTopicType> typeMap = Map.of(
+    private static final Map<Schema.Type, QuickTopicType> typeMap = Map.of(
         Schema.Type.INT, QuickTopicType.INTEGER,
         Schema.Type.LONG, QuickTopicType.LONG);
 

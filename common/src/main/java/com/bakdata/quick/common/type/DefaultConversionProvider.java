@@ -56,6 +56,11 @@ public class DefaultConversionProvider implements ConversionProvider {
         return type.getSerde(configs, isKey);
     }
 
+    @Override
+    public <T> Class<T> getClassType(final QuickTopicType type) {
+        return type.getClassType();
+    }
+
     private static QuickTopicType getTypeForSchemaFormat(final SchemaFormat format) {
         switch (format) {
             case AVRO:

@@ -84,9 +84,10 @@ public class MirrorContext<K, V> {
      */
     public <R> MirrorContext<R, V> update(final QuickData<R> newKeyData) {
         final QuickTopicData<K, V> topicData = this.getTopicData();
-        final QuickTopicData<R, V> newTopicData =
-            new QuickTopicData<>(topicData.getName(), topicData.getWriteType(), newKeyData, topicData.getValueData());
+        final QuickTopicData<R, V> newTopicData = new QuickTopicData<>(topicData.getName(), topicData.getWriteType(),
+                newKeyData, topicData.getValueData());
         final List<String> inputTopics = this.quickTopologyData.getInputTopics();
+
         final QuickTopologyData<R, V> newQuickTopologyData =
             new QuickTopologyData<>(inputTopics, this.quickTopologyData.getOutputTopic(),
                 this.quickTopologyData.getErrorTopic(),

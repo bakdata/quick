@@ -58,7 +58,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <T> Class<T> getClassType() {
+        <T> Class<T> getClassType() {
             throw new UnsupportedOperationException("Schema's class type should be resolved to active format");
         }
     },
@@ -81,7 +81,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <T> Class<T> getClassType() {
+        <T> Class<T> getClassType() {
             return configuredClass(Schema.class);
         }
     },
@@ -104,7 +104,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <T> Class<T> getClassType() {
+        <T> Class<T> getClassType() {
             return configuredClass(ProtobufSchema.class);
         }
     },
@@ -120,7 +120,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <T> Class<T> getClassType() {
+        <T> Class<T> getClassType() {
             return configuredClass(Double.class);
         }
     },
@@ -136,7 +136,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <T> Class<T> getClassType() {
+        <T> Class<T> getClassType() {
             return configuredClass(Integer.class);
         }
     },
@@ -152,7 +152,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <T> Class<T> getClassType() {
+        <T> Class<T> getClassType() {
             return configuredClass(Long.class);
         }
     },
@@ -168,7 +168,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <T> Class<T> getClassType() {
+        <T> Class<T> getClassType() {
             return configuredClass(String.class);
         }
     };
@@ -203,7 +203,13 @@ public enum QuickTopicType {
      */
     abstract <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey);
 
-    public abstract <T> Class<T> getClassType();
+    /**
+     * Returns a class for this type.
+     *
+     * @param <T> type of the class
+     * @return class type
+     */
+    abstract <T> Class<T> getClassType();
 
     @SuppressWarnings("unchecked")
     static <K> TypeResolver<K> configuredTypeResolver(final TypeResolver<?> typeResolver) {

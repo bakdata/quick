@@ -16,9 +16,12 @@
 
 package com.bakdata.quick.mirror.topology;
 
+import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.range.KeySelector;
+import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
+import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import com.bakdata.quick.mirror.topology.consumer.MirrorStreamConsumer;
 import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
@@ -62,7 +65,12 @@ public class MirrorTopology<K, V, R> {
         final Topology topology;
         final KStream<K, V> stream = streamConsumer.consume(this.mirrorContext);
         if (rangeKey != null && parsedSchema != null) {
-            topology = this.createRepartitionTopology(topologyStrategies, parsedSchema, rangeKey, stream);
+            final FieldTypeExtractor fieldTypeExtractor = this.mirrorContext.getFieldTypeExtractor();
+            final FieldValueExtractor<V> fieldValueExtractor = this.mirrorContext.getFieldValueExtractor();
+            final ConversionProvider conversionProvider = this.mirrorContext.getConversionProvider();
+            final KeySelector<R, V> keySelector =
+                KeySelector.create(fieldTypeExtractor, fieldValueExtractor, conversionProvider, parsedSchema, rangeKey);
+            topology = this.createRepartitionTopology(topologyStrategies, rangeKey, stream, keySelector);
         } else {
             topology = applyTopologies(topologyStrategies, stream, this.mirrorContext);
         }
@@ -71,13 +79,11 @@ public class MirrorTopology<K, V, R> {
     }
 
     private Topology createRepartitionTopology(final Iterable<? extends TopologyStrategy> topologyStrategies,
-        final ParsedSchema parsedSchema,
-        final String rangeKey, final KStream<K, V> stream) {
-        final KeySelector<V> keySelector = KeySelector.create(this.mirrorContext, parsedSchema, rangeKey);
+        final String rangeKey, final KStream<K, V> stream, final KeySelector<R, V> keySelector) {
         final QuickData<R> repartitionedKeyData = keySelector.getRepartitionedKeyData();
         final Serde<R> serde = repartitionedKeyData.getSerde();
         final KStream<R, V> repartitionStream =
-            stream.selectKey((key, value) -> keySelector.<R>getRangeKeyValue(rangeKey, value))
+            stream.selectKey((key, value) -> keySelector.getRangeKeyValue(rangeKey, value))
                 .repartition(Repartitioned.with(serde, this.mirrorContext.getValueSerde()));
         final MirrorContext<R, V> newMirrorContext = this.mirrorContext.update(repartitionedKeyData);
         return applyTopologies(topologyStrategies, repartitionStream, newMirrorContext);

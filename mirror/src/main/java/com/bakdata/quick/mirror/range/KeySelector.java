@@ -21,7 +21,6 @@ import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
-import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
@@ -30,15 +29,18 @@ import org.apache.kafka.common.serialization.Serde;
 /**
  * Extracts the type and the value from a field in a complex type.
  */
-public final class KeySelector<V> {
+public final class KeySelector<R, V> {
     private final QuickTopicType keyType;
+    private final Class<? extends R> classType;
     private final FieldValueExtractor<? super V> fieldValueExtractor;
     private final ConversionProvider conversionProvider;
 
     private KeySelector(final QuickTopicType keyType,
+        final Class<? extends R> classType,
         final FieldValueExtractor<? super V> fieldValueExtractor,
         final ConversionProvider conversionProvider) {
         this.keyType = keyType;
+        this.classType = classType;
         this.fieldValueExtractor = fieldValueExtractor;
         this.conversionProvider = conversionProvider;
     }
@@ -46,21 +48,22 @@ public final class KeySelector<V> {
     /**
      * Static factory to create a key selector.
      */
-    public static <V> KeySelector<V> create(final MirrorContext<?, V> mirrorContext, final ParsedSchema parsedSchema,
+    public static <R, V> KeySelector<R, V> create(final FieldTypeExtractor fieldTypeExtractor,
+        final FieldValueExtractor<V> fieldValueExtractor,
+        final ConversionProvider conversionProvider,
+        final ParsedSchema parsedSchema,
         final String rangeKey) {
-        final FieldTypeExtractor fieldTypeExtractor = mirrorContext.getFieldTypeExtractor();
-        final FieldValueExtractor<V> fieldValueExtractor = mirrorContext.getFieldValueExtractor();
         final QuickTopicType keyType = fieldTypeExtractor.extract(parsedSchema, rangeKey);
-        final ConversionProvider conversionProvider = mirrorContext.getConversionProvider();
-        return new KeySelector<>(keyType, fieldValueExtractor, conversionProvider);
+        final Class<R> classType = conversionProvider.getClassType(keyType);
+        return new KeySelector<>(keyType, classType, fieldValueExtractor, conversionProvider);
     }
 
     /**
      * extracts the value of a given field.
      */
-    public <T> T getRangeKeyValue(final String fieldName, final V value) {
+    public R getRangeKeyValue(final String fieldName, final V value) {
         if (value != null) {
-            return this.fieldValueExtractor.extract(value, fieldName, this.keyType.getClassType());
+            return this.fieldValueExtractor.extract(value, fieldName, this.classType);
         }
         throw new MirrorTopologyException("The value should not be null. Check you input topic data.");
     }
