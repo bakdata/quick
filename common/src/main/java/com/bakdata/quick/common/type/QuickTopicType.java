@@ -53,7 +53,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             throw new UnsupportedOperationException("Schema's serde should be resolved to active format");
         }
 
@@ -76,7 +76,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(new GenericAvroSerde(), configs, isKey);
         }
 
@@ -99,7 +99,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(new KafkaProtobufSerde<>(), configs, isKey);
         }
 
@@ -115,7 +115,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(Serdes.Double(), configs, isKey);
         }
 
@@ -131,7 +131,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(Serdes.Integer(), configs, isKey);
         }
 
@@ -147,7 +147,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(Serdes.Long(), configs, isKey);
         }
 
@@ -163,7 +163,7 @@ public enum QuickTopicType {
         }
 
         @Override
-        public <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
+        <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey) {
             return configuredSerde(Serdes.String(), configs, isKey);
         }
 
@@ -201,7 +201,7 @@ public enum QuickTopicType {
      * @param <K>     type to be serialized from and deserialized to
      * @return configured serde
      */
-    public abstract <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey);
+    abstract <K> Serde<K> getSerde(final Map<String, ?> configs, final boolean isKey);
 
     public abstract <T> Class<T> getClassType();
 
