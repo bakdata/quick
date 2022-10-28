@@ -146,7 +146,8 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .quickTopologyData(this.getTopologyData())
             .pointStoreName(POINT_STORE)
             .storeType(this.storeType)
-            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeKey, this.rangeField))
+            .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
+            .rangeKey(this.rangeKey)
             .conversionProvider(this.conversionProvider)
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
             .isCleanup(this.cleanUp);

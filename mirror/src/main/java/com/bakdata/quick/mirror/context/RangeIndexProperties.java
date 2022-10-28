@@ -27,8 +27,6 @@ import lombok.Value;
 public class RangeIndexProperties {
     String storeName;
     @Nullable
-    String rangeKey;
-    @Nullable
     String rangeField;
 
     /**

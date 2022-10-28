@@ -23,6 +23,7 @@ import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
 import lombok.Builder;
 import lombok.Builder.Default;
@@ -53,6 +54,8 @@ public class MirrorContext<K, V> {
     FieldTypeExtractor fieldTypeExtractor;
     FieldValueExtractor<V> fieldValueExtractor;
     ConversionProvider conversionProvider;
+    @Nullable
+    String rangeKey;
 
     // Read data
     KafkaStreams streams;

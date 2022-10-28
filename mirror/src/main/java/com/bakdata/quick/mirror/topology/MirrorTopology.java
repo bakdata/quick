@@ -61,9 +61,9 @@ public class MirrorTopology<K, V, R> {
         final StreamConsumer streamConsumer = new MirrorStreamConsumer();
 
         final ParsedSchema parsedSchema = this.mirrorContext.getTopicData().getValueData().getParsedSchema();
-        final String rangeKey = this.mirrorContext.getRangeIndexProperties().getRangeKey();
         final Topology topology;
         final KStream<K, V> stream = streamConsumer.consume(this.mirrorContext);
+        final String rangeKey = this.mirrorContext.getRangeKey();
         if (rangeKey != null && parsedSchema != null) {
             final FieldTypeExtractor fieldTypeExtractor = this.mirrorContext.getFieldTypeExtractor();
             final FieldValueExtractor<V> fieldValueExtractor = this.mirrorContext.getFieldValueExtractor();

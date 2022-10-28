@@ -38,7 +38,7 @@ class TopologyStrategyTest {
     void shouldAlwaysApplyPointTopology() {
         final TopologyStrategy pointTopology = new PointTopology();
         final MirrorContext<?, ?> mirrorContext =
-            createTopologyContext(new RangeIndexProperties(RANGE_STORE, null, null),
+            createTopologyContext(new RangeIndexProperties(RANGE_STORE, null),
                 new RetentionTimeProperties(RETENTION_STORE, null));
 
         Assertions.assertThat(pointTopology.isApplicable(mirrorContext)).isTrue();
@@ -48,7 +48,7 @@ class TopologyStrategyTest {
     void shouldApplyRangeTopologyWhenRangeFieldIsSetAndRetentionIsNotSet() {
         final TopologyStrategy rangeTopology = new RangeTopology();
         final MirrorContext<?, ?> mirrorContext =
-            createTopologyContext(new RangeIndexProperties(RANGE_STORE, null, "test-field"),
+            createTopologyContext(new RangeIndexProperties(RANGE_STORE, "test-field"),
                 new RetentionTimeProperties(RETENTION_STORE, null));
 
         Assertions.assertThat(rangeTopology.isApplicable(mirrorContext)).isTrue();
@@ -58,7 +58,7 @@ class TopologyStrategyTest {
     void shouldApplyRetentionTopologyWhenRangeFieldIsSet() {
         final TopologyStrategy retentionTopology = new RetentionTopology();
         final MirrorContext<?, ?> mirrorContext =
-            createTopologyContext(new RangeIndexProperties(RANGE_STORE, null, null),
+            createTopologyContext(new RangeIndexProperties(RANGE_STORE, null),
                 new RetentionTimeProperties(RETENTION_STORE, Duration.ZERO));
 
         Assertions.assertThat(retentionTopology.isApplicable(mirrorContext)).isTrue();
