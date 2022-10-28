@@ -20,6 +20,7 @@ import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.common.type.QuickTopicType;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
@@ -31,20 +32,21 @@ import org.apache.avro.Schema.Type;
  */
 @Slf4j
 public class AvroTypeExtractor implements FieldTypeExtractor {
+    private static final Map<Type, QuickTopicType> typeMap = Map.of(
+        Schema.Type.INT, QuickTopicType.INTEGER,
+        Schema.Type.LONG, QuickTopicType.LONG);
+
     @Override
     public QuickTopicType extract(final ParsedSchema parsedSchema, final String fieldName) {
         final Schema avroSchema = (Schema) parsedSchema.rawSchema();
         final Schema.Type fieldType = getAvroFieldType(avroSchema, fieldName);
         log.debug("Field Type is {}", fieldType);
 
-        if (fieldType == Schema.Type.INT) {
-            return QuickTopicType.INTEGER;
-        } else if (fieldType == Schema.Type.LONG) {
-            return QuickTopicType.LONG;
-        } else if (fieldType == Schema.Type.STRING) {
-            return QuickTopicType.STRING;
+        final QuickTopicType type = typeMap.getOrDefault(fieldType, null);
+        if (type == null) {
+            throw new MirrorTopologyException(String.format("Unsupported field type %s.", fieldType));
         }
-        throw new MirrorTopologyException("Range field value should be either integer or long");
+        return type;
     }
 
     private static Schema.Type getAvroFieldType(final Schema avroSchema, final String fieldName) {
