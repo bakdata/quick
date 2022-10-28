@@ -86,7 +86,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldAddRangeValueWithAvroSchema() {
+    void shouldWriteInRangeStoreWithAvroSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newIntegerData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), null),
@@ -127,7 +127,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldAddRangeValueWithAvroSchemaWithNegativeIntegerKeys() {
+    void shouldWriteNegativeIntegerKeysInRangeStoreWithAvroSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newIntegerData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), null),
@@ -169,7 +169,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldAddRangeForMinAndMaxValuesWithAvroSchema() {
+    void shouldWriteMinAndMaxIntegerKeysInRangeStoreWithAvroSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newIntegerData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), null),
@@ -211,7 +211,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldAddRangeValueWithAvroSchemaAndStringKeys() {
+    void shouldWriteStringKeysInRangeStoreValueWithAvroSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newStringData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), null),
@@ -249,7 +249,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldAddRangeValueWithProto() {
+    void shouldWriteInRangeStoreWithProtoSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newLongData(), protoData(), new ProtoTypeExtractor(),
                 new MessageValueExtractor<>(), null),
@@ -294,7 +294,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldAddRangeValueWithProtoWithNegativeValues() {
+    void shouldWriteNegativeKeysInRangeStoreWithProtoSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newLongData(), protoData(), new ProtoTypeExtractor(),
                 new MessageValueExtractor<>(), null),
@@ -337,7 +337,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldAddRangeForMinAndMaxValuesWithProto() {
+    void shouldWriteMinAndMaxLongKeysInRangeStoreWithProtoSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newLongData(), protoData(), new ProtoTypeExtractor(),
                 new MessageValueExtractor<>(), null),
@@ -377,7 +377,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldWritePointStoreAndRangeStoreWithAvroSchemaWhenRangeKeyIsSet() {
+    void shouldWriteToPointStoreAndRangeStoreWithAvroSchemaWhenRangeKeyIsSet() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newStringData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), RANGE_KEY),
@@ -421,7 +421,7 @@ class MirrorRangeTopologyTest {
     }
 
     @Test
-    void shouldWritePointStoreAndRangeStoreWithProtoSchemaWhenRangeKeyIsSet() {
+    void shouldToWritePointStoreAndRangeStoreWithProtoSchemaWhenRangeKeyIsSet() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
             createTopology(properties, newStringData(), protoData(), new ProtoTypeExtractor(),
                 new MessageValueExtractor<>(), RANGE_KEY),
