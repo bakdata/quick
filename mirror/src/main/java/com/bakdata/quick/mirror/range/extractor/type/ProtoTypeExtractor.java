@@ -23,11 +23,16 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
+import java.util.Map;
 
 /**
  * Implements the logic of extracting the {@link QuickTopicType} from a field in a Protobuf schema.
  */
 public class ProtoTypeExtractor implements FieldTypeExtractor {
+
+    private static final Map<JavaType, QuickTopicType> typeMap = Map.of(
+        JavaType.INT, QuickTopicType.INTEGER,
+        JavaType.LONG, QuickTopicType.LONG);
 
     @Override
     public QuickTopicType extract(final ParsedSchema parsedSchema, final String fieldName) {
@@ -40,11 +45,10 @@ public class ProtoTypeExtractor implements FieldTypeExtractor {
             throw new MirrorTopologyException(errorMessage);
         }
         final JavaType fieldType = fieldDescriptor.getJavaType();
-        if (fieldType == JavaType.INT) {
-            return QuickTopicType.INTEGER;
-        } else if (fieldType == JavaType.LONG) {
-            return QuickTopicType.LONG;
+        final QuickTopicType type = typeMap.getOrDefault(fieldType, null);
+        if (type == null) {
+            throw new MirrorTopologyException(String.format("Unsupported field type %s.", fieldType));
         }
-        throw new MirrorTopologyException("Range field value should be either integer or long");
+        return type;
     }
 }
