@@ -73,7 +73,7 @@ public class RangeTopology implements TopologyStrategy {
     }
 
     private static <K, V> RangeIndexer<K, V> getRangeIndexer(final MirrorContext<?, V> mirrorContext) {
-        final ParsedSchema parsedSchema = mirrorContext.getTopicData().getValueData().getParsedSchema();
+        final ParsedSchema parsedSchema = mirrorContext.getValueSchema();
         if (parsedSchema == null) {
             final boolean isCleanup = mirrorContext.isCleanup();
             log.debug("Parsed schema is null and cleanup flag is set to {}.", isCleanup);

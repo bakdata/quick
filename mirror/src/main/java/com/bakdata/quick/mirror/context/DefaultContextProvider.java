@@ -17,18 +17,19 @@
 package com.bakdata.quick.mirror.context;
 
 import com.bakdata.quick.common.exception.MirrorTopologyException;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import jakarta.inject.Singleton;
 
 /**
- * Basic implementation of QueryContextProvider.
+ * Basic implementation of MirrorContextProvider.
  */
 @Singleton
-public class DefaultMirrorContextProvider<K, V> implements MirrorContextProvider<K, V> {
+public class DefaultContextProvider<K, V> implements MirrorContextProvider<K, V> {
 
-    private MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder().build();
+    private MirrorContext<?, V> mirrorContext = MirrorContext.<K, V>builder().build();
 
     @Override
-    public MirrorContext<K, V> get() {
+    public MirrorContext<?, V> get() {
         if (this.mirrorContext == null) {
             throw new MirrorTopologyException("A context for the topology has not been set.");
         }
@@ -36,7 +37,7 @@ public class DefaultMirrorContextProvider<K, V> implements MirrorContextProvider
     }
 
     @Override
-    public void setMirrorContext(final MirrorContext<K, V> context) {
+    public void setMirrorContext(final MirrorContext<?, V> context) {
         this.mirrorContext = context;
     }
 }

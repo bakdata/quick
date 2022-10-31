@@ -31,8 +31,10 @@ import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.MirrorApplication;
+import com.bakdata.quick.mirror.StreamConsumer;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
+import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
 import com.bakdata.quick.testutil.AvroRangeQueryTest;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerializer;
@@ -65,6 +67,7 @@ class RangeStreamsStateIntegrationTest {
     ApplicationContext applicationContext;
     @Inject
     MirrorContextProvider<String, String> mirrorContextProvider;
+
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
@@ -134,9 +137,15 @@ class RangeStreamsStateIntegrationTest {
     private MirrorApplication<String, String> setUpApp() {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy:123", schemaRegistry.getUrl());
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
+        final DefaultConversionProvider defaultConversionProvider =
+            new DefaultConversionProvider(kafkaConfig, schemaConfig);
+
+        final ExtractorResolver extractorResolver = new ExtractorResolver(schemaConfig);
+
         final MirrorApplication<String, String> app = new MirrorApplication<>(
-            this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.mirrorContextProvider, new DefaultConversionProvider(kafkaConfig, schemaConfig)
+            extractorResolver, this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
+            this.hostConfig, this.mirrorContextProvider,
+            new StreamConsumer(extractorResolver, defaultConversionProvider)
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());

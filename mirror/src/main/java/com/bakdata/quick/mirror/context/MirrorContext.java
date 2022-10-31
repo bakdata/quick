@@ -16,15 +16,11 @@
 
 package com.bakdata.quick.mirror.context;
 
-import com.bakdata.quick.common.type.ConversionProvider;
-import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.mirror.StoreType;
-import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import java.util.List;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Value;
@@ -45,7 +41,8 @@ public class MirrorContext<K, V> {
     // Write data
     @Default
     StreamsBuilder streamsBuilder = new StreamsBuilder();
-    QuickTopologyData<K, V> quickTopologyData;
+    String topicName;
+    RecordData<K, V> recordData;
     String pointStoreName;
     RangeIndexProperties rangeIndexProperties;
     RetentionTimeProperties retentionTimeProperties;
@@ -53,7 +50,6 @@ public class MirrorContext<K, V> {
     boolean isCleanup;
     FieldTypeExtractor fieldTypeExtractor;
     FieldValueExtractor<V> fieldValueExtractor;
-    ConversionProvider conversionProvider;
     @Nullable
     String rangeKey;
 
@@ -61,52 +57,22 @@ public class MirrorContext<K, V> {
     KafkaStreams streams;
     HostInfo hostInfo;
 
-    /**
-     * Gets the {@link QuickTopicData}.
-     */
-    public QuickTopicData<K, V> getTopicData() {
-        return this.quickTopologyData.getTopicData();
+    @Nullable
+    public ParsedSchema getValueSchema() {
+        return this.recordData.getValueData().getParsedSchema();
     }
 
     /**
      * Returns the SerDe of the key.
      */
     public Serde<K> getKeySerde() {
-        return this.getTopicData().getKeyData().getSerde();
+        return this.recordData.getKeyData().getSerde();
     }
 
     /**
      * Returns the SerDe of the value.
      */
     public Serde<V> getValueSerde() {
-        return this.getTopicData().getValueData().getSerde();
-    }
-
-    /**
-     * Creates a new mirror context with the given key.
-     */
-    public <R> MirrorContext<R, V> update(final QuickData<R> newKeyData) {
-        final QuickTopicData<K, V> topicData = this.getTopicData();
-        final QuickTopicData<R, V> newTopicData = new QuickTopicData<>(topicData.getName(), topicData.getWriteType(),
-                newKeyData, topicData.getValueData());
-        final List<String> inputTopics = this.quickTopologyData.getInputTopics();
-
-        final QuickTopologyData<R, V> newQuickTopologyData =
-            new QuickTopologyData<>(inputTopics, this.quickTopologyData.getOutputTopic(),
-                this.quickTopologyData.getErrorTopic(),
-                newTopicData);
-
-        return MirrorContext.<R, V>builder()
-            .streamsBuilder(this.streamsBuilder)
-            .quickTopologyData(newQuickTopologyData)
-            .pointStoreName(this.pointStoreName)
-            .storeType(this.storeType)
-            .rangeIndexProperties(this.rangeIndexProperties)
-            .conversionProvider(this.conversionProvider)
-            .retentionTimeProperties(this.retentionTimeProperties)
-            .fieldValueExtractor(this.fieldValueExtractor)
-            .fieldTypeExtractor(this.fieldTypeExtractor)
-            .isCleanup(this.isCleanup)
-            .build();
+        return this.recordData.getValueData().getSerde();
     }
 }

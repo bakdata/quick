@@ -81,12 +81,12 @@ public class RetentionTopology implements TopologyStrategy {
      */
     @Override
     public <K, V> Topology extendTopology(final MirrorContext<K, V> mirrorContext, final Topology topology) {
-        final Serde<K> keySerDe = mirrorContext.getKeySerde();
+        final Serde<K> keySerde = mirrorContext.getKeySerde();
         topology.addSink(
             RETENTION_SINK,
-            mirrorContext.getTopicData().getName(),
+            mirrorContext.getTopicName(),
             Serdes.Long().serializer(),
-            keySerDe.serializer(),
+            keySerde.serializer(),
             PROCESSOR_NAME
         );
         return topology;

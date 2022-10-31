@@ -23,17 +23,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
 import com.bakdata.quick.common.api.model.TopicWriteType;
+import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.config.SchemaConfig;
+import com.bakdata.quick.common.type.ConversionProvider;
+import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.mirror.StreamConsumer.QuickStreamData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
+import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
-import com.bakdata.quick.mirror.context.MirrorContext;
 import com.google.common.collect.Maps;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.Test;
@@ -61,15 +69,24 @@ class MirrorTopologyTest {
                 .topicData(data)
                 .build();
 
+        final StreamsBuilder streamsBuilder = new StreamsBuilder();
+        final SchemaConfig schemaConfig = new SchemaConfig(Optional.empty(), Optional.empty());
+        final KafkaConfig kafkaConfig = new KafkaConfig("", "");
+        final ConversionProvider conversionProvider = new DefaultConversionProvider(kafkaConfig, schemaConfig);
+        final ExtractorResolver extractorResolver = new ExtractorResolver(schemaConfig);
+        final StreamConsumer streamConsumer = new StreamConsumer(extractorResolver, conversionProvider);
+        final QuickStreamData<Integer, Integer> quickStreamData = streamConsumer.consume(topologyInfo, streamsBuilder, null);
+
         final MirrorContext<Integer, Integer> mirrorContext = MirrorContext.<Integer, Integer>builder()
-            .quickTopologyData(topologyInfo)
+            .streamsBuilder(streamsBuilder)
+            .recordData(quickStreamData.getRecordData())
             .pointStoreName(STORE_NAME)
             .storeType(StoreType.INMEMORY)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, null))
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, null))
             .build();
 
-        return new MirrorTopology<>(mirrorContext).createTopology();
+        return new MirrorTopology<>(mirrorContext).createTopology(quickStreamData.getStream());
     }
 
     private static Map<String, String> testProps() {

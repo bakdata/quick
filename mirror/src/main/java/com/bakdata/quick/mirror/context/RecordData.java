@@ -14,27 +14,19 @@
  *    limitations under the License.
  */
 
-
 package com.bakdata.quick.mirror.context;
 
+import com.bakdata.quick.common.type.QuickTopicData.QuickData;
+import lombok.Value;
+
 /**
- * Imitates the functionality of the javax's Provider
- * and extends it with an additional method to set a context.
+ * Contains the key and value data of the input stream.
+ *
+ * @param <K> Type of the key
+ * @param <V> Type of the value
  */
-public interface MirrorContextProvider<K, V> {
-
-    /**
-     * Provides a fully-constructed and injected instance of QueryServiceContext.
-     *
-     * @return An instance of the QueryServiceContext
-     */
-    MirrorContext<?, V> get();
-
-    /**
-     * Sets a context. The idea behind this method is to
-     * circumvent the need to a bean through the ApplicationContext
-     *
-     * @param context an instance of QueryServiceContext
-     */
-    void setMirrorContext(MirrorContext<?, V> context);
+@Value
+public class RecordData<K, V> {
+    QuickData<K> keyData;
+    QuickData<V> valueData;
 }

@@ -32,8 +32,10 @@ import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.MirrorApplication;
+import com.bakdata.quick.mirror.StreamConsumer;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
+import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,6 +71,8 @@ class PointIndexMirrorIntegrationTest {
     private ApplicationContext applicationContext;
     @Inject
     private MirrorContextProvider<String, String> mirrorContextProvider;
+    @Inject
+    ExtractorResolver extractorResolver;
 
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
@@ -153,11 +157,15 @@ class PointIndexMirrorIntegrationTest {
     private MirrorApplication<String, String> setUpApp() {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy:123", schemaRegistry.getUrl());
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
+        final DefaultConversionProvider defaultConversionProvider =
+            new DefaultConversionProvider(kafkaConfig, schemaConfig);
+
         final MirrorApplication<String, String> app = new MirrorApplication<>(
-            this.applicationContext,
+            this.extractorResolver, this.applicationContext,
             topicTypeService(),
             TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.mirrorContextProvider, new DefaultConversionProvider(kafkaConfig, schemaConfig)
+            this.hostConfig, this.mirrorContextProvider,
+            new StreamConsumer(this.extractorResolver, defaultConversionProvider)
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());

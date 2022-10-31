@@ -22,27 +22,23 @@ import com.bakdata.kafka.util.ImprovedAdminClient;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.QuickTopicConfig;
-import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.resolver.StringResolver;
-import com.bakdata.quick.common.schema.SchemaFormat;
-import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.CliArgHandler;
+import com.bakdata.quick.mirror.StreamConsumer.QuickStreamData;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.MirrorContext.MirrorContextBuilder;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
+import com.bakdata.quick.mirror.context.RecordData;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
-import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
-import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.GenericRecordValueExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
+import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
@@ -80,12 +76,13 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     public static final String RANGE_STORE = "range-store";
 
     // injectable parameter
+    private final ExtractorResolver extractorResolver;
     private final TopicTypeService topicTypeService;
     private final QuickTopicConfig topicConfig;
     private final ApplicationContext context;
     private final HostConfig hostConfig;
-    private final MirrorContextProvider<K, V> contextProvider;
-    private final ConversionProvider conversionProvider;
+    private final MirrorContextProvider<?, V> contextProvider;
+    private final StreamConsumer streamConsumer;
 
     // CLI Arguments
     @Option(names = "--store-type", description = "Kafka Store to use. Choices: ${COMPLETION-CANDIDATES}",
@@ -112,16 +109,17 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      * @param topicConfig kafka topic config
      * @param hostConfig host config for this pod
      */
-    public MirrorApplication(final ApplicationContext context, final TopicTypeService topicTypeService,
+    public MirrorApplication(final ExtractorResolver extractorResolver, final ApplicationContext context,
+        final TopicTypeService topicTypeService,
         final QuickTopicConfig topicConfig, final HostConfig hostConfig,
-        final MirrorContextProvider<K, V> contextProvider,
-        final ConversionProvider conversionProvider) {
+        final MirrorContextProvider<?, V> contextProvider, final StreamConsumer streamConsumer) {
+        this.extractorResolver = extractorResolver;
         this.topicTypeService = topicTypeService;
         this.topicConfig = topicConfig;
         this.context = context;
         this.hostConfig = hostConfig;
         this.contextProvider = contextProvider;
-        this.conversionProvider = conversionProvider;
+        this.streamConsumer = streamConsumer;
     }
 
     public static void main(final String[] args) {
@@ -136,30 +134,31 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     public Topology createTopology() {
-        final MirrorContext<K, V> mirrorContext = this.buildTopologyContext();
+        final QuickTopologyData<K, V> topologyData = this.getTopologyData();
+        final StreamsBuilder streamsBuilder = new StreamsBuilder();
+        final String topicName = topologyData.getTopicData().getName();
+        final QuickStreamData<K, V> quickStreamData =
+            this.streamConsumer.consume(topologyData, streamsBuilder, this.rangeKey);
 
-        return new MirrorTopology<>(mirrorContext).createTopology();
+        final MirrorContext<K, V> mirrorContext =
+            this.buildTopologyContext(streamsBuilder, topicName, quickStreamData.getRecordData());
+        return new MirrorTopology<>(mirrorContext).createTopology(quickStreamData.getStream());
     }
 
-    private MirrorContext<K, V> buildTopologyContext() {
+    private MirrorContext<K, V> buildTopologyContext(final StreamsBuilder streamsBuilder,
+        final String topicName, final RecordData<K, V> recordData) {
         final MirrorContextBuilder<K, V> builder = MirrorContext.<K, V>builder()
-            .quickTopologyData(this.getTopologyData())
+            .streamsBuilder(streamsBuilder)
             .pointStoreName(POINT_STORE)
+            .topicName(topicName)
+            .recordData(recordData)
             .storeType(this.storeType)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
             .rangeKey(this.rangeKey)
-            .conversionProvider(this.conversionProvider)
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
+            .fieldValueExtractor(this.extractorResolver.getFieldValueExtractor())
+            .fieldTypeExtractor(this.extractorResolver.getFieldTypeExtractor())
             .isCleanup(this.cleanUp);
-
-        final SchemaConfig schemaConfig = this.context.getBean(SchemaConfig.class);
-        if (schemaConfig.getFormat() == SchemaFormat.PROTOBUF) {
-            builder.fieldTypeExtractor(new ProtoTypeExtractor());
-            builder.fieldValueExtractor(new MessageValueExtractor<>());
-        } else if (schemaConfig.getFormat() == SchemaFormat.AVRO) {
-            builder.fieldTypeExtractor(new AvroTypeExtractor());
-            builder.fieldValueExtractor(new GenericRecordValueExtractor<>());
-        }
 
         this.contextProvider.setMirrorContext(builder.build());
         return builder.build();
@@ -218,15 +217,11 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     protected void runStreamsApplication() {
-        final MirrorContext<K, V> mirrorContext = this.contextProvider.get();
+        final MirrorContext<?, V> mirrorContext = this.contextProvider.get();
+        final MirrorContext<?, V> mirrorContextWithStream =
+            mirrorContext.toBuilder().streams(this.getStreams()).hostInfo(this.hostConfig.toInfo()).build();
+        this.contextProvider.setMirrorContext(mirrorContextWithStream);
 
-        final MirrorContextBuilder<K, V> builder = mirrorContext.toBuilder()
-            .streams(this.getStreams())
-            .hostInfo(this.hostConfig.toInfo());
-
-        this.contextProvider.setMirrorContext(builder.build());
-
-        log.debug("Built query service context {}", this.contextProvider.get());
         super.runStreamsApplication();
     }
 

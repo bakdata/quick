@@ -46,7 +46,6 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.restassured.RestAssured;
 import jakarta.inject.Inject;
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
@@ -55,7 +54,7 @@ import net.mguenther.kafka.junit.KeyValue;
 import net.mguenther.kafka.junit.SendKeyValuesTransactional;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.IntegerSerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -63,7 +62,9 @@ import org.junit.jupiter.api.Test;
 @IntegrationTest
 @MicronautTest
 @Property(name = "pod.ip", value = "127.0.0.1")
-class RangeIndexMirrorIntegrationTest {
+@Property(name = "quick.kafka.schema-registry-url", value = "1.2.3.4")
+@Property(name = "quick.kafka.bootstrap-server", value = "1.2.3.4")
+class MirrorWithRangeKeyIntegrationTest {
     @Inject
     private ObjectMapper objectMapper;
     private static final String INPUT_TOPIC = "range-input";
@@ -72,7 +73,7 @@ class RangeIndexMirrorIntegrationTest {
     @Inject
     ApplicationContext applicationContext;
     @Inject
-    MirrorContextProvider<Integer, GenericRecord> mirrorContextProvider;
+    MirrorContextProvider<String, GenericRecord> contextProvider;
 
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
@@ -94,21 +95,33 @@ class RangeIndexMirrorIntegrationTest {
     void shouldReceiveCorrectValueFromMirrorApplicationWithRangeIndex()
         throws InterruptedException, JsonProcessingException {
         sendValuesToKafka();
-        final MirrorApplication<Integer, GenericRecord> app = this.setUpApp();
+        final MirrorApplication<Long, GenericRecord> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();
 
         Thread.sleep(3000);
 
-        final AvroRangeQueryTest avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
-        final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
-        final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
+        final GenericRecord avroRecord = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(1L).build();
+        final GenericRecord avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
+        final GenericRecord avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
+
+        final MirrorValue<GenericRecord> mirrorValue = new MirrorValue<>(avroRecord);
+        final String expectedValue = this.objectMapper.writeValueAsString(mirrorValue);
+
+        // TODO: Still does not work properly
+
+//        await()
+//            .untilAsserted(
+//                () -> RestAssured.given()
+//                    .when().get("http://" + this.hostConfig.toConnectionString() + "/mirror/{id}", 1)
+//                    .then()
+//                    .statusCode(HttpStatus.OK.getCode())
+//                    .body(equalTo(expectedValue)));
 
         final MirrorValue<List<GenericRecord>> items = new MirrorValue<>(List.of(avroRecord, avroRecord2, avroRecord3));
         final String expected = this.objectMapper.writeValueAsString(items);
 
         await()
-            .atMost(Duration.ofSeconds(12))
             .untilAsserted(
                 () -> RestAssured.given()
                     .queryParam("from", "1")
@@ -129,14 +142,14 @@ class RangeIndexMirrorIntegrationTest {
         final AvroRangeQueryTest avroRecord2 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(2L).build();
         final AvroRangeQueryTest avroRecord3 = AvroRangeQueryTest.newBuilder().setUserId(1).setTimestamp(3L).build();
 
-        final List<KeyValue<Integer, GenericRecord>> keyValueList = List.of(
-            new KeyValue<>(1, avroRecord1),
-            new KeyValue<>(1, avroRecord2),
-            new KeyValue<>(1, avroRecord3));
+        final List<KeyValue<String, GenericRecord>> keyValueList = List.of(
+            new KeyValue<>("a", avroRecord1),
+            new KeyValue<>("b", avroRecord2),
+            new KeyValue<>("c", avroRecord3));
 
-        final SendKeyValuesTransactional<Integer, GenericRecord> sendRequest = SendKeyValuesTransactional
+        final SendKeyValuesTransactional<String, GenericRecord> sendRequest = SendKeyValuesTransactional
             .inTransaction(INPUT_TOPIC, keyValueList)
-            .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class)
+            .with(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class)
             .with(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, SpecificAvroSerializer.class)
             .with("schema.registry.url", schemaRegistry.getUrl())
             .build();
@@ -144,31 +157,34 @@ class RangeIndexMirrorIntegrationTest {
         kafkaCluster.send(sendRequest);
     }
 
-    private MirrorApplication<Integer, GenericRecord> setUpApp() {
+    private MirrorApplication<Long, GenericRecord> setUpApp() {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy:123", schemaRegistry.getUrl());
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
         final DefaultConversionProvider defaultConversionProvider =
             new DefaultConversionProvider(kafkaConfig, schemaConfig);
+
         final ExtractorResolver extractorResolver = new ExtractorResolver(schemaConfig);
 
-        final MirrorApplication<Integer, GenericRecord> app = new MirrorApplication<>(
-            extractorResolver, this.applicationContext, getTopicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.mirrorContextProvider,
+        final MirrorApplication<Long, GenericRecord> app = new MirrorApplication<>(
+            extractorResolver, this.applicationContext, getTopicTypeService(),
+            TestConfigUtils.newQuickTopicConfig(),
+            this.hostConfig,
+            this.contextProvider,
             new StreamConsumer(extractorResolver, defaultConversionProvider)
-
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());
         app.setProductive(false);
         app.setSchemaRegistryUrl(schemaRegistry.getUrl());
         app.setRangeField("timestamp");
+        app.setRangeKey("userId");
         return app;
     }
 
     private static TopicTypeService getTopicTypeService() {
         return TestTopicTypeService.builder()
             .urlSupplier(schemaRegistry::getUrl)
-            .keyType(QuickTopicType.INTEGER)
+            .keyType(QuickTopicType.STRING)
             .valueType(QuickTopicType.AVRO)
             .keySchema(null)
             .valueSchema(AvroRangeQueryTest.getClassSchema())

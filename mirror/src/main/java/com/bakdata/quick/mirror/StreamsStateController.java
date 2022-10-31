@@ -17,6 +17,8 @@
 package com.bakdata.quick.mirror;
 
 
+import static com.bakdata.quick.mirror.MirrorApplication.POINT_STORE;
+
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import io.micronaut.http.MediaType;
@@ -43,7 +45,6 @@ import org.apache.kafka.streams.StreamsMetadata;
 @Slf4j
 public class StreamsStateController {
     private final KafkaStreams streams;
-    private final String storeName;
 
     /**
      * Injectable constructor.
@@ -52,7 +53,6 @@ public class StreamsStateController {
     public StreamsStateController(final MirrorContextProvider<?, ?> contextProvider) {
         final MirrorContext<?, ?> queryServiceContext = contextProvider.get();
         this.streams = queryServiceContext.getStreams();
-        this.storeName = queryServiceContext.getPointStoreName();
     }
 
     /**
@@ -61,7 +61,7 @@ public class StreamsStateController {
     @Get("/partitions")
     @Produces(MediaType.APPLICATION_JSON)
     public Map<Integer, String> getApplicationHosts() {
-        final Map<Integer, String> partitionToHost = this.streams.streamsMetadataForStore(this.storeName).stream()
+        final Map<Integer, String> partitionToHost = this.streams.streamsMetadataForStore(POINT_STORE).stream()
             .flatMap(StreamsStateController::getAddressesForPartitions)
             .filter(distinctByKey(PartitionAddress::getPartition))
             .collect(Collectors.toMap(PartitionAddress::getPartition, PartitionAddress::getAddress));
