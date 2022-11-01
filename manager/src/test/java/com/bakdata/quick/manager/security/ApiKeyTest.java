@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 class ApiKeyTest {
 
     private static final String TOPIC = "test-topic";
+    public static final String REQUEST_ID = "request123";
     private static final String SECURE_PATH = String.format("/topic/%s", TOPIC);
     @Inject
     TopicService topicService;
@@ -58,7 +59,7 @@ class ApiKeyTest {
 
     @Test
     void shouldAuthorizedWhenApiKeyExists() {
-        when(this.topicService.deleteTopic(TOPIC)).thenReturn(Completable.complete());
+        when(this.topicService.deleteTopic(TOPIC, REQUEST_ID)).thenReturn(Completable.complete());
 
         final HttpStatus status = this.client
             .toBlocking()
@@ -70,7 +71,7 @@ class ApiKeyTest {
 
     @Test
     void shouldAuthorizedWhenApiKeyExistsAndHeaderKeyCaseInsensitive() {
-        when(this.topicService.deleteTopic(TOPIC)).thenReturn(Completable.complete());
+        when(this.topicService.deleteTopic(TOPIC, REQUEST_ID)).thenReturn(Completable.complete());
 
         final HttpStatus status = this.client
             .toBlocking()

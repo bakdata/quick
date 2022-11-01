@@ -24,6 +24,7 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Produces;
 import io.micronaut.http.server.exceptions.ExceptionHandler;
 import jakarta.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A fallback exception handler that will be used if there is no other handler is in place. Ideally, this class is never
@@ -31,10 +32,12 @@ import jakarta.inject.Singleton;
  */
 @Produces
 @Singleton
+@Slf4j
 public class GeneralExceptionHandler implements ExceptionHandler<Exception, HttpResponse<ErrorMessage>> {
 
     @Override
     public HttpResponse<ErrorMessage> handle(final HttpRequest request, final Exception exception) {
+        log.error("Unexpected and not handled error: ", exception);
         final String detail = "An unexpected error occurred:" + exception.getMessage();
         final ErrorMessage error = HttpStatusError.toError(HttpStatus.INTERNAL_SERVER_ERROR, request.getPath(), detail);
         return HttpResponse.<ErrorMessage>serverError().body(error);

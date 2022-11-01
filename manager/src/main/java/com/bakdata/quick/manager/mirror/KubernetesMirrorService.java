@@ -58,7 +58,7 @@ public class KubernetesMirrorService implements MirrorService {
     }
 
     @Override
-    public Completable createMirror(final MirrorCreationData mirrorCreationData) {
+    public Completable createMirror(final MirrorCreationData mirrorCreationData, final String requestId) {
         return this.create(mirrorCreationData, ResourcePrefix.MIRROR);
     }
 
@@ -68,7 +68,7 @@ public class KubernetesMirrorService implements MirrorService {
     }
 
     @Override
-    public Completable deleteMirror(final String name) {
+    public Completable deleteMirror(final String name, final String requestId) {
         final String deploymentName = MirrorResourceLoader.getDeploymentName(name);
         final ImageConfig imageConfig = ImageConfig
             .of(this.deploymentConfig.getDockerRegistry(), MIRROR_IMAGE, 1, this.deploymentConfig.getDefaultImageTag());

@@ -41,6 +41,7 @@ class MirrorControllerTest {
     private static final String TAG = "test-version";
     private static final int DEFAULT_REPLICA = 1;
     private static final int REPLICAS = 3;
+    public static final String REQUEST_ID = "request123";
 
     @Client("/")
     @Inject
@@ -51,7 +52,7 @@ class MirrorControllerTest {
 
     @Test
     void shouldCreateMirrorWithDefaultReplica() {
-        when(this.service.createMirror(any())).thenReturn(Completable.complete());
+        when(this.service.createMirror(any(), REQUEST_ID)).thenReturn(Completable.complete());
 
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             NAME,
@@ -63,12 +64,12 @@ class MirrorControllerTest {
 
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));
 
-        verify(this.service).createMirror(mirrorCreationData);
+        verify(this.service).createMirror(mirrorCreationData, REQUEST_ID);
     }
 
     @Test
     void shouldCreateMirrorWithQueryValues() {
-        when(this.service.createMirror(any())).thenReturn(Completable.complete());
+        when(this.service.createMirror(any(), REQUEST_ID)).thenReturn(Completable.complete());
 
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             NAME,
@@ -80,7 +81,7 @@ class MirrorControllerTest {
 
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));
 
-        verify(this.service).createMirror(mirrorCreationData);
+        verify(this.service).createMirror(mirrorCreationData, REQUEST_ID);
     }
 
     @Test
@@ -89,9 +90,9 @@ class MirrorControllerTest {
             .expand(Collections.singletonMap("name", NAME))
             .toString();
 
-        when(this.service.deleteMirror(anyString())).thenReturn(Completable.complete());
+        when(this.service.deleteMirror(anyString(), REQUEST_ID)).thenReturn(Completable.complete());
         this.httpClient.toBlocking().exchange(DELETE(deletionUri));
-        verify(this.service).deleteMirror(NAME);
+        verify(this.service).deleteMirror(NAME, REQUEST_ID);
     }
 
     @MockBean(value = MirrorService.class)

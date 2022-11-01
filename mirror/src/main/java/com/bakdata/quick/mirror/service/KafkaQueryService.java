@@ -16,10 +16,10 @@
 
 package com.bakdata.quick.mirror.service;
 
+import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
-import com.bakdata.quick.common.api.client.mirror.HeaderConstants;
 import com.bakdata.quick.common.api.client.mirror.MirrorHost;
 import com.bakdata.quick.common.api.client.mirror.MirrorValueParser;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -151,7 +151,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     @Override
     public Single<HttpResponse<MirrorValue<List<V>>>> getRange(final String rawKey, final String from,
-        final String to) {
+                                                               final String to) {
         final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
 
         if (rangeIndexProperties == null) {
@@ -211,7 +211,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     }
 
     private HttpResponse<MirrorValue<List<V>>> fetchRange(final HostInfo replicaHostInfo,
-        final K key, final String from, final String to) {
+                                                          final K key, final String from, final String to) {
         final DefaultMirrorClient<K, V> mirrorClient = this.getDefaultMirrorClient(replicaHostInfo);
 
         log.debug("Fetching range for key {}, from {}, to {}", key, from, to);
@@ -249,6 +249,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         if (rangeStore == null) {
             final String errorMessage = String.format("Store %s not found!", storeQueryParameters.storeName());
+            log.error(errorMessage);
             throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
         }
         return rangeStore;
@@ -266,7 +267,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     }
 
     private List<V> queryRangeStore(final K key, final String from, final String to,
-        final ReadOnlyKeyValueStore<String, V> rangeStore) {
+                                    final ReadOnlyKeyValueStore<String, V> rangeStore) {
         if (this.rangeIndexer == null) {
             throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not create range indexer");
         }

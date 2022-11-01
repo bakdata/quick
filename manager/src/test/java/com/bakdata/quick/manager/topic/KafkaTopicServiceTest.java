@@ -76,6 +76,7 @@ class KafkaTopicServiceTest {
     public static final QuickTopicConfig TOPIC_CONFIG = new QuickTopicConfig(3, (short) 1);
     private static final GatewaySchema GATEWAY_SCHEMA = new GatewaySchema("test", "Test");
     private static final String SCHEMA = "type Test { id: String! }";
+    public static final String REQUEST_ID = "request123";
 
     private static EmbeddedKafkaCluster kafkaCluster = null;
     private final SchemaRegistryMock schemaRegistry =
@@ -120,7 +121,7 @@ class KafkaTopicServiceTest {
 
         final TopicCreationData requestData = createDefaultTopicCreationData(null);
         final Completable completable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData);
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData, REQUEST_ID);
 
         assertThat(completable.blockingGet()).isNull();
         assertThat(kafkaCluster.exists(topicName)).isTrue();
@@ -133,13 +134,13 @@ class KafkaTopicServiceTest {
         this.setupSuccessfulMock();
 
         final TopicCreationData requestData = createDefaultTopicCreationData(null);
-        topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData)
+        topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData, REQUEST_ID)
             .blockingAwait();
 
         assertThat(kafkaCluster.exists(topicName)).isTrue();
 
         final Throwable exception =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData)
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData, REQUEST_ID)
                 .blockingGet();
 
         final String expectedErrorMsg = String.format("Topic \"%s\" already exists", topicName);
@@ -164,7 +165,7 @@ class KafkaTopicServiceTest {
         assertThat(this.topicRegistryClient.topicDataExists(topicName).blockingGet()).isTrue();
 
         final Throwable exception =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData)
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData, REQUEST_ID)
                 .blockingGet();
 
         final String expectedErrorMsg = String.format("Topic \"%s\" already exists", topicName);
@@ -186,7 +187,7 @@ class KafkaTopicServiceTest {
 
         final TopicCreationData requestData = createDefaultTopicCreationData(null);
         final Completable completable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData);
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData, REQUEST_ID);
 
         final TopicData expectedTopicData =
             new TopicData(topicName, TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE,
@@ -207,13 +208,13 @@ class KafkaTopicServiceTest {
 
         this.schemaRegistry.registerValueSchema(topicName, this.graphQLToAvroConverter.convert(SCHEMA));
 
-        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway()))
+        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway(), REQUEST_ID))
             .thenReturn(Single.just(new GatewayDescription("test", 1, "latest")));
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
         final TopicCreationData requestData = createDefaultTopicCreationData(GATEWAY_SCHEMA);
         final Throwable throwable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData)
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData, REQUEST_ID)
                 .blockingGet();
 
         assertThat(throwable)
@@ -234,13 +235,13 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
-        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway()))
+        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway(), REQUEST_ID))
             .thenReturn(Single.just(new GatewayDescription("test", 1, "latest")));
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
         final TopicCreationData requestData = createDefaultTopicCreationData(GATEWAY_SCHEMA);
         final Completable completable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData);
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData, REQUEST_ID);
 
         assertThat(completable.blockingGet()).isNull();
         final TopicData expected =
@@ -257,13 +258,13 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
-        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway()))
+        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway(), REQUEST_ID))
             .thenReturn(Single.just(new GatewayDescription("test", 1, "latest")));
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.error(new BadArgumentException("Type OopsNotHere does not exist")));
         final TopicCreationData requestData = createDefaultTopicCreationData(GATEWAY_SCHEMA);
         final Throwable throwable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData)
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData, REQUEST_ID)
                 .blockingGet();
 
         assertThat(throwable).isNotNull()
@@ -279,13 +280,13 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
-        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway()))
+        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway(), REQUEST_ID))
             .thenReturn(Single.just(new GatewayDescription("test", 1, "latest")));
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
         final TopicCreationData requestData = createDefaultTopicCreationData(GATEWAY_SCHEMA);
         final Completable completable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData);
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData, REQUEST_ID);
 
         assertThat(completable.blockingGet()).isNull();
 
@@ -304,13 +305,13 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForProto();
         this.setupSuccessfulMock();
 
-        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway()))
+        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway(), REQUEST_ID))
             .thenReturn(Single.just(new GatewayDescription("test", 1, "latest")));
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
         final TopicCreationData requestData = createDefaultTopicCreationData(GATEWAY_SCHEMA);
         final Completable completable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, requestData);
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, requestData, REQUEST_ID);
 
         assertThat(completable.blockingGet()).isNull();
 
@@ -329,7 +330,7 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
-        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway()))
+        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway(), REQUEST_ID))
             .thenReturn(Single.just(new GatewayDescription("test", 1, "latest")));
         when(this.gatewayClient.getWriteSchema(anyString(), anyString()))
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
@@ -338,7 +339,7 @@ class KafkaTopicServiceTest {
         final TopicCreationData requestData =
             new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, retentionTime, true, null);
         final Completable completable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData);
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData, REQUEST_ID);
 
         assertThat(completable.blockingGet()).isNull();
 
@@ -350,7 +351,7 @@ class KafkaTopicServiceTest {
             retentionTime,
             null);
 
-        verify(this.mirrorService).createMirror(mirrorCreationData);
+        verify(this.mirrorService).createMirror(mirrorCreationData, REQUEST_ID);
     }
 
     @Test
@@ -363,12 +364,12 @@ class KafkaTopicServiceTest {
         final TopicCreationData requestData =
             new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
         final Completable completable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData);
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData, REQUEST_ID);
 
         assertThat(completable.blockingGet()).isNull();
-        assertThat(topicService.deleteTopic(topicName).blockingGet()).isNull();
+        assertThat(topicService.deleteTopic(topicName, REQUEST_ID).blockingGet()).isNull();
 
-        verify(this.mirrorService).deleteMirror(topicName);
+        verify(this.mirrorService).deleteMirror(topicName, REQUEST_ID);
         assertThatNullPointerException().isThrownBy(() -> this.topicRegistryClient.getTopicData(topicName));
     }
 
@@ -384,7 +385,7 @@ class KafkaTopicServiceTest {
             final String topicName = UUID.randomUUID().toString();
             final TopicCreationData requestData =
                 new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData)
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData, REQUEST_ID)
                 .blockingAwait();
         }
 
@@ -402,7 +403,7 @@ class KafkaTopicServiceTest {
         // error thrown when checking if gateway exists
         final Throwable error =
             new NotFoundException(String.format("Could not find resource %s", GATEWAY_SCHEMA.getGateway()));
-        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway()))
+        when(this.gatewayService.getGateway(GATEWAY_SCHEMA.getGateway(), REQUEST_ID))
             .thenReturn(Single.error(error));
 
         // resource doesn't exist, traefik cannot route it; This should not be called since we check existence before
@@ -411,7 +412,7 @@ class KafkaTopicServiceTest {
 
         final TopicCreationData requestData = createDefaultTopicCreationData(GATEWAY_SCHEMA);
         final Completable completable =
-            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData);
+            topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.AVRO, requestData, REQUEST_ID);
 
         final Throwable actual = completable.blockingGet();
         assertThat(actual)
@@ -438,9 +439,9 @@ class KafkaTopicServiceTest {
 
     private void setupSuccessfulMock() {
 
-        when(this.mirrorService.createMirror(any()))
+        when(this.mirrorService.createMirror(any(), REQUEST_ID))
             .thenReturn(Completable.complete());
-        when(this.mirrorService.deleteMirror(anyString()))
+        when(this.mirrorService.deleteMirror(anyString(), REQUEST_ID))
             .thenReturn(Completable.complete());
     }
 }

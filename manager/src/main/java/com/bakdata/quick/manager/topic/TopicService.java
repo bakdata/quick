@@ -28,13 +28,13 @@ import java.util.List;
  */
 public interface TopicService {
 
-    Single<List<TopicData>> getTopicList();
+    Single<List<TopicData>> getTopicList(final String requestId);
 
-    Single<TopicData> getTopicData(final String name);
+    Single<TopicData> getTopicData(final String name, final String requestId);
 
     Completable createTopic(final String name, final QuickTopicType keyType, final QuickTopicType valueType,
-        final TopicCreationData topicCreationData);
+        final TopicCreationData topicCreationData, final String requestId);
 
-    Completable deleteTopic(final String name);
+    Completable deleteTopic(final String name, final String requestId);
 
 }

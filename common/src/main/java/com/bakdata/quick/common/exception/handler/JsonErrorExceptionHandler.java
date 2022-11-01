@@ -45,6 +45,7 @@ public class JsonErrorExceptionHandler implements HttpServerFilter {
 
     @Override
     public Publisher<MutableHttpResponse<?>> doFilter(final HttpRequest<?> request, final ServerFilterChain chain) {
+        request.mutate();
         return Flowable.fromPublisher(chain.proceed(request))
             .map(response -> {
                 // check all 4xx and 5xx (client and server errors)

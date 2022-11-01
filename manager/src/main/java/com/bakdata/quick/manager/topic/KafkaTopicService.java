@@ -96,20 +96,20 @@ public class KafkaTopicService implements TopicService {
     }
 
     @Override
-    public Single<List<TopicData>> getTopicList() {
+    public Single<List<TopicData>> getTopicList(final String requestId) {
         return this.topicRegistryClient.getAllTopics();
     }
 
     @Override
-    public Single<TopicData> getTopicData(final String name) {
+    public Single<TopicData> getTopicData(final String name, final String requestId) {
         return this.topicRegistryClient.getTopicData(name);
     }
 
     @SuppressWarnings("RxReturnValueIgnored")
     @Override
     public Completable createTopic(final String name, final QuickTopicType keyType, final QuickTopicType valueType,
-                                   final TopicCreationData topicCreationData) {
-        log.info("Create new topic {} with data {}", name, topicCreationData);
+                                   final TopicCreationData topicCreationData, final String requestId) {
+        log.info("Request {}: Create new topic {} with data {}", requestId, name, topicCreationData);
         // we don't need the cache, so make sure we get the current information
         this.schemaRegistryClient.reset();
 
@@ -117,9 +117,10 @@ public class KafkaTopicService implements TopicService {
         final Completable kafkaStateCheck =
             Completable.mergeArray(this.checkKafka(name), this.checkTopicRegistry(name));
 
-        final Single<Optional<QuickSchemas>> keySchema = this.getQuickSchemas(topicCreationData.getKeySchema()).cache();
+        final Single<Optional<QuickSchemas>> keySchema = this.getQuickSchemas(
+            topicCreationData.getKeySchema(), requestId).cache();
         final Single<Optional<QuickSchemas>> valueSchema =
-            this.getQuickSchemas(topicCreationData.getValueSchema()).cache();
+            this.getQuickSchemas(topicCreationData.getValueSchema(), requestId).cache();
 
         final Completable schemaRegistryCheck = Completable.defer(() -> Completable.mergeArray(
             keySchema.flatMapCompletable(schema -> this.checkSchemaRegistry(name + "-key", schema)),
@@ -131,7 +132,7 @@ public class KafkaTopicService implements TopicService {
         // create a topic in kafka and deploy a mirror application
         final Completable kafkaTopicCreation = this.createKafkaTopic(name);
         final Completable mirrorCreation = this.createMirror(name, topicCreationData.getRetentionTime(),
-            topicCreationData.getRangeField());
+            topicCreationData.getRangeField(), requestId);
 
         // default to a mutable topic write type
         final TopicWriteType writeType =
@@ -139,7 +140,7 @@ public class KafkaTopicService implements TopicService {
         // register at topic registry (value schema can be nullable)
         // todo evaluate whether the schema should be part of the topic registry
         final Completable topicRegister = Completable.defer(() -> {
-            log.debug("Register subject '{}' with topic registry", name);
+            log.debug("Request {}: Register subject '{}' with topic registry", requestId, name);
             return valueSchema.flatMapCompletable(schema -> {
                 final String graphQLSchema = schema.map(QuickSchemas::getGraphQLSchema).orElse(null);
                 final TopicData topicData = new TopicData(name, writeType, keyType, valueType, graphQLSchema);
@@ -149,9 +150,9 @@ public class KafkaTopicService implements TopicService {
 
         // register potential avro schema with the schema registry
         final Completable keyRegister =
-            keySchema.flatMapCompletable(schemas -> this.registerSchema(name, schemas, KEY));
+            keySchema.flatMapCompletable(schemas -> this.registerSchema(name, schemas, KEY, requestId));
         final Completable valueRegister =
-            valueSchema.flatMapCompletable(schemas -> this.registerSchema(name, schemas, VALUE));
+            valueSchema.flatMapCompletable(schemas -> this.registerSchema(name, schemas, VALUE, requestId));
 
         final Completable creationOperations = Completable.mergeArray(
             kafkaTopicCreation,
@@ -160,18 +161,18 @@ public class KafkaTopicService implements TopicService {
             keyRegister,
             valueRegister
         );
-        return stateCheck.andThen(creationOperations.doOnError(ignored -> this.deleteTopic(name)));
+        return stateCheck.andThen(creationOperations.doOnError(ignored -> this.deleteTopic(name, requestId)));
     }
 
     @Override
-    public Completable deleteTopic(final String name) {
+    public Completable deleteTopic(final String name, final String requestId) {
         return Completable.defer(() -> {
-            log.info("Delete topic {}", name);
+            log.info("Request {}: Delete topic {}", requestId, name);
             // we don't need the cache, so make sure we get the current information
             this.schemaRegistryClient.reset();
             // deleting stuff that has to do with Kafka happens during the cleanup run
             // the cleanup run is a job that is deployed when deleting the mirror
-            final Completable deleteMirror = this.deleteMirror(name);
+            final Completable deleteMirror = this.deleteMirror(name, requestId);
             final Completable deleteFromRegistry = this.topicRegistryClient.delete(name);
             return deleteMirror.andThen(deleteFromRegistry);
         });
@@ -199,16 +200,16 @@ public class KafkaTopicService implements TopicService {
 
     private Completable createMirror(final String topicName,
                                      @Nullable final Duration retentionTime,
-                                     @Nullable final String rangeField) {
+                                     @Nullable final String rangeField, final String requestId) {
         return Completable.defer(() -> {
-            log.info("Create mirror for topic {}", topicName);
+            log.info("Request {}: Create mirror for topic {}", requestId, topicName);
             final MirrorCreationData mirrorCreationData = new MirrorCreationData(topicName,
                 topicName,
                 1,
                 null, // use default tag
                 retentionTime,
                 rangeField);
-            return this.mirrorService.createMirror(mirrorCreationData);
+            return this.mirrorService.createMirror(mirrorCreationData, requestId);
         });
     }
 
@@ -249,13 +250,13 @@ public class KafkaTopicService implements TopicService {
             );
     }
 
-    private Completable deleteMirror(final String topicName) {
+    private Completable deleteMirror(final String topicName, final String requestId) {
         return Completable.fromAction(() -> log.info("Delete mirror for topic {}", topicName))
-            .mergeWith(this.mirrorService.deleteMirror(topicName));
+            .mergeWith(this.mirrorService.deleteMirror(topicName, requestId));
     }
 
     private Completable registerSchema(final String topic, final Optional<QuickSchemas> schemas,
-                                       final KeyValueEnum keyValue) {
+                                       final KeyValueEnum keyValue, final String requestId) {
         // if there is no schema, we can just return
         if (schemas.isEmpty()) {
             return Completable.complete();
@@ -263,19 +264,19 @@ public class KafkaTopicService implements TopicService {
         // otherwise, parse the string as schema and send it to the schema registry
         return Completable.fromAction(() -> {
                 final String subject = keyValue.asSubject(topic);
-                log.debug("Register subject '{}' with schema registry", subject);
+                log.debug("Request {}: Register subject '{}' with schema registry", requestId, subject);
                 this.schemaRegistryClient.register(subject, schemas.get().getParsedSchema());
             }
         );
     }
 
-    private Single<Optional<QuickSchemas>> getQuickSchemas(final GatewaySchema gatewaySchema) {
+    private Single<Optional<QuickSchemas>> getQuickSchemas(final GatewaySchema gatewaySchema, final String requestId) {
         if (gatewaySchema == null) {
             return Single.just(Optional.empty());
         }
 
         // make sure the gateway exists
-        return this.gatewayService.getGateway(gatewaySchema.getGateway())
+        return this.gatewayService.getGateway(gatewaySchema.getGateway(), requestId)
             .flatMap(ignored -> this.gatewayClient.getWriteSchema(gatewaySchema.getGateway(), gatewaySchema.getType()))
             .map(schemaResponse -> {
                 final String graphQLSchema = schemaResponse.getSchema();

@@ -51,6 +51,7 @@ class ApplicationControllerTest {
     private static final int REPLICAS = 3;
     private static final int PORT = 8080;
     private static final Map<String, String> ARGS = Map.of("--arg1", "value1");
+    public static final String REQUEST_HEADER_VALUE = "request123";
 
 
     @Client("/")
@@ -65,7 +66,7 @@ class ApplicationControllerTest {
     void shouldGetApplicationInformation() {
         final ApplicationDescription expected = new ApplicationDescription(NAME);
 
-        when(this.service.getApplicationInformation(anyString())).thenReturn(Single.just(
+        when(this.service.getApplicationInformation(anyString(), REQUEST_HEADER_VALUE)).thenReturn(Single.just(
             expected));
 
         final ApplicationDescription result = this.applicationClient.getApplicationInformation(NAME).blockingGet();
@@ -78,7 +79,7 @@ class ApplicationControllerTest {
         final ApplicationCreationData applicationCreationData =
             new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, null, ARGS);
 
-        when(this.service.deployApplication(applicationCreationData))
+        when(this.service.deployApplication(applicationCreationData, REQUEST_HEADER_VALUE))
             .thenReturn(Completable.complete());
 
         final Completable completable = this.applicationClient.deployApplication(applicationCreationData);
@@ -87,9 +88,9 @@ class ApplicationControllerTest {
 
     @Test
     void shouldDeleteApplication() {
-        when(this.service.deleteApplication(NAME)).thenReturn(Completable.complete());
+        when(this.service.deleteApplication(NAME, REQUEST_HEADER_VALUE)).thenReturn(Completable.complete());
 
-        when(this.service.deleteApplication(NAME))
+        when(this.service.deleteApplication(NAME, REQUEST_HEADER_VALUE))
             .thenReturn(Completable.complete());
 
         final Completable completable = this.applicationClient.deleteApplication(NAME);
@@ -104,12 +105,12 @@ class ApplicationControllerTest {
 
         final ApplicationDescription expected = new ApplicationDescription(NAME);
 
-        when(this.service.getApplicationInformation(anyString())).thenReturn(Single.just(
+        when(this.service.getApplicationInformation(anyString(), REQUEST_HEADER_VALUE)).thenReturn(Single.just(
             expected));
 
         this.httpClient.toBlocking().exchange(GET(getAppInfoUri));
 
-        verify(this.service).getApplicationInformation(NAME);
+        verify(this.service).getApplicationInformation(NAME, REQUEST_HEADER_VALUE);
     }
 
     @Test
@@ -117,12 +118,12 @@ class ApplicationControllerTest {
         final ApplicationCreationData applicationCreationData =
             new ApplicationCreationData(NAME, REGISTRY, IMAGE_NAME, TAG, REPLICAS, PORT, null, ARGS);
 
-        when(this.service.deployApplication(applicationCreationData))
+        when(this.service.deployApplication(applicationCreationData, REQUEST_HEADER_VALUE))
             .thenReturn(Completable.complete());
 
         this.httpClient.toBlocking().exchange(POST("/application/", applicationCreationData));
 
-        verify(this.service).deployApplication(applicationCreationData);
+        verify(this.service).deployApplication(applicationCreationData, REQUEST_HEADER_VALUE);
     }
 
     @Test
@@ -131,11 +132,11 @@ class ApplicationControllerTest {
             .expand(Collections.singletonMap("name", NAME))
             .toString();
 
-        when(this.service.deleteApplication(NAME)).thenReturn(Completable.complete());
+        when(this.service.deleteApplication(NAME, REQUEST_HEADER_VALUE)).thenReturn(Completable.complete());
 
         this.httpClient.toBlocking().exchange(DELETE(deletionUri));
 
-        verify(this.service).deleteApplication(NAME);
+        verify(this.service).deleteApplication(NAME, REQUEST_HEADER_VALUE);
     }
 
     @MockBean(ApplicationService.class)

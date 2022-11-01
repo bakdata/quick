@@ -49,6 +49,7 @@ class TopicControllerTest {
 
     public static final String BASE_PATH = "/topic/{name}";
     private static final String NAME = "test-topic";
+    public static final String REQUEST_ID = "request123";
     private static String baseUri = null;
 
     @Client("/")
@@ -70,38 +71,38 @@ class TopicControllerTest {
     void shouldGetTopicList() {
         final TopicData topic =
             new TopicData(NAME, TopicWriteType.MUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);
-        when(this.service.getTopicList()).thenReturn(Single.just(List.of(topic)));
+        when(this.service.getTopicList(REQUEST_ID)).thenReturn(Single.just(List.of(topic)));
 
         this.client.toBlocking().exchange(GET("/topics"));
 
-        verify(this.service).getTopicList();
+        verify(this.service).getTopicList(REQUEST_ID);
     }
 
     @Test
     void shouldGetTopic() {
-        when(this.service.getTopicData(anyString()))
+        when(this.service.getTopicData(anyString(), REQUEST_ID))
             .thenReturn(Single.just(
                 new TopicData(NAME, TopicWriteType.MUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null)));
 
         this.client.toBlocking().exchange(GET(baseUri));
 
-        verify(this.service).getTopicData(NAME);
+        verify(this.service).getTopicData(NAME, REQUEST_ID);
     }
 
     @Test
     void testCreateTopicWhenQueryIsNotDefined() {
-        when(this.service.createTopic(anyString(), any(), any(), any())).thenReturn(Completable.complete());
+        when(this.service.createTopic(anyString(), any(), any(), any(), REQUEST_ID)).thenReturn(Completable.complete());
 
         final TopicCreationData creationData =
             new TopicCreationData(TopicWriteType.MUTABLE, null, new GatewaySchema("test", "test"), null, true, null);
         this.client.toBlocking().exchange(POST(baseUri, creationData));
 
-        verify(this.service).createTopic(NAME, QuickTopicType.LONG, QuickTopicType.SCHEMA, creationData);
+        verify(this.service).createTopic(NAME, QuickTopicType.LONG, QuickTopicType.SCHEMA, creationData, REQUEST_ID);
     }
 
     @Test
     void testCreateTopicWhenQueryIsSet() {
-        when(this.service.createTopic(anyString(), any(), any(), any())).thenReturn(Completable.complete());
+        when(this.service.createTopic(anyString(), any(), any(), any(), REQUEST_ID)).thenReturn(Completable.complete());
 
         final String uri = UriBuilder.of(baseUri)
             .queryParam("keyType", QuickTopicType.STRING)
@@ -113,14 +114,14 @@ class TopicControllerTest {
             new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
         this.client.toBlocking().exchange(POST(uri, creationData));
 
-        verify(this.service).createTopic(NAME, QuickTopicType.STRING, QuickTopicType.DOUBLE, creationData);
+        verify(this.service).createTopic(NAME, QuickTopicType.STRING, QuickTopicType.DOUBLE, creationData, REQUEST_ID);
     }
 
     @Test
     void shouldDeleteTopic() {
-        when(this.service.deleteTopic(NAME)).thenReturn(Completable.complete());
+        when(this.service.deleteTopic(NAME, REQUEST_ID)).thenReturn(Completable.complete());
         this.client.toBlocking().exchange(DELETE(baseUri));
-        verify(this.service).deleteTopic(NAME);
+        verify(this.service).deleteTopic(NAME, REQUEST_ID);
     }
 
     @MockBean(TopicService.class)

@@ -33,7 +33,7 @@ public interface GatewayService {
      *
      * @return {@link GatewayDescription} object
      */
-    Single<List<GatewayDescription>> getGatewayList();
+    Single<List<GatewayDescription>> getGatewayList(final String requestId);
 
     /**
      * Displays information about a single gateway.
@@ -41,21 +41,21 @@ public interface GatewayService {
      * @param name of the gateway requested
      * @return {@link GatewayDescription} object
      */
-    Single<GatewayDescription> getGateway(final String name);
+    Single<GatewayDescription> getGateway(final String name, final String requestId);
 
     /**
      * Deploys a new gateway.
      *
      * @param gatewayCreationData data for creating this gateway
      */
-    Completable createGateway(final GatewayCreationData gatewayCreationData);
+    Completable createGateway(final GatewayCreationData gatewayCreationData, final String requestId);
 
     /**
      * Deletes a gateway.
      *
      * @param name the name of the gateway to delete
      */
-    Completable deleteGateway(final String name);
+    Completable deleteGateway(final String name, final String requestId);
 
     /**
      * Updates the schema of a gateway.
@@ -63,7 +63,7 @@ public interface GatewayService {
      * @param name          name of the gateway
      * @param graphQLSchema new schema to update
      */
-    Completable updateSchema(final String name, final String graphQLSchema);
+    Completable updateSchema(final String name, final String graphQLSchema, final String requestId);
 
     /**
      * Returns the write schema for a given gateway in GraphQL or Avro format.
@@ -73,7 +73,8 @@ public interface GatewayService {
      * @param format enum defining in which format the write schema should be returned
      * @return SchemaData object containing the write schema
      */
-    Single<SchemaData> getGatewayWriteSchema(final String name, final String type, final SchemaFormat format);
+    Single<SchemaData> getGatewayWriteSchema(final String name, final String type, final SchemaFormat format,
+                                             final String requestId);
 
     /**
      * The enum denotes the schema format returned by the gateway.

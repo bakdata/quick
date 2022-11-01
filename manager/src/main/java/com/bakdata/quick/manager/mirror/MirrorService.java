@@ -23,9 +23,9 @@ import io.reactivex.Completable;
  * Service managing Quick's mirror applications.
  */
 public interface MirrorService {
-    Completable createMirror(final MirrorCreationData mirrorCreationData);
+    Completable createMirror(final MirrorCreationData mirrorCreationData, final String requestId);
 
     Completable createInternalMirror(final MirrorCreationData mirrorCreationData);
 
-    Completable deleteMirror(final String topicName);
+    Completable deleteMirror(final String topicName, final String requestId);
 }
