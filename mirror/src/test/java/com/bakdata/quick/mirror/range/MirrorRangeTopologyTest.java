@@ -21,7 +21,6 @@ import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
 import static com.bakdata.quick.common.TestTypeUtils.newLongData;
 import static com.bakdata.quick.common.TestTypeUtils.newProtobufData;
 import static com.bakdata.quick.common.TestTypeUtils.newStringData;
-import static com.bakdata.quick.mirror.MirrorApplication.RETENTION_STORE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
@@ -35,13 +34,15 @@ import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.StreamConsumer;
-import com.bakdata.quick.mirror.StreamConsumer.QuickStreamData;
+import com.bakdata.quick.mirror.StreamConsumer.RepartitionedTopologyData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RecordData;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
-import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
+import com.bakdata.quick.mirror.range.extractor.AvroExtractor;
+import com.bakdata.quick.mirror.range.extractor.ProtoExtractor;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
@@ -80,6 +81,7 @@ class MirrorRangeTopologyTest {
     private static final List<String> INPUT_TOPICS = List.of("input");
     public static final String MIRROR_STORE = "mirror-test-store";
     private static final String RANGE_STORE_NAME = "range-test-store";
+    private static final String RETENTION_STORE = "retention-test-store";
     private static final String RANGE_KEY = "userId";
     private static final String RANGE_FIELD = "timestamp";
 
@@ -94,7 +96,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldWriteInRangeStoreWithAvroSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
-            MirrorRangeTopologyTest.createTopology(properties, newIntegerData(), avroData(), new AvroTypeExtractor(),
+            createTopology(properties, newIntegerData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), null, SchemaFormat.AVRO),
             setTestProperties(Serdes.Integer(), new GenericAvroSerde())
         );
@@ -135,7 +137,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldWriteNegativeIntegerKeysInRangeStoreWithAvroSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
-            MirrorRangeTopologyTest.createTopology(properties, newIntegerData(), avroData(), new AvroTypeExtractor(),
+            createTopology(properties, newIntegerData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), null, SchemaFormat.AVRO),
             setTestProperties(Serdes.Integer(), new GenericAvroSerde())
         );
@@ -177,7 +179,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldWriteMinAndMaxIntegerKeysInRangeStoreWithAvroSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
-            MirrorRangeTopologyTest.createTopology(properties, newIntegerData(), avroData(), new AvroTypeExtractor(),
+            createTopology(properties, newIntegerData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), null, SchemaFormat.AVRO),
             setTestProperties(Serdes.Integer(), new GenericAvroSerde())
         );
@@ -219,7 +221,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldWriteStringKeysInRangeStoreValueWithAvroSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
-            MirrorRangeTopologyTest.createTopology(properties, newStringData(), avroData(), new AvroTypeExtractor(),
+            createTopology(properties, newStringData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), null, SchemaFormat.AVRO),
             setTestProperties(Serdes.String(), new GenericAvroSerde())
         );
@@ -257,7 +259,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldWriteInRangeStoreWithProtoSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
-            MirrorRangeTopologyTest.createTopology(properties, newLongData(), protoData(), new ProtoTypeExtractor(),
+            createTopology(properties, newLongData(), protoData(), new ProtoTypeExtractor(),
                 new MessageValueExtractor<>(), null, SchemaFormat.PROTOBUF),
             setTestProperties(Serdes.Long(), new KafkaProtobufSerde<>())
         ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new ProtobufSchemaProvider())));
@@ -302,7 +304,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldWriteNegativeKeysInRangeStoreWithProtoSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
-            MirrorRangeTopologyTest.createTopology(properties, newLongData(), protoData(), new ProtoTypeExtractor(),
+            createTopology(properties, newLongData(), protoData(), new ProtoTypeExtractor(),
                 new MessageValueExtractor<>(), null, SchemaFormat.PROTOBUF),
             setTestProperties(Serdes.Long(), new KafkaProtobufSerde<>())
         ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new ProtobufSchemaProvider())));
@@ -345,7 +347,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldWriteMinAndMaxLongKeysInRangeStoreWithProtoSchemaValue() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
-            MirrorRangeTopologyTest.createTopology(properties, newLongData(), protoData(), new ProtoTypeExtractor(),
+            createTopology(properties, newLongData(), protoData(), new ProtoTypeExtractor(),
                 new MessageValueExtractor<>(), null, SchemaFormat.PROTOBUF),
             setTestProperties(Serdes.Long(), new KafkaProtobufSerde<>())
         ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new ProtobufSchemaProvider())));
@@ -385,7 +387,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldWriteToPointStoreAndRangeStoreWithAvroSchemaWhenRangeKeyIsSet() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
-            MirrorRangeTopologyTest.createTopology(properties, newStringData(), avroData(), new AvroTypeExtractor(),
+            createTopology(properties, newStringData(), avroData(), new AvroTypeExtractor(),
                 new GenericRecordValueExtractor<>(), RANGE_KEY, SchemaFormat.AVRO),
             setTestProperties(Serdes.String(), new GenericAvroSerde())
         );
@@ -429,7 +431,7 @@ class MirrorRangeTopologyTest {
     @Test
     void shouldToWritePointStoreAndRangeStoreWithProtoSchemaWhenRangeKeyIsSet() {
         final TestTopology<Object, Object> testTopology = new TestTopology<>(properties ->
-            MirrorRangeTopologyTest.createTopology(properties, newStringData(), protoData(), new ProtoTypeExtractor(),
+            createTopology(properties, newStringData(), protoData(), new ProtoTypeExtractor(),
                 new MessageValueExtractor<>(), RANGE_KEY, SchemaFormat.PROTOBUF),
             setTestProperties(Serdes.String(), new KafkaProtobufSerde<>())
         ).withSchemaRegistryMock(new SchemaRegistryMock(List.of(new ProtobufSchemaProvider())));
@@ -474,6 +476,7 @@ class MirrorRangeTopologyTest {
         final QuickData<V> quickValueData, final FieldTypeExtractor fieldTypeExtractor,
         final FieldValueExtractor<V> fieldValueExtractor, @Nullable final String rangeKey,
         final SchemaFormat schemaFormat) {
+
         final String topic = INPUT_TOPICS.get(0);
 
         final QuickTopicData<K, V> data =
@@ -490,13 +493,18 @@ class MirrorRangeTopologyTest {
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(schemaFormat), Optional.empty());
         final KafkaConfig kafkaConfig = new KafkaConfig("", "");
         final ConversionProvider conversionProvider = new DefaultConversionProvider(kafkaConfig, schemaConfig);
-        final ExtractorResolver extractorResolver = new ExtractorResolver(schemaConfig);
-        final StreamConsumer streamConsumer = new StreamConsumer(extractorResolver, conversionProvider);
+
+        SchemaExtractor schemaExtractor = new AvroExtractor();
+        if(schemaConfig.getFormat() == SchemaFormat.PROTOBUF) {
+            schemaExtractor = new ProtoExtractor();
+        }
+
+        final StreamConsumer streamConsumer = new StreamConsumer(schemaExtractor, conversionProvider);
 
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
-        final QuickStreamData<K, V> quickStreamData = streamConsumer.consume(topologyInfo, streamsBuilder, rangeKey);
-
-        final RecordData<K, V> recordData = quickStreamData.getRecordData();
+        final RepartitionedTopologyData<K, V>
+            repartitionedTopologyData = streamConsumer.consume(topologyInfo, streamsBuilder, rangeKey);
+        final RecordData<K, V> recordData = repartitionedTopologyData.getRecordData();
 
         final MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder()
             .streamsBuilder(streamsBuilder)
@@ -510,7 +518,7 @@ class MirrorRangeTopologyTest {
             .fieldValueExtractor(fieldValueExtractor)
             .build();
 
-        return new MirrorTopology<>(mirrorContext).createTopology(quickStreamData.getStream());
+        return new MirrorTopology<>(mirrorContext).createTopology(repartitionedTopologyData.getStream());
     }
 
     private static QuickData<GenericRecord> avroData() {

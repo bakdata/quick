@@ -22,7 +22,7 @@ import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.RecordData;
 import com.bakdata.quick.mirror.range.KeySelector;
-import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -42,12 +42,12 @@ import org.apache.kafka.streams.kstream.Repartitioned;
  */
 @Singleton
 public class StreamConsumer {
-    private final ExtractorResolver extractorResolver;
+    private final SchemaExtractor schemaExtractor;
     private final ConversionProvider conversionProvider;
 
     @Inject
-    public StreamConsumer(final ExtractorResolver extractorResolver, final ConversionProvider conversionProvider) {
-        this.extractorResolver = extractorResolver;
+    public StreamConsumer(final SchemaExtractor schemaExtractor, final ConversionProvider conversionProvider) {
+        this.schemaExtractor = schemaExtractor;
         this.conversionProvider = conversionProvider;
     }
 
@@ -56,7 +56,7 @@ public class StreamConsumer {
      */
     // The cast is safe. The generic types of R and K are similar when the rangeKey is null
     @SuppressWarnings("unchecked")
-    public <K, V, R> QuickStreamData<R, V> consume(final QuickTopologyData<K, V> topologyData,
+    public <K, R, V> RepartitionedTopologyData<R, V> consume(final QuickTopologyData<K, V> topologyData,
         final StreamsBuilder streamsBuilder,
         @Nullable final String rangeKye) {
         final Serde<K> keySerde = topologyData.getTopicData().getKeyData().getSerde();
@@ -64,23 +64,23 @@ public class StreamConsumer {
         final KStream<K, V> stream =
             streamsBuilder.stream(topologyData.getInputTopics().get(0), Consumed.with(keySerde, valueSerde));
         if (rangeKye != null) {
-            final KeySelector<R, V> rvKeySelector = this.getKeySelector(rangeKye, topologyData.getTopicData());
+            final KeySelector<R, V> keySelector = this.getKeySelector(rangeKye, topologyData.getTopicData());
             final RecordData<R, V> recordData =
-                new RecordData<>(rvKeySelector.getRepartitionedKeyData(), topologyData.getTopicData()
+                new RecordData<>(keySelector.getRepartitionedKeyData(), topologyData.getTopicData()
                     .getValueData());
             final KStream<R, V> kStream =
-                repartitionStream(stream, rvKeySelector, topologyData.getTopicData().getValueData().getSerde(),
+                repartitionStream(stream, keySelector, topologyData.getTopicData().getValueData().getSerde(),
                     rangeKye);
-            return new QuickStreamData<>(recordData, kStream);
+            return new RepartitionedTopologyData<>(recordData, kStream);
         }
         final RecordData<K, V> recordData =
             new RecordData<>(topologyData.getTopicData().getKeyData(), topologyData.getTopicData()
                 .getValueData());
 
-        return (QuickStreamData<R, V>) new QuickStreamData<>(recordData, stream);
+        return (RepartitionedTopologyData<R, V>) new RepartitionedTopologyData<>(recordData, stream);
     }
 
-    private static <K, V, R> KStream<R, V> repartitionStream(final KStream<K, V> inputStream,
+    private static <K, R, V> KStream<R, V> repartitionStream(final KStream<K, V> inputStream,
         final KeySelector<R, V> keySelector,
         final Serde<V> valueSerde, final String rangeKey) {
         final QuickData<R> repartitionedKeyData = keySelector.getRepartitionedKeyData();
@@ -90,10 +90,10 @@ public class StreamConsumer {
             .repartition(Repartitioned.with(serde, valueSerde));
     }
 
-    private <K, V, R> KeySelector<R, V> getKeySelector(final String rangeKey, final QuickTopicData<K, V> topicData) {
+    private <K, R, V> KeySelector<R, V> getKeySelector(final String rangeKey, final QuickTopicData<K, V> topicData) {
         final ParsedSchema parsedSchema = Objects.requireNonNull(topicData.getValueData().getParsedSchema());
-        final FieldTypeExtractor fieldTypeExtractor = this.extractorResolver.getFieldTypeExtractor();
-        final FieldValueExtractor<V> fieldValueExtractor = this.extractorResolver.getFieldValueExtractor();
+        final FieldTypeExtractor fieldTypeExtractor = this.schemaExtractor.getFieldTypeExtractor();
+        final FieldValueExtractor<V> fieldValueExtractor = this.schemaExtractor.getFieldValueExtractor();
         return KeySelector.create(fieldTypeExtractor, fieldValueExtractor, this.conversionProvider, parsedSchema,
             rangeKey);
     }
@@ -102,7 +102,7 @@ public class StreamConsumer {
      * Contains the {@link RecordData} and the {@link KStream}.
      */
     @Value
-    public static class QuickStreamData<K, V> {
+    public static class RepartitionedTopologyData<K, V> {
         RecordData<K, V> recordData;
         KStream<K, V> stream;
     }

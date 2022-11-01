@@ -35,7 +35,7 @@ import com.bakdata.quick.mirror.MirrorApplication;
 import com.bakdata.quick.mirror.StreamConsumer;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
-import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,7 +72,7 @@ class PointIndexMirrorIntegrationTest {
     @Inject
     private MirrorContextProvider<String, String> mirrorContextProvider;
     @Inject
-    ExtractorResolver extractorResolver;
+    SchemaExtractor schemaExtractor;
 
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
@@ -94,7 +94,7 @@ class PointIndexMirrorIntegrationTest {
     void shouldReceiveCorrectValueFromMirrorApplicationWithPointIndex()
         throws InterruptedException, JsonProcessingException {
         sendValuesToKafka();
-        final MirrorApplication<String, String> app = this.setUpApp();
+        final MirrorApplication<String, String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();
 
@@ -154,18 +154,20 @@ class PointIndexMirrorIntegrationTest {
         kafkaCluster.send(sendRequest);
     }
 
-    private MirrorApplication<String, String> setUpApp() {
+    private MirrorApplication<String, String, String> setUpApp() {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy:123", schemaRegistry.getUrl());
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
         final DefaultConversionProvider defaultConversionProvider =
             new DefaultConversionProvider(kafkaConfig, schemaConfig);
 
-        final MirrorApplication<String, String> app = new MirrorApplication<>(
-            this.extractorResolver, this.applicationContext,
+        final MirrorApplication<String, String, String> app = new MirrorApplication<>(
+            this.schemaExtractor,
+            this.applicationContext,
             topicTypeService(),
             TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.mirrorContextProvider,
-            new StreamConsumer(this.extractorResolver, defaultConversionProvider)
+            this.hostConfig,
+            this.mirrorContextProvider,
+            new StreamConsumer(this.schemaExtractor, defaultConversionProvider)
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());

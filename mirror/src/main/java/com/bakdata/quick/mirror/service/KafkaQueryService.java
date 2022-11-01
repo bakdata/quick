@@ -16,8 +16,6 @@
 
 package com.bakdata.quick.mirror.service;
 
-import static com.bakdata.quick.mirror.MirrorApplication.POINT_STORE;
-
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
@@ -32,7 +30,7 @@ import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
-import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.indexer.ReadRangeIndexer;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -78,7 +76,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     private final TypeResolver<V> valueResolver;
     private final StoreQueryParameters<ReadOnlyKeyValueStore<K, V>> pointStoreQueryParameters;
     private final RangeIndexProperties rangeIndexProperties;
-    private final ExtractorResolver extractorResolver;
+    private final SchemaExtractor schemaExtractor;
     @Nullable
     private StoreQueryParameters<ReadOnlyKeyValueStore<String, V>> rangeStoreQueryParameters;
     @Nullable
@@ -89,10 +87,10 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
      */
     @Inject
     @SuppressWarnings("unchecked")
-    public KafkaQueryService(final HttpClient client, final
-        ExtractorResolver extractorResolver, final MirrorContextProvider<K, V> contextProvider) {
+    public KafkaQueryService(final HttpClient client, final SchemaExtractor schemaExtractor,
+        final MirrorContextProvider<K, V> contextProvider) {
         this.client = client;
-        this.extractorResolver = extractorResolver;
+        this.schemaExtractor = schemaExtractor;
 
         this.queryContext = (MirrorContext<K, V>) contextProvider.get();
 
@@ -105,7 +103,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         log.debug("Initializing KafkaQueryService for point index");
         this.pointStoreQueryParameters =
-            StoreQueryParameters.fromNameAndType(POINT_STORE, QueryableStoreTypes.keyValueStore());
+            StoreQueryParameters.fromNameAndType(this.queryContext.getPointStoreName(),
+                QueryableStoreTypes.keyValueStore());
 
         if (this.rangeIndexProperties.isEnabled()) {
             this.initializeQueryServiceForRange();
@@ -115,7 +114,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     @Override
     public Single<HttpResponse<MirrorValue<V>>> get(final String rawKey) {
         final K key = this.keyResolver.fromString(rawKey);
-        final KeyQueryMetadata metadata = this.getKeyQueryMetadata(key, POINT_STORE);
+        final KeyQueryMetadata metadata = this.getKeyQueryMetadata(key, this.queryContext.getPointStoreName());
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
@@ -189,7 +188,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.rangeStoreQueryParameters =
             StoreQueryParameters.fromNameAndType(rangeStoreName, QueryableStoreTypes.keyValueStore());
 
-        final FieldTypeExtractor fieldTypeExtractor = this.extractorResolver.getFieldTypeExtractor();
+        final FieldTypeExtractor fieldTypeExtractor = this.schemaExtractor.getFieldTypeExtractor();
         final ParsedSchema parsedSchema = this.queryContext.getRecordData().getValueData().getParsedSchema();
 
         this.rangeIndexer = ReadRangeIndexer.create(fieldTypeExtractor,

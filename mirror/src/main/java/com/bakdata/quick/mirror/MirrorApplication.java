@@ -29,16 +29,15 @@ import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.CliArgHandler;
-import com.bakdata.quick.mirror.StreamConsumer.QuickStreamData;
+import com.bakdata.quick.mirror.StreamConsumer.RepartitionedTopologyData;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
-import com.bakdata.quick.mirror.context.MirrorContext.MirrorContextBuilder;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RecordData;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
-import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
@@ -70,18 +69,18 @@ import picocli.CommandLine.Option;
 @Setter
 @Singleton
 @Slf4j
-public class MirrorApplication<K, V> extends KafkaStreamsApplication {
-    public static final String POINT_STORE = "mirror-store";
-    public static final String RETENTION_STORE = "retention-store";
-    public static final String RANGE_STORE = "range-store";
+public class MirrorApplication<K, R, V> extends KafkaStreamsApplication {
+    private static final String POINT_STORE = "mirror-store";
+    private static final String RETENTION_STORE = "retention-store";
+    private static final String RANGE_STORE = "range-store";
 
     // injectable parameter
-    private final ExtractorResolver extractorResolver;
+    private final SchemaExtractor schemaExtractor;
     private final TopicTypeService topicTypeService;
     private final QuickTopicConfig topicConfig;
     private final ApplicationContext context;
     private final HostConfig hostConfig;
-    private final MirrorContextProvider<?, V> contextProvider;
+    private final MirrorContextProvider<R, V> contextProvider;
     private final StreamConsumer streamConsumer;
 
     // CLI Arguments
@@ -109,11 +108,12 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      * @param topicConfig kafka topic config
      * @param hostConfig host config for this pod
      */
-    public MirrorApplication(final ExtractorResolver extractorResolver, final ApplicationContext context,
+    public MirrorApplication(final SchemaExtractor schemaExtractor,
+        final ApplicationContext context,
         final TopicTypeService topicTypeService,
         final QuickTopicConfig topicConfig, final HostConfig hostConfig,
-        final MirrorContextProvider<?, V> contextProvider, final StreamConsumer streamConsumer) {
-        this.extractorResolver = extractorResolver;
+        final MirrorContextProvider<R, V> contextProvider, final StreamConsumer streamConsumer) {
+        this.schemaExtractor = schemaExtractor;
         this.topicTypeService = topicTypeService;
         this.topicConfig = topicConfig;
         this.context = context;
@@ -137,17 +137,21 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         final QuickTopologyData<K, V> topologyData = this.getTopologyData();
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
         final String topicName = topologyData.getTopicData().getName();
-        final QuickStreamData<K, V> quickStreamData =
+
+        final RepartitionedTopologyData<R, V> repartitionedTopologyData =
             this.streamConsumer.consume(topologyData, streamsBuilder, this.rangeKey);
 
-        final MirrorContext<K, V> mirrorContext =
-            this.buildTopologyContext(streamsBuilder, topicName, quickStreamData.getRecordData());
-        return new MirrorTopology<>(mirrorContext).createTopology(quickStreamData.getStream());
+        final MirrorContext<R, V> mirrorContext =
+            this.buildTopologyContext(streamsBuilder, topicName, repartitionedTopologyData.getRecordData());
+
+        this.contextProvider.setMirrorContext(mirrorContext);
+        return new MirrorTopology<>(mirrorContext).createTopology(repartitionedTopologyData.getStream());
     }
 
-    private MirrorContext<K, V> buildTopologyContext(final StreamsBuilder streamsBuilder,
-        final String topicName, final RecordData<K, V> recordData) {
-        final MirrorContextBuilder<K, V> builder = MirrorContext.<K, V>builder()
+    private MirrorContext<R, V> buildTopologyContext(final StreamsBuilder streamsBuilder,
+        final String topicName, final RecordData<R, V> recordData) {
+
+        return MirrorContext.<R, V>builder()
             .streamsBuilder(streamsBuilder)
             .pointStoreName(POINT_STORE)
             .topicName(topicName)
@@ -156,12 +160,9 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
             .rangeKey(this.rangeKey)
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
-            .fieldValueExtractor(this.extractorResolver.getFieldValueExtractor())
-            .fieldTypeExtractor(this.extractorResolver.getFieldTypeExtractor())
-            .isCleanup(this.cleanUp);
-
-        this.contextProvider.setMirrorContext(builder.build());
-        return builder.build();
+            .fieldValueExtractor(this.schemaExtractor.getFieldValueExtractor())
+            .fieldTypeExtractor(this.schemaExtractor.getFieldTypeExtractor())
+            .isCleanup(this.cleanUp).build();
     }
 
     @Override

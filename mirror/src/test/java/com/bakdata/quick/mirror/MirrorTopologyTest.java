@@ -17,8 +17,6 @@
 package com.bakdata.quick.mirror;
 
 import static com.bakdata.quick.common.TestTypeUtils.newIntegerData;
-import static com.bakdata.quick.mirror.MirrorApplication.RANGE_STORE;
-import static com.bakdata.quick.mirror.MirrorApplication.RETENTION_STORE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
@@ -28,12 +26,13 @@ import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.mirror.StreamConsumer.QuickStreamData;
+import com.bakdata.quick.mirror.StreamConsumer.RepartitionedTopologyData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
-import com.bakdata.quick.mirror.range.extractor.ExtractorResolver;
+import com.bakdata.quick.mirror.range.extractor.AvroExtractor;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
 import com.google.common.collect.Maps;
 import java.util.List;
@@ -50,6 +49,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 class MirrorTopologyTest {
     private static final List<String> INPUT_TOPICS = List.of("input");
     private static final String STORE_NAME = "test-store";
+    private static final String RANGE_STORE = "test-range-store";
+    private static final String RETENTION_STORE = "test-retention-store";
 
     @RegisterExtension
     final TestTopologyExtension<Integer, Integer> driver =
@@ -73,20 +74,21 @@ class MirrorTopologyTest {
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.empty(), Optional.empty());
         final KafkaConfig kafkaConfig = new KafkaConfig("", "");
         final ConversionProvider conversionProvider = new DefaultConversionProvider(kafkaConfig, schemaConfig);
-        final ExtractorResolver extractorResolver = new ExtractorResolver(schemaConfig);
+        final SchemaExtractor extractorResolver = new AvroExtractor();
         final StreamConsumer streamConsumer = new StreamConsumer(extractorResolver, conversionProvider);
-        final QuickStreamData<Integer, Integer> quickStreamData = streamConsumer.consume(topologyInfo, streamsBuilder, null);
+        final RepartitionedTopologyData<Integer, Integer>
+            repartitionedTopologyData = streamConsumer.consume(topologyInfo, streamsBuilder, null);
 
         final MirrorContext<Integer, Integer> mirrorContext = MirrorContext.<Integer, Integer>builder()
             .streamsBuilder(streamsBuilder)
-            .recordData(quickStreamData.getRecordData())
+            .recordData(repartitionedTopologyData.getRecordData())
             .pointStoreName(STORE_NAME)
             .storeType(StoreType.INMEMORY)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, null))
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, null))
             .build();
 
-        return new MirrorTopology<>(mirrorContext).createTopology(quickStreamData.getStream());
+        return new MirrorTopology<>(mirrorContext).createTopology(repartitionedTopologyData.getStream());
     }
 
     private static Map<String, String> testProps() {
