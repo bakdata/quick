@@ -64,6 +64,7 @@ import picocli.CommandLine.Option;
  * Kafka Streams application and REST service for mirror applications.
  *
  * @param <K> key type
+ * @param <R> repartition type
  * @param <V> value type
  */
 @Setter
