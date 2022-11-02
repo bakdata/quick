@@ -56,6 +56,7 @@ public class RangeTopology implements TopologyStrategy {
      */
     @Override
     public <K, V> void create(final MirrorContext<?, V> mirrorContext, final KStream<K, V> stream) {
+        log.info("Setting up the range topology.");
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
         final Serde<String> keySerde = Serdes.String();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();

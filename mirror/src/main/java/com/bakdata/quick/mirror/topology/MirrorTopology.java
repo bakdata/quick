@@ -16,9 +16,7 @@
 
 package com.bakdata.quick.mirror.topology;
 
-import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
-import com.bakdata.quick.mirror.context.RecordData;
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -33,30 +31,31 @@ import org.apache.kafka.streams.kstream.KStream;
  * @param <V> value type
  */
 @Slf4j
-public class MirrorTopology<K, V, R> {
+public class MirrorTopology<K, V> {
 
-    private final MirrorContext<?, V> mirrorContext;
+    private final MirrorContext<K, V> mirrorContext;
 
     /**
      * Constructor used by builder.
      */
-    public MirrorTopology(final MirrorContext<?, V> mirrorContext) {
+    public MirrorTopology(final MirrorContext<K, V> mirrorContext) {
         this.mirrorContext = mirrorContext;
     }
 
     /**
      * Creates a new mirror topology.
      */
-    public Topology createTopology(final KStream<?, V> inputStream) {
+    public Topology createTopology(final KStream<K, V> inputStream) {
         final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.mirrorContext);
+        log.debug("Topologies to apply {}", topologyStrategies);
         final Topology topology = this.applyTopologies(topologyStrategies, inputStream, this.mirrorContext);
         log.debug("The topology is {}", topology.describe());
         return topology;
     }
 
     private Topology applyTopologies(final Iterable<? extends TopologyStrategy> topologyStrategies,
-        final KStream<?, V> stream,
-        final MirrorContext<?, V> mirrorContext) {
+        final KStream<K, V> stream,
+        final MirrorContext<K, V> mirrorContext) {
         for (final TopologyStrategy topologyStrategy : topologyStrategies) {
             topologyStrategy.create(mirrorContext, stream);
         }

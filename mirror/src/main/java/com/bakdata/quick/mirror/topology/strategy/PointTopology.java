@@ -19,6 +19,7 @@ package com.bakdata.quick.mirror.topology.strategy;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.point.MirrorProcessor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KStream;
@@ -28,6 +29,7 @@ import org.apache.kafka.streams.state.Stores;
 /**
  * Creates an index for point queries.
  */
+@Slf4j
 public class PointTopology implements TopologyStrategy {
     private static final String PROCESSOR_NAME = "mirror-processor";
 
@@ -44,6 +46,7 @@ public class PointTopology implements TopologyStrategy {
      */
     @Override
     public <K, V> void create(final MirrorContext<?, V> mirrorContext, final KStream<K, V> stream) {
+        log.info("Setting up the point topology.");
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
         final Serde<?> keySerDe = mirrorContext.getKeySerde();
         final Serde<?> valueSerDe = mirrorContext.getValueSerde();

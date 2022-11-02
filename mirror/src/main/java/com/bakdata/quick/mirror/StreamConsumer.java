@@ -68,10 +68,10 @@ public class StreamConsumer {
             final RecordData<R, V> recordData =
                 new RecordData<>(keySelector.getRepartitionedKeyData(), topologyData.getTopicData()
                     .getValueData());
-            final KStream<R, V> kStream =
+            final KStream<R, V> repartitionedStream =
                 repartitionStream(stream, keySelector, topologyData.getTopicData().getValueData().getSerde(),
                     rangeKye);
-            return new RepartitionedTopologyData<>(recordData, kStream);
+            return new RepartitionedTopologyData<>(recordData, repartitionedStream);
         }
         final RecordData<K, V> recordData =
             new RecordData<>(topologyData.getTopicData().getKeyData(), topologyData.getTopicData()

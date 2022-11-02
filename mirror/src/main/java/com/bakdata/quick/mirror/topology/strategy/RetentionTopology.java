@@ -21,6 +21,7 @@ import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -33,6 +34,7 @@ import org.apache.kafka.streams.state.Stores;
 /**
  * Creates a retention topology.
  */
+@Slf4j
 public class RetentionTopology implements TopologyStrategy {
     public static final String RETENTION_SINK = "same-topic-sink";
     private static final String PROCESSOR_NAME = "mirror-processor";
@@ -52,6 +54,7 @@ public class RetentionTopology implements TopologyStrategy {
      */
     @Override
     public <K, V> void create(final MirrorContext<?, V> mirrorContext, final KStream<K, V> stream) {
+        log.info("Setting up the retention time topology.");
         final StreamsBuilder builder = mirrorContext.getStreamsBuilder();
         final RetentionTimeProperties retentionTimeProperties = mirrorContext.getRetentionTimeProperties();
         final String retentionStoreName = retentionTimeProperties.getStoreName();
