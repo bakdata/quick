@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.manager.mirror;
 
+import static com.bakdata.quick.manager.TestUtil.createDefaultMirrorCreationData;
 import static io.micronaut.http.HttpRequest.DELETE;
 import static io.micronaut.http.HttpRequest.POST;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,9 +39,6 @@ import org.junit.jupiter.api.Test;
 @MicronautTest
 class MirrorControllerTest {
     private static final String NAME = "test-topic";
-    private static final String TAG = "test-version";
-    private static final int DEFAULT_REPLICA = 1;
-    private static final int REPLICAS = 3;
 
     @Client("/")
     @Inject
@@ -53,13 +51,7 @@ class MirrorControllerTest {
     void shouldCreateMirrorWithDefaultReplica() {
         when(this.service.createMirror(any())).thenReturn(Completable.complete());
 
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            NAME,
-            NAME,
-            DEFAULT_REPLICA,
-            TAG,
-            null,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(NAME);
 
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));
 
@@ -70,13 +62,7 @@ class MirrorControllerTest {
     void shouldCreateMirrorWithQueryValues() {
         when(this.service.createMirror(any())).thenReturn(Completable.complete());
 
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            NAME,
-            NAME,
-            REPLICAS,
-            TAG,
-            null,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(NAME);
 
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));
 

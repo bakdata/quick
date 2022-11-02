@@ -18,8 +18,6 @@ package com.bakdata.quick.common.api.model.manager.creation;
 
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.manager.GatewaySchema;
-import edu.umd.cs.findbugs.annotations.Nullable;
-import java.time.Duration;
 import lombok.Value;
 
 /**
@@ -30,9 +28,5 @@ public class TopicCreationData implements CreationData {
     TopicWriteType writeType;
     GatewaySchema valueSchema;
     GatewaySchema keySchema;
-    @Nullable
-    Duration retentionTime;
-    boolean point;
-    @Nullable
-    String rangeField;
+    MirrorArguments mirrorArguments;
 }

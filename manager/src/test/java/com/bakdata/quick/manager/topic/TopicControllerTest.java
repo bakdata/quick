@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.manager.topic;
 
+import static com.bakdata.quick.manager.TestUtil.createDefaultTopicCreationData;
 import static io.micronaut.http.HttpRequest.DELETE;
 import static io.micronaut.http.HttpRequest.GET;
 import static io.micronaut.http.HttpRequest.POST;
@@ -92,8 +93,8 @@ class TopicControllerTest {
     void testCreateTopicWhenQueryIsNotDefined() {
         when(this.service.createTopic(anyString(), any(), any(), any())).thenReturn(Completable.complete());
 
-        final TopicCreationData creationData =
-            new TopicCreationData(TopicWriteType.MUTABLE, null, new GatewaySchema("test", "test"), null, true, null);
+        final TopicCreationData creationData = createDefaultTopicCreationData(new GatewaySchema("test", "test"));
+
         this.client.toBlocking().exchange(POST(baseUri, creationData));
 
         verify(this.service).createTopic(NAME, QuickTopicType.LONG, QuickTopicType.SCHEMA, creationData);
@@ -109,8 +110,7 @@ class TopicControllerTest {
             .build()
             .toString();
 
-        final TopicCreationData creationData =
-            new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
+        final TopicCreationData creationData = createDefaultTopicCreationData(null);
         this.client.toBlocking().exchange(POST(uri, creationData));
 
         verify(this.service).createTopic(NAME, QuickTopicType.STRING, QuickTopicType.DOUBLE, creationData);

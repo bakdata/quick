@@ -72,6 +72,16 @@ components:
       type: string
       enum: [ key, value ]
 
+    MirrorArguments:
+      type: object
+      properties:
+        retentionTime:
+          type: string # ISO-8601
+        rangeField:
+          type: string
+        rangeKey:
+          type: string
+
     TopicCreationData:
       type: object
       properties:
@@ -81,10 +91,8 @@ components:
           $ref: '#/components/schemas/GatewaySchema'
         keySchema:
           $ref: '#/components/schemas/GatewaySchema'
-        retentionTime:
-          type: string # ISO-8601
-        rangeField:
-          type: string
+        mirrorArguments:
+          $ref: '#/components/schemas/MirrorArguments'
 
     SchemaData:
       type: object
@@ -109,10 +117,8 @@ components:
           format: int32
         tag:
           type: string
-        retentionTime:
-          type: string # ISO-8601
-        rangeField:
-          type: string
+        mirrorArguments:
+          $ref: '#/components/schemas/MirrorArguments'
       required:
         - name
         - topicName

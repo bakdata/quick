@@ -46,12 +46,11 @@ public final class TestUtil {
             topicName,
             1,
             null,
-            null,
             null);
     }
 
     public static TopicCreationData createDefaultTopicCreationData(@Nullable final GatewaySchema gatewaySchema) {
-        return new TopicCreationData(TopicWriteType.MUTABLE, gatewaySchema, null, null, true, null);
+        return new TopicCreationData(TopicWriteType.MUTABLE, gatewaySchema, null, null );
     }
 
     private static HardwareResource newResourceConfig() {
