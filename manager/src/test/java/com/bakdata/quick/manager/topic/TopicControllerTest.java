@@ -90,7 +90,7 @@ class TopicControllerTest {
     }
 
     @Test
-    void testCreateTopicWhenQueryIsNotDefined() {
+    void shouldCreateTopicWhenQueryIsNotDefined() {
         when(this.service.createTopic(anyString(), any(), any(), any())).thenReturn(Completable.complete());
 
         final TopicCreationData creationData = createDefaultTopicCreationData(new GatewaySchema("test", "test"));
@@ -101,7 +101,7 @@ class TopicControllerTest {
     }
 
     @Test
-    void testCreateTopicWhenQueryIsSet() {
+    void shouldCreateTopicWhenQueryParamsAreSet() {
         when(this.service.createTopic(anyString(), any(), any(), any())).thenReturn(Completable.complete());
 
         final String uri = UriBuilder.of(baseUri)
