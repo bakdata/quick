@@ -54,23 +54,23 @@ public class StreamConsumer {
     /**
      * Consumes the input topic and does a repartitioning based on the range key.
      */
-    // The cast is safe. The generic types of R and K are similar when the rangeKey is null
+    // The cast is safe. The generic types of R and K are equal when the rangeKey is null
     @SuppressWarnings("unchecked")
     public <K, R, V> RepartitionedTopologyData<R, V> consume(final QuickTopologyData<K, V> topologyData,
         final StreamsBuilder streamsBuilder,
-        @Nullable final String rangeKye) {
+        @Nullable final String rangeKey) {
         final Serde<K> keySerde = topologyData.getTopicData().getKeyData().getSerde();
         final Serde<V> valueSerde = topologyData.getTopicData().getValueData().getSerde();
         final KStream<K, V> stream =
             streamsBuilder.stream(topologyData.getInputTopics().get(0), Consumed.with(keySerde, valueSerde));
-        if (rangeKye != null) {
-            final KeySelector<R, V> keySelector = this.getKeySelector(rangeKye, topologyData.getTopicData());
+        if (rangeKey != null) {
+            final KeySelector<R, V> keySelector = this.getKeySelector(rangeKey, topologyData.getTopicData());
             final RecordData<R, V> recordData =
                 new RecordData<>(keySelector.getRepartitionedKeyData(), topologyData.getTopicData()
                     .getValueData());
             final KStream<R, V> repartitionedStream =
                 repartitionStream(stream, keySelector, topologyData.getTopicData().getValueData().getSerde(),
-                    rangeKye);
+                    rangeKey);
             return new RepartitionedTopologyData<>(recordData, repartitionedStream);
         }
         final RecordData<K, V> recordData =
@@ -81,8 +81,7 @@ public class StreamConsumer {
     }
 
     private static <K, R, V> KStream<R, V> repartitionStream(final KStream<K, V> inputStream,
-        final KeySelector<R, V> keySelector,
-        final Serde<V> valueSerde, final String rangeKey) {
+        final KeySelector<R, V> keySelector, final Serde<V> valueSerde, final String rangeKey) {
         final QuickData<R> repartitionedKeyData = keySelector.getRepartitionedKeyData();
         final Serde<R> serde = repartitionedKeyData.getSerde();
         return inputStream.selectKey(

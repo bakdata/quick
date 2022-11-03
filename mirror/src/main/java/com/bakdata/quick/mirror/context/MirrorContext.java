@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.context;
 
 import com.bakdata.quick.mirror.StoreType;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -48,8 +49,7 @@ public class MirrorContext<K, V> {
     RetentionTimeProperties retentionTimeProperties;
     StoreType storeType;
     boolean isCleanup;
-    FieldTypeExtractor fieldTypeExtractor;
-    FieldValueExtractor<V> fieldValueExtractor;
+    SchemaExtractor schemaExtractor;
     @Nullable
     String rangeKey;
 

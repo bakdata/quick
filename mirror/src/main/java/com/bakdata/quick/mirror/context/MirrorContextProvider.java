@@ -28,7 +28,7 @@ public interface MirrorContextProvider<K, V> {
      *
      * @return An instance of the QueryServiceContext
      */
-    MirrorContext<?, V> get();
+    MirrorContext<K, V> get();
 
     /**
      * Sets a context. The idea behind this method is to
@@ -36,5 +36,5 @@ public interface MirrorContextProvider<K, V> {
      *
      * @param context an instance of QueryServiceContext
      */
-    void setMirrorContext(MirrorContext<?, V> context);
+    void setMirrorContext(MirrorContext<K, V> context);
 }

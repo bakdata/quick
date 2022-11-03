@@ -64,7 +64,7 @@ import picocli.CommandLine.Option;
  * Kafka Streams application and REST service for mirror applications.
  *
  * @param <K> key type
- * @param <R> repartition type
+ * @param <R> repartition type. If there is no repartitioning happening R is equal to K
  * @param <V> value type
  */
 @Setter
@@ -161,8 +161,7 @@ public class MirrorApplication<K, R, V> extends KafkaStreamsApplication {
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
             .rangeKey(this.rangeKey)
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
-            .fieldValueExtractor(this.schemaExtractor.getFieldValueExtractor())
-            .fieldTypeExtractor(this.schemaExtractor.getFieldTypeExtractor())
+            .schemaExtractor(this.schemaExtractor)
             .isCleanup(this.cleanUp).build();
     }
 
@@ -219,8 +218,8 @@ public class MirrorApplication<K, R, V> extends KafkaStreamsApplication {
 
     @Override
     protected void runStreamsApplication() {
-        final MirrorContext<?, V> mirrorContext = this.contextProvider.get();
-        final MirrorContext<?, V> mirrorContextWithStream =
+        final MirrorContext<R, V> mirrorContext = this.contextProvider.get();
+        final MirrorContext<R, V> mirrorContextWithStream =
             mirrorContext.toBuilder().streams(this.getStreams()).hostInfo(this.hostConfig.toInfo()).build();
         this.contextProvider.setMirrorContext(mirrorContextWithStream);
 

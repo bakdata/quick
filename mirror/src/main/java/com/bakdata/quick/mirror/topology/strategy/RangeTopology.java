@@ -87,8 +87,9 @@ public class RangeTopology implements TopologyStrategy {
                 Objects.requireNonNull(mirrorContext.getRangeIndexProperties().getRangeField());
             log.debug("Setting up default range indexer.");
 
-            final FieldTypeExtractor fieldTypeExtractor = mirrorContext.getFieldTypeExtractor();
-            final FieldValueExtractor<V> fieldValueExtractor = mirrorContext.getFieldValueExtractor();
+            final FieldTypeExtractor fieldTypeExtractor = mirrorContext.getSchemaExtractor().getFieldTypeExtractor();
+            final FieldValueExtractor<V> fieldValueExtractor =
+                mirrorContext.getSchemaExtractor().getFieldValueExtractor();
             return WriteRangeIndexer.create(fieldTypeExtractor, fieldValueExtractor, parsedSchema, rangeField);
         }
     }

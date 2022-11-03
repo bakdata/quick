@@ -26,10 +26,10 @@ import jakarta.inject.Singleton;
 @Singleton
 public class DefaultContextProvider<K, V> implements MirrorContextProvider<K, V> {
 
-    private MirrorContext<?, V> mirrorContext = MirrorContext.<K, V>builder().build();
+    private MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder().build();
 
     @Override
-    public MirrorContext<?, V> get() {
+    public MirrorContext<K, V> get() {
         if (this.mirrorContext == null) {
             throw new MirrorTopologyException("A context for the topology has not been set.");
         }
@@ -37,7 +37,7 @@ public class DefaultContextProvider<K, V> implements MirrorContextProvider<K, V>
     }
 
     @Override
-    public void setMirrorContext(final MirrorContext<?, V> context) {
+    public void setMirrorContext(final MirrorContext<K, V> context) {
         this.mirrorContext = context;
     }
 }

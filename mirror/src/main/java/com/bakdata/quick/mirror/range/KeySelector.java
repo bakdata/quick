@@ -28,6 +28,9 @@ import org.apache.kafka.common.serialization.Serde;
 
 /**
  * Extracts the type and the value from a field in a complex type.
+ *
+ * @param <R> The type of the selected key from the schema
+ * @param <V> The type of the value
  */
 public final class KeySelector<R, V> {
     private final QuickTopicType keyType;
@@ -59,7 +62,7 @@ public final class KeySelector<R, V> {
     }
 
     /**
-     * extracts the value of a given field.
+     * Extracts the value of a given field.
      */
     public R getRangeKeyValue(final String fieldName, final V value) {
         if (value != null) {
