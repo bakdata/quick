@@ -54,7 +54,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see com.bakdata.quick.gateway.fetcher.KeyFieldFetcher
  */
 @Slf4j
-public class KeyFieldRule implements DataFetcherRule {
+public class ModificationRule implements DataFetcherRule {
 
     @Override
     public List<DataFetcherSpecification> extractDataFetchers(final TopicDirectiveContext context) {
