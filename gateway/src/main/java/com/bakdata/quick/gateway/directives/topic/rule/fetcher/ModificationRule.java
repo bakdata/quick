@@ -35,7 +35,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Rule for a keyField.
+ * Rule for a modification.
  *
  * <p>
  * <h2>Example:</h2>
