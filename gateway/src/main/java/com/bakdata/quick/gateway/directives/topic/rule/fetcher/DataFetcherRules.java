@@ -33,7 +33,7 @@ public class DataFetcherRules implements TopicDirectiveRules {
             new QueryFetcherRule(),
             new QueryListFetcherRule(),
             new ListArgumentFetcherRule(),
-            new ModificationRule(),
+            new KeyFieldRule(),
             new ModificationListRule(),
             new MutationRule(),
             new RangeFetcherRule()

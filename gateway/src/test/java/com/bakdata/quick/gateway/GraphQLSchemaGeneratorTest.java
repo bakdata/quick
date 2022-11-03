@@ -458,6 +458,18 @@ class GraphQLSchemaGeneratorTest {
     }
 
     @Test
+    void shouldNotConvertKeyFieldWithWrongKeyFieldName(final TestInfo testInfo) throws IOException {
+        this.assertQuickDirectiveExceptionMessage(testInfo,
+            String.format("Could not find the keyField %s in the parent type definition. Please check your schema.",
+                "notExistingField"));
+    }
+
+    @Test
+    void shouldNotConvertKeyFieldWithWrongFieldType(final TestInfo testInfo) throws IOException {
+        this.assertQuickDirectiveExceptionMessage(testInfo,"Found unknown type: ListType");
+    }
+
+    @Test
     void shouldNotConvertIfMissingKeyInfoInQueryType(final TestInfo testInfo) throws IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo,
             "When the return type is not a list for a non-mutation and non-subscription type,"

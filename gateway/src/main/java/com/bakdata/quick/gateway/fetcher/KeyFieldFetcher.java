@@ -20,7 +20,11 @@ import com.bakdata.quick.common.exception.BadArgumentException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.util.JsonFormat;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import graphql.Scalars;
+import graphql.language.TypeName;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import java.io.IOException;
@@ -29,8 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
 
@@ -60,11 +64,13 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
  * since it is stored in a different topic. The KeyFieldFetcher extracts the productId from the returned purchase and
  * fetches the corresponding product.
  */
+@Slf4j
 public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
     private final ObjectMapper objectMapper;
     private final String argument;
     private final DataFetcherClient<K, V> client;
     private final JsonAvroConverter converter;
+    private final TypeName typeName;
 
     /**
      * Constructor.
@@ -72,20 +78,23 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
      * @param objectMapper json handler
      * @param argument name of the argument to extract key from
      * @param client underlying HTTP mirror client
+     * @param typeName the type name of the keyField field
      */
     public KeyFieldFetcher(final ObjectMapper objectMapper,
         final String argument,
-        final DataFetcherClient<K, V> client) {
+        final DataFetcherClient<K, V> client,
+        final TypeName typeName) {
         this.objectMapper = objectMapper;
         this.argument = argument;
         this.client = client;
         this.converter = new JsonAvroConverter();
+        this.typeName = typeName;
     }
 
     @Override
     @Nullable
     public Object get(final DataFetchingEnvironment environment) {
-        final List<K> keyArguments = this.findKeyArgument(environment).collect(Collectors.toList());
+        final List<K> keyArguments = this.findKeyArgument(environment);
 
         // the modification applies either to an array node or to a single field
         // TODO create two different classes for both use cases and create them based on the schema
@@ -96,38 +105,40 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
         }
     }
 
-    // TODO: Fix this
-    private Stream<K> findKeyArgument(final DataFetchingEnvironment environment) {
+    private List<K> findKeyArgument(final DataFetchingEnvironment environment) {
         final JsonNode parentJson;
         try {
             parentJson = this.extractJson(environment);
+            log.debug("Extracted the parent JSON: {}", parentJson);
         } catch (final IOException e) {
             throw new RuntimeException("Could not convert source for extracting key", e);
         }
         // parse json and try to find the value for our argument
         // if it is an array, we need to resolve each one
         final JsonNode node = parentJson.findValue(this.argument);
+        log.debug("Found JSON object for field {} with value {}", this.argument, node);
         if (node == null) {
             throw new IllegalArgumentException(
                 String.format("Field + %s could not be found in source.", this.argument));
         }
         if (node.isArray()) {
             final Iterator<JsonNode> elements = node.elements();
-            return (Stream<K>) StreamSupport
+            return (List<K>) StreamSupport
                 .stream(Spliterators.spliteratorUnknownSize(elements, 0), false)
-                .map(KeyFieldFetcher::extractCorrectType);
-        } else {
-            final Object typedNode = extractCorrectType(node);
-            return (Stream<K>) Stream.of(typedNode);
+                .map(element -> this.extractCorrectType(element))
+                .collect(Collectors.toList());
         }
+        final Object typedNode = this.extractCorrectType(node);
+        return (List<K>) List.of(typedNode);
+
     }
 
-    private static Object extractCorrectType(final JsonNode jsonNode) {
-        if (jsonNode.isInt()) {
+    private Object extractCorrectType(final JsonNode jsonNode) {
+        if (this.typeName.getName().equals(Scalars.GraphQLInt.getName())) {
             return jsonNode.asInt();
         } else if (jsonNode.isDouble()) {
             return jsonNode.asDouble();
-        } else if (jsonNode.isLong()) {
+        } else if (this.typeName.getName().equals(ExtendedScalars.GraphQLLong.getName())) {
             return jsonNode.asLong();
         } else if (jsonNode.isBoolean()) {
             return jsonNode.asBoolean();
@@ -151,7 +162,7 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
 
         if (environment.getSource() instanceof DynamicMessage) {
             final DynamicMessage source = environment.getSource();
-            return this.objectMapper.readTree(source.toByteArray());
+            return this.objectMapper.readTree(JsonFormat.printer().includingDefaultValueFields().print(source));
         }
 
         final Map<String, Object> value = environment.getSource();

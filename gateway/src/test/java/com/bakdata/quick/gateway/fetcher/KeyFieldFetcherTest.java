@@ -32,6 +32,8 @@ import com.bakdata.quick.gateway.fetcher.TestModels.PurchaseList;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import graphql.Scalars;
+import graphql.language.TypeName;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.List;
@@ -58,9 +60,11 @@ class KeyFieldFetcherTest {
 
         final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
         when(partitionedMirrorClient.fetchValue(eq(5))).thenReturn(product);
-        final DataFetcherClient<Integer, Product> fetcherClient = new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+        final DataFetcherClient<Integer, Product> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final KeyFieldFetcher<?, ?> queryFetcher = new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient);
+        final KeyFieldFetcher<?, ?> queryFetcher =
+            new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient, new TypeName(Scalars.GraphQLInt.getName()));
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(this.mapper.convertValue(purchase, OBJECT_TYPE_REFERENCE))
@@ -93,7 +97,9 @@ class KeyFieldFetcherTest {
         final DataFetcherClient<String, Currency> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final KeyFieldFetcher<?, ?> queryFetcher = new KeyFieldFetcher<>(this.mapper, "currencyId", fetcherClient);
+        final KeyFieldFetcher<?, ?> queryFetcher =
+            new KeyFieldFetcher<>(this.mapper, "currencyId", fetcherClient,
+                new TypeName(Scalars.GraphQLString.getName()));
 
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
@@ -131,7 +137,8 @@ class KeyFieldFetcherTest {
         final DataFetcherClient<Integer, Product> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final KeyFieldFetcher<?, ?> queryFetcher = new KeyFieldFetcher<>(this.mapper, "productIds", fetcherClient);
+        final KeyFieldFetcher<?, ?> queryFetcher =
+            new KeyFieldFetcher<>(this.mapper, "productIds", fetcherClient, new TypeName(Scalars.GraphQLInt.getName()));
 
         final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
