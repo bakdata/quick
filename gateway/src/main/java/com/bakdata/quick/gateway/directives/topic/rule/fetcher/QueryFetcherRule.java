@@ -59,7 +59,7 @@ public class QueryFetcherRule implements DataFetcherRule {
         specifications.add(DataFetcherSpecification.of(coordinates, dataFetcher));
         // add defer fetcher to query if topic directive is applied to a child object
         // so that a source is not null and the query fetcher is actually called
-        DataFetcherRule.extractDeferFetcher(context).forEach(specifications::add);
+        this.extractDeferFetcher(context).forEach(specifications::add);
         return specifications;
     }
 

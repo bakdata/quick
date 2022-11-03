@@ -55,7 +55,7 @@ public class QueryListFetcherRule implements DataFetcherRule {
         final FieldCoordinates coordinates = this.currentCoordinates(context);
 
         specifications.add(DataFetcherSpecification.of(coordinates, dataFetcher));
-        DataFetcherRule.extractDeferFetcher(context).forEach(specifications::add);
+        this.extractDeferFetcher(context).forEach(specifications::add);
         return specifications;
     }
 

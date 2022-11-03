@@ -16,6 +16,8 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.DynamicMessage;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.execution.AbortExecutionException;
 import graphql.schema.DataFetcher;
@@ -62,7 +64,6 @@ public class ListFieldFetcher<K, V> implements DataFetcher<List<V>> {
         if (keys == null) {
             throw new AbortExecutionException(String.format("No keys for field %s found", this.idFieldName));
         }
-
         return keys;
     }
 }

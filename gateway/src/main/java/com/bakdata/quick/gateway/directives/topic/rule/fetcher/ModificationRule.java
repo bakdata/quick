@@ -61,7 +61,8 @@ public class ModificationRule implements DataFetcherRule {
         final String keyField = context.getTopicDirective().getKeyField();
         Objects.requireNonNull(keyField);
 
-        final TypeName type = extractKeyFieldType(context, keyField);
+        final TypeName type = this.extractKeyFieldType(context, keyField);
+
         final DataFetcher<?> dataFetcher = context.getFetcherFactory().keyFieldFetcher(
             context.getTopicDirective().getTopicName(),
             keyField,
@@ -76,7 +77,7 @@ public class ModificationRule implements DataFetcherRule {
         return context.getTopicDirective().hasKeyField() && !context.isListType();
     }
 
-    private static TypeName extractKeyFieldType(final TopicDirectiveContext context, final String keyField) {
+    private TypeName extractKeyFieldType(final TopicDirectiveContext context, final String keyField) {
         final Optional<GraphqlElementParentTree> parentInfo = context.getEnvironment()
             .getElementParentTree()
             .getParentInfo();
@@ -102,16 +103,21 @@ public class ModificationRule implements DataFetcherRule {
             throw new QuickDirectiveException(
                 errorMessage);
         }
-        return extractType(field.get().getType());
+        return this.extractName(field.get().getType());
     }
 
-    private static TypeName extractType(final Type<?> type) {
+    /**
+     * Extracts the {@link TypeName} of a  given {@link Type}. The class does not use the method of the interface
+     * because the MutationRule should not parse ListType.
+     */
+    @Override
+    public TypeName extractName(final Type<?> type) {
         if (type instanceof TypeName) {
             return (TypeName) type;
         }
 
         if (type instanceof NonNullType) {
-            return extractType(((NonNullType) type).getType());
+            return this.extractName(((NonNullType) type).getType());
         }
 
         final String errorMessage = "Found unknown type: " + type.getClass().getSimpleName();
