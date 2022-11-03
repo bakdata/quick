@@ -16,8 +16,6 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
-import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.DynamicMessage;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.execution.AbortExecutionException;
 import graphql.schema.DataFetcher;
