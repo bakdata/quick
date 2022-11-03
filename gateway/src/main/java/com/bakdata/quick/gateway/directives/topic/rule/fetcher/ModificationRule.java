@@ -77,6 +77,25 @@ public class ModificationRule implements DataFetcherRule {
         return context.getTopicDirective().hasKeyField() && !context.isListType();
     }
 
+    /**
+     * Extracts the {@link TypeName} of a  given {@link Type}. The class does not use the default implementation of the
+     * interface because the MutationRule should not parse ListType.
+     */
+    @Override
+    public TypeName extractName(final Type<?> type) {
+        if (type instanceof TypeName) {
+            return (TypeName) type;
+        }
+
+        if (type instanceof NonNullType) {
+            return this.extractName(((NonNullType) type).getType());
+        }
+
+        final String errorMessage = "Found unknown type: " + type.getClass().getSimpleName();
+        log.error(errorMessage);
+        throw new QuickDirectiveException(errorMessage);
+    }
+
     private TypeName extractKeyFieldType(final TopicDirectiveContext context, final String keyField) {
         final Optional<GraphqlElementParentTree> parentInfo = context.getEnvironment()
             .getElementParentTree()
@@ -104,24 +123,5 @@ public class ModificationRule implements DataFetcherRule {
                 errorMessage);
         }
         return this.extractName(field.get().getType());
-    }
-
-    /**
-     * Extracts the {@link TypeName} of a  given {@link Type}. The class does not use the method of the interface
-     * because the MutationRule should not parse ListType.
-     */
-    @Override
-    public TypeName extractName(final Type<?> type) {
-        if (type instanceof TypeName) {
-            return (TypeName) type;
-        }
-
-        if (type instanceof NonNullType) {
-            return this.extractName(((NonNullType) type).getType());
-        }
-
-        final String errorMessage = "Found unknown type: " + type.getClass().getSimpleName();
-        log.error(errorMessage);
-        throw new QuickDirectiveException(errorMessage);
     }
 }
