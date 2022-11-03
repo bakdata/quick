@@ -90,7 +90,8 @@ class GraphQLQueryExecutionTest {
         final TestClientSupplier testClientSupplier = new TestClientSupplier();
         final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
         final DataFetcherClient<String, ?> dataFetcherClient = testClientSupplier.getClient("purchase-topic");
-        final Purchase purchase = Purchase.builder().purchaseId("test").amount(5).productId("product").build();
+        final long productId = 123L;
+        final Purchase purchase = Purchase.builder().purchaseId("test").amount(5).productId(productId).build();
         when(dataFetcherClient.fetchResult("test")).thenAnswer(invocation -> purchase);
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
@@ -102,7 +103,7 @@ class GraphQLQueryExecutionTest {
             .isNotNull()
             .containsEntry("purchaseId", "test")
             .containsEntry("amount", 5)
-            .containsEntry("productId", "product");
+            .containsEntry("productId", productId);
     }
 
     @Test
@@ -138,6 +139,47 @@ class GraphQLQueryExecutionTest {
     }
 
     @Test
+    void shouldExecuteQueryWithSingleFieldAndModification(final TestInfo testInfo) throws IOException {
+        final String name = testInfo.getTestMethod().orElseThrow().getName();
+        final Path schemaPath = workingDirectory.resolve(name + ".graphql");
+        final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
+
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
+
+        final DataFetcherClient<String, ?> purchaseClient = testClientSupplier.getClient("purchase-topic");
+        final DataFetcherClient<Long, ?> productClient = testClientSupplier.getClient("product-topic");
+
+        final long productId = 123L;
+        final Map<String, Object> purchase1 = this.mapper.convertValue(
+            Purchase.builder().purchaseId("purchase1").amount(5).productId(productId).build(),
+            OBJECT_TYPE_REFERENCE
+        );
+
+        final Product product1 = Product.builder()
+            .productId(productId)
+            .name("product-name")
+            .price(Price.builder().total(5).build())
+            .build();
+
+        when(purchaseClient.fetchResult("purchase1")).thenAnswer(invocation -> purchase1);
+        when(productClient.fetchResult(productId)).thenAnswer(invocation -> product1);
+
+        final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
+
+        assertThat(executionResult.getErrors()).isEmpty();
+
+        final Map<String, Map<String, Object>> data = executionResult.getData();
+        assertThat(data.get("findPurchase"))
+            .satisfies(purchase -> assertThat(purchase)
+                .containsEntry("purchaseId", "purchase1")
+                .containsEntry("productId", productId)
+                .extractingByKey("product")
+                .isNotNull()
+            );
+    }
+
+    @Test
     void shouldExecuteListQueryWithSingleFieldAndModification(final TestInfo testInfo) throws IOException {
         final String name = testInfo.getTestMethod().orElseThrow().getName();
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
@@ -147,34 +189,37 @@ class GraphQLQueryExecutionTest {
         final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
 
         final DataFetcherClient<String, ?> purchaseClient = testClientSupplier.getClient("purchase-topic");
-        final DataFetcherClient<String, ?> productClient = testClientSupplier.getClient("product-topic");
+        final DataFetcherClient<Long, ?> productClient = testClientSupplier.getClient("product-topic");
+
+        final long productId1 = 123L;
+        final long productId2 = 456L;
 
         final List<?> purchases = List.of(
             this.mapper.convertValue(
-                Purchase.builder().purchaseId("purchase1").amount(5).productId("product1").build(),
+                Purchase.builder().purchaseId("purchase1").amount(5).productId(productId1).build(),
                 OBJECT_TYPE_REFERENCE
             ),
             this.mapper.convertValue(
-                Purchase.builder().purchaseId("purchase2").amount(1).productId("product2").build(),
+                Purchase.builder().purchaseId("purchase2").amount(1).productId(productId2).build(),
                 OBJECT_TYPE_REFERENCE
             )
         );
 
         final Product product1 = Product.builder()
-            .productId("product1")
+            .productId(productId1)
             .name("product-name")
             .price(Price.builder().total(5).build())
             .build();
 
         final Product product2 = Product.builder()
-            .productId("product2")
+            .productId(productId2)
             .name("product-name2")
             .price(Price.builder().total(1).build())
             .build();
 
         when(purchaseClient.fetchList()).thenAnswer(invocation -> purchases);
-        when(productClient.fetchResult("product1")).thenAnswer(invocation -> product1);
-        when(productClient.fetchResult("product2")).thenAnswer(invocation -> product2);
+        when(productClient.fetchResult(productId1)).thenAnswer(invocation -> product1);
+        when(productClient.fetchResult(productId2)).thenAnswer(invocation -> product2);
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
 
@@ -187,14 +232,14 @@ class GraphQLQueryExecutionTest {
             .anySatisfy(purchase ->
                 assertThat(purchase)
                     .containsEntry("purchaseId", "purchase1")
-                    .containsEntry("productId", "product1")
+                    .containsEntry("productId", productId1)
                     .extractingByKey("product")
                     .isNotNull()
             )
             .anySatisfy(purchase ->
                 assertThat(purchase)
                     .containsEntry("purchaseId", "purchase2")
-                    .containsEntry("productId", "product2")
+                    .containsEntry("productId", productId2)
                     .extractingByKey("product")
                     .isNotNull()
             );
@@ -330,13 +375,13 @@ class GraphQLQueryExecutionTest {
     private void registerTopics() {
         this.registryClient.register(
             "purchase-topic",
-            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.AVRO,
+            new TopicData("purchase-topic", TopicWriteType.MUTABLE, QuickTopicType.STRING, QuickTopicType.AVRO,
                 "")
         ).blockingAwait();
 
         this.registryClient.register(
             "product-topic",
-            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.DOUBLE, QuickTopicType.PROTOBUF, "")
+            new TopicData("product-topic", TopicWriteType.MUTABLE, QuickTopicType.LONG, QuickTopicType.PROTOBUF, "")
         ).blockingAwait();
 
         this.registryClient.register(
@@ -371,14 +416,14 @@ class GraphQLQueryExecutionTest {
     @Builder
     private static class Purchase {
         String purchaseId;
-        String productId;
+        Long productId;
         int amount;
     }
 
     @Value
     @Builder
     private static class Product {
-        String productId;
+        Long productId;
         String name;
         String description;
         Price price;

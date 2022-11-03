@@ -17,17 +17,13 @@
 package com.bakdata.quick.gateway.fetcher;
 
 import com.bakdata.quick.common.exception.BadArgumentException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.util.JsonFormat;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -102,32 +98,27 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
 
     // TODO: Fix this
     private Stream<K> findKeyArgument(final DataFetchingEnvironment environment) {
-        final String parentJson;
+        final JsonNode parentJson;
         try {
             parentJson = this.extractJson(environment);
-        } catch (final JsonProcessingException | InvalidProtocolBufferException e) {
+        } catch (final IOException e) {
             throw new RuntimeException("Could not convert source for extracting key", e);
         }
         // parse json and try to find the value for our argument
         // if it is an array, we need to resolve each one
-        try {
-            final JsonNode parent = this.objectMapper.readTree(parentJson);
-            final JsonNode node = parent.findValue(this.argument);
+        final JsonNode node = parentJson.findValue(this.argument);
+        if (node == null) {
+            throw new IllegalArgumentException(
+                String.format("Field + %s could not be found in source.", this.argument));
+        }
+        if (node.isArray()) {
+            final Iterator<JsonNode> elements = node.elements();
+            return (Stream<K>) StreamSupport
+                .stream(Spliterators.spliteratorUnknownSize(elements, 0), false)
+                .map(KeyFieldFetcher::extractCorrectType);
+        } else {
             final Object typedNode = extractCorrectType(node);
-            if (node == null) {
-                throw new IllegalArgumentException(
-                    String.format("Field + %s could not be found in source.", this.argument));
-            }
-            if (node.isArray()) {
-                final Iterator<JsonNode> elements = node.elements();
-                return (Stream<K>) StreamSupport
-                    .stream(Spliterators.spliteratorUnknownSize(elements, 0), false)
-                    .map(KeyFieldFetcher::extractCorrectType);
-            } else {
-                return (Stream<K>) Stream.of(typedNode);
-            }
-        } catch (final JsonProcessingException e) {
-            throw new UncheckedIOException("Could not process json: " + parentJson, e);
+            return (Stream<K>) Stream.of(typedNode);
         }
     }
 
@@ -149,30 +140,21 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
         }
     }
 
-    private String extractJson(final DataFetchingEnvironment environment) throws JsonProcessingException,
-        InvalidProtocolBufferException {
+    private JsonNode extractJson(final DataFetchingEnvironment environment) throws IOException {
         // TODO work on JSON everywhere:
         //  1. Do not convert back to real types in MirrorDataFetcherClient
         //  2. Immediately convert to JSON in SubscriptionFetcher
         if (environment.getSource() instanceof GenericRecord) {
             final GenericRecord record = environment.getSource();
-            return new String(this.converter.convertToJson(record), StandardCharsets.UTF_8);
+            return this.objectMapper.readTree(this.converter.convertToJson(record));
         }
 
         if (environment.getSource() instanceof DynamicMessage) {
             final DynamicMessage source = environment.getSource();
-            return JsonFormat.printer().includingDefaultValueFields().print(source);
+            return this.objectMapper.readTree(source.toByteArray());
         }
 
         final Map<String, Object> value = environment.getSource();
-        return this.objectMapper.writeValueAsString(value);
-    }
-
-    private String valueAsString(final JsonNode node) {
-        try {
-            return node.isTextual() ? node.textValue() : this.objectMapper.writeValueAsString(node);
-        } catch (final JsonProcessingException e) {
-            throw new UncheckedIOException("Could not process json: " + node, e);
-        }
+        return this.objectMapper.valueToTree(value);
     }
 }

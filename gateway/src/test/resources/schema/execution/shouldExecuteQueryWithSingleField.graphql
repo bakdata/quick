@@ -4,7 +4,7 @@ type Query {
 
 type Purchase  {
     purchaseId: ID!,
-    productId: ID!,
+    productId: Long!,
     userId: ID!,
     amount: Int,
     price: Price,

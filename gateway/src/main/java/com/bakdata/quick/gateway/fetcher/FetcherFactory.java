@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.execution.DataFetcherResult;
+import graphql.language.Type;
 import graphql.schema.DataFetcher;
 import io.reactivex.Single;
 import jakarta.inject.Inject;
