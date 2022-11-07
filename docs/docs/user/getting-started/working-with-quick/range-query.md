@@ -68,10 +68,27 @@ In our example, `timestampFrom` and `timestampTo` follow the naming scheme _fiel
 where _field_ is the field declared in the topic creation command (see later step 3).
 Following this convention is not mandatory.
 You can name the parameters that define your range as you wish.
-However, we suggest to follow this pattern to increase readability.
+However, we suggest following this pattern to increase readability.
 
 When you execute a range query, you receive a list of entries.
 Therefore, the return type of the query is a list of _UserRating_.
+
+!!! Important
+    When you use range queries like described here,
+    you can only make a query using the key of your Kafka messages,
+    i.e., the topic's key.
+    Thus, your data must follow a specific format.
+    The value of the field chosen for `keyArgument`
+    must be the same as the value of the topic key.
+    In section _Execute the query_,
+    you will notice that the data you send to the topic
+    follows this schema. The key of each message
+    is equal to the value's `productId`
+    (the field chosen as the `keyArgument`).
+    Consult the section _Making range queries using a value field_ below
+    if you need to address this limitation
+    and find out how to make range queries using
+    one of the value's fields.
 
 ## Apply the schema to the gateway
 
@@ -268,6 +285,42 @@ Here you go - this is the list of the desired products.
 ]
 ```
 
+### Making range queries using a value field
+
+For the purposes of this part,
+we will extend the `Purchase` type 
+with the `timestamp` field:
+```graphql
+type Purchase {
+    purchaseId: String!
+    productId: Int!
+    userId: Int!
+    amount: Int
+    price: Price
+    timestamp: Int
+}
+```
+Consider the scenario where
+you want to analyse the purchases
+of a given user in a specific time frame.
+If your messages have `purchaseId` as a key,
+it is not possible to make a query over the `userId`
+using range queries in the way described above.
+You can use the `-range-key` option to address this limitation.
+The option is set during topic creation
+and allows you to specify the new key
+for your messages.
+To be able to execute queries
+that refer to the `userId`,
+you can run the following command:
+```shell
+quick topic user-purchases --key string \
+ --value schema --schema gateway.UserMetric \
+  --range-key userId --range-field timestamp
+```
+The `--key string` part relates to the original type
+of the message's key.
+In this case, to the `purchaseId`, which is `String`.
 ## Limitations
 
 The following listing describes the limitations of the current range queries implementation:
