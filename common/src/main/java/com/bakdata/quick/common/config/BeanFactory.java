@@ -28,7 +28,8 @@ import java.util.function.Supplier;
 public class BeanFactory {
 
     /**
-     * UUID supplier needed for {@link com.bakdata.quick.common.api.client.RequestHeaderFilter}
+     * UUID supplier needed for {@link com.bakdata.quick.common.api.client.RequestHeaderFilter}.
+     *
      * @return a UUID supplier
      */
     @Singleton

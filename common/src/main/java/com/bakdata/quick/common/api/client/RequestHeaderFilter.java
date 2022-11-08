@@ -53,7 +53,7 @@ public class RequestHeaderFilter implements HttpServerFilter {
         return chain.proceed(request);
     }
 
-    public String getUuid() {
+    private String getUuid() {
         return this.uuidSupplier.get().toString();
     }
 
