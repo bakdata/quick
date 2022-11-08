@@ -18,12 +18,14 @@ package com.bakdata.quick.common.api.client;
 
 import static com.bakdata.quick.common.api.client.HeaderConstants.REQUEST_HEADER;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.Filter;
 import io.micronaut.http.filter.HttpServerFilter;
 import io.micronaut.http.filter.ServerFilterChain;
 import java.util.UUID;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 
@@ -37,15 +39,26 @@ import org.reactivestreams.Publisher;
 @Filter(Filter.MATCH_ALL_PATTERN)
 public class RequestHeaderFilter implements HttpServerFilter {
 
+    private final Supplier<UUID> uuidSupplier;
+
     @Override
     public Publisher<MutableHttpResponse<?>> doFilter(final HttpRequest<?> request, final ServerFilterChain chain) {
         final boolean hasRequestHeader = request.getHeaders().contains(REQUEST_HEADER);
         if (!hasRequestHeader) {
-            final String id = UUID.randomUUID().toString();
+            final String id = this.getUuid();
             request.mutate().header(REQUEST_HEADER, id);
         }
         log.debug("The request at {} has the following X-Request-ID value: {}",
             request.getPath(), request.getHeaders().get(REQUEST_HEADER));
         return chain.proceed(request);
+    }
+
+    public String getUuid() {
+        return this.uuidSupplier.get().toString();
+    }
+
+    @VisibleForTesting
+    public RequestHeaderFilter(final Supplier<UUID> uuidSupplier) {
+        this.uuidSupplier = uuidSupplier;
     }
 }

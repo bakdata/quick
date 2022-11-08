@@ -26,14 +26,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.bakdata.quick.common.api.client.RequestHeaderFilter;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.manager.GatewaySchema;
 import com.bakdata.quick.common.api.model.manager.creation.TopicCreationData;
 import com.bakdata.quick.common.type.QuickTopicType;
-import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.uri.UriBuilder;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
@@ -41,6 +42,8 @@ import io.reactivex.Single;
 import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +52,7 @@ class TopicControllerTest {
 
     public static final String BASE_PATH = "/topic/{name}";
     private static final String NAME = "test-topic";
-    public static final String REQUEST_ID = "request123";
+    public static final String REQUEST_ID = "cd5c6346-5f4c-11ed-9b6a-0242ac120002";
     private static String baseUri = null;
 
     @Client("/")
@@ -80,7 +83,7 @@ class TopicControllerTest {
 
     @Test
     void shouldGetTopic() {
-        when(this.service.getTopicData(anyString(), REQUEST_ID))
+        when(this.service.getTopicData(anyString(), anyString()))
             .thenReturn(Single.just(
                 new TopicData(NAME, TopicWriteType.MUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null)));
 
@@ -91,7 +94,7 @@ class TopicControllerTest {
 
     @Test
     void testCreateTopicWhenQueryIsNotDefined() {
-        when(this.service.createTopic(anyString(), any(), any(), any(), REQUEST_ID)).thenReturn(Completable.complete());
+        when(this.service.createTopic(anyString(), any(), any(), any(), anyString())).thenReturn(Completable.complete());
 
         final TopicCreationData creationData =
             new TopicCreationData(TopicWriteType.MUTABLE, null, new GatewaySchema("test", "test"), null, true, null);
@@ -102,7 +105,7 @@ class TopicControllerTest {
 
     @Test
     void testCreateTopicWhenQueryIsSet() {
-        when(this.service.createTopic(anyString(), any(), any(), any(), REQUEST_ID)).thenReturn(Completable.complete());
+        when(this.service.createTopic(anyString(), any(), any(), any(), anyString())).thenReturn(Completable.complete());
 
         final String uri = UriBuilder.of(baseUri)
             .queryParam("keyType", QuickTopicType.STRING)
@@ -127,5 +130,12 @@ class TopicControllerTest {
     @MockBean(TopicService.class)
     TopicService topicService() {
         return mock(TopicService.class);
+    }
+
+    @MockBean(RequestHeaderFilter.class)
+    RequestHeaderFilter requestHeaderFilter() {
+        final Supplier<UUID> uuidSupplier = mock(Supplier.class);
+        when(uuidSupplier.get()).thenReturn(UUID.fromString(REQUEST_ID));
+        return new RequestHeaderFilter(uuidSupplier);
     }
 }

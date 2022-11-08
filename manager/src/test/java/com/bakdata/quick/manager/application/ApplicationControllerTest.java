@@ -25,12 +25,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.bakdata.quick.common.api.client.RequestHeaderFilter;
 import com.bakdata.quick.common.api.client.application.ApplicationClient;
 import com.bakdata.quick.common.api.model.manager.ApplicationDescription;
 import com.bakdata.quick.common.api.model.manager.creation.ApplicationCreationData;
-import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.uri.UriBuilder;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
@@ -39,8 +40,11 @@ import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 
 @MicronautTest
 class ApplicationControllerTest {
@@ -51,7 +55,7 @@ class ApplicationControllerTest {
     private static final int REPLICAS = 3;
     private static final int PORT = 8080;
     private static final Map<String, String> ARGS = Map.of("--arg1", "value1");
-    public static final String REQUEST_HEADER_VALUE = "request123";
+    public static final String REQUEST_HEADER_VALUE = "4cc294d6-5f4b-11ed-9b6a-0242ac120002";
 
 
     @Client("/")
@@ -66,7 +70,7 @@ class ApplicationControllerTest {
     void shouldGetApplicationInformation() {
         final ApplicationDescription expected = new ApplicationDescription(NAME);
 
-        when(this.service.getApplicationInformation(anyString(), REQUEST_HEADER_VALUE)).thenReturn(Single.just(
+        when(this.service.getApplicationInformation(anyString(), anyString())).thenReturn(Single.just(
             expected));
 
         final ApplicationDescription result = this.applicationClient.getApplicationInformation(NAME).blockingGet();
@@ -105,7 +109,7 @@ class ApplicationControllerTest {
 
         final ApplicationDescription expected = new ApplicationDescription(NAME);
 
-        when(this.service.getApplicationInformation(anyString(), REQUEST_HEADER_VALUE)).thenReturn(Single.just(
+        when(this.service.getApplicationInformation(anyString(), anyString())).thenReturn(Single.just(
             expected));
 
         this.httpClient.toBlocking().exchange(GET(getAppInfoUri));
@@ -142,5 +146,12 @@ class ApplicationControllerTest {
     @MockBean(ApplicationService.class)
     ApplicationService applicationService() {
         return mock(ApplicationService.class);
+    }
+
+    @MockBean(RequestHeaderFilter.class)
+    RequestHeaderFilter requestHeaderFilter() {
+        final Supplier<UUID> uuidSupplier = mock(Supplier.class);
+        when(uuidSupplier.get()).thenReturn(UUID.fromString(REQUEST_HEADER_VALUE));
+        return new RequestHeaderFilter(uuidSupplier);
     }
 }

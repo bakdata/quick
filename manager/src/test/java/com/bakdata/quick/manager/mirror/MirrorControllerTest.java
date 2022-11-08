@@ -24,15 +24,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.bakdata.quick.common.api.client.RequestHeaderFilter;
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
-import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.uri.UriBuilder;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
 import jakarta.inject.Inject;
 import java.util.Collections;
+import java.util.UUID;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
@@ -41,7 +44,7 @@ class MirrorControllerTest {
     private static final String TAG = "test-version";
     private static final int DEFAULT_REPLICA = 1;
     private static final int REPLICAS = 3;
-    public static final String REQUEST_ID = "request123";
+    public static final String REQUEST_ID = "cd5c6346-5f4c-11ed-9b6a-0242ac120002";
 
     @Client("/")
     @Inject
@@ -52,7 +55,7 @@ class MirrorControllerTest {
 
     @Test
     void shouldCreateMirrorWithDefaultReplica() {
-        when(this.service.createMirror(any(), REQUEST_ID)).thenReturn(Completable.complete());
+        when(this.service.createMirror(any(), anyString())).thenReturn(Completable.complete());
 
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             NAME,
@@ -69,7 +72,7 @@ class MirrorControllerTest {
 
     @Test
     void shouldCreateMirrorWithQueryValues() {
-        when(this.service.createMirror(any(), REQUEST_ID)).thenReturn(Completable.complete());
+        when(this.service.createMirror(any(), anyString())).thenReturn(Completable.complete());
 
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             NAME,
@@ -90,7 +93,7 @@ class MirrorControllerTest {
             .expand(Collections.singletonMap("name", NAME))
             .toString();
 
-        when(this.service.deleteMirror(anyString(), REQUEST_ID)).thenReturn(Completable.complete());
+        when(this.service.deleteMirror(anyString(), anyString())).thenReturn(Completable.complete());
         this.httpClient.toBlocking().exchange(DELETE(deletionUri));
         verify(this.service).deleteMirror(NAME, REQUEST_ID);
     }
@@ -98,5 +101,12 @@ class MirrorControllerTest {
     @MockBean(value = MirrorService.class)
     MirrorService mirrorService() {
         return mock(MirrorService.class);
+    }
+
+    @MockBean(RequestHeaderFilter.class)
+    RequestHeaderFilter requestHeaderFilter() {
+        final Supplier<UUID> uuidSupplier = mock(Supplier.class);
+        when(uuidSupplier.get()).thenReturn(UUID.fromString(REQUEST_ID));
+        return new RequestHeaderFilter(uuidSupplier);
     }
 }

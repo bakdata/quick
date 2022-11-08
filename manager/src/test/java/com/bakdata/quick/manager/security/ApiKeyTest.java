@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.bakdata.quick.common.api.client.RequestHeaderFilter;
 import com.bakdata.quick.manager.topic.TopicService;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpStatus;
@@ -34,6 +35,8 @@ import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
 import jakarta.inject.Inject;
+import java.util.UUID;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
 @MicronautTest
@@ -41,7 +44,7 @@ import org.junit.jupiter.api.Test;
 class ApiKeyTest {
 
     private static final String TOPIC = "test-topic";
-    public static final String REQUEST_ID = "request123";
+    public static final String REQUEST_ID = "cd5c6346-5f4c-11ed-9b6a-0242ac120002";
     private static final String SECURE_PATH = String.format("/topic/%s", TOPIC);
     @Inject
     TopicService topicService;
@@ -100,6 +103,13 @@ class ApiKeyTest {
     @MockBean(TopicService.class)
     TopicService topicService() {
         return mock(TopicService.class);
+    }
+
+    @MockBean(RequestHeaderFilter.class)
+    RequestHeaderFilter requestHeaderFilter() {
+        final Supplier<UUID> uuidSupplier = mock(Supplier.class);
+        when(uuidSupplier.get()).thenReturn(UUID.fromString(REQUEST_ID));
+        return new RequestHeaderFilter(uuidSupplier);
     }
 
 }

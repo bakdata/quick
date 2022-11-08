@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.TestTopicRegistryClient;
+import com.bakdata.quick.common.api.client.RequestHeaderFilter;
 import com.bakdata.quick.common.api.client.gateway.GatewayClient;
 import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.TopicData;
@@ -58,12 +59,14 @@ import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchemaProvider;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.http.exceptions.HttpException;
+import io.micronaut.test.annotation.MockBean;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -76,7 +79,7 @@ class KafkaTopicServiceTest {
     public static final QuickTopicConfig TOPIC_CONFIG = new QuickTopicConfig(3, (short) 1);
     private static final GatewaySchema GATEWAY_SCHEMA = new GatewaySchema("test", "Test");
     private static final String SCHEMA = "type Test { id: String! }";
-    public static final String REQUEST_ID = "request123";
+    public static final String REQUEST_ID = "cd5c6346-5f4c-11ed-9b6a-0242ac120002";
 
     private static EmbeddedKafkaCluster kafkaCluster = null;
     private final SchemaRegistryMock schemaRegistry =
@@ -439,9 +442,16 @@ class KafkaTopicServiceTest {
 
     private void setupSuccessfulMock() {
 
-        when(this.mirrorService.createMirror(any(), REQUEST_ID))
+        when(this.mirrorService.createMirror(any(), anyString()))
             .thenReturn(Completable.complete());
-        when(this.mirrorService.deleteMirror(anyString(), REQUEST_ID))
+        when(this.mirrorService.deleteMirror(anyString(), anyString()))
             .thenReturn(Completable.complete());
+    }
+
+    @MockBean(RequestHeaderFilter.class)
+    RequestHeaderFilter requestHeaderFilter() {
+        final Supplier<UUID> uuidSupplier = mock(Supplier.class);
+        when(uuidSupplier.get()).thenReturn(UUID.fromString(REQUEST_ID));
+        return new RequestHeaderFilter(uuidSupplier);
     }
 }
