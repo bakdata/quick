@@ -86,8 +86,7 @@ Therefore, the return type of the query is a list of _UserRating_.
     is equal to the value's `productId`
     (the field chosen as the `keyArgument`).
     Consult the section _Making range queries using a value field_ below
-    if you need to address this limitation
-    and find out how to make range queries using
+    if you want to find out how to make range queries using
     one of the value's fields.
 
 ## Apply the schema to the gateway
@@ -291,10 +290,11 @@ Consider the scenario where
 you want to analyse the purchases
 of a given user in a specific time frame.
 If you use range queries in the way described above,
-you won't be able to make a query over the `userId` field.
+you won't be able to query records 
+within a time range for a fixed `userId`.
 You are only allowed to make queries using the key 
 of a message.
-You can use the `-range-key` option to address this limitation.
+You can use the `--range-key` option to circumvent this.
 The option is set during topic creation
 and allows you to specify the new key
 for your messages.
@@ -305,11 +305,11 @@ in the following manner:
 ```graphql
 type Query {
     findUserPurchasesInTime(
-        id: String
+        userId: String
         timestampFrom: Int
         timestampTo: Int
     ): [Purchase] @topic(name: "user-purchases",
-        keyArgument: "id"
+        keyArgument: "userId"
         rangeFrom: "timestampFrom",
         rangeTo: "timestampTo")
 }
@@ -327,7 +327,7 @@ has been removed, and `timestamp` has been added.
 The query has also changed.
 The new value of `keyArgument` - `id` - refers
 to the field you will mark
-with the `-range-key` option in the next step.  
+with the `--range-key` option in the next step.  
 To be able to execute range queries
 that refer to a field of the message's value,
 you must create a new topic
