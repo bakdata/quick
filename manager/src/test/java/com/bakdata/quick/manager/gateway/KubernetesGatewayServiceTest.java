@@ -56,7 +56,6 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
     private static final String GATEWAY_NAME = "test-gateway";
     private static final String DEPLOYMENT_NAME = "quick-gateway-test-gateway";
     private static final int CONTAINER_PORT = 8081;
-    public static final String REQUEST_ID = "request123";
 
     private final GatewayClient gatewayClient = Mockito.mock(GatewayClient.class);
     private final GraphQLToAvroConverter graphQLToAvroConverter = new GraphQLToAvroConverter("test.avro");
@@ -83,7 +82,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         this.createGateway(GATEWAY_NAME + "-2", 1, null);
 
         final List<GatewayDescription> gatewayDescriptionList =
-            this.gatewayService.getGatewayList(REQUEST_ID).blockingGet();
+            this.gatewayService.getGatewayList().blockingGet();
 
         assertThat(gatewayDescriptionList).hasSize(2);
         assertThat(gatewayDescriptionList)
@@ -96,7 +95,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         this.createGateway(GATEWAY_NAME, 1, null);
 
         final GatewayDescription gatewayDescription =
-            this.gatewayService.getGateway(GATEWAY_NAME, REQUEST_ID).blockingGet();
+            this.gatewayService.getGateway(GATEWAY_NAME).blockingGet();
         assertThat(gatewayDescription.getName()).isEqualTo(GATEWAY_NAME);
         assertThat(gatewayDescription.getReplicas()).isEqualTo(1);
         assertThat(gatewayDescription.getTag()).isEqualTo("latest");
@@ -235,7 +234,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
         Mockito.when(this.gatewayClient.updateSchema(GATEWAY_NAME, new SchemaData(graphQLSchema)))
             .thenReturn(Completable.complete());
 
-        this.gatewayService.updateSchema(GATEWAY_NAME, graphQLSchema, REQUEST_ID).blockingAwait();
+        this.gatewayService.updateSchema(GATEWAY_NAME, graphQLSchema).blockingAwait();
 
         final List<ConfigMap> configMaps = this.getConfigMaps();
         assertThat(configMaps)
@@ -333,16 +332,16 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
     @Test
     void shouldRejectDuplicateGatewayCreation() {
         final GatewayCreationData creationData = new GatewayCreationData(GATEWAY_NAME, 1, null, null);
-        final Throwable firstDeployment = this.gatewayService.createGateway(creationData, REQUEST_ID).blockingGet();
+        final Throwable firstDeployment = this.gatewayService.createGateway(creationData).blockingGet();
         assertThat(firstDeployment).isNull();
-        final Throwable invalidDeployment = this.gatewayService.createGateway(creationData, REQUEST_ID).blockingGet();
+        final Throwable invalidDeployment = this.gatewayService.createGateway(creationData).blockingGet();
         assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
-                .hasMessageContaining(String.format("The resource with the name %s already exists", GATEWAY_NAME));
+            .hasMessageContaining(String.format("The resource with the name %s already exists", GATEWAY_NAME));
     }
 
 
     private void deleteGatewayResources() {
-        this.gatewayService.deleteGateway(GATEWAY_NAME, REQUEST_ID).blockingAwait();
+        this.gatewayService.deleteGateway(GATEWAY_NAME).blockingAwait();
     }
 
 
@@ -354,7 +353,7 @@ class KubernetesGatewayServiceTest extends KubernetesTest {
                                @Nullable final String schema) {
         final GatewayCreationData creationData = new GatewayCreationData(gatewayName, replicas, tag, schema);
         final Throwable throwable =
-            this.gatewayService.createGateway(creationData, REQUEST_ID).blockingGet();
+            this.gatewayService.createGateway(creationData).blockingGet();
         Optional.ofNullable(throwable).ifPresent(Assertions::fail);
     }
 

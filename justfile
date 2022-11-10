@@ -143,3 +143,6 @@ e2e-run-schema api-key quick-host:
 
 checkstyle:
     {{ gradle-bin }} checkstyleMain && {{ gradle-bin }} checkstyleTest
+
+test:
+    {{ gradle-bin }} test

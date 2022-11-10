@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.client.RequestHeaderFilter;
 import com.bakdata.quick.common.api.client.gateway.GatewayClient;
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import com.bakdata.quick.common.api.model.manager.GatewayDescription;
@@ -49,8 +48,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.function.Supplier;
 import org.apache.avro.Schema;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -63,7 +60,6 @@ class GatewayControllerTest {
     private static final String GATEWAY_NAME = "test-gateway";
     private static final String TAG = "test-version";
     private static final int DEFAULT_REPLICA = 1;
-    public static final String REQUEST_ID = "cd5c6346-5f4c-11ed-9b6a-0242ac120002";
     private static String baseUri = null;
 
     @Client("/")
@@ -86,46 +82,46 @@ class GatewayControllerTest {
 
     @Test
     void shouldGetGatewayList() {
-        when(this.gatewayService.getGatewayList(REQUEST_ID))
+        when(this.gatewayService.getGatewayList())
             .thenReturn(Single.just(List.of(new GatewayDescription(GATEWAY_NAME, 1, TAG))));
 
         this.client.toBlocking().exchange(GET("/gateways"));
 
-        verify(this.gatewayService).getGatewayList(REQUEST_ID);
+        verify(this.gatewayService).getGatewayList();
     }
 
     @Test
     void shouldGetGateway() {
-        when(this.gatewayService.getGateway(anyString(), anyString()))
+        when(this.gatewayService.getGateway(anyString()))
             .thenReturn(Single.just(new GatewayDescription(GATEWAY_NAME, DEFAULT_REPLICA, TAG)));
 
         this.client.toBlocking().exchange(GET(baseUri));
 
-        verify(this.gatewayService).getGateway(GATEWAY_NAME, REQUEST_ID);
+        verify(this.gatewayService).getGateway(GATEWAY_NAME);
     }
 
     @Test
     void shouldCreateGateway() throws JsonProcessingException {
-        when(this.gatewayService.createGateway(isNotNull(), anyString())).thenReturn(Completable.complete());
+        when(this.gatewayService.createGateway(isNotNull())).thenReturn(Completable.complete());
 
         final GatewayCreationData creationData = new GatewayCreationData(GATEWAY_NAME, 1, TAG, null);
         this.client.toBlocking().exchange(POST("/gateway", new ObjectMapper().writeValueAsString(creationData)));
 
-        verify(this.gatewayService).createGateway(creationData, REQUEST_ID);
+        verify(this.gatewayService).createGateway(creationData);
     }
 
     @Test
     void shouldDeleteGateway() {
-        when(this.gatewayService.deleteGateway(anyString(), anyString())).thenReturn(Completable.complete());
+        when(this.gatewayService.deleteGateway(anyString())).thenReturn(Completable.complete());
 
         this.client.toBlocking().exchange(DELETE(baseUri));
 
-        verify(this.gatewayService).deleteGateway(GATEWAY_NAME, REQUEST_ID);
+        verify(this.gatewayService).deleteGateway(GATEWAY_NAME);
     }
 
     @Test
     void shouldCreateDefinition() {
-        when(this.gatewayService.updateSchema(anyString(), anyString(), anyString())).thenReturn(Completable.complete());
+        when(this.gatewayService.updateSchema(anyString(), anyString())).thenReturn(Completable.complete());
         final String uri = UriBuilder.of(BASE_PATH + "/schema")
             .expand(Collections.singletonMap("name", GATEWAY_NAME))
             .toString();
@@ -133,7 +129,7 @@ class GatewayControllerTest {
 
         this.client.toBlocking().exchange(POST(uri, new SchemaData("type Query { test: String }")));
 
-        verify(this.gatewayService).updateSchema(GATEWAY_NAME, "type Query { test: String }", REQUEST_ID);
+        verify(this.gatewayService).updateSchema(GATEWAY_NAME, "type Query { test: String }");
     }
 
     @Test
@@ -143,10 +139,10 @@ class GatewayControllerTest {
         final SchemaData schemaData = new SchemaData(schema);
         final GatewayDescription gatewayDescription = new GatewayDescription(GATEWAY_NAME, 1, null);
 
-        when(this.gatewayService.getGateway(GATEWAY_NAME, REQUEST_ID))
+        when(this.gatewayService.getGateway(GATEWAY_NAME))
             .thenReturn(Single.just(gatewayDescription));
 
-        when(this.gatewayService.getGatewayWriteSchema(GATEWAY_NAME, "Test", SchemaFormat.GRAPHQL, REQUEST_ID))
+        when(this.gatewayService.getGatewayWriteSchema(GATEWAY_NAME, "Test", SchemaFormat.GRAPHQL))
             .thenReturn(Single.just(schemaData));
 
         final String uri = UriBuilder.of(BASE_PATH + "/schema/{type}/graphql")
@@ -168,10 +164,10 @@ class GatewayControllerTest {
         final SchemaData schemaData = new SchemaData(avroSchema);
         final GatewayDescription gatewayDescription = new GatewayDescription(GATEWAY_NAME, 1, null);
 
-        when(this.gatewayService.getGateway(GATEWAY_NAME, REQUEST_ID))
+        when(this.gatewayService.getGateway(GATEWAY_NAME))
             .thenReturn(Single.just(gatewayDescription));
 
-        when(this.gatewayService.getGatewayWriteSchema(GATEWAY_NAME, "Test", SchemaFormat.AVRO, REQUEST_ID))
+        when(this.gatewayService.getGatewayWriteSchema(GATEWAY_NAME, "Test", SchemaFormat.AVRO))
             .thenReturn(Single.just(schemaData));
 
         final String uri = UriBuilder.of(BASE_PATH + "/schema/{type}/avro")
@@ -192,13 +188,6 @@ class GatewayControllerTest {
     @MockBean(GatewayClient.class)
     GatewayClient gatewayClient() {
         return mock(GatewayClient.class);
-    }
-
-    @MockBean(RequestHeaderFilter.class)
-    RequestHeaderFilter requestHeaderFilter() {
-        final Supplier<UUID> uuidSupplier = mock(Supplier.class);
-        when(uuidSupplier.get()).thenReturn(UUID.fromString(REQUEST_ID));
-        return new RequestHeaderFilter(uuidSupplier);
     }
 
 }

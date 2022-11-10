@@ -26,15 +26,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.bakdata.quick.common.api.client.RequestHeaderFilter;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.manager.GatewaySchema;
 import com.bakdata.quick.common.api.model.manager.creation.TopicCreationData;
 import com.bakdata.quick.common.type.QuickTopicType;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.uri.UriBuilder;
-import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
@@ -42,8 +41,6 @@ import io.reactivex.Single;
 import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
-import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +49,6 @@ class TopicControllerTest {
 
     public static final String BASE_PATH = "/topic/{name}";
     private static final String NAME = "test-topic";
-    public static final String REQUEST_ID = "cd5c6346-5f4c-11ed-9b6a-0242ac120002";
     private static String baseUri = null;
 
     @Client("/")
@@ -74,38 +70,38 @@ class TopicControllerTest {
     void shouldGetTopicList() {
         final TopicData topic =
             new TopicData(NAME, TopicWriteType.MUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);
-        when(this.service.getTopicList(REQUEST_ID)).thenReturn(Single.just(List.of(topic)));
+        when(this.service.getTopicList()).thenReturn(Single.just(List.of(topic)));
 
         this.client.toBlocking().exchange(GET("/topics"));
 
-        verify(this.service).getTopicList(REQUEST_ID);
+        verify(this.service).getTopicList();
     }
 
     @Test
     void shouldGetTopic() {
-        when(this.service.getTopicData(anyString(), anyString()))
+        when(this.service.getTopicData(anyString()))
             .thenReturn(Single.just(
                 new TopicData(NAME, TopicWriteType.MUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null)));
 
         this.client.toBlocking().exchange(GET(baseUri));
 
-        verify(this.service).getTopicData(NAME, REQUEST_ID);
+        verify(this.service).getTopicData(NAME);
     }
 
     @Test
     void testCreateTopicWhenQueryIsNotDefined() {
-        when(this.service.createTopic(anyString(), any(), any(), any(), anyString())).thenReturn(Completable.complete());
+        when(this.service.createTopic(anyString(), any(), any(), any())).thenReturn(Completable.complete());
 
         final TopicCreationData creationData =
             new TopicCreationData(TopicWriteType.MUTABLE, null, new GatewaySchema("test", "test"), null, true, null);
         this.client.toBlocking().exchange(POST(baseUri, creationData));
 
-        verify(this.service).createTopic(NAME, QuickTopicType.LONG, QuickTopicType.SCHEMA, creationData, REQUEST_ID);
+        verify(this.service).createTopic(NAME, QuickTopicType.LONG, QuickTopicType.SCHEMA, creationData);
     }
 
     @Test
     void testCreateTopicWhenQueryIsSet() {
-        when(this.service.createTopic(anyString(), any(), any(), any(), anyString())).thenReturn(Completable.complete());
+        when(this.service.createTopic(anyString(), any(), any(), any())).thenReturn(Completable.complete());
 
         final String uri = UriBuilder.of(baseUri)
             .queryParam("keyType", QuickTopicType.STRING)
@@ -117,25 +113,18 @@ class TopicControllerTest {
             new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
         this.client.toBlocking().exchange(POST(uri, creationData));
 
-        verify(this.service).createTopic(NAME, QuickTopicType.STRING, QuickTopicType.DOUBLE, creationData, REQUEST_ID);
+        verify(this.service).createTopic(NAME, QuickTopicType.STRING, QuickTopicType.DOUBLE, creationData);
     }
 
     @Test
     void shouldDeleteTopic() {
-        when(this.service.deleteTopic(NAME, REQUEST_ID)).thenReturn(Completable.complete());
+        when(this.service.deleteTopic(NAME)).thenReturn(Completable.complete());
         this.client.toBlocking().exchange(DELETE(baseUri));
-        verify(this.service).deleteTopic(NAME, REQUEST_ID);
+        verify(this.service).deleteTopic(NAME);
     }
 
     @MockBean(TopicService.class)
     TopicService topicService() {
         return mock(TopicService.class);
-    }
-
-    @MockBean(RequestHeaderFilter.class)
-    RequestHeaderFilter requestHeaderFilter() {
-        final Supplier<UUID> uuidSupplier = mock(Supplier.class);
-        when(uuidSupplier.get()).thenReturn(UUID.fromString(REQUEST_ID));
-        return new RequestHeaderFilter(uuidSupplier);
     }
 }

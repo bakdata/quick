@@ -16,10 +16,7 @@
 
 package com.bakdata.quick.manager.mirror;
 
-import static com.bakdata.quick.common.api.client.HeaderConstants.REQUEST_HEADER;
-
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
-import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Delete;
@@ -33,7 +30,6 @@ import jakarta.inject.Inject;
 /**
  * Manager's REST API for managing mirror applications.
  */
-
 @Controller
 @Secured(SecurityRule.IS_AUTHENTICATED)
 public class MirrorController {
@@ -50,8 +46,8 @@ public class MirrorController {
      * @param mirrorCreationData {@link MirrorCreationData}
      */
     @Post("/topic/mirror")
-    Completable createMirror(@Body final MirrorCreationData mirrorCreationData, final HttpHeaders headers) {
-        return this.service.createMirror(mirrorCreationData, headers.get(REQUEST_HEADER));
+    Completable createMirror(@Body final MirrorCreationData mirrorCreationData) {
+        return this.service.createMirror(mirrorCreationData);
     }
 
     /**
@@ -60,7 +56,7 @@ public class MirrorController {
      * @param name the topic's name
      */
     @Delete("/topic/{name}/mirror")
-    public Completable deleteMirror(final String name, final HttpHeaders headers) {
-        return this.service.deleteMirror(name, headers.get(REQUEST_HEADER)).subscribeOn(Schedulers.io());
+    public Completable deleteMirror(final String name) {
+        return this.service.deleteMirror(name).subscribeOn(Schedulers.io());
     }
 }

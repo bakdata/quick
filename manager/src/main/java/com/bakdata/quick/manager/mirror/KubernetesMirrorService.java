@@ -48,9 +48,9 @@ public class KubernetesMirrorService implements MirrorService {
      * Injectable constructor.
      */
     public KubernetesMirrorService(final KubernetesResources resources,
-        final KubernetesManagerClient kubernetesManagerClient,
-        final DeploymentConfig deploymentConfig,
-        final MirrorResourceLoader loader) {
+                                   final KubernetesManagerClient kubernetesManagerClient,
+                                   final DeploymentConfig deploymentConfig,
+                                   final MirrorResourceLoader loader) {
         this.resources = resources;
         this.kubeClient = kubernetesManagerClient;
         this.deploymentConfig = deploymentConfig;
@@ -58,7 +58,7 @@ public class KubernetesMirrorService implements MirrorService {
     }
 
     @Override
-    public Completable createMirror(final MirrorCreationData mirrorCreationData, final String requestId) {
+    public Completable createMirror(final MirrorCreationData mirrorCreationData) {
         return this.create(mirrorCreationData, ResourcePrefix.MIRROR);
     }
 
@@ -68,7 +68,7 @@ public class KubernetesMirrorService implements MirrorService {
     }
 
     @Override
-    public Completable deleteMirror(final String name, final String requestId) {
+    public Completable deleteMirror(final String name) {
         final String deploymentName = MirrorResourceLoader.getDeploymentName(name);
         final ImageConfig imageConfig = ImageConfig
             .of(this.deploymentConfig.getDockerRegistry(), MIRROR_IMAGE, 1, this.deploymentConfig.getDefaultImageTag());

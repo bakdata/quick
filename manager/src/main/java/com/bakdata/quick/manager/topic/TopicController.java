@@ -16,12 +16,9 @@
 
 package com.bakdata.quick.manager.topic;
 
-import static com.bakdata.quick.common.api.client.HeaderConstants.REQUEST_HEADER;
-
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.manager.creation.TopicCreationData;
 import com.bakdata.quick.common.type.QuickTopicType;
-import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Delete;
@@ -56,16 +53,16 @@ public class TopicController {
      * Retrieves a list of all topics.
      */
     @Get("/topics")
-    public Single<List<TopicData>> getTopicList(final HttpHeaders headers) {
-        return this.topicService.getTopicList(headers.get(REQUEST_HEADER));
+    public Single<List<TopicData>> getTopicList() {
+        return this.topicService.getTopicList();
     }
 
     /**
      * Retrieves information about a single topic.
      */
     @Get("/topic/{name}")
-    public Single<TopicData> getTopicData(final String name, final HttpHeaders headers) {
-        return this.topicService.getTopicData(name, headers.get(REQUEST_HEADER));
+    public Single<TopicData> getTopicData(final String name) {
+        return this.topicService.getTopicData(name);
     }
 
     /**
@@ -80,10 +77,9 @@ public class TopicController {
     public Completable createTopic(@PathVariable final String name,
                                    @QueryValue(defaultValue = "LONG") final QuickTopicType keyType,
                                    @QueryValue(defaultValue = "SCHEMA") final QuickTopicType valueType,
-                                   @Body final TopicCreationData topicCreationData, final HttpHeaders headers) {
-        return this.topicService.createTopic(name, keyType, valueType, topicCreationData,
-                headers.get(REQUEST_HEADER))
-            .doOnError(e -> log.error("Request {}: Could not create topic", headers.get(REQUEST_HEADER), e))
+                                   @Body final TopicCreationData topicCreationData) {
+        return this.topicService.createTopic(name, keyType, valueType, topicCreationData)
+            .doOnError(e -> log.error("Could not create topic", e))
             .subscribeOn(Schedulers.io());
     }
 
@@ -93,7 +89,7 @@ public class TopicController {
      * @param name topic to delete
      */
     @Delete("/topic/{name}")
-    public Completable deleteTopic(@PathVariable final String name, final HttpHeaders headers) {
-        return this.topicService.deleteTopic(name, headers.get(REQUEST_HEADER)).subscribeOn(Schedulers.io());
+    public Completable deleteTopic(@PathVariable final String name) {
+        return this.topicService.deleteTopic(name).subscribeOn(Schedulers.io());
     }
 }

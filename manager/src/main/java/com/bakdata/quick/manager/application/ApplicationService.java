@@ -29,17 +29,17 @@ public interface ApplicationService {
     /**
      * Retrieves information about the application identified by its name.
      */
-    Single<ApplicationDescription> getApplicationInformation(final String name, final String requestId);
+    Single<ApplicationDescription> getApplicationInformation(final String name);
 
     /**
      * Deletes an application and runs a clean up job.
      */
-    Completable deleteApplication(final String name, final String requestId);
+    Completable deleteApplication(final String name);
 
     /**
      * Deploys a new Kafka Streams application in a Docker container.
      *
      * @param applicationCreationData {@link ApplicationCreationData}
      */
-    Completable deployApplication(final ApplicationCreationData applicationCreationData, final String requestId);
+    Completable deployApplication(final ApplicationCreationData applicationCreationData);
 }

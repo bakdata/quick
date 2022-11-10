@@ -43,7 +43,6 @@ class ImageUpdaterTest extends KubernetesTest {
     private static final String NEW_TAG = "new-tag";
     private static final String FIXED_TAG = "fixed";
     private static final String MIRROR_IMAGE = "quick-mirror";
-    public static final String REQUEST_ID = "request123";
 
     @Test
     void shouldUpdateGateway() {
@@ -62,8 +61,7 @@ class ImageUpdaterTest extends KubernetesTest {
             loader
         );
 
-        gatewayService.createGateway(new GatewayCreationData("gateway", 1, null, null),
-            REQUEST_ID).blockingAwait();
+        gatewayService.createGateway(new GatewayCreationData("gateway", 1, null, null)).blockingAwait();
 
         assertThat(this.getDeployments())
             .hasSize(1)
@@ -103,10 +101,8 @@ class ImageUpdaterTest extends KubernetesTest {
         );
 
         Completable.mergeArray(
-            gatewayService.createGateway(new GatewayCreationData("gateway", 1, null, null),
-                REQUEST_ID),
-            gatewayService.createGateway(new GatewayCreationData("gateway2", 1, null, null),
-                REQUEST_ID)
+            gatewayService.createGateway(new GatewayCreationData("gateway", 1, null, null)),
+            gatewayService.createGateway(new GatewayCreationData("gateway2", 1, null, null))
         ).blockingAwait();
 
         assertThat(this.getDeployments())
@@ -144,8 +140,7 @@ class ImageUpdaterTest extends KubernetesTest {
             loader
         );
 
-        gatewayService.createGateway(new GatewayCreationData("gateway", 1, FIXED_TAG, null),
-            REQUEST_ID).blockingAwait();
+        gatewayService.createGateway(new GatewayCreationData("gateway", 1, FIXED_TAG, null)).blockingAwait();
 
         assertThat(this.getDeployments())
             .hasSize(1)
@@ -185,7 +180,7 @@ class ImageUpdaterTest extends KubernetesTest {
             null,
             null);
 
-        mirrorService.createMirror(mirrorCreationData, REQUEST_ID).blockingAwait();
+        mirrorService.createMirror(mirrorCreationData).blockingAwait();
 
         assertThat(this.getDeployments())
             .hasSize(1)
@@ -223,7 +218,7 @@ class ImageUpdaterTest extends KubernetesTest {
             null, // use default tag
             null,
             null);
-        mirrorService.createMirror(mirrorCreationData1, REQUEST_ID).blockingAwait();
+        mirrorService.createMirror(mirrorCreationData1).blockingAwait();
 
         final MirrorCreationData mirrorCreationData2 = new MirrorCreationData(
             "topic2",
@@ -232,7 +227,7 @@ class ImageUpdaterTest extends KubernetesTest {
             null, // use default tag
             null,
             null);
-        mirrorService.createMirror(mirrorCreationData2, REQUEST_ID).blockingAwait();
+        mirrorService.createMirror(mirrorCreationData2).blockingAwait();
 
         assertThat(this.getDeployments())
             .hasSize(2)
@@ -268,7 +263,7 @@ class ImageUpdaterTest extends KubernetesTest {
             FIXED_TAG, // use default tag
             null,
             null);
-        mirrorService.createMirror(mirrorCreationData, REQUEST_ID).blockingAwait();
+        mirrorService.createMirror(mirrorCreationData).blockingAwait();
 
         assertThat(this.getDeployments())
             .hasSize(1)

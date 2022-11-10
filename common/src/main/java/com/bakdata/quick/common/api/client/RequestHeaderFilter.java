@@ -18,7 +18,6 @@ package com.bakdata.quick.common.api.client;
 
 import static com.bakdata.quick.common.api.client.HeaderConstants.REQUEST_HEADER;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.Filter;
@@ -41,6 +40,10 @@ public class RequestHeaderFilter implements HttpServerFilter {
 
     private final Supplier<UUID> uuidSupplier;
 
+    public RequestHeaderFilter(final Supplier<UUID> uuidSupplier) {
+        this.uuidSupplier = uuidSupplier;
+    }
+
     @Override
     public Publisher<MutableHttpResponse<?>> doFilter(final HttpRequest<?> request, final ServerFilterChain chain) {
         final boolean hasRequestHeader = request.getHeaders().contains(REQUEST_HEADER);
@@ -55,10 +58,5 @@ public class RequestHeaderFilter implements HttpServerFilter {
 
     private String getUuid() {
         return this.uuidSupplier.get().toString();
-    }
-
-    @VisibleForTesting
-    public RequestHeaderFilter(final Supplier<UUID> uuidSupplier) {
-        this.uuidSupplier = uuidSupplier;
     }
 }

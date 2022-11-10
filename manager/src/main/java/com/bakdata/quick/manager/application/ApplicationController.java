@@ -16,11 +16,8 @@
 
 package com.bakdata.quick.manager.application;
 
-import static com.bakdata.quick.common.api.client.HeaderConstants.REQUEST_HEADER;
-
 import com.bakdata.quick.common.api.model.manager.ApplicationDescription;
 import com.bakdata.quick.common.api.model.manager.creation.ApplicationCreationData;
-import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Delete;
@@ -49,8 +46,8 @@ public class ApplicationController {
      * Retrieves information about the application identified by its name.
      */
     @Get("/application/{name}")
-    public Single<ApplicationDescription> getApplicationInformation(final String name, final HttpHeaders headers) {
-        return this.service.getApplicationInformation(name, headers.get(REQUEST_HEADER));
+    public Single<ApplicationDescription> getApplicationInformation(final String name) {
+        return this.service.getApplicationInformation(name);
     }
 
     /**
@@ -59,16 +56,15 @@ public class ApplicationController {
      * @param applicationCreationData {@link ApplicationCreationData}
      */
     @Post(value = "/application/", consumes = {MediaType.APPLICATION_JSON})
-    public Completable deployApplication(final ApplicationCreationData applicationCreationData,
-                                         final HttpHeaders headers) {
-        return this.service.deployApplication(applicationCreationData, headers.get(REQUEST_HEADER));
+    public Completable deployApplication(final ApplicationCreationData applicationCreationData) {
+        return this.service.deployApplication(applicationCreationData);
     }
 
     /**
      * Deletes an application and runs a cleanup job.
      */
     @Delete("/application/{name}")
-    public Completable deleteApplication(final String name, final HttpHeaders headers) {
-        return this.service.deleteApplication(name, headers.get(REQUEST_HEADER));
+    public Completable deleteApplication(final String name) {
+        return this.service.deleteApplication(name);
     }
 }

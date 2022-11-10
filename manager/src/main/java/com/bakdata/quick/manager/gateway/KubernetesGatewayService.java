@@ -67,7 +67,7 @@ public class KubernetesGatewayService implements GatewayService {
     }
 
     @Override
-    public Single<List<GatewayDescription>> getGatewayList(final String requestId) {
+    public Single<List<GatewayDescription>> getGatewayList() {
         return this.kubernetesManagerClient.listDeployments(ResourcePrefix.GATEWAY.getPrefix())
             .map(deployments ->
                 deployments.stream()
@@ -77,28 +77,28 @@ public class KubernetesGatewayService implements GatewayService {
     }
 
     @Override
-    public Single<GatewayDescription> getGateway(final String name, final String requestId) {
+    public Single<GatewayDescription> getGateway(final String name) {
         final String deploymentName = GatewayResources.getResourceName(name);
         return this.kubernetesManagerClient.readDeployment(deploymentName)
             .map(GatewayResources::getGatewayDescription);
     }
 
     @Override
-    public Completable createGateway(final GatewayCreationData gatewayCreationData, final String requestId) {
+    public Completable createGateway(final GatewayCreationData gatewayCreationData) {
         log.info("Creating the gateway {}", gatewayCreationData.getName());
         return Single.fromCallable(() -> this.loader.forCreation(gatewayCreationData, ResourcePrefix.GATEWAY))
             .flatMapCompletable(this.kubernetesManagerClient::deploy);
     }
 
     @Override
-    public Completable deleteGateway(final String name, final String requestId) {
+    public Completable deleteGateway(final String name) {
         log.info("Deleting the gateway {}", name);
         return Single.fromCallable(() -> this.loader.forDeletion(name))
             .flatMapCompletable(this.kubernetesManagerClient::delete);
     }
 
     @Override
-    public Completable updateSchema(final String name, final String graphQLSchema, final String requestId) {
+    public Completable updateSchema(final String name, final String graphQLSchema) {
         log.info("Updating schema of the gateway {} with {}", name, graphQLSchema);
         // Check if the gateway exists or not
         final Completable resourceExists =
@@ -118,8 +118,7 @@ public class KubernetesGatewayService implements GatewayService {
     }
 
     @Override
-    public Single<SchemaData> getGatewayWriteSchema(final String name, final String type, final SchemaFormat format,
-        final String requestId) {
+    public Single<SchemaData> getGatewayWriteSchema(final String name, final String type, final SchemaFormat format) {
         final GatewaySchema gatewaySchema = new GatewaySchema(name, type);
 
         // make sure the gateway exists

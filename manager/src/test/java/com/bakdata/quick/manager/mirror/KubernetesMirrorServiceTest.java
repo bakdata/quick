@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
 class KubernetesMirrorServiceTest extends KubernetesTest {
     private static final String TOPIC_NAME = "test-topic";
     private static final String DEPLOYMENT_NAME = ResourcePrefix.MIRROR.getPrefix() + TOPIC_NAME;
-    public static final String REQUEST_ID = "request123";
     private MirrorService mirrorService = null;
 
     @BeforeEach
@@ -109,7 +108,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
         this.createMirror(mirrorCreationData);
         assertThat(this.getDeployments()).isNotNull().hasSize(1);
 
-        final Completable deleteRequest = this.mirrorService.deleteMirror(TOPIC_NAME, REQUEST_ID);
+        final Completable deleteRequest = this.mirrorService.deleteMirror(TOPIC_NAME);
         Optional.ofNullable(deleteRequest.blockingGet()).ifPresent(Assertions::fail);
 
         assertThat(this.getDeployments()).isNullOrEmpty();
@@ -121,7 +120,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
         this.createMirror(mirrorCreationData);
         assertThat(this.getServices()).isNotNull().hasSize(1);
 
-        final Completable deleteRequest = this.mirrorService.deleteMirror(TOPIC_NAME, REQUEST_ID);
+        final Completable deleteRequest = this.mirrorService.deleteMirror(TOPIC_NAME);
         Optional.ofNullable(deleteRequest.blockingGet()).ifPresent(Assertions::fail);
 
         assertThat(this.getServices()).isNullOrEmpty();
@@ -133,7 +132,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
         this.createMirror(mirrorCreationData);
         assertThat(this.getServices()).isNotNull().hasSize(1);
 
-        final Completable deleteRequest = this.mirrorService.deleteMirror(TOPIC_NAME, REQUEST_ID);
+        final Completable deleteRequest = this.mirrorService.deleteMirror(TOPIC_NAME);
         Optional.ofNullable(deleteRequest.blockingGet()).ifPresent(Assertions::fail);
 
         assertThat(this.client.batch().v1().jobs().list().getItems())
@@ -151,15 +150,15 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
     @Test
     void shouldRejectDuplicateMirrorCreation() {
         final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(TOPIC_NAME);
-        final Throwable firstDeployment = this.mirrorService.createMirror(mirrorCreationData, REQUEST_ID).blockingGet();
+        final Throwable firstDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
         assertThat(firstDeployment).isNull();
-        final Throwable invalidDeployment = this.mirrorService.createMirror(mirrorCreationData, REQUEST_ID).blockingGet();
+        final Throwable invalidDeployment = this.mirrorService.createMirror(mirrorCreationData).blockingGet();
         assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
             .hasMessageContaining(String.format("The resource with the name %s already exists", TOPIC_NAME));
     }
 
     private void createMirror(final MirrorCreationData mirrorCreationData) {
-        final Completable completable = this.mirrorService.createMirror(mirrorCreationData, REQUEST_ID);
+        final Completable completable = this.mirrorService.createMirror(mirrorCreationData);
         Optional.ofNullable(completable.blockingGet()).ifPresent(Assertions::fail);
     }
 }

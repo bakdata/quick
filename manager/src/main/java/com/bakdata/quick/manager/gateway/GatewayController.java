@@ -16,13 +16,10 @@
 
 package com.bakdata.quick.manager.gateway;
 
-import static com.bakdata.quick.common.api.client.HeaderConstants.REQUEST_HEADER;
-
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import com.bakdata.quick.common.api.model.manager.GatewayDescription;
 import com.bakdata.quick.common.api.model.manager.creation.GatewayCreationData;
 import com.bakdata.quick.manager.gateway.GatewayService.SchemaFormat;
-import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Delete;
@@ -52,16 +49,16 @@ public class GatewayController {
      * Lists all gateways.
      */
     @Get("/gateways")
-    public Single<List<GatewayDescription>> getGatewayList(final HttpHeaders headers) {
-        return this.gatewayService.getGatewayList(headers.get(REQUEST_HEADER));
+    public Single<List<GatewayDescription>> getGatewayList() {
+        return this.gatewayService.getGatewayList();
     }
 
     /**
      * Displays information about a single gateway.
      */
     @Get("/gateway/{name}")
-    public Single<GatewayDescription> getGateway(final String name, final HttpHeaders headers) {
-        return this.gatewayService.getGateway(name, headers.get(REQUEST_HEADER));
+    public Single<GatewayDescription> getGateway(final String name) {
+        return this.gatewayService.getGateway(name);
     }
 
     /**
@@ -70,40 +67,39 @@ public class GatewayController {
      * @param gatewayCreationData user data configuring the gateway's deployment
      */
     @Post("/gateway")
-    public Completable createGateway(@Body final GatewayCreationData gatewayCreationData, final HttpHeaders headers) {
-        return this.gatewayService.createGateway(gatewayCreationData, headers.get(REQUEST_HEADER));
+    public Completable createGateway(@Body final GatewayCreationData gatewayCreationData) {
+        return this.gatewayService.createGateway(gatewayCreationData);
     }
 
     /**
      * Deletes a gateway.
      */
     @Delete("/gateway/{name}")
-    public Completable deleteGateway(final String name, final HttpHeaders headers) {
-        return this.gatewayService.deleteGateway(name, headers.get(REQUEST_HEADER));
+    public Completable deleteGateway(final String name) {
+        return this.gatewayService.deleteGateway(name);
     }
 
     /**
      * Updates the schema of a gateway.
      */
     @Post(value = "/gateway/{name}/schema")
-    public Completable updateSchema(final String name, @Body final SchemaData graphQLSchema,
-                                    final HttpHeaders headers) {
-        return this.gatewayService.updateSchema(name, graphQLSchema.getSchema(), headers.get(REQUEST_HEADER));
+    public Completable updateSchema(final String name, @Body final SchemaData graphQLSchema) {
+        return this.gatewayService.updateSchema(name, graphQLSchema.getSchema());
     }
 
     /**
      * Get write schema of a gateway in GraphQL format.
      */
     @Get(value = "/gateway/{name}/schema/{type}/graphql")
-    public Single<SchemaData> getGraphQLWriteSchema(final String name, final String type, final HttpHeaders headers) {
-        return this.gatewayService.getGatewayWriteSchema(name, type, SchemaFormat.GRAPHQL, headers.get(REQUEST_HEADER));
+    public Single<SchemaData> getGraphQLWriteSchema(final String name, final String type) {
+        return this.gatewayService.getGatewayWriteSchema(name, type, SchemaFormat.GRAPHQL);
     }
 
     /**
      * Get write schema of a gateway in Avro format.
      */
     @Get(value = "/gateway/{name}/schema/{type}/avro")
-    public Single<SchemaData> getAvroWriteSchema(final String name, final String type, final HttpHeaders headers) {
-        return this.gatewayService.getGatewayWriteSchema(name, type, SchemaFormat.AVRO, headers.get(REQUEST_HEADER));
+    public Single<SchemaData> getAvroWriteSchema(final String name, final String type) {
+        return this.gatewayService.getGatewayWriteSchema(name, type, SchemaFormat.AVRO);
     }
 }

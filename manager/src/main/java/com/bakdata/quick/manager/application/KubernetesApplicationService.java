@@ -50,27 +50,27 @@ public class KubernetesApplicationService implements ApplicationService {
      * Default constructor.
      */
     public KubernetesApplicationService(final KubernetesResources resources,
-        final KubernetesManagerClient kubeClient, final ApplicationResourceLoader loader) {
+                                        final KubernetesManagerClient kubeClient,
+                                        final ApplicationResourceLoader loader) {
         this.resources = resources;
         this.kubeClient = kubeClient;
         this.loader = loader;
     }
 
     @Override
-    public Single<ApplicationDescription> getApplicationInformation(final String name, final String requestId) {
+    public Single<ApplicationDescription> getApplicationInformation(final String name) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Completable deployApplication(final ApplicationCreationData applicationCreationData,
-                                         final String requestId) {
+    public Completable deployApplication(final ApplicationCreationData applicationCreationData) {
         return Single.fromCallable(
                 () -> this.loader.forCreation(applicationCreationData, ResourcePrefix.APPLICATION))
             .flatMapCompletable(this.kubeClient::deploy);
     }
 
     @Override
-    public Completable deleteApplication(final String name, final String requestId) {
+    public Completable deleteApplication(final String name) {
         final String deploymentName = ApplicationResourceLoader.getDeploymentName(name);
         // first extract info about mirror deployment
         // we need this to properly delete all kafka related resources like the internal state store topic

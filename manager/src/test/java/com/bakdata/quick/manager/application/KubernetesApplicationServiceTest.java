@@ -44,7 +44,6 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
     private static final String DEPLOYMENT_NAME = ResourcePrefix.APPLICATION.getPrefix() + APP_NAME;
     private static final String IMAGE_NAME = "my-image";
     private static final int DEFAULT_PORT = 8080;
-    public static final String REQUEST_ID = "request123";
 
     private final KafkaConfig kafkaConfig = new KafkaConfig("bootstrap", "http://dummy:123");
     private ApplicationService service = null;
@@ -96,7 +95,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
     void shouldDeleteDeployment() {
         this.deployApplication(null, Map.of());
         assertThat(this.getDeployments()).isNotNull().hasSize(1);
-        final Completable deleteRequest = this.service.deleteApplication(APP_NAME, REQUEST_ID);
+        final Completable deleteRequest = this.service.deleteApplication(APP_NAME);
         Optional.ofNullable(deleteRequest.blockingGet()).ifPresent(Assertions::fail);
         assertThat(this.getDeployments()).isNullOrEmpty();
     }
@@ -107,7 +106,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
         assertThat(this.getServices()).isNotNull().hasSize(1).first().satisfies(
             service -> assertThat(service.getMetadata().getName()).isEqualTo(DEPLOYMENT_NAME)
         );
-        final Completable deleteRequest = this.service.deleteApplication(APP_NAME, REQUEST_ID);
+        final Completable deleteRequest = this.service.deleteApplication(APP_NAME);
         Optional.ofNullable(deleteRequest.blockingGet()).ifPresent(Assertions::fail);
         assertThat(this.getServices()).isNullOrEmpty();
     }
@@ -119,7 +118,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
 
         this.deployApplication(DEFAULT_PORT, Map.of("--input-topics", "test"));
         assertThat(this.getDeployments()).isNotNull().hasSize(1);
-        final Completable deleteRequest = this.service.deleteApplication(APP_NAME, REQUEST_ID);
+        final Completable deleteRequest = this.service.deleteApplication(APP_NAME);
         Optional.ofNullable(deleteRequest.blockingGet()).ifPresent(Assertions::fail);
         assertThat(this.client.batch().v1().jobs().list().getItems())
             .isNotNull()
@@ -139,20 +138,19 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
     @Test
     void shouldRejectDuplicateApplicationCreation() {
         final ApplicationCreationData applicationCreationData = new ApplicationCreationData(APP_NAME,
-                DOCKER_REGISTRY,
-                IMAGE_NAME,
-                DEFAULT_IMAGE_TAG,
-                1,
-                DEFAULT_PORT,
-                null,
-                Map.of());
+            DOCKER_REGISTRY,
+            IMAGE_NAME,
+            DEFAULT_IMAGE_TAG,
+            1,
+            DEFAULT_PORT,
+            null,
+            Map.of());
 
-        final Completable firstDeployment = this.service.deployApplication(applicationCreationData, REQUEST_ID);
+        final Completable firstDeployment = this.service.deployApplication(applicationCreationData);
         Optional.ofNullable(firstDeployment.blockingGet()).ifPresent(Assertions::fail);
-        final Throwable invalidDeployment = this.service.deployApplication(applicationCreationData, REQUEST_ID)
-            .blockingGet();
+        final Throwable invalidDeployment = this.service.deployApplication(applicationCreationData).blockingGet();
         assertThat(invalidDeployment).isInstanceOf(BadArgumentException.class)
-                .hasMessageContaining(String.format("The resource with the name %s already exists", APP_NAME));
+            .hasMessageContaining(String.format("The resource with the name %s already exists", APP_NAME));
     }
 
     private void deployApplication(@Nullable final Integer port, final Map<String, String> arguments) {
@@ -165,7 +163,7 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
             null,
             arguments);
 
-        final Completable completable = this.service.deployApplication(applicationCreationData, REQUEST_ID);
+        final Completable completable = this.service.deployApplication(applicationCreationData);
 
         Optional.ofNullable(completable.blockingGet()).ifPresent(Assertions::fail);
     }
