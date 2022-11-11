@@ -31,9 +31,10 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.manager.GatewaySchema;
 import com.bakdata.quick.common.api.model.manager.creation.TopicCreationData;
 import com.bakdata.quick.common.type.QuickTopicType;
-import io.micronaut.rxjava2.http.client.RxHttpClient;
+import io.micronaut.http.MutableHttpRequest;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.uri.UriBuilder;
+import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.Completable;
@@ -41,6 +42,7 @@ import io.reactivex.Single;
 import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -114,6 +116,19 @@ class TopicControllerTest {
         this.client.toBlocking().exchange(POST(uri, creationData));
 
         verify(this.service).createTopic(NAME, QuickTopicType.STRING, QuickTopicType.DOUBLE, creationData);
+    }
+
+    @Test
+    void shouldSetHeader() {
+
+        final TopicData topic =
+            new TopicData("test-topic", TopicWriteType.MUTABLE, QuickTopicType.LONG, QuickTopicType.STRING, null);
+
+        when(this.service.getTopicList()).thenReturn(Single.just(List.of(topic)));
+
+        final MutableHttpRequest<?> request = GET("/topics");
+        this.client.toBlocking().retrieve(request);
+        Assertions.assertThat(request.getHeaders().get("X-Request-ID")).isNotEmpty();
     }
 
     @Test
