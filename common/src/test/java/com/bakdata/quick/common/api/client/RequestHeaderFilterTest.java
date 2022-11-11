@@ -17,10 +17,9 @@
 package com.bakdata.quick.common.api.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import io.micronaut.context.ApplicationContext;
+import io.micronaut.context.annotation.Replaces;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -31,8 +30,8 @@ import io.micronaut.http.client.HttpClient;
 import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Singleton;
 import java.util.UUID;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
@@ -69,6 +68,7 @@ public class RequestHeaderFilterTest {
         final HttpResponse<?> response = client.toBlocking().exchange("/test/header");
         final String headerValue = response.getHeaders().get(HeaderConstants.REQUEST_HEADER);
         assertThat(headerValue).isNotNull();
+        assertThat(headerValue).isEqualTo(TEST_HEADER_VALUE_1);
     }
 
     @Test
@@ -93,10 +93,13 @@ public class RequestHeaderFilterTest {
         }
     }
 
-    @MockBean(RequestHeaderFilter.class)
-    RequestHeaderFilter requestHeaderFilter() {
-        final Supplier<UUID> uuidSupplier = mock(Supplier.class);
-        when(uuidSupplier.get()).thenReturn(UUID.fromString(TEST_HEADER_VALUE_1));
-        return new RequestHeaderFilter(uuidSupplier);
+
+    @Replaces(Supplier.class)
+    @Singleton
+    public static class SupplierMock implements Supplier<UUID> {
+        @Override
+        public UUID get() {
+            return UUID.fromString(TEST_HEADER_VALUE_1);
+        }
     }
 }
