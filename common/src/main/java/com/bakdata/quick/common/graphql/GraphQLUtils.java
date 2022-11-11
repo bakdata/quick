@@ -128,7 +128,7 @@ public final class GraphQLUtils {
      * Extracts the name of the given type.
      *
      * <p>
-     * Required as we need to work around container types like list type and non-null type.
+     * Required as we need to work around container types like the list type and non-null type.
      *
      * @param type type to extract the name from
      * @return name of the type

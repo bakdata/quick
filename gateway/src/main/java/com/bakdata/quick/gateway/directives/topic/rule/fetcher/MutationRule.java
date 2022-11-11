@@ -64,8 +64,8 @@ public class MutationRule implements DataFetcherRule {
 
         final GraphQLArgument keyInputArgument = context.getEnvironment().getFieldDefinition().getArguments().get(0);
         final GraphQLArgument valueInputArgument = context.getEnvironment().getFieldDefinition().getArguments().get(1);
-        log.debug("Key input argument is: {}", keyInputArgument);
-        log.debug("Value input argument is: {}", valueInputArgument);
+        log.trace("Extracting a mutation fetcher for key {}", keyInputArgument);
+        log.trace("Extracting a mutation fetcher for value {}", valueInputArgument);
 
         final String topicName = context.getTopicDirective().getTopicName();
 
@@ -83,7 +83,7 @@ public class MutationRule implements DataFetcherRule {
 
     @Override
     public boolean isValid(final TopicDirectiveContext context) {
-        log.debug("validating mutation rule.");
+        log.trace("validating mutation rule.");
         final List<GraphQLArgument> arguments = context.getEnvironment().getFieldDefinition().getArguments();
         return context.getParentContainerName().equals("Mutation")
             && arguments.size() == 2

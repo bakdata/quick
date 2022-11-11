@@ -16,10 +16,10 @@
 
 package com.bakdata.quick.mirror.service;
 
+import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
-import com.bakdata.quick.common.api.client.mirror.HeaderConstants;
 import com.bakdata.quick.common.api.client.mirror.MirrorHost;
 import com.bakdata.quick.common.api.client.mirror.MirrorValueParser;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -116,7 +116,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
-            log.info("Forward request to {}", metadata.activeHost());
+            log.debug("Forward request to {}", metadata.activeHost());
             return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).subscribeOn(Schedulers.io());
         }
 
@@ -151,7 +151,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     @Override
     public Single<HttpResponse<MirrorValue<List<V>>>> getRange(final String rawKey, final String from,
-        final String to) {
+                                                               final String to) {
         final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
 
         if (rangeIndexProperties == null) {
@@ -167,7 +167,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
-            log.info("Forward request to {}", metadata.activeHost());
+            log.debug("Forward request to {}", metadata.activeHost());
             return Single.fromCallable(() -> this.fetchRange(metadata.activeHost(), key, from, to))
                 .subscribeOn(Schedulers.io());
         }
@@ -211,7 +211,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     }
 
     private HttpResponse<MirrorValue<List<V>>> fetchRange(final HostInfo replicaHostInfo,
-        final K key, final String from, final String to) {
+                                                          final K key, final String from, final String to) {
         final DefaultMirrorClient<K, V> mirrorClient = this.getDefaultMirrorClient(replicaHostInfo);
 
         log.debug("Fetching range for key {}, from {}, to {}", key, from, to);
@@ -267,7 +267,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     }
 
     private List<V> queryRangeStore(final K key, final String from, final String to,
-        final ReadOnlyKeyValueStore<String, V> rangeStore) {
+                                    final ReadOnlyKeyValueStore<String, V> rangeStore) {
         if (this.rangeIndexer == null) {
             throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not create range indexer");
         }
@@ -290,7 +290,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     /**
      * Transforms a list of HttpResponses of MirrorValue of a specific type into a single HttpResponse of MirrorValue
-     * with a list of values of that type. Furthermore, if a header is present in one of the HttpResponses (function
+     * with a list of values of that type. If a header is present in one of the HttpResponses (function
      * argument), an HTTP Header that informs about the Cache-Miss is set. Because of this possibility, the function
      * returns MutableHttpResponse and not just HttpResponse.
      *

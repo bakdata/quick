@@ -67,7 +67,7 @@ public interface DataFetcherRule extends TopicDirectiveRule {
     }
 
     /**
-     * Extracts name of given type.
+     * Extracts name of a given type.
      */
     static String extractName(final Type<?> type) {
         if (type instanceof TypeName) {
@@ -97,7 +97,7 @@ public interface DataFetcherRule extends TopicDirectiveRule {
      * Checks whether this rule can be applied for this context.
      *
      * @param context the current topic directive information
-     * @return whether or not this rule is valid for this context
+     * @return whether this rule is valid for this context
      */
     boolean isValid(final TopicDirectiveContext context);
 

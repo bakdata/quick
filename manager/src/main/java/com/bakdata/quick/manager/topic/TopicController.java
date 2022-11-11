@@ -75,9 +75,9 @@ public class TopicController {
      */
     @Post("/topic/{name}")
     public Completable createTopic(@PathVariable final String name,
-        @QueryValue(defaultValue = "LONG") final QuickTopicType keyType,
-        @QueryValue(defaultValue = "SCHEMA") final QuickTopicType valueType,
-        @Body final TopicCreationData topicCreationData) {
+                                   @QueryValue(defaultValue = "LONG") final QuickTopicType keyType,
+                                   @QueryValue(defaultValue = "SCHEMA") final QuickTopicType valueType,
+                                   @Body final TopicCreationData topicCreationData) {
         return this.topicService.createTopic(name, keyType, valueType, topicCreationData)
             .doOnError(e -> log.error("Could not create topic", e))
             .subscribeOn(Schedulers.io());

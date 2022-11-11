@@ -48,9 +48,9 @@ public class KubernetesMirrorService implements MirrorService {
      * Injectable constructor.
      */
     public KubernetesMirrorService(final KubernetesResources resources,
-        final KubernetesManagerClient kubernetesManagerClient,
-        final DeploymentConfig deploymentConfig,
-        final MirrorResourceLoader loader) {
+                                   final KubernetesManagerClient kubernetesManagerClient,
+                                   final DeploymentConfig deploymentConfig,
+                                   final MirrorResourceLoader loader) {
         this.resources = resources;
         this.kubeClient = kubernetesManagerClient;
         this.deploymentConfig = deploymentConfig;
