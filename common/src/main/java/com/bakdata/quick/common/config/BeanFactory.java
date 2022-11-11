@@ -17,6 +17,7 @@
 package com.bakdata.quick.common.config;
 
 import io.micronaut.context.annotation.Factory;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -33,6 +34,7 @@ public class BeanFactory {
      * @return a UUID supplier
      */
     @Singleton
+    @Named("RequestIdSupplier")
     public Supplier<UUID> getUuidSupplier() {
         return UUID::randomUUID;
     }

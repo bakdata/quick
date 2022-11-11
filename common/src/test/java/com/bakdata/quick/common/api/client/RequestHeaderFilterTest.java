@@ -94,7 +94,7 @@ public class RequestHeaderFilterTest {
     }
 
 
-    @Replaces(Supplier.class)
+    @Replaces(named = "RequestIdSupplier")
     @Singleton
     public static class SupplierMock implements Supplier<UUID> {
         @Override
