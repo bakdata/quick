@@ -74,20 +74,19 @@ When you execute a range query, you receive a list of entries.
 Therefore, the return type of the query is a list of _UserRating_.
 
 !!! Important
-    When you use range queries in the way described here,
-    you can only make a query using the key of your Kafka messages,
+    With range queries as described here,
+    you can query data using the key of your Kafka messages,
     i.e., the topic's key.
-    Thus, your data must follow a specific format.
+    Thus, your data follows a specific format.
     The value of the field chosen for `keyArgument`
     must be the same as the value of the topic key.
-    In section _Execute the query_,
+    [Below](#execute-the-query), 
     you will notice that the data you send to the topic
     follows this schema. The key of each message
     is equal to the value's `productId`
     (the field chosen as the `keyArgument`).
-    Consult the section _Making range queries using a value field_ below
-    if you want to find out how to make range queries using
-    one of the value's fields.
+    [Later](#range-queries-with-a-value-key-field), we describe how to make range queries using
+    one of the value's fields as key.
 
 ## Apply the schema to the gateway
 
@@ -284,24 +283,18 @@ Here you go - this is the list of the desired products.
 ]
 ```
 
-### Making range queries using a value field
+### Range queries with a value key field
 
-Consider the scenario where
-you want to analyse the purchases
-of a given user in a specific time frame.
-If you use range queries in the way described above,
-you won't be able to query records 
-within a time range for a fixed `userId`.
-You are only allowed to make queries using the key 
-of a message.
+Consider the scenario where you have purchases as values with timestamps.
+Range queries as described above,
+don't let you query records within a time range for a fixed `userId`,
+since the range field is not the key of the message.
 You can use the `--range-key` option to circumvent this.
 The option is set during topic creation
 and allows you to specify the new key
 for your messages.
 
-For the purposes of this part,
-we will change the schema
-in the following manner:
+Let's change the schema as follows:
 ```graphql
 type Query {
     findUserPurchasesInTime(
@@ -322,29 +315,25 @@ type Purchase {
     timestamp: Int
 }
 ```
-As you can see, the field `productId` of the `Purchase` type
-has been removed, and `timestamp` has been added.
+As you can see, the `timestamp` has been added to the `Purchase` type.
 The query has also changed.
 The new value of `keyArgument` - `id` - refers
-to the field you will mark
-with the `--range-key` option in the next step.  
-To be able to execute range queries
-that refer to a field of the message's value,
-you must create a new topic
+to the field you will define
+via `--range-key` in the next step.  
+Thus, you must create a new topic
 with the `--range-key` parameter
 set to that particular value.
+
 ```shell
 quick topic user-purchases --key string \
  --value schema --schema example.Purchase \
   --range-key userId --range-field timestamp
 ```
-This command links the `id` from the schema
-to the concrete field of a particular type
-(`userId` of the type `Purchase` in this case)
+The above command assigns the `userId` from `Purchase`
+as `--range-key`.
 
-To test this scenario, 
-you can use the following snippet,
-which sends some records to the newly created topic:
+Use the following snippet,
+to send some records to the newly created topic:
 ```shell
  curl --request POST --url "$QUICK_URL/ingest/user-purchases" \
   --header "content-type:application/json" \
@@ -409,7 +398,7 @@ Here is an example of the `purchases.json` file:
         }
     ]
     ```
-Let's now find the purchases made by the user with the id `2`
+Let's now find purchases made by the user with the id `2`
 within the timeframe between 1 and 3 
 (remember that the bound is exclusive).
 ```graphql
@@ -423,8 +412,8 @@ query {
   }
 }
 ```
-Upon a successful execution,
-you should see the following result:
+
+You should see the following result:
 ```json
 [
   {
