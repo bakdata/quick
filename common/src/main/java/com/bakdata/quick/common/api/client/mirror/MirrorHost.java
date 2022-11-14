@@ -143,7 +143,7 @@ public final class MirrorHost {
     }
 
     /**
-     * If the host (name) of the two mirrors is the same they are equal.
+     * If the host (name) of the two mirrors is the same, they are equal.
      */
     @Override
     public boolean equals(final Object otherMirrorHost) {

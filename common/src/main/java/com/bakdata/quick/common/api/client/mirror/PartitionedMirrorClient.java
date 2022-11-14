@@ -61,10 +61,8 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Nullable
     public V fetchValue(final K key) {
         final MirrorHost currentKeyHost = this.router.findHost(key);
-        log.debug("Host {} will answer the request for the key: {}.", currentKeyHost.getUrl().host(), key);
         final ResponseWrapper response = this.requestManager.makeRequest(currentKeyHost.forKey(key.toString()));
         if (response.isUpdateCacheHeaderSet()) {
-            log.debug("The update header has been set. Updating router info.");
             this.router.updateRoutingInfo();
         }
         return this.requestManager.processResponse(response, this.parser::deserialize);
@@ -74,15 +72,13 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     public List<V> fetchAll() {
         final List<MirrorHost> knownHosts = this.router.getAllHosts();
         final List<V> valuesFromAllHosts = new ArrayList<>();
-        log.debug("Fetching the values for all possible keys that are distributed across {} hosts.", knownHosts.size());
         for (final MirrorHost host : knownHosts) {
-            log.debug("Fetching the value from the following host: {}", host.getUrl().host());
             final ResponseWrapper response = this.requestManager.makeRequest(host.forAll());
             final List<V> valuesFromSingleHost =
                 Objects.requireNonNullElse(this.requestManager.processResponse(response, this.parser::deserializeList),
                     Collections.emptyList());
             valuesFromAllHosts.addAll(valuesFromSingleHost);
-            log.debug("Fetched {} values.", valuesFromSingleHost.size());
+            log.trace("Fetched {} values.", valuesFromSingleHost.size());
         }
         return valuesFromAllHosts;
     }
@@ -90,22 +86,20 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
     @Override
     @Nullable
     public List<V> fetchValues(final List<K> keys) {
-        log.debug("Fetching values for keys {}.", keys.size());
+        log.trace("Fetching values for keys {}.", keys.size());
         final List<V> valuesFromAllHosts = new ArrayList<>();
 
         final Map<MirrorHost, List<K>> mirrorHostKeyMap = this.findMirrorHostForListOfKeys(keys);
-        log.debug("Created a map of host and list of keys: {}", mirrorHostKeyMap);
+        log.trace("Created a map of host and list of keys: {}", mirrorHostKeyMap);
 
         for (final Entry<MirrorHost, List<K>> mirrorHostWitKeys : mirrorHostKeyMap.entrySet()) {
             final List<String> stringKeys = mirrorHostWitKeys.getValue().stream()
                 .map(Objects::toString)
                 .collect(Collectors.toList());
             final HttpUrl url = mirrorHostWitKeys.getKey().forKeys(stringKeys);
-            log.debug("Making request for host: {}", url);
             final ResponseWrapper response = this.requestManager.makeRequest(url);
 
             if (response.isUpdateCacheHeaderSet()) {
-                log.debug("The update header has been set for url {}. Updating router info.", url);
                 this.router.updateRoutingInfo();
             }
 
@@ -114,7 +108,7 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
                     Collections.emptyList());
             valuesFromAllHosts.addAll(valuesFromSingleHost);
         }
-        log.debug("Fetched values for list request: {}", valuesFromAllHosts);
+        log.trace("Fetched values for list request: {}", valuesFromAllHosts);
         return valuesFromAllHosts;
     }
 
@@ -125,7 +119,6 @@ public class PartitionedMirrorClient<K, V> implements MirrorClient<K, V> {
         final HttpUrl url = currentKeyHost.forRange(key.toString(), from, to);
         final ResponseWrapper response = this.requestManager.makeRequest(url);
         if (response.isUpdateCacheHeaderSet()) {
-            log.debug("The update header has been set for host {} and key {}. Updating router info.", url, key);
             this.router.updateRoutingInfo();
         }
         return this.requestManager.processResponse(response, this.parser::deserializeList);
