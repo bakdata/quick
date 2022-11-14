@@ -76,17 +76,17 @@ Therefore, the return type of the query is a list of _UserRating_.
 !!! Important
     With range queries as described here,
     you can query data using the key of your Kafka messages,
-    i.e., the topic's key.
-    Thus, your data follows a specific format.
+    that is, the topic's key.
+    Thus, your data follow a specific format.
     The value of the field chosen for `keyArgument`
     must be the same as the value of the topic key.
     [Below](#execute-the-query), 
     you will notice that the data you send to the topic
-    follows this schema. The key of each message
-    is equal to the value's `productId`
+    follows this schema. 
+    The key of each message is equal to the value's `productId`
     (the field chosen as the `keyArgument`).
     [Later](#range-queries-with-a-value-key-field), we describe how to make range queries using
-    one of the value's fields as key.
+    one of the value's fields as a key.
 
 ## Apply the schema to the gateway
 
@@ -256,7 +256,7 @@ query {
 }
 ```
 
-Here you go - this is the list of the desired products.
+Here you go — this is the list of the desired products.
 ```json
 [
   {
@@ -317,7 +317,7 @@ type Purchase {
 ```
 As you can see, the `timestamp` has been added to the `Purchase` type.
 The query has also changed.
-The new value of `keyArgument` - `id` - refers
+The new value of `keyArgument` - `userId` - refers
 to the field you will define
 via `--range-key` in the next step.  
 Thus, you must create a new topic
