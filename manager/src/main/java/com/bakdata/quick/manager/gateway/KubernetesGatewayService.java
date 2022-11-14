@@ -85,19 +85,21 @@ public class KubernetesGatewayService implements GatewayService {
 
     @Override
     public Completable createGateway(final GatewayCreationData gatewayCreationData) {
+        log.info("Creating the gateway {}", gatewayCreationData.getName());
         return Single.fromCallable(() -> this.loader.forCreation(gatewayCreationData, ResourcePrefix.GATEWAY))
             .flatMapCompletable(this.kubernetesManagerClient::deploy);
     }
 
     @Override
     public Completable deleteGateway(final String name) {
+        log.info("Deleting the gateway {}", name);
         return Single.fromCallable(() -> this.loader.forDeletion(name))
             .flatMapCompletable(this.kubernetesManagerClient::delete);
     }
 
     @Override
     public Completable updateSchema(final String name, final String graphQLSchema) {
-        log.debug("Updating schema of the gateway {} with {}", name, graphQLSchema);
+        log.info("Updating schema of the gateway {} with {}", name, graphQLSchema);
         // Check if the gateway exists or not
         final Completable resourceExists =
             this.kubernetesManagerClient.checkDeploymentExistence(ResourcePrefix.GATEWAY, name);

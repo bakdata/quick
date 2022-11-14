@@ -136,3 +136,13 @@ e2e-run-range api-key quick-host:
 # Runs the e2e schema tests
 e2e-run-schema api-key quick-host:
     docker run -v {{ e2e-dir }}/schema:/tests/schema -e X_API_KEY={{ api-key }} -e HOST={{ quick-host }} quick-e2e-test-runner --rm -it
+
+###############################################################################
+## Checkstyle
+###############################################################################
+
+checkstyle:
+    {{ gradle-bin }} checkstyleMain && {{ gradle-bin }} checkstyleTest
+
+test:
+    {{ gradle-bin }} test

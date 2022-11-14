@@ -54,7 +54,7 @@ public class KafkaConfig {
      *
      * @param bootstrapServer   kafka server address
      * @param schemaRegistryUrl address of schema registry
-     * @param applicationId     id uses by the application when interacting with kafka
+     * @param applicationId     id used by the application when interacting with kafka
      */
     @ConfigurationInject
     public KafkaConfig(final String bootstrapServer, final String schemaRegistryUrl,

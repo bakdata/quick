@@ -50,7 +50,8 @@ public class KubernetesApplicationService implements ApplicationService {
      * Default constructor.
      */
     public KubernetesApplicationService(final KubernetesResources resources,
-        final KubernetesManagerClient kubeClient, final ApplicationResourceLoader loader) {
+                                        final KubernetesManagerClient kubeClient,
+                                        final ApplicationResourceLoader loader) {
         this.resources = resources;
         this.kubeClient = kubeClient;
         this.loader = loader;

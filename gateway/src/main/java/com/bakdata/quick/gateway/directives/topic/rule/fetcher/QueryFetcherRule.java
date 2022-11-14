@@ -58,7 +58,7 @@ public class QueryFetcherRule implements DataFetcherRule {
         final FieldCoordinates coordinates = this.currentCoordinates(context);
         specifications.add(DataFetcherSpecification.of(coordinates, dataFetcher));
         // add defer fetcher to query if topic directive is applied to a child object
-        // so that source is not null and the query fetcher is actually called
+        // so that a source is not null and the query fetcher is actually called
         DataFetcherRule.extractDeferFetcher(context).forEach(specifications::add);
         return specifications;
     }

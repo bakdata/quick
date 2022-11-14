@@ -134,15 +134,8 @@ public class PartitionRouter<K> implements Router<K> {
             if (responseBody == null) {
                 throw new MirrorException("Response body was null.", HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            final Map<Integer, String> partitionHostMappingResponse = this.client.objectMapper()
+            return this.client.objectMapper()
                 .readValue(responseBody.byteStream(), MAP_TYPE_REFERENCE);
-            log.debug("Partition to individual Mirror hosts are: {}", partitionHostMappingResponse);
-            if (log.isInfoEnabled()) {
-                log.info("Collected information about the partitions and hosts."
-                        + " There are {} partitions and {} distinct hosts", partitionHostMappingResponse.size(),
-                    (int) partitionHostMappingResponse.values().stream().distinct().count());
-            }
-            return partitionHostMappingResponse;
         } catch (final IOException exception) {
             throw new MirrorException("There was a problem handling the response: ",
                 HttpStatus.INTERNAL_SERVER_ERROR, exception);

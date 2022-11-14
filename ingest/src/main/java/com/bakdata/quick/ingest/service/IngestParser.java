@@ -129,7 +129,7 @@ public class IngestParser {
     }
 
     private static <T> T parse(final QuickTopicData.QuickData<T> data, final JsonNode node) {
-        // the type resolver doesn't check for the JSON node type but we can always create string
+        // the type resolver doesn't check for the JSON node type, but we can always create string
         // thus, in case of string type in the topic, we manually check that the node type isn't numeric
         if (node.isNumber() && data.getType() == QuickTopicType.STRING) {
             final String message = String.format("Data must be of type string. Got: %s (%s)",

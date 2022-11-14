@@ -54,7 +54,7 @@ public class IngestFilter {
     }
 
     /**
-     * Based on the key value pairs to ingest, this methods returns two new lists: one with the keys to ingest, and one
+     * Based on the key value pairs to ingest, this method returns two new lists: one with the keys to ingest, and one
      * with the keys that cannot be overridden.
      *
      * <p>
@@ -64,7 +64,7 @@ public class IngestFilter {
      * @param pairs list of kv pairs to ingest
      * @param <K> key type
      * @param <V> value type
-     * @return two new lists: one with keys to ingest and one with keys that cannot be overriden.
+     * @return two new lists: one with keys to ingest and one with keys that cannot be overridden.
      */
     public <K, V> Single<IngestLists<K, V>> prepareIngest(final QuickTopicData<K, V> topicData,
         final List<KeyValuePair<K, V>> pairs) {
