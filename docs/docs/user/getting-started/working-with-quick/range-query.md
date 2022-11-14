@@ -68,10 +68,25 @@ In our example, `timestampFrom` and `timestampTo` follow the naming scheme _fiel
 where _field_ is the field declared in the topic creation command (see later step 3).
 Following this convention is not mandatory.
 You can name the parameters that define your range as you wish.
-However, we suggest to follow this pattern to increase readability.
+However, we suggest following this pattern to increase readability.
 
 When you execute a range query, you receive a list of entries.
 Therefore, the return type of the query is a list of _UserRating_.
+
+!!! Important
+    With range queries as described here,
+    you can query data using the key of your Kafka messages,
+    that is, the topic's key.
+    Thus, your data follow a specific format.
+    The value of the field chosen for `keyArgument`
+    must be the same as the value of the topic key.
+    [Below](#execute-the-query), 
+    you will notice that the data you send to the topic
+    follows this schema. 
+    The key of each message is equal to the value's `productId`
+    (the field chosen as the `keyArgument`).
+    [Later](#range-queries-with-a-value-key-field), we describe how to make range queries using
+    one of the value's fields as a key.
 
 ## Apply the schema to the gateway
 
@@ -230,7 +245,7 @@ Let's now find the prices for product `111` in the time-window `1` to `3`.
     Therefore, we use `timestampTo:4`.
 ```graphql
 query {
-  productPriceInTime(productId:111, timestampFrom:1, timestampTo:4) {
+  productPriceInTime(productId: 111, timestampFrom: 1, timestampTo: 4) {
     productId,
     price
     {
@@ -241,7 +256,7 @@ query {
 }
 ```
 
-Here you go - this is the list of the desired products.
+Here you go — this is the list of the desired products.
 ```json
 [
   {
@@ -264,6 +279,160 @@ Here you go - this is the list of the desired products.
       "total": 24.99
     },
     "timestamp": 3
+  }
+]
+```
+
+### Range queries with a value key field
+
+Consider the scenario where you have purchases as values with timestamps.
+Range queries as described above,
+don't let you query records within a time range for a fixed `userId`,
+since the range field is not the key of the message.
+You can use the `--range-key` option to circumvent this.
+The option is set during topic creation
+and allows you to specify the new key
+for your messages.
+
+Let's change the schema as follows:
+```graphql
+type Query {
+    findUserPurchasesInTime(
+        userId: String
+        timestampFrom: Int
+        timestampTo: Int
+    ): [Purchase] @topic(name: "user-purchases",
+        keyArgument: "userId"
+        rangeFrom: "timestampFrom",
+        rangeTo: "timestampTo")
+}
+
+type Purchase {
+    productId: Int!
+    userId: Int!
+    amount: Int
+    price: Price
+    timestamp: Int
+}
+```
+As you can see, the `timestamp` has been added to the `Purchase` type.
+The query has also changed.
+The new value of `keyArgument` - `userId` - refers
+to the field you will define
+via `--range-key` in the next step.  
+Thus, you must create a new topic
+with the `--range-key` parameter
+set to that particular value.
+
+```shell
+quick topic user-purchases --key string \
+ --value schema --schema example.Purchase \
+  --range-key userId --range-field timestamp
+```
+The above command assigns the `userId` from `Purchase`
+as `--range-key`.
+
+Use the following snippet,
+to send some records to the newly created topic:
+```shell
+ curl --request POST --url "$QUICK_URL/ingest/user-purchases" \
+  --header "content-type:application/json" \
+  --header "X-API-Key:$QUICK_API_KEY"\
+  --data "@./purchases.json"
+```
+Here is an example of the `purchases.json` file:
+??? "Example `purchases.json`"
+    ```
+    [
+        {
+          "key": "abc",
+          "value": {
+            "productId": 123,
+            "userId": 1,
+            "amount": 1,
+            "price": {
+              "total": 19.99,
+              "currency": "DOLLAR"
+            },
+            "timestamp": 1
+          }
+        },
+        {
+          "key": "def",
+          "value": {
+            "productId": 123,
+            "userId": 2,
+            "amount": 2,
+            "price": {
+              "total": 30.00,
+              "currency": "DOLLAR"
+            },
+            "timestamp": 2
+          }
+        },
+        {
+          "key": "ghi",
+          "value": {
+            "productId": 456,
+            "userId": 2,
+            "amount": 1,
+            "price": {
+              "total": 79.99,
+              "currency": "DOLLAR"
+            },
+            "timestamp": 3
+          }
+        },
+        {
+          "key": "jkl",
+          "value": {
+            "productId": 789,
+            "userId": 2,
+            "amount": 1,
+            "price": {
+              "total": 99.99,
+              "currency": "DOLLAR"
+            },
+            "timestamp": 4
+          }
+        }
+    ]
+    ```
+Let's now find purchases made by the user with the id `2`
+within the timeframe between 1 and 3 
+(remember that the bound is exclusive).
+```graphql
+query {
+    findUserPurchasesInTime(id: "2", timestampFrom: 1, timestampTo: 4) {
+    productId,
+    price
+    {
+        total
+    }
+  }
+}
+```
+
+You should see the following result:
+```json
+[
+  {
+    "data": {
+      "findUserPurchasesInTime": [
+        {
+          "productId": 123,
+          "price": {
+            "total": 30
+          }
+        },
+        {
+          "productId": 456,
+          "price": {
+            "total": 79.99
+          }
+        }
+      ]
+    }
   }
 ]
 ```
