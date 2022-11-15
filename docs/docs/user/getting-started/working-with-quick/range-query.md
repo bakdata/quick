@@ -403,7 +403,7 @@ within the timeframe between 1 and 3
 (remember that the bound is exclusive).
 ```graphql
 query {
-    findUserPurchasesInTime(id: "2", timestampFrom: 1, timestampTo: 4) {
+    findUserPurchasesInTime(userId: "2", timestampFrom: 1, timestampTo: 4) {
     productId,
     price
     {
