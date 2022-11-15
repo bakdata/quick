@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
+import org.slf4j.MDC;
 
 
 /**
@@ -53,6 +54,7 @@ public class RequestHeaderFilter implements HttpServerFilter {
         }
         log.debug("The request at {} has the following X-Request-ID value: {}",
             request.getPath(), request.getHeaders().get(REQUEST_HEADER));
+        MDC.put(REQUEST_HEADER, request.getHeaders().get(REQUEST_HEADER));
         return chain.proceed(request);
     }
 

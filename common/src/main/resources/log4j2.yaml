@@ -9,7 +9,7 @@ Configuration:
       follow: true
       PatternLayOut:
         disableAnsi: false
-        Pattern: "%d{HH:mm:ss.SSS} - %highlight{%5p} %style{%logger{36}}{cyan} - %m%n%throwable"
+        Pattern: "%cyan(%d{HH:mm:ss.SSS}) %gray([%thread]) %highlight(%-5level) %magenta(%logger{36}) - [X-Request-ID=%X{X-Request-ID}] - %msg%n"
 
   Loggers:
     Root:

@@ -19,6 +19,7 @@ package com.bakdata.quick.manager.topic;
 import static com.bakdata.quick.common.api.model.KeyValueEnum.KEY;
 import static com.bakdata.quick.common.api.model.KeyValueEnum.VALUE;
 
+import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.api.client.gateway.GatewayClient;
 import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.KeyValueEnum;
@@ -51,6 +52,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.slf4j.MDC;
 
 /**
  * Service for creating Quick topics in Kafka.
@@ -201,7 +203,7 @@ public class KafkaTopicService implements TopicService {
                                      @Nullable final Duration retentionTime,
                                      @Nullable final String rangeField) {
         return Completable.defer(() -> {
-            log.info("Create mirror for topic {}", topicName);
+            log.info("Create mirror for topic {}. Req ID: {}", topicName, MDC.get(HeaderConstants.REQUEST_HEADER));
             final MirrorCreationData mirrorCreationData = new MirrorCreationData(topicName,
                 topicName,
                 1,

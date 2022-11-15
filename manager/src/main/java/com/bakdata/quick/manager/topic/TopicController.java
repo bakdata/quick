@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.manager.topic;
 
+import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.manager.creation.TopicCreationData;
 import com.bakdata.quick.common.type.QuickTopicType;
@@ -34,6 +35,7 @@ import io.reactivex.schedulers.Schedulers;
 import jakarta.inject.Inject;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.log4j.MDC;
 
 /**
  * Manager's REST API for topics.
@@ -78,6 +80,8 @@ public class TopicController {
                                    @QueryValue(defaultValue = "LONG") final QuickTopicType keyType,
                                    @QueryValue(defaultValue = "SCHEMA") final QuickTopicType valueType,
                                    @Body final TopicCreationData topicCreationData) {
+        String val = MDC.get(HeaderConstants.REQUEST_HEADER).toString();
+        log.debug("Create topic {} in the controller. Request id {}", name, val);
         return this.topicService.createTopic(name, keyType, valueType, topicCreationData)
             .doOnError(e -> log.error("Could not create topic", e))
             .subscribeOn(Schedulers.io());
