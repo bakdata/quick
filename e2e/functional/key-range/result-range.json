@@ -1,23 +1,14 @@
 [
-  {
-    "productId": 111,
-    "price": {
-      "total": 14.99
-    },
-    "timestamp": 1
-  },
-  {
-    "productId": 111,
-    "price": {
-      "total": 19.99
-    },
-    "timestamp": 2
-  },
-  {
-    "productId": 111,
-    "price": {
-      "total": 24.99
-    },
-    "timestamp": 3
-  }
+      {
+        "productId": 123,
+        "price": {
+          "total": 30
+        }
+      },
+      {
+        "productId": 456,
+        "price": {
+          "total": 79.99
+        }
+      }
 ]
