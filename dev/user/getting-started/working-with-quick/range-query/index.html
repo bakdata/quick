@@ -1609,7 +1609,7 @@ Here is an example of the <code>purchases.json</code> file:</p>
 within the timeframe between 1 and 3 
 (remember that the bound is exclusive).
 <div class="highlight"><pre><span></span><code><span class="k">query</span> <span class="p">{</span>
-    <span class="n">findUserPurchasesInTime</span><span class="p">(</span><span class="n">id</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span> <span class="n">timestampFrom</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">timestampTo</span><span class="p">:</span> <span class="mi">4</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">findUserPurchasesInTime</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span> <span class="n">timestampFrom</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">timestampTo</span><span class="p">:</span> <span class="mi">4</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">productId</span><span class="p">,</span>
     <span class="n">price</span>
     <span class="p">{</span>
