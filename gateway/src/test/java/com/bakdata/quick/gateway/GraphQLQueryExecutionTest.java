@@ -286,6 +286,74 @@ class GraphQLQueryExecutionTest {
     }
 
     @Test
+    void shouldExecuteQueryWithListField(final TestInfo testInfo) throws IOException {
+        final String name = testInfo.getTestMethod().orElseThrow().getName();
+        final Path schemaPath = workingDirectory.resolve(name + ".graphql");
+        final Path queryPath = workingDirectory.resolve(name + "Query.graphql");
+
+        final TestClientSupplier testClientSupplier = new TestClientSupplier();
+        final GraphQL graphQL = this.getGraphQL(schemaPath, testClientSupplier);
+
+        final DataFetcherClient<String, List<?>> purchaseClient = testClientSupplier.getClient("purchase-topic");
+        final DataFetcherClient<String, ?> productClient = testClientSupplier.getClient("product-topic");
+
+        final Product product1 = Product.builder()
+            .productId("product1")
+            .name("product-name")
+            .price(Price.builder().total(1).build())
+            .build();
+
+        final Product product2 = Product.builder()
+            .productId("product2")
+            .name("product-name2")
+            .price(Price.builder().total(2).build())
+            .build();
+
+        final Product product3 = Product.builder()
+            .productId("product3")
+            .name("product-name3")
+            .price(Price.builder().total(3).build())
+            .build();
+
+        final PurchaseWithProductList purchaseWithProductList1 = PurchaseWithProductList.builder()
+            .purchaseId("purchase1")
+            .productIds(List.of("product1", "product2"))
+            .products(List.of(product1, product2))
+            .build();
+
+        final PurchaseWithProductList purchaseWithProductList2 = PurchaseWithProductList.builder()
+            .purchaseId("purchase2")
+            .productIds(List.of("product3"))
+            .products(List.of(product3))
+            .build();
+
+        // other ideas
+        /*
+        1.
+        TypeReference<PurchaseWithProductList> myRef = new TypeReference<>() {};
+        2.
+        JavaType type = this.mapper.getTypeFactory().
+            constructCollectionType(List.class, PurchaseWithProductList.class);
+        final List<?> purchases = this.mapper.convertValue(List.of(purchaseWithProductList1,
+         purchaseWithProductList2), type);
+         */
+
+        final List<?> purchases = List.of(
+            this.mapper.convertValue(purchaseWithProductList1, OBJECT_TYPE_REFERENCE),
+            this.mapper.convertValue(purchaseWithProductList2, OBJECT_TYPE_REFERENCE)
+        );
+
+        when(purchaseClient.fetchList()).thenAnswer(invocation -> purchases);
+        when(productClient.fetchResult("product1")).thenAnswer(invocation -> product1);
+        when(productClient.fetchResult("product2")).thenAnswer(invocation -> product2);
+        when(productClient.fetchResult("product3")).thenAnswer(invocation -> product3);
+
+        final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
+
+        assertThat(executionResult.getErrors()).isEmpty();
+    }
+
+    @Test
     void shouldThrowErrorForNonNullableField() throws IOException {
         final String name = "shouldExecuteQueryWithSingleField";
         final Path schemaPath = workingDirectory.resolve(name + ".graphql");
@@ -373,6 +441,14 @@ class GraphQLQueryExecutionTest {
         String purchaseId;
         String productId;
         int amount;
+    }
+
+    @Value
+    @Builder
+    private static class PurchaseWithProductList {
+        String purchaseId;
+        List<String> productIds;
+        List<Product> products;
     }
 
     @Value
