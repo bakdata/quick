@@ -59,7 +59,7 @@ class GraphQLSchemaGeneratorTest {
 
     @Inject
     GraphQLSchemaGeneratorTest(final GraphQLSchemaGenerator generator,
-        final TestTopicRegistryClient registryClient) {
+                               final TestTopicRegistryClient registryClient) {
         this.generator = generator;
         this.registryClient = registryClient;
         this.registerTopics();
@@ -436,7 +436,8 @@ class GraphQLSchemaGeneratorTest {
 
     @Test
     void shouldConvertMutation(final TestInfo testInfo) throws IOException {
-        final Path schemaPath = workingDirectory.resolve(testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+        final Path schemaPath = workingDirectory.resolve(
+            testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
 
         final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
 
@@ -451,11 +452,47 @@ class GraphQLSchemaGeneratorTest {
             .extracting(GraphQLArgument::getName)
             .containsExactlyInAnyOrder("id", "product");
 
-        final DataFetcher<?> rootDataFetcher = GraphQLTestUtil.getFieldDataFetcher("Mutation", "setProduct", schema);
+        final DataFetcher<?> rootDataFetcher = GraphQLTestUtil.getFieldDataFetcher("Mutation",
+            "setProduct", schema);
         assertThat(rootDataFetcher)
             .isNotNull()
             .isInstanceOf(MutationFetcher.class);
     }
+
+    @Test
+    void shouldConvertTypeWithListField(final TestInfo testInfo) throws IOException {
+        final Path schemaPath = workingDirectory.resolve(
+            testInfo.getTestMethod().orElseThrow().getName() + ".graphql");
+
+        final GraphQLSchema schema = this.generator.create(Files.readString(schemaPath));
+
+        final GraphQLFieldDefinition productIds = GraphQLTestUtil.getFieldDefinition(
+            "Purchase", "productIds", schema);
+        final GraphQLFieldDefinition products = GraphQLTestUtil.getFieldDefinition(
+            "Purchase", "products", schema);
+
+        assertThat(productIds)
+            .isNotNull()
+            .extracting(GraphQLFieldDefinition::getType)
+            .isInstanceOfSatisfying(GraphQLList.class, list ->
+                assertThat(list)
+                    .extracting(GraphQLList::getWrappedType)
+                    .isInstanceOfSatisfying(GraphQLNonNull.class, nonNull ->
+                        assertThat(nonNull.getWrappedType())
+                            .hasFieldOrPropertyWithValue("name", "ID")));
+
+        assertThat(products)
+            .isNotNull()
+            .extracting(GraphQLFieldDefinition::getType)
+            .isInstanceOfSatisfying(GraphQLList.class, list ->
+                assertThat(list)
+                    .extracting(GraphQLList::getWrappedType)
+                    .isInstanceOfSatisfying(GraphQLObjectType.class, obj ->
+                        assertThat(obj)
+                            .hasFieldOrPropertyWithValue("name", "Product")));
+
+    }
+
 
     @Test
     void shouldNotConvertIfMissingKeyInfoInQueryType(final TestInfo testInfo) throws IOException {
@@ -492,22 +529,22 @@ class GraphQLSchemaGeneratorTest {
     }
 
     @Test
-    void shouldNotCovertIfRangeFromArgumentIsMissing(final TestInfo testInfo) throws  IOException {
+    void shouldNotCovertIfRangeFromArgumentIsMissing(final TestInfo testInfo) throws IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "Both rangeFrom and rangeTo arguments should be set.");
     }
 
     @Test
-    void shouldNotCovertIfRangeIsDefinedOnField(final TestInfo testInfo) throws  IOException {
+    void shouldNotCovertIfRangeIsDefinedOnField(final TestInfo testInfo) throws IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "Range queries are only supported on Query types.");
     }
 
     @Test
-    void shouldNotCovertIfKeyArgumentInRangeQueryIsMissing(final TestInfo testInfo) throws  IOException {
+    void shouldNotCovertIfKeyArgumentInRangeQueryIsMissing(final TestInfo testInfo) throws IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "You must define a keyArgument.");
     }
 
     @Test
-    void shouldNotCovertIfReturnTypeOfRangeQueryIsNotList(final TestInfo testInfo) throws  IOException {
+    void shouldNotCovertIfReturnTypeOfRangeQueryIsNotList(final TestInfo testInfo) throws IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "The return type of range queries should be a list.");
     }
 
@@ -548,7 +585,7 @@ class GraphQLSchemaGeneratorTest {
     }
 
     private static void hasFieldWithListType(final GraphQLObjectType objectType, final String insuredPersonId,
-        final String fieldTypeName) {
+                                             final String fieldTypeName) {
         assertThat(objectType.getFieldDefinition(insuredPersonId).getType())
             .isNotNull()
             .isInstanceOfSatisfying(GraphQLList.class, list ->
@@ -556,4 +593,6 @@ class GraphQLSchemaGeneratorTest {
                     .hasFieldOrPropertyWithValue("name", fieldTypeName)
             );
     }
+
+    //private static void hasFieldWithList()
 }
