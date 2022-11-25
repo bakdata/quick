@@ -26,6 +26,7 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.gateway.directives.QuickDirectiveException;
 import com.bakdata.quick.gateway.fetcher.KeyFieldFetcher;
 import com.bakdata.quick.gateway.fetcher.ListArgumentFetcher;
+import com.bakdata.quick.gateway.fetcher.ListFieldFetcher;
 import com.bakdata.quick.gateway.fetcher.MutationFetcher;
 import com.bakdata.quick.gateway.fetcher.QueryKeyArgumentFetcher;
 import com.bakdata.quick.gateway.fetcher.QueryListFetcher;
@@ -487,9 +488,15 @@ class GraphQLSchemaGeneratorTest {
             .isInstanceOfSatisfying(GraphQLList.class, list ->
                 assertThat(list)
                     .extracting(GraphQLList::getWrappedType)
-                    .isInstanceOfSatisfying(GraphQLObjectType.class, obj ->
-                        assertThat(obj)
+                    .isInstanceOfSatisfying(GraphQLObjectType.class, object ->
+                        assertThat(object)
                             .hasFieldOrPropertyWithValue("name", "Product")));
+
+        final DataFetcher<?> fieldFetcher = GraphQLTestUtil.getFieldDataFetcher(
+            "Purchase", "products", schema);
+        assertThat(fieldFetcher)
+            .isNotNull()
+            .isInstanceOf(ListFieldFetcher.class);
 
     }
 
