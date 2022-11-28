@@ -16,20 +16,15 @@
 
 package com.bakdata.quick.common.api.model.manager.creation;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
+import java.time.Duration;
 import lombok.Value;
 
 /**
- * User supplied data for creating a new mirror.
+ * Optional arguments for the mirror.
  */
 @Value
-public class MirrorCreationData implements CreationData {
-    String name;
-    String topicName;
-    @Nullable
-    Integer replicas;
-    @Nullable
-    String tag;
-    @Nullable
-    MirrorArguments mirrorArguments;
+public class MirrorArguments {
+    Duration retentionTime;
+    String rangeField;
+    String rangeKey;
 }

@@ -16,14 +16,17 @@
 
 package com.bakdata.quick.manager.mirror;
 
+import static com.bakdata.quick.manager.TestUtil.createDefaultMirrorCreationData;
 import static io.micronaut.http.HttpRequest.DELETE;
 import static io.micronaut.http.HttpRequest.POST;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.bakdata.quick.common.api.model.manager.creation.MirrorArguments;
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
 import io.micronaut.rxjava2.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
@@ -38,9 +41,6 @@ import org.junit.jupiter.api.Test;
 @MicronautTest
 class MirrorControllerTest {
     private static final String NAME = "test-topic";
-    private static final String TAG = "test-version";
-    private static final int DEFAULT_REPLICA = 1;
-    private static final int REPLICAS = 3;
 
     @Client("/")
     @Inject
@@ -50,16 +50,9 @@ class MirrorControllerTest {
     MirrorService service;
 
     @Test
-    void shouldCreateMirrorWithDefaultReplica() {
-        when(this.service.createMirror(any())).thenReturn(Completable.complete());
-
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            NAME,
-            NAME,
-            DEFAULT_REPLICA,
-            TAG,
-            null,
-            null);
+    void shouldCreateMirrorWithDefaultValues() {
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData(NAME);
+        when(this.service.createMirror(eq(mirrorCreationData))).thenReturn(Completable.complete());
 
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));
 
@@ -67,17 +60,15 @@ class MirrorControllerTest {
     }
 
     @Test
-    void shouldCreateMirrorWithQueryValues() {
-        when(this.service.createMirror(any())).thenReturn(Completable.complete());
-
+    void shouldCreateMirrorWithMirrorArguments() {
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             NAME,
             NAME,
-            REPLICAS,
-            TAG,
+            1,
             null,
-            null);
+            new MirrorArguments(null, "test-range-field", "test-range-key"));
 
+        when(this.service.createMirror(eq(mirrorCreationData))).thenReturn(Completable.complete());
         this.httpClient.toBlocking().exchange(POST("topic/mirror", mirrorCreationData));
 
         verify(this.service).createMirror(mirrorCreationData);

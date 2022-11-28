@@ -68,9 +68,9 @@ public class TopicController {
     /**
      * Creates a new topic.
      *
-     * @param name              name of the topic to create
-     * @param keyType           topic's key type
-     * @param valueType         topic's value type
+     * @param name name of the topic to create
+     * @param keyType topic's key type
+     * @param valueType topic's value type
      * @param topicCreationData additional data of the topic to create
      */
     @Post("/topic/{name}")
