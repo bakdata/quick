@@ -20,6 +20,7 @@ import com.bakdata.quick.gateway.DataFetcherSpecification;
 import com.bakdata.quick.gateway.directives.QuickDirectiveException;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
 import graphql.language.FieldDefinition;
+import graphql.language.ListType;
 import graphql.language.NonNullType;
 import graphql.language.ObjectTypeDefinition;
 import graphql.language.Type;
@@ -32,7 +33,6 @@ import graphql.schema.GraphqlElementParentTree;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Rule for a modification.
@@ -53,9 +53,17 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @see com.bakdata.quick.gateway.fetcher.KeyFieldFetcher
  */
-@Slf4j
 public class ModificationRule implements DataFetcherRule {
 
+    /**
+     * Extracts a list of data fetcher for this rule. The type of the keyField needs to be checked and extracted for the
+     * DataFetcher (i.e., the {@link com.bakdata.quick.gateway.fetcher.KeyFieldFetcher}). The fetcher needs to
+     * distinguish if the keyField is a type of integer or long. When receiving the JSON response from the mirror it is
+     * not possible determine from the JSON if the keyField is a long or integer. Therefore, the type is extracted
+     * before and the fetcher uses the {@link TypeName} to cast the JSON value into Java integer or long.
+     *
+     * @param context the current topic directive information
+     */
     @Override
     public List<DataFetcherSpecification> extractDataFetchers(final TopicDirectiveContext context) {
         final String keyField = context.getTopicDirective().getKeyField();
@@ -78,21 +86,31 @@ public class ModificationRule implements DataFetcherRule {
     }
 
     /**
-     * Extracts the {@link TypeName} of a  given {@link Type}. The class does not use the default implementation of the
-     * interface because the MutationRule should not parse ListType.
+     * Extracts the {@link TypeName} of a given {@link Type}. This class does not use the default implementation of the
+     * interface because the MutationRule should not parse ListType. The Modification rule returns a single object,
+     * therefore the keyField should be a scalar and not a list.
+     *
+     * <p>
+     * Please refer to {@link ModificationListRule} for list types.
      */
     @Override
-    public TypeName extractName(final Type<?> type) {
+    public TypeName extractTypeName(final Type<?> type) {
+        if (type instanceof ListType) {
+            throw new QuickDirectiveException(
+                "The topic directive is set on a field with a non list type. The keyField type should not be a list. "
+                    + "Please consider using scalar a type.");
+        }
+
         if (type instanceof TypeName) {
             return (TypeName) type;
         }
 
         if (type instanceof NonNullType) {
-            return this.extractName(((NonNullType) type).getType());
+            return this.extractTypeName(((NonNullType) type).getType());
         }
-
-        final String errorMessage = "Found unknown type: " + type.getClass().getSimpleName();
-        log.error(errorMessage);
+        final String errorMessage =
+            String.format("Found unsupported type %s for keyField. Only scalars are supported.",
+                type.getClass().getSimpleName());
         throw new QuickDirectiveException(errorMessage);
     }
 
@@ -102,9 +120,7 @@ public class ModificationRule implements DataFetcherRule {
             .getParentInfo();
 
         if (parentInfo.isEmpty()) {
-            final String errorMessage = "Could not find the parent object type.";
-            log.error(errorMessage);
-            throw new QuickDirectiveException(errorMessage);
+            throw new QuickDirectiveException("Could not find the parent object type.");
         }
 
         final GraphQLSchemaElement element = parentInfo.get().getElement();
@@ -118,10 +134,8 @@ public class ModificationRule implements DataFetcherRule {
             final String errorMessage =
                 String.format("Could not find the keyField %s in the parent type definition. Please check your schema.",
                     keyField);
-            log.error(errorMessage);
-            throw new QuickDirectiveException(
-                errorMessage);
+            throw new QuickDirectiveException(errorMessage);
         }
-        return this.extractName(field.get().getType());
+        return this.extractTypeName(field.get().getType());
     }
 }

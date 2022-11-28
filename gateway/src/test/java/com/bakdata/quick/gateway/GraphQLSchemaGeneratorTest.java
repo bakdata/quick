@@ -466,7 +466,9 @@ class GraphQLSchemaGeneratorTest {
 
     @Test
     void shouldNotConvertKeyFieldWithWrongFieldType(final TestInfo testInfo) throws IOException {
-        this.assertQuickDirectiveExceptionMessage(testInfo,"Found unknown type: ListType");
+        this.assertQuickDirectiveExceptionMessage(testInfo,
+            "The topic directive is set on a field with a non list type. The keyField type should not be a list. "
+                + "Please consider using scalar a type.");
     }
 
     @Test
@@ -504,22 +506,22 @@ class GraphQLSchemaGeneratorTest {
     }
 
     @Test
-    void shouldNotCovertIfRangeFromArgumentIsMissing(final TestInfo testInfo) throws  IOException {
+    void shouldNotCovertIfRangeFromArgumentIsMissing(final TestInfo testInfo) throws IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "Both rangeFrom and rangeTo arguments should be set.");
     }
 
     @Test
-    void shouldNotCovertIfRangeIsDefinedOnField(final TestInfo testInfo) throws  IOException {
+    void shouldNotCovertIfRangeIsDefinedOnField(final TestInfo testInfo) throws IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "Range queries are only supported on Query types.");
     }
 
     @Test
-    void shouldNotCovertIfKeyArgumentInRangeQueryIsMissing(final TestInfo testInfo) throws  IOException {
+    void shouldNotCovertIfKeyArgumentInRangeQueryIsMissing(final TestInfo testInfo) throws IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "You must define a keyArgument.");
     }
 
     @Test
-    void shouldNotCovertIfReturnTypeOfRangeQueryIsNotList(final TestInfo testInfo) throws  IOException {
+    void shouldNotCovertIfReturnTypeOfRangeQueryIsNotList(final TestInfo testInfo) throws IOException {
         this.assertQuickDirectiveExceptionMessage(testInfo, "The return type of range queries should be a list.");
     }
 
