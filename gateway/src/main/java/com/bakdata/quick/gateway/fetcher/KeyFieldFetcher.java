@@ -63,6 +63,10 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
  * First, the data fetcher connected with findPurchase is called and returns a Purchase object with a missing product
  * since it is stored in a different topic. The KeyFieldFetcher extracts the productId from the returned purchase and
  * fetches the corresponding product.
+ *
+ * <p>
+ * It is important to know the {@link TypeName} because it is possible to distinguish between the integer and long type
+ * in JSON.
  */
 @Slf4j
 public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
@@ -80,9 +84,7 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
      * @param client underlying HTTP mirror client
      * @param typeName the type name of the keyField field
      */
-    public KeyFieldFetcher(final ObjectMapper objectMapper,
-        final String argument,
-        final DataFetcherClient<K, V> client,
+    public KeyFieldFetcher(final ObjectMapper objectMapper, final String argument, final DataFetcherClient<K, V> client,
         final TypeName typeName) {
         this.objectMapper = objectMapper;
         this.argument = argument;
