@@ -65,8 +65,8 @@ import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
  * fetches the corresponding product.
  *
  * <p>
- * It is important to know the {@link TypeName} because it is possible to distinguish between the integer and long type
- * in JSON.
+ * It is important to know the {@link TypeName} of the keyField, because it is possible to distinguish between the
+ * integer and long type in the response JSON of the Mirror.
  */
 @Slf4j
 public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
