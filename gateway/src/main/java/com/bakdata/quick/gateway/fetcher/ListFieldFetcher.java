@@ -62,7 +62,6 @@ public class ListFieldFetcher<K, V> implements DataFetcher<List<V>> {
         if (keys == null) {
             throw new AbortExecutionException(String.format("No keys for field %s found", this.idFieldName));
         }
-
         return keys;
     }
 }
