@@ -133,10 +133,6 @@ e2e-run-multi-stream api-key quick-host:
 e2e-run-range api-key quick-host:
     docker run -v {{ e2e-dir }}/range:/tests/range -e X_API_KEY={{ api-key }} -e HOST={{ quick-host }} quick-e2e-test-runner --rm -it
 
-# Runs the e2e key-range tests
-e2e-run-key-range api-key quick-host:
-    docker run -v {{ e2e-dir }}/key-range:/tests/key-range -e X_API_KEY={{ api-key }} -e HOST={{ quick-host }} quick-e2e-test-runner --rm -it
-
 # Runs the e2e schema tests
 e2e-run-schema api-key quick-host:
     docker run -v {{ e2e-dir }}/schema:/tests/schema -e X_API_KEY={{ api-key }} -e HOST={{ quick-host }} quick-e2e-test-runner --rm -it

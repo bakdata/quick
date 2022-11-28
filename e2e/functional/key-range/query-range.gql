@@ -1,9 +1,0 @@
-query {
-    findUserPurchasesInTime(userId: "2", timestampFrom: 1, timestampTo: 4) {
-        productId,
-        price
-        {
-            total
-        }
-    }
-}
