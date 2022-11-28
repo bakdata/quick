@@ -69,7 +69,7 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
 
         final String rangeIndex = this.defaultRangeIndexer.createIndex(key, value);
 
-        log.debug("creating range index: {}", rangeIndex);
+        log.debug("crating range index: {}", rangeIndex);
 
         this.store.put(rangeIndex, value);
     }

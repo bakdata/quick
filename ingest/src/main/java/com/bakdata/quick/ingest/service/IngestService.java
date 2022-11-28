@@ -36,7 +36,7 @@ public interface IngestService {
     <K, V> Completable sendData(final String topic, final List<KeyValuePair<K, V>> keyValuePairs);
 
     /**
-     * Deletes keys from the topic.
+     * Deletes keys from topic.
      *
      * @param topic name of the topic
      * @param key   list of keys

@@ -44,7 +44,7 @@ public class MetricsFactory {
      * Add global tag {@link MetricsFactory#DASHBOARD_TAG_NAME} to all metrics.
      *
      * <p>
-     * This can be used for the official micrometer dashboard, see:
+     * This is can be used for the official micrometer dashboard, see:
      * <a href="https://grafana.com/grafana/dashboards/4701">Dashboard</a>
      *
      * @return meter filter

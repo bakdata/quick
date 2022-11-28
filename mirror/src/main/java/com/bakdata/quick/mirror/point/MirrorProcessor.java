@@ -24,7 +24,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
 
 
 /**
- * Processor for filling up Kafka state store.
+ * Processor for putting filling up Kafka state store.
  *
  * @param <K> key type
  * @param <V> value type

@@ -128,12 +128,12 @@ public class KafkaTopicService implements TopicService {
 
         final Completable stateCheck = kafkaStateCheck.andThen(schemaRegistryCheck);
 
-        // create a topic in kafka and deploy a mirror application
+        // create topic in kafka and deploy a mirror application
         final Completable kafkaTopicCreation = this.createKafkaTopic(name);
         final Completable mirrorCreation = this.createMirror(name, topicCreationData.getRetentionTime(),
             topicCreationData.getRangeField());
 
-        // default to a mutable topic write type
+        // default to mutable topic write type
         final TopicWriteType writeType =
             Objects.requireNonNullElse(topicCreationData.getWriteType(), TopicWriteType.MUTABLE);
         // register at topic registry (value schema can be nullable)
@@ -166,7 +166,8 @@ public class KafkaTopicService implements TopicService {
     @Override
     public Completable deleteTopic(final String name) {
         return Completable.defer(() -> {
-            log.info("Delete topic {}", name);
+            log.debug("Delete topic {}", name);
+
             // we don't need the cache, so make sure we get the current information
             this.schemaRegistryClient.reset();
             // deleting stuff that has to do with Kafka happens during the cleanup run
@@ -180,6 +181,7 @@ public class KafkaTopicService implements TopicService {
     private static Completable checkExistence(final boolean exists, final Supplier<String> errorSupplier) {
         if (exists) {
             final String errorMessage = errorSupplier.get();
+            log.debug(errorMessage);
             return Completable.error(new BadArgumentException(errorMessage));
         } else {
             return Completable.complete();
@@ -188,6 +190,7 @@ public class KafkaTopicService implements TopicService {
 
     private Completable createKafkaTopic(final String topicName) {
         return Completable.defer(() -> {
+            log.debug("Create Kafka topic {}", topicName);
             try (final AdminClient client = AdminClient.create(this.kafkaConfig.asProps())) {
                 final int partitions = this.topicConfig.getPartitions();
                 final short replicationFactor = this.topicConfig.getReplicationFactor();
@@ -201,7 +204,7 @@ public class KafkaTopicService implements TopicService {
                                      @Nullable final Duration retentionTime,
                                      @Nullable final String rangeField) {
         return Completable.defer(() -> {
-            log.info("Create mirror for topic {}", topicName);
+            log.debug("Create mirror for topic {}", topicName);
             final MirrorCreationData mirrorCreationData = new MirrorCreationData(topicName,
                 topicName,
                 1,
@@ -235,11 +238,11 @@ public class KafkaTopicService implements TopicService {
                 return adminClient.listTopics().names();
             }
         })
-        .flatMap(Single::fromFuture)
-        .map(topics -> topics.contains(name))
-        .flatMapCompletable(exists ->
-            checkExistence(exists, () -> String.format("Topic \"%s\" already exists in Kafka", name))
-        );
+            .flatMap(Single::fromFuture)
+            .map(topics -> topics.contains(name))
+            .flatMapCompletable(exists ->
+                checkExistence(exists, () -> String.format("Topic \"%s\" already exists in Kafka", name))
+            );
     }
 
     private Completable checkTopicRegistry(final String name) {
@@ -250,7 +253,7 @@ public class KafkaTopicService implements TopicService {
     }
 
     private Completable deleteMirror(final String topicName) {
-        return Completable.fromAction(() -> log.info("Delete mirror for topic {}", topicName))
+        return Completable.fromAction(() -> log.debug("Delete mirror for topic {}", topicName))
             .mergeWith(this.mirrorService.deleteMirror(topicName));
     }
 
@@ -260,7 +263,7 @@ public class KafkaTopicService implements TopicService {
         if (schemas.isEmpty()) {
             return Completable.complete();
         }
-        // otherwise, parse the string as schema and send it to the schema registry
+        // otherwise parse the string as schema and send it to the schema registry
         return Completable.fromAction(() -> {
                 final String subject = keyValue.asSubject(topic);
                 log.debug("Register subject '{}' with schema registry", subject);

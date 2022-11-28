@@ -49,7 +49,7 @@ public class LongPadder implements ZeroPadder<Long> {
     }
 
     /**
-     * Converts a given numeric string value to a long. If the end range is exclusive, the value is decreased.
+     * Converts a given numeric string value to a long. If the end range is exclusive the value is decreased.
      */
     @Override
     public Long getEndOfRange(final String stringValue) {

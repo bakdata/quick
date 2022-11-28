@@ -45,7 +45,7 @@ public class QuickTopicConfig {
     /**
      * Injectable constructor.
      *
-     * @param partitions        number of partitions for topics. It must be to >=1.
+     * @param partitions        number of partition for topics. It must be to >=1.
      * @param replicationFactor number of replicas per topic. It must be between 1 and 16. Note that it cannot be
      *                          greater than the number of brokers.
      */

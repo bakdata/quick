@@ -194,7 +194,7 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
     }
 
     /**
-     * Starts application within a given context.
+     * Starts application within given context.
      *
      * @param context application context to start streams app in
      * @param args CLI arguments

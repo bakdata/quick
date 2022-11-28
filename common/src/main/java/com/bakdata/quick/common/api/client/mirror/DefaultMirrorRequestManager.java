@@ -64,7 +64,7 @@ public class DefaultMirrorRequestManager implements MirrorRequestManager {
         } finally {
             // We are sure that the response is processed and can be closed
             if (responseWrapper.getResponseBody() != null) {
-                log.trace("Closing the response body.");
+                log.debug("Closing the response body.");
                 responseWrapper.getResponseBody().close();
             }
         }
