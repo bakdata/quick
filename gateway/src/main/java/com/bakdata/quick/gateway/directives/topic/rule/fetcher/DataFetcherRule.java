@@ -58,7 +58,7 @@ public interface DataFetcherRule extends TopicDirectiveRule {
 
         final Stream<String> fieldsWithParentType = objectTypeDefinition.getFieldDefinitions()
             .stream()
-            .filter(field -> this.extractName(field.getType()).getName().equals(context.getParentContainerName()))
+            .filter(field -> this.extractTypeName(field.getType()).getName().equals(context.getParentContainerName()))
             .map(FieldDefinition::getName);
 
         return fieldsWithParentType
@@ -69,17 +69,17 @@ public interface DataFetcherRule extends TopicDirectiveRule {
     /**
      * Extracts name of a given type.
      */
-    default TypeName extractName(final Type<?> type) {
+    default TypeName extractTypeName(final Type<?> type) {
         if (type instanceof TypeName) {
             return ((TypeName) type);
         }
 
         if (type instanceof ListType) {
-            return this.extractName(((ListType) type).getType());
+            return this.extractTypeName(((ListType) type).getType());
         }
 
         if (type instanceof NonNullType) {
-            return this.extractName(((NonNullType) type).getType());
+            return this.extractTypeName(((NonNullType) type).getType());
         }
 
         throw new QuickDirectiveException("Found unknown type: " + type.getClass().getSimpleName());
