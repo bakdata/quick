@@ -18,8 +18,6 @@ package com.bakdata.quick.mirror.context;
 
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
-import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import lombok.Builder;
@@ -43,7 +41,7 @@ public class MirrorContext<K, V> {
     @Default
     StreamsBuilder streamsBuilder = new StreamsBuilder();
     String topicName;
-    RecordData<K, V> recordData;
+    IndexInputStream<K, V> indexInputStream;
     String pointStoreName;
     RangeIndexProperties rangeIndexProperties;
     RetentionTimeProperties retentionTimeProperties;
@@ -59,20 +57,20 @@ public class MirrorContext<K, V> {
 
     @Nullable
     public ParsedSchema getValueSchema() {
-        return this.recordData.getValueData().getParsedSchema();
+        return this.indexInputStream.getValueData().getParsedSchema();
     }
 
     /**
      * Returns the SerDe of the key.
      */
     public Serde<K> getKeySerde() {
-        return this.recordData.getKeyData().getSerde();
+        return this.indexInputStream.getKeyData().getSerde();
     }
 
     /**
      * Returns the SerDe of the value.
      */
     public Serde<V> getValueSerde() {
-        return this.recordData.getValueData().getSerde();
+        return this.indexInputStream.getValueData().getSerde();
     }
 }

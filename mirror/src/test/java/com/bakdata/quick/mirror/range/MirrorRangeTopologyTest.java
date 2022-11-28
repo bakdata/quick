@@ -33,12 +33,12 @@ import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.mirror.StoreType;
-import com.bakdata.quick.mirror.StreamConsumer;
-import com.bakdata.quick.mirror.StreamConsumer.RepartitionedTopologyData;
+import com.bakdata.quick.mirror.IndexInputStreamBuilder;
+import com.bakdata.quick.mirror.IndexInputStreamBuilder.IndexTopologyData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
-import com.bakdata.quick.mirror.context.RecordData;
+import com.bakdata.quick.mirror.context.IndexInputStream;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.range.extractor.AvroExtractor;
 import com.bakdata.quick.mirror.range.extractor.ProtoExtractor;
@@ -479,17 +479,18 @@ class MirrorRangeTopologyTest {
         final KafkaConfig kafkaConfig = new KafkaConfig("", "");
         final ConversionProvider conversionProvider = new DefaultConversionProvider(kafkaConfig, schemaConfig);
 
-        final StreamConsumer streamConsumer = new StreamConsumer(schemaExtractor, conversionProvider);
+        final IndexInputStreamBuilder
+            indexInputStreamBuilder = new IndexInputStreamBuilder(schemaExtractor, conversionProvider);
 
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
-        final RepartitionedTopologyData<K, V>
-            repartitionedTopologyData = streamConsumer.consume(topologyInfo, streamsBuilder, rangeKey);
-        final RecordData<K, V> recordData = repartitionedTopologyData.getRecordData();
+        final IndexTopologyData<K, V>
+            indexTopologyData = indexInputStreamBuilder.consume(topologyInfo, streamsBuilder, rangeKey);
+        final IndexInputStream<K, V> indexInputStream = indexTopologyData.getIndexInputStream();
 
         final MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder()
             .streamsBuilder(streamsBuilder)
             .pointStoreName(MIRROR_STORE)
-            .recordData(recordData)
+            .indexInputStream(indexInputStream)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE_NAME, RANGE_FIELD))
             .rangeKey(rangeKey)
             .storeType(StoreType.INMEMORY)
@@ -497,7 +498,7 @@ class MirrorRangeTopologyTest {
             .schemaExtractor(schemaExtractor)
             .build();
 
-        return new MirrorTopology<>(mirrorContext).createTopology(repartitionedTopologyData.getStream());
+        return new MirrorTopology<>(mirrorContext).createTopology(indexTopologyData.getStream());
     }
 
     private static QuickData<GenericRecord> avroData() {

@@ -26,7 +26,7 @@ import lombok.Value;
  * @param <V> Type of the value
  */
 @Value
-public class RecordData<K, V> {
+public class IndexInputStream<K, V> {
     QuickData<K> keyData;
     QuickData<V> valueData;
 }

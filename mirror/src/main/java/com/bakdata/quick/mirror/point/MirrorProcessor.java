@@ -57,7 +57,7 @@ public class MirrorProcessor<K, V> implements Processor<K, V, Void, Void> {
         if (value == null) {
             this.store.delete(key);
         } else {
-            log.trace("Putting key {} and value {}", key, value);
+            log.trace("Putting key {} and value {} in store {}", key, value, this.storeName);
             this.store.put(key, value);
         }
     }

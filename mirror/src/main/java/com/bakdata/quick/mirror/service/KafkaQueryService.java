@@ -97,8 +97,8 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
         this.streams = this.queryContext.getStreams();
         this.hostInfo = this.queryContext.getHostInfo();
         this.keySerializer = this.queryContext.getKeySerde().serializer();
-        this.keyResolver = this.queryContext.getRecordData().getKeyData().getResolver();
-        this.valueResolver = this.queryContext.getRecordData().getValueData().getResolver();
+        this.keyResolver = this.queryContext.getIndexInputStream().getKeyData().getResolver();
+        this.valueResolver = this.queryContext.getIndexInputStream().getValueData().getResolver();
         this.rangeIndexProperties = this.queryContext.getRangeIndexProperties();
 
         log.debug("Initializing KafkaQueryService for point index");
@@ -189,7 +189,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
             StoreQueryParameters.fromNameAndType(rangeStoreName, QueryableStoreTypes.keyValueStore());
 
         final FieldTypeExtractor fieldTypeExtractor = this.schemaExtractor.getFieldTypeExtractor();
-        final ParsedSchema parsedSchema = this.queryContext.getRecordData().getValueData().getParsedSchema();
+        final ParsedSchema parsedSchema = this.queryContext.getIndexInputStream().getValueData().getParsedSchema();
 
         this.rangeIndexer = ReadRangeIndexer.create(fieldTypeExtractor,
             Objects.requireNonNull(parsedSchema),

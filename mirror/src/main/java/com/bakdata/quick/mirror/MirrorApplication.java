@@ -29,13 +29,13 @@ import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.CliArgHandler;
-import com.bakdata.quick.mirror.StreamConsumer.RepartitionedTopologyData;
+import com.bakdata.quick.mirror.IndexInputStreamBuilder.IndexTopologyData;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.context.IndexInputStream;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
-import com.bakdata.quick.mirror.context.RecordData;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
@@ -82,7 +82,7 @@ public class MirrorApplication<K, R, V> extends KafkaStreamsApplication {
     private final ApplicationContext context;
     private final HostConfig hostConfig;
     private final MirrorContextProvider<R, V> contextProvider;
-    private final StreamConsumer streamConsumer;
+    private final IndexInputStreamBuilder indexInputStreamBuilder;
 
     // CLI Arguments
     @Option(names = "--store-type", description = "Kafka Store to use. Choices: ${COMPLETION-CANDIDATES}",
@@ -113,14 +113,14 @@ public class MirrorApplication<K, R, V> extends KafkaStreamsApplication {
         final ApplicationContext context,
         final TopicTypeService topicTypeService,
         final QuickTopicConfig topicConfig, final HostConfig hostConfig,
-        final MirrorContextProvider<R, V> contextProvider, final StreamConsumer streamConsumer) {
+        final MirrorContextProvider<R, V> contextProvider, final IndexInputStreamBuilder indexInputStreamBuilder) {
         this.schemaExtractor = schemaExtractor;
         this.topicTypeService = topicTypeService;
         this.topicConfig = topicConfig;
         this.context = context;
         this.hostConfig = hostConfig;
         this.contextProvider = contextProvider;
-        this.streamConsumer = streamConsumer;
+        this.indexInputStreamBuilder = indexInputStreamBuilder;
     }
 
     public static void main(final String[] args) {
@@ -139,30 +139,31 @@ public class MirrorApplication<K, R, V> extends KafkaStreamsApplication {
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
         final String topicName = topologyData.getTopicData().getName();
 
-        final RepartitionedTopologyData<R, V> repartitionedTopologyData =
-            this.streamConsumer.consume(topologyData, streamsBuilder, this.rangeKey);
+        final IndexTopologyData<R, V> indexTopologyData =
+            this.indexInputStreamBuilder.consume(topologyData, streamsBuilder, this.rangeKey);
 
         final MirrorContext<R, V> mirrorContext =
-            this.buildTopologyContext(streamsBuilder, topicName, repartitionedTopologyData.getRecordData());
+            this.buildTopologyContext(streamsBuilder, topicName, indexTopologyData.getIndexInputStream());
 
         this.contextProvider.setMirrorContext(mirrorContext);
-        return new MirrorTopology<>(mirrorContext).createTopology(repartitionedTopologyData.getStream());
+        return new MirrorTopology<>(mirrorContext).createTopology(indexTopologyData.getStream());
     }
 
     private MirrorContext<R, V> buildTopologyContext(final StreamsBuilder streamsBuilder,
-        final String topicName, final RecordData<R, V> recordData) {
+        final String topicName, final IndexInputStream<R, V> indexInputStream) {
 
         return MirrorContext.<R, V>builder()
             .streamsBuilder(streamsBuilder)
             .pointStoreName(POINT_STORE)
             .topicName(topicName)
-            .recordData(recordData)
+            .indexInputStream(indexInputStream)
             .storeType(this.storeType)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
             .rangeKey(this.rangeKey)
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
             .schemaExtractor(this.schemaExtractor)
-            .isCleanup(this.cleanUp).build();
+            .isCleanup(this.cleanUp)
+            .build();
     }
 
     @Override

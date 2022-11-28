@@ -26,7 +26,7 @@ import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.mirror.StreamConsumer.RepartitionedTopologyData;
+import com.bakdata.quick.mirror.IndexInputStreamBuilder.IndexTopologyData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
@@ -75,20 +75,21 @@ class MirrorTopologyTest {
         final KafkaConfig kafkaConfig = new KafkaConfig("", "");
         final ConversionProvider conversionProvider = new DefaultConversionProvider(kafkaConfig, schemaConfig);
         final SchemaExtractor extractorResolver = new AvroExtractor();
-        final StreamConsumer streamConsumer = new StreamConsumer(extractorResolver, conversionProvider);
-        final RepartitionedTopologyData<Integer, Integer>
-            repartitionedTopologyData = streamConsumer.consume(topologyInfo, streamsBuilder, null);
+        final IndexInputStreamBuilder
+            indexInputStreamBuilder = new IndexInputStreamBuilder(extractorResolver, conversionProvider);
+        final IndexTopologyData<Integer, Integer>
+            indexTopologyData = indexInputStreamBuilder.consume(topologyInfo, streamsBuilder, null);
 
         final MirrorContext<Integer, Integer> mirrorContext = MirrorContext.<Integer, Integer>builder()
             .streamsBuilder(streamsBuilder)
-            .recordData(repartitionedTopologyData.getRecordData())
+            .indexInputStream(indexTopologyData.getIndexInputStream())
             .pointStoreName(STORE_NAME)
             .storeType(StoreType.INMEMORY)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, null))
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, null))
             .build();
 
-        return new MirrorTopology<>(mirrorContext).createTopology(repartitionedTopologyData.getStream());
+        return new MirrorTopology<>(mirrorContext).createTopology(indexTopologyData.getStream());
     }
 
     private static Map<String, String> testProps() {

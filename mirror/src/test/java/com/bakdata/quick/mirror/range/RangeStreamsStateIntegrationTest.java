@@ -31,7 +31,7 @@ import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.MirrorApplication;
-import com.bakdata.quick.mirror.StreamConsumer;
+import com.bakdata.quick.mirror.IndexInputStreamBuilder;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
@@ -149,7 +149,7 @@ class RangeStreamsStateIntegrationTest {
             TestConfigUtils.newQuickTopicConfig(),
             this.hostConfig,
             this.mirrorContextProvider,
-            new StreamConsumer(this.schemaExtractor, defaultConversionProvider)
+            new IndexInputStreamBuilder(this.schemaExtractor, defaultConversionProvider)
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());
