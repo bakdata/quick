@@ -26,7 +26,6 @@ import io.micronaut.http.annotation.QueryValue;
 import io.reactivex.Single;
 import jakarta.inject.Inject;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * REST API of mirror applications.
@@ -34,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
  * @param <K> key type
  * @param <V> value type
  */
-@Slf4j
 @Controller("/mirror")
 public class MirrorController<K, V> {
     private final QueryService<V> queryService;
@@ -49,7 +47,6 @@ public class MirrorController<K, V> {
      */
     @Get("/{key}")
     public Single<HttpResponse<MirrorValue<V>>> get(@PathVariable("key") final String keyString) {
-        log.debug("Request for key {}", keyString);
         return this.queryService.get(keyString);
     }
 
@@ -61,7 +58,6 @@ public class MirrorController<K, V> {
      */
     @Get("/keys")
     public Single<HttpResponse<MirrorValue<List<V>>>> getList(@QueryValue() final List<String> ids) {
-        log.debug("Request for keys {}", ids);
         return this.queryService.getValues(ids);
     }
 
@@ -70,7 +66,6 @@ public class MirrorController<K, V> {
      */
     @Get
     public Single<HttpResponse<MirrorValue<List<V>>>> getAll() {
-        log.debug("Request for all existing keys.");
         return this.queryService.getAll();
     }
 
@@ -80,7 +75,6 @@ public class MirrorController<K, V> {
     @Get("/range/{key}")
     public Single<HttpResponse<MirrorValue<List<V>>>> getRange(@PathVariable("key") final String keyString,
         @QueryValue final String from, @QueryValue final String to) {
-        log.debug("Request for key {} and range from {} to {}", keyString, from, to);
         return this.queryService.getRange(keyString, from, to);
     }
 }

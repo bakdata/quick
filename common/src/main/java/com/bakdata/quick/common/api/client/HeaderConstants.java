@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.client.mirror;
+package com.bakdata.quick.common.api.client;
 
 /**
  * A collection of constants for managing headers.
@@ -28,6 +28,10 @@ public class HeaderConstants {
     // The constant below indicates the existence of a header.
     // See: https://stackoverflow.com/a/65241869 for more details.
     public static final String HEADER_EXISTS = "?1";
+
+    // The X-Request-ID header facilitates the tracking of request chains in a system.
+    // Each request receives a unique value of this header and thus can be easily traced.
+    public static final String REQUEST_HEADER = "X-Request-ID";
 
     private HeaderConstants() {
     }

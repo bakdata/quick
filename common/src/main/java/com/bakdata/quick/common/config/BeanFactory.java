@@ -14,21 +14,28 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.exception;
+package com.bakdata.quick.common.config;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import io.micronaut.http.HttpStatus;
+import io.micronaut.context.annotation.Factory;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
- * Exception that occurs when the user provided an argument which leads to an error.
+ * A factory for registering beans manually.
  */
-public class BadArgumentException extends QuickException {
-    public BadArgumentException(@Nullable final String message) {
-        super(message);
-    }
+@Factory
+public class BeanFactory {
 
-    @Override
-    protected HttpStatus getStatus() {
-        return HttpStatus.BAD_REQUEST;
+    /**
+     * UUID supplier needed for {@link com.bakdata.quick.common.api.client.RequestHeaderFilter}.
+     *
+     * @return a UUID supplier
+     */
+    @Singleton
+    @Named("RequestIdSupplier")
+    public Supplier<UUID> getUuidSupplier() {
+        return UUID::randomUUID;
     }
 }

@@ -159,7 +159,7 @@ public class MultiSubscriptionFetcher<K> implements DataFetcher<Publisher<Map<St
         final CompletableFuture<?> recordValue =
             CompletableFuture.completedFuture(record.value());
 
-        log.info("Update field cache with polled record: Key {} has value {}", key, record.value());
+        log.debug("Update field cache with polled record: Key {} has value {}", key, record.value());
         this.fieldCache.put(key, recordValue);
     }
 

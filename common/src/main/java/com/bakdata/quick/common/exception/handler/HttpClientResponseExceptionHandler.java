@@ -48,7 +48,7 @@ public class HttpClientResponseExceptionHandler
             return HttpResponse.<ErrorMessage>status(HttpStatus.valueOf(errorMessage.get().getCode()))
                 .body(errorMessage.get());
         }
-        // we can use a fallback but such cases should be fixed then
+        // we can use a fallback, but such cases should be fixed then
         log.warn("No error message found in for request {}", request, ex);
         final Optional<Object> body = ex.getResponse().getBody(Object.class);
         if (body.isPresent() && body.get() instanceof Exception) {

@@ -50,7 +50,7 @@ public class TopicDirectiveWiring implements QuickDirectiveWiring {
     public GraphQLFieldDefinition onField(final SchemaDirectiveWiringEnvironment<GraphQLFieldDefinition> environment) {
         final TopicDirective directive = TopicDirective.fromArguments(environment.getDirective().getArguments());
         final TopicDirectiveContext context = new TopicDirectiveContext(environment, directive, this.fetcherFactory);
-        // make sure all topic directive are in valid locations
+        // make sure all topic directives are in valid locations
         this.validationRules.apply(context);
         // update data fetcher for all fields
         this.fetcherRules.apply(context);
