@@ -29,7 +29,6 @@ import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.CliArgHandler;
-import com.bakdata.quick.mirror.IndexInputStreamBuilder.IndexTopologyData;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.IndexInputStream;
@@ -139,14 +138,14 @@ public class MirrorApplication<K, R, V> extends KafkaStreamsApplication {
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
         final String topicName = topologyData.getTopicData().getName();
 
-        final IndexTopologyData<R, V> indexTopologyData =
+        final IndexInputStream<R, V> indexInputStream =
             this.indexInputStreamBuilder.consume(topologyData, streamsBuilder, this.rangeKey);
 
         final MirrorContext<R, V> mirrorContext =
-            this.buildTopologyContext(streamsBuilder, topicName, indexTopologyData.getIndexInputStream());
+            this.buildTopologyContext(streamsBuilder, topicName, indexInputStream);
 
         this.contextProvider.setMirrorContext(mirrorContext);
-        return new MirrorTopology<>(mirrorContext).createTopology(indexTopologyData.getStream());
+        return new MirrorTopology<>(mirrorContext).createTopology(indexInputStream.getStream());
     }
 
     private MirrorContext<R, V> buildTopologyContext(final StreamsBuilder streamsBuilder,

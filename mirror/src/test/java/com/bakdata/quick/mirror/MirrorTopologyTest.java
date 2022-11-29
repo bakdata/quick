@@ -26,8 +26,8 @@ import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.mirror.IndexInputStreamBuilder.IndexTopologyData;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.context.IndexInputStream;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
@@ -77,12 +77,12 @@ class MirrorTopologyTest {
         final SchemaExtractor extractorResolver = new AvroExtractor();
         final IndexInputStreamBuilder
             indexInputStreamBuilder = new IndexInputStreamBuilder(extractorResolver, conversionProvider);
-        final IndexTopologyData<Integer, Integer>
+        final IndexInputStream<Integer, Integer>
             indexTopologyData = indexInputStreamBuilder.consume(topologyInfo, streamsBuilder, null);
 
         final MirrorContext<Integer, Integer> mirrorContext = MirrorContext.<Integer, Integer>builder()
             .streamsBuilder(streamsBuilder)
-            .indexInputStream(indexTopologyData.getIndexInputStream())
+            .indexInputStream(indexTopologyData)
             .pointStoreName(STORE_NAME)
             .storeType(StoreType.INMEMORY)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, null))

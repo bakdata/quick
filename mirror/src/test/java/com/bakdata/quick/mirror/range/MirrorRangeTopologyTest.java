@@ -32,13 +32,12 @@ import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
-import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.IndexInputStreamBuilder;
-import com.bakdata.quick.mirror.IndexInputStreamBuilder.IndexTopologyData;
+import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.context.IndexInputStream;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
-import com.bakdata.quick.mirror.context.IndexInputStream;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.range.extractor.AvroExtractor;
 import com.bakdata.quick.mirror.range.extractor.ProtoExtractor;
@@ -483,9 +482,8 @@ class MirrorRangeTopologyTest {
             indexInputStreamBuilder = new IndexInputStreamBuilder(schemaExtractor, conversionProvider);
 
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
-        final IndexTopologyData<K, V>
-            indexTopologyData = indexInputStreamBuilder.consume(topologyInfo, streamsBuilder, rangeKey);
-        final IndexInputStream<K, V> indexInputStream = indexTopologyData.getIndexInputStream();
+        final IndexInputStream<K, V>
+            indexInputStream = indexInputStreamBuilder.consume(topologyInfo, streamsBuilder, rangeKey);
 
         final MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder()
             .streamsBuilder(streamsBuilder)
@@ -498,7 +496,7 @@ class MirrorRangeTopologyTest {
             .schemaExtractor(schemaExtractor)
             .build();
 
-        return new MirrorTopology<>(mirrorContext).createTopology(indexTopologyData.getStream());
+        return new MirrorTopology<>(mirrorContext).createTopology(indexInputStream.getStream());
     }
 
     private static QuickData<GenericRecord> avroData() {

@@ -18,9 +18,10 @@ package com.bakdata.quick.mirror.context;
 
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import lombok.Value;
+import org.apache.kafka.streams.kstream.KStream;
 
 /**
- * Contains the key and value data of the input stream.
+ * Contains the key and value data along with the stream.
  *
  * @param <K> Type of the key
  * @param <V> Type of the value
@@ -29,4 +30,5 @@ import lombok.Value;
 public class IndexInputStream<K, V> {
     QuickData<K> keyData;
     QuickData<V> valueData;
+    KStream<K, V> stream;
 }

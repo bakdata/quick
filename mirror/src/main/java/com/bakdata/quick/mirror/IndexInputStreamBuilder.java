@@ -31,16 +31,16 @@ import io.confluent.kafka.schemaregistry.ParsedSchema;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.Objects;
-import lombok.Value;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Repartitioned;
 
 /**
  * Contains the logic of consuming the input topic and repartitioning of the topic if a rangeKey field is given.
- * Otherwise, the consumed input stream from the topic is returned.
  */
 @Singleton
 public class IndexInputStreamBuilder {
@@ -54,9 +54,30 @@ public class IndexInputStreamBuilder {
     }
 
     /**
-     * Consumes the input topic and does a repartitioning based on the range key.
+     * Consumes the input topic into a {@link IndexInputStream}. There are two possible scenarios for consuming the
+     * input stream.
+     * <ul>
+     *     <li><b>rangeKey is null</b>: The records are consumed from the input topic into a
+     *     {@link IndexInputStream}. We
+     *     cast K to R because these generic types are equal.</li>
+     *     <li><b>rangeKey is not null</b>: A repartitioning takes place. First the rangeKey field type is extracted
+     *     from
+     *     the {@link ParsedSchema}. Then other other information of the field like the SerDe, TypeResolver are set.
+     *     After that, a {@link KStream#selectKey(KeyValueMapper, Named)} operation is executed to set the new key of
+     *     the records. Along with this operation a {@link KStream#repartition()} takes place to repartition the
+     *     topic base on the <i>rangeKey</i>. In the end, the method returns a {@link IndexInputStream} with the
+     *     repartitioned stream and data for the key and value.</li>
+     * </ul>
+     *
+     * @param topologyData Contains the information for the Kafka Streams topology
+     * @param streamsBuilder Specifies the Kafka streams topology
+     * @param rangeKey A nullable field determining if the key of the topic should change or not
+     * @param <K> Type of the topic key
+     * @param <V> Type of the topic value
+     * @param <R> Type of the rangeKey field
+     * @return {@link IndexInputStream} Containing the key, value data and the KStream
      */
-    public <K, R, V> IndexTopologyData<R, V> consume(final QuickTopologyData<K, V> topologyData,
+    public <K, R, V> IndexInputStream<R, V> consume(final QuickTopologyData<K, V> topologyData,
         final StreamsBuilder streamsBuilder, @Nullable final String rangeKey) {
         final QuickTopicData<K, V> topicData = topologyData.getTopicData();
         final QuickData<K> keyData = topicData.getKeyData();
@@ -66,41 +87,52 @@ public class IndexInputStreamBuilder {
         final KStream<K, V> inputStream =
             streamsBuilder.stream(topologyData.getInputTopics().get(0), Consumed.with(keySerde, valueSerde));
         if (rangeKey != null) {
-            return this.repartitionStreamOnRangeKey(inputStream, valueData, rangeKey);
+            return this.repartitionOnRangeKey(inputStream, valueData, rangeKey);
         }
-        return getTopologyDataFromInputStream(inputStream, valueData, keyData);
+        return getIndexInputStream(inputStream, valueData, keyData);
     }
 
     // The cast is safe. The generic types of R and K are equal when the rangeKey is null
     @SuppressWarnings("unchecked")
-    private static <K, R, V> IndexTopologyData<R, V> getTopologyDataFromInputStream(
+    private static <K, R, V> IndexInputStream<R, V> getIndexInputStream(
         final KStream<K, V> inputStream, final QuickData<V> valueData, final QuickData<K> keyData) {
-        final IndexInputStream<K, V> indexInputStream = new IndexInputStream<>(keyData, valueData);
-        return (IndexTopologyData<R, V>) new IndexTopologyData<>(indexInputStream, inputStream);
+        return (IndexInputStream<R, V>) new IndexInputStream<>(keyData, valueData, inputStream);
     }
 
-    private <K, R, V> IndexTopologyData<R, V> repartitionStreamOnRangeKey(final KStream<K, V> inputStream,
+    private <K, R, V> IndexInputStream<R, V> repartitionOnRangeKey(final KStream<K, V> inputStream,
         final QuickData<V> valueData, final String rangeKey) {
         final ParsedSchema parsedSchema = Objects.requireNonNull(valueData.getParsedSchema());
         final QuickTopicType quickTopicType =
             this.schemaExtractor.getFieldTypeExtractor().extract(parsedSchema, rangeKey);
-        final QuickData<R> repartitionedKeyData = this.getRepartitionedKeyData(quickTopicType);
-        final IndexInputStream<R, V> indexInputStream = new IndexInputStream<>(repartitionedKeyData, valueData);
-        final Serde<R> repartitionedKeySerde = repartitionedKeyData.getSerde();
-        final Serde<V> valueSerde = valueData.getSerde();
-        final KStream<R, V> repartitionedStream = inputStream.selectKey(
-                (key, value) -> this.<R, V>getRangeKeyValue(Objects.requireNonNull(rangeKey), value, quickTopicType))
-            .repartition(Repartitioned.with(repartitionedKeySerde, valueSerde));
-        return new IndexTopologyData<>(indexInputStream, repartitionedStream);
+        final QuickData<R> repartitionedKeyData = this.createRepartitionedKeyData(quickTopicType);
+
+        final KStream<R, V> repartitionedStream =
+            this.getRepartitionedStream(inputStream, valueData, rangeKey, quickTopicType, repartitionedKeyData);
+
+        return new IndexInputStream<>(repartitionedKeyData, valueData, repartitionedStream);
     }
 
     /**
-     * Gets the repartitioned key data.
+     * Creates the repartitioned key data.
      */
-    private <R> QuickData<R> getRepartitionedKeyData(final QuickTopicType quickTopicType) {
+    private <R> QuickData<R> createRepartitionedKeyData(final QuickTopicType quickTopicType) {
         final Serde<R> repartitionedKeySerde = this.conversionProvider.getSerde(quickTopicType, true);
         final TypeResolver<R> typeResolver = this.conversionProvider.getTypeResolver(quickTopicType, null);
         return new QuickData<>(quickTopicType, repartitionedKeySerde, typeResolver, null);
+    }
+
+    /**
+     * Performs a selectKey and repartition on the rangeKey field.
+     */
+    private <K, R, V> KStream<R, V> getRepartitionedStream(final KStream<K, V> inputStream,
+        final QuickData<V> valueData, final String rangeKey,
+        final QuickTopicType quickTopicType, final QuickData<R> repartitionedKeyData) {
+        final Serde<R> rangeKeySerde = repartitionedKeyData.getSerde();
+        final Serde<V> valueSerde = valueData.getSerde();
+        return inputStream.selectKey(
+                (key, value) -> this.<R, V>getRangeKeyValue(Objects.requireNonNull(rangeKey), value, quickTopicType),
+                Named.as("rangeKeySelector"))
+            .repartition(Repartitioned.with(rangeKeySerde, valueSerde));
     }
 
     /**
@@ -113,14 +145,5 @@ public class IndexInputStreamBuilder {
             return fieldValueExtractor.extract(value, fieldName, classType);
         }
         throw new MirrorTopologyException("The value should not be null. Check you input topic data.");
-    }
-
-    /**
-     * Contains a tuple of the {@link IndexInputStream} and the {@link KStream}.
-     */
-    @Value
-    public static class IndexTopologyData<K, V> {
-        IndexInputStream<K, V> indexInputStream;
-        KStream<K, V> stream;
     }
 }
