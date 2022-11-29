@@ -3,7 +3,7 @@ type Query {
         userId: String
         timestampFrom: Int
         timestampTo: Int
-    ): [Purchase] @topic(name: "user-purchases",
+    ): [Purchase] @topic(name: "user-purchases-range-key-test",
         keyArgument: "userId"
         rangeFrom: "timestampFrom",
         rangeTo: "timestampTo")
