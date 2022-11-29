@@ -1,6 +1,6 @@
 type Query {
     findUserPurchasesInTime(
-        userId: String
+        userId: Int
         timestampFrom: Int
         timestampTo: Int
     ): [Purchase] @topic(name: "user-purchases-range-key-test",
