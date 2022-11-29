@@ -129,8 +129,7 @@ public class IndexInputStreamBuilder {
         final QuickTopicType quickTopicType, final QuickData<R> repartitionedKeyData) {
         final Serde<R> rangeKeySerde = repartitionedKeyData.getSerde();
         final Serde<V> valueSerde = valueData.getSerde();
-        return inputStream.selectKey(
-                (key, value) -> this.<R, V>getRangeKeyValue(Objects.requireNonNull(rangeKey), value, quickTopicType),
+        return inputStream.selectKey((key, value) -> this.<R, V>getRangeKeyValue(rangeKey, value, quickTopicType),
                 Named.as("rangeKeySelector"))
             .repartition(Repartitioned.with(rangeKeySerde, valueSerde));
     }
