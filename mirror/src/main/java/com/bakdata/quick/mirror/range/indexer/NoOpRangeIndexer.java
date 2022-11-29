@@ -21,7 +21,7 @@ import io.micronaut.core.util.StringUtils;
 /**
  * No operation range indexer. This indexer is used whenever a Mirror with range index needs to be deleted. The
  * {@link io.confluent.kafka.schemaregistry.ParsedSchema} object is null when the deletion of the Mirror starts,
- * therefore we need a dummy range indexer to pass to the processor during the deletion.
+ * therefore, we need a dummy range indexer to pass to the processor during the deletion.
  *
  * @param <K> Type of the key
  * @param <V> Type of the value

@@ -24,7 +24,7 @@ import java.io.UncheckedIOException;
  * Type resolver for known types.
  *
  * <p>
- * In contrast to other resolvers, the type for this resolver is known at compile time.
+ * In contrast to other resolvers, the type of this resolver is known at compile time.
  * For example, the type of the topic-registry topic is known at compile time and is not dynamically created by users.
  *
  * @param <T> type to resolve

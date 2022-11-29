@@ -14,22 +14,28 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.model.manager.creation;
+package com.bakdata.quick.common.config;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import lombok.Value;
+import io.micronaut.context.annotation.Factory;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
- * User supplied data for creating a new mirror.
+ * A factory for registering beans manually.
  */
-@Value
-public class MirrorCreationData implements CreationData {
-    String name;
-    String topicName;
-    @Nullable
-    Integer replicas;
-    @Nullable
-    String tag;
-    @Nullable
-    MirrorArguments mirrorArguments;
+@Factory
+public class BeanFactory {
+
+    /**
+     * UUID supplier needed for {@link com.bakdata.quick.common.api.client.RequestHeaderFilter}.
+     *
+     * @return a UUID supplier
+     */
+    @Singleton
+    @Named("RequestIdSupplier")
+    public Supplier<UUID> getUuidSupplier() {
+        return UUID::randomUUID;
+    }
 }

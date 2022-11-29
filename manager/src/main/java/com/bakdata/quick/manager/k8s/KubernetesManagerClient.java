@@ -70,6 +70,7 @@ public class KubernetesManagerClient {
      * @return Completable or throws an exception if fail
      */
     public Completable delete(final QuickResources quickResources) {
+        log.info("Deleting resources.");
         return Completable.fromCallable(() -> {
             final KubernetesList resourceList = getKubernetesList(quickResources);
             return this.client.resourceList(resourceList).inNamespace(this.namespace).delete();
@@ -83,6 +84,7 @@ public class KubernetesManagerClient {
      * @return Completable or an exception if the specific resources already exist
      */
     public Completable deploy(final QuickResources quickResources) {
+        log.info("Deploying resources.");
         return Completable.fromCallable(() -> {
             final KubernetesList resourceList = getKubernetesList(quickResources);
             final List<HasMetadata> resourcesMetadata = this.client.resourceList(resourceList)
@@ -206,7 +208,7 @@ public class KubernetesManagerClient {
             log.warn("Kubernetes error during deletion:", k8sEx);
         }
 
-        // return generic error message; something is seriously wrong
+        // return a generic error message; something is seriously wrong
         final String errorMessage = String.format("Could not delete %s %s", type.getName(), name);
         return Completable.error(new InternalErrorException(errorMessage));
     }

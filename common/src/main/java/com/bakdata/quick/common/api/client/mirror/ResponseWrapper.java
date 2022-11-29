@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.common.api.client.mirror;
 
+import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.exception.MirrorException;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
@@ -56,6 +57,7 @@ public class ResponseWrapper {
      * @return an instance of ResponseWrapper
      */
     public static ResponseWrapper fromResponse(final Response response) {
+
         if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
             return new ResponseWrapper(null, isCacheMissHeaderSet(response));
         }

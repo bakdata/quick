@@ -25,6 +25,7 @@ import com.bakdata.quick.common.api.model.KeyValueEnum;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.manager.GatewaySchema;
+import com.bakdata.quick.common.api.model.manager.creation.MirrorArguments;
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
 import com.bakdata.quick.common.api.model.manager.creation.TopicCreationData;
 import com.bakdata.quick.common.config.KafkaConfig;
@@ -42,7 +43,6 @@ import io.reactivex.Completable;
 import io.reactivex.Single;
 import jakarta.inject.Singleton;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -73,18 +73,18 @@ public class KafkaTopicService implements TopicService {
      * Injectable constructor.
      *
      * @param topicRegistryClient client for interacting with Quick's topic registry
-     * @param gatewayClient       client for interacting with Quick's gateways
-     * @param graphQLConverter    converter from GraphQL schema to Kafka schema
-     * @param mirrorService       service for creating mirrors
-     * @param gatewayService      service for interacting with deployed gateway
-     * @param topicConfig         configuration for Kafka topics
-     * @param kafkaConfig         configuration for Kafka
+     * @param gatewayClient client for interacting with Quick's gateways
+     * @param graphQLConverter converter from GraphQL schema to Kafka schema
+     * @param mirrorService service for creating mirrors
+     * @param gatewayService service for interacting with deployed gateway
+     * @param topicConfig configuration for Kafka topics
+     * @param kafkaConfig configuration for Kafka
      */
 
     public KafkaTopicService(final TopicRegistryClient topicRegistryClient, final GatewayClient gatewayClient,
-                             final GraphQLConverter graphQLConverter, final MirrorService mirrorService,
-                             final GatewayService gatewayService, final QuickTopicConfig topicConfig,
-                             final KafkaConfig kafkaConfig) {
+        final GraphQLConverter graphQLConverter, final MirrorService mirrorService,
+        final GatewayService gatewayService, final QuickTopicConfig topicConfig,
+        final KafkaConfig kafkaConfig) {
         this.topicRegistryClient = topicRegistryClient;
         this.gatewayClient = gatewayClient;
         this.graphQLConverter = graphQLConverter;
@@ -108,7 +108,7 @@ public class KafkaTopicService implements TopicService {
     @SuppressWarnings("RxReturnValueIgnored")
     @Override
     public Completable createTopic(final String name, final QuickTopicType keyType, final QuickTopicType valueType,
-                                   final TopicCreationData topicCreationData) {
+        final TopicCreationData topicCreationData) {
         log.info("Create new topic {} with data {}", name, topicCreationData);
         // we don't need the cache, so make sure we get the current information
         this.schemaRegistryClient.reset();
@@ -128,12 +128,11 @@ public class KafkaTopicService implements TopicService {
 
         final Completable stateCheck = kafkaStateCheck.andThen(schemaRegistryCheck);
 
-        // create topic in kafka and deploy a mirror application
+        // create a topic in kafka and deploy a mirror application
         final Completable kafkaTopicCreation = this.createKafkaTopic(name);
-        final Completable mirrorCreation = this.createMirror(name, topicCreationData.getRetentionTime(),
-            topicCreationData.getRangeField());
+        final Completable mirrorCreation = this.createMirror(name, topicCreationData.getMirrorArguments());
 
-        // default to mutable topic write type
+        // default to a mutable topic write type
         final TopicWriteType writeType =
             Objects.requireNonNullElse(topicCreationData.getWriteType(), TopicWriteType.MUTABLE);
         // register at topic registry (value schema can be nullable)
@@ -166,8 +165,7 @@ public class KafkaTopicService implements TopicService {
     @Override
     public Completable deleteTopic(final String name) {
         return Completable.defer(() -> {
-            log.debug("Delete topic {}", name);
-
+            log.info("Delete topic {}", name);
             // we don't need the cache, so make sure we get the current information
             this.schemaRegistryClient.reset();
             // deleting stuff that has to do with Kafka happens during the cleanup run
@@ -181,7 +179,6 @@ public class KafkaTopicService implements TopicService {
     private static Completable checkExistence(final boolean exists, final Supplier<String> errorSupplier) {
         if (exists) {
             final String errorMessage = errorSupplier.get();
-            log.debug(errorMessage);
             return Completable.error(new BadArgumentException(errorMessage));
         } else {
             return Completable.complete();
@@ -190,7 +187,6 @@ public class KafkaTopicService implements TopicService {
 
     private Completable createKafkaTopic(final String topicName) {
         return Completable.defer(() -> {
-            log.debug("Create Kafka topic {}", topicName);
             try (final AdminClient client = AdminClient.create(this.kafkaConfig.asProps())) {
                 final int partitions = this.topicConfig.getPartitions();
                 final short replicationFactor = this.topicConfig.getReplicationFactor();
@@ -200,17 +196,14 @@ public class KafkaTopicService implements TopicService {
         });
     }
 
-    private Completable createMirror(final String topicName,
-                                     @Nullable final Duration retentionTime,
-                                     @Nullable final String rangeField) {
+    private Completable createMirror(final String topicName, @Nullable final MirrorArguments mirrorArguments) {
         return Completable.defer(() -> {
-            log.debug("Create mirror for topic {}", topicName);
+            log.info("Create mirror for topic {}", topicName);
             final MirrorCreationData mirrorCreationData = new MirrorCreationData(topicName,
                 topicName,
                 1,
                 null, // use default tag
-                retentionTime,
-                rangeField);
+                mirrorArguments);
             return this.mirrorService.createMirror(mirrorCreationData);
         });
     }
@@ -238,11 +231,11 @@ public class KafkaTopicService implements TopicService {
                 return adminClient.listTopics().names();
             }
         })
-            .flatMap(Single::fromFuture)
-            .map(topics -> topics.contains(name))
-            .flatMapCompletable(exists ->
-                checkExistence(exists, () -> String.format("Topic \"%s\" already exists in Kafka", name))
-            );
+        .flatMap(Single::fromFuture)
+        .map(topics -> topics.contains(name))
+        .flatMapCompletable(exists ->
+            checkExistence(exists, () -> String.format("Topic \"%s\" already exists in Kafka", name))
+        );
     }
 
     private Completable checkTopicRegistry(final String name) {
@@ -253,17 +246,17 @@ public class KafkaTopicService implements TopicService {
     }
 
     private Completable deleteMirror(final String topicName) {
-        return Completable.fromAction(() -> log.debug("Delete mirror for topic {}", topicName))
+        return Completable.fromAction(() -> log.info("Delete mirror for topic {}", topicName))
             .mergeWith(this.mirrorService.deleteMirror(topicName));
     }
 
     private Completable registerSchema(final String topic, final Optional<QuickSchemas> schemas,
-                                       final KeyValueEnum keyValue) {
+        final KeyValueEnum keyValue) {
         // if there is no schema, we can just return
         if (schemas.isEmpty()) {
             return Completable.complete();
         }
-        // otherwise parse the string as schema and send it to the schema registry
+        // otherwise, parse the string as schema and send it to the schema registry
         return Completable.fromAction(() -> {
                 final String subject = keyValue.asSubject(topic);
                 log.debug("Register subject '{}' with schema registry", subject);

@@ -16,10 +16,10 @@
 
 package com.bakdata.quick.mirror.service;
 
+import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
-import com.bakdata.quick.common.api.client.mirror.HeaderConstants;
 import com.bakdata.quick.common.api.client.mirror.MirrorHost;
 import com.bakdata.quick.common.api.client.mirror.MirrorValueParser;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -86,13 +86,12 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
      * Injectable constructor.
      */
     @Inject
-    @SuppressWarnings("unchecked")
     public KafkaQueryService(final HttpClient client, final SchemaExtractor schemaExtractor,
         final MirrorContextProvider<K, V> contextProvider) {
         this.client = client;
         this.schemaExtractor = schemaExtractor;
 
-        this.queryContext = (MirrorContext<K, V>) contextProvider.get();
+        this.queryContext = contextProvider.get();
 
         this.streams = this.queryContext.getStreams();
         this.hostInfo = this.queryContext.getHostInfo();
@@ -118,7 +117,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
-            log.info("Forward request to {}", metadata.activeHost());
+            log.debug("Forward request to {}", metadata.activeHost());
             return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).subscribeOn(Schedulers.io());
         }
 
@@ -167,7 +166,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
-            log.info("Forward request to {}", metadata.activeHost());
+            log.debug("Forward request to {}", metadata.activeHost());
             return Single.fromCallable(() -> this.fetchRange(metadata.activeHost(), key, from, to))
                 .subscribeOn(Schedulers.io());
         }
@@ -289,7 +288,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     /**
      * Transforms a list of HttpResponses of MirrorValue of a specific type into a single HttpResponse of MirrorValue
-     * with a list of values of that type. Furthermore, if a header is present in one of the HttpResponses (function
+     * with a list of values of that type. If a header is present in one of the HttpResponses (function
      * argument), an HTTP Header that informs about the Cache-Miss is set. Because of this possibility, the function
      * returns MutableHttpResponse and not just HttpResponse.
      *

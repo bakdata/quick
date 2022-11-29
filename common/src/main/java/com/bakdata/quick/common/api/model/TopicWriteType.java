@@ -17,7 +17,7 @@
 package com.bakdata.quick.common.api.model;
 
 /**
- * Possible topic wrtie configurations.
+ * Possible topic write configurations.
  */
 public enum TopicWriteType {
     MUTABLE,
