@@ -18,6 +18,7 @@ package com.bakdata.quick.manager.mirror.resources;
 
 import static com.bakdata.quick.manager.mirror.resources.MirrorResources.MIRROR_IMAGE;
 
+import com.bakdata.quick.common.api.model.manager.creation.MirrorArguments;
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
 import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.util.CliArgHandler;
@@ -88,9 +89,7 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
         final boolean hasFixedTag = mirrorCreationData.getTag() != null;
 
         final List<String> arguments = CliArgHandler.convertArgs(
-            createCliArguments(mirrorCreationData.getTopicName(),
-                mirrorCreationData.getRetentionTime(),
-                mirrorCreationData.getRangeField()));
+            createCliArguments(mirrorCreationData.getTopicName(), mirrorCreationData.getMirrorArguments()));
 
         final MirrorDeployment deployment = new MirrorDeployment(
             this.createMirrorDeployment(deploymentName, arguments, config, this.appSpecConfig, hasFixedTag));
@@ -152,30 +151,46 @@ public class MirrorResourceLoader implements ResourceLoader<MirrorResources, Mir
     }
 
     /**
-     * Sets the args for the mirror deployment. Throws {@link BadArgumentException}
-     * if both --retention-time and --range-field are specified.
+     * Sets the args for the mirror deployment. Throws {@link BadArgumentException} if both --retention-time and
+     * --range-field are specified.
      *
      * @param topic the input topic name
-     * @param retentionTime retention time
-     * @param rangeField the field where the range index should be build on
+     * @param mirrorArguments the properties needed to build different indexes or retention mirrors
      * @return an immutable map of command option and the value
      */
     private static Map<String, String> createCliArguments(final String topic,
-        @Nullable final Duration retentionTime,
-        @Nullable final String rangeField) {
+        @Nullable final MirrorArguments mirrorArguments) {
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder()
             .put("--input-topics", topic);
 
+        if (Objects.isNull(mirrorArguments)) {
+            return builder.build();
+        }
+
+        final Duration retentionTime = mirrorArguments.getRetentionTime();
+        final String rangeField = mirrorArguments.getRangeField();
+        final String rangeKey = mirrorArguments.getRangeKey();
         if (Objects.nonNull(retentionTime) && Objects.nonNull(rangeField)) {
             final String errorMessage = "The --range-field option must not be specified when --retention-time is set";
+            log.error(errorMessage);
             throw new BadArgumentException(errorMessage);
         }
 
         if (Objects.nonNull(retentionTime)) {
             builder.put("--retention-time", retentionTime.toString());
         }
+
+        if (Objects.isNull(rangeField) && Objects.nonNull(rangeKey)) {
+            final String errorMessage = "The --range-key can be set only when a --range-field is set";
+            log.error(errorMessage);
+            throw new BadArgumentException(errorMessage);
+        }
+
         if (Objects.nonNull(rangeField)) {
             builder.put("--range-field", rangeField);
+            if (Objects.nonNull(rangeKey)) {
+                builder.put("--range-key", rangeKey);
+            }
         }
 
         log.debug("Creating CLI arguments for the mirror deployment: {}", builder.build().toString());

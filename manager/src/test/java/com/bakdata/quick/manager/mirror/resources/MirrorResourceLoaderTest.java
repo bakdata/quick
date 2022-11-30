@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 
+import com.bakdata.quick.common.api.model.manager.creation.MirrorArguments;
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
 import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.manager.TestUtil;
@@ -67,13 +68,14 @@ class MirrorResourceLoaderTest extends KubernetesTest {
     void shouldCreateMirrorDeployment() {
         final ImageConfig imageConfig = ImageConfig.of(DOCKER_REGISTRY, EXPECTED_MIRROR_IMAGE, 3, DEFAULT_IMAGE_TAG);
 
+        final MirrorArguments mirrorArguments = new MirrorArguments(Duration.of(1, ChronoUnit.MINUTES), null, null);
+
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             DEFAULT_NAME,
             DEFAULT_TOPIC_NAME,
             3,
             null,
-            Duration.of(1, ChronoUnit.MINUTES),
-            null);
+            mirrorArguments);
 
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -168,7 +170,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             topicName,
             1,
             null,
-            null,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -206,7 +207,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             DEFAULT_TOPIC_NAME,
             1,
             customTag,
-            null,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -233,7 +233,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             DEFAULT_TOPIC_NAME,
             5,
             null,
-            null,
             null);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
@@ -253,13 +252,13 @@ class MirrorResourceLoaderTest extends KubernetesTest {
     @Test
     void shouldSetRetentionTimeForDeployment() {
         final Duration retentionTime = Duration.ofHours(1);
+        final MirrorArguments mirrorArguments = new MirrorArguments(retentionTime, null, null);
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             DEFAULT_NAME,
             DEFAULT_TOPIC_NAME,
             1,
             null,
-            retentionTime,
-            null);
+            mirrorArguments);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
         final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
@@ -284,13 +283,13 @@ class MirrorResourceLoaderTest extends KubernetesTest {
     @Test
     void shouldSetRangeFieldForMirrorDeployment() {
         final String rangeField = "timestamp";
+        final MirrorArguments mirrorArguments = new MirrorArguments(null, rangeField, null);
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             DEFAULT_NAME,
             DEFAULT_TOPIC_NAME,
             1,
             null,
-            null,
-            rangeField);
+            mirrorArguments);
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
 
         final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
@@ -313,21 +312,71 @@ class MirrorResourceLoaderTest extends KubernetesTest {
     }
 
     @Test
-    void shouldThrowBadArgumentExceptionWhenBothRetentionTimeAndRangeFieldSet() {
-        final Duration retentionTime = Duration.ofHours(1);
+    void shouldSetRangeKeyAndRangeFieldForMirrorDeployment() {
+        final String rangeKey = "userId";
         final String rangeField = "timestamp";
+        final MirrorArguments mirrorArguments = new MirrorArguments(null, rangeField, rangeKey);
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             DEFAULT_NAME,
             DEFAULT_TOPIC_NAME,
             1,
             null,
-            retentionTime,
-            rangeField);
+            mirrorArguments);
+        final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
+
+        final Optional<HasMetadata> hasMetadata = findResource(mirrorResources, ResourceKind.DEPLOYMENT);
+
+        assertThat(hasMetadata)
+            .isPresent()
+            .get(InstanceOfAssertFactories.type(Deployment.class))
+            .satisfies(deployment -> {
+
+                final PodSpec podSpec = deployment.getSpec().getTemplate().getSpec();
+                assertThat(podSpec.getContainers())
+                    .isNotNull()
+                    .hasSize(1)
+                    .first()
+                    .extracting(Container::getArgs, LIST)
+                    .hasSize(3)
+                    .contains("--input-topics=" + DEFAULT_TOPIC_NAME)
+                    .contains("--range-field=" + rangeField)
+                    .contains("--range-key=" + rangeKey);
+            });
+    }
+
+    @Test
+    void shouldThrowBadArgumentExceptionWhenBothRetentionTimeAndRangeFieldSet() {
+        final Duration retentionTime = Duration.ofHours(1);
+        final String rangeField = "timestamp";
+        final MirrorArguments mirrorArguments = new MirrorArguments(retentionTime, rangeField, null);
+
+        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
+            DEFAULT_NAME,
+            DEFAULT_TOPIC_NAME,
+            1,
+            null,
+            mirrorArguments);
 
         assertThatThrownBy(() -> this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR)).isInstanceOf(
                 BadArgumentException.class)
             .hasMessageContaining("The --range-field option must not be specified" +
                 " when --retention-time is set");
+    }
+
+    @Test
+    void shouldThrowBadArgumentExceptionWhenRangeKeyIsSetButRangeFieldIsNotSet() {
+        final MirrorArguments mirrorArguments = new MirrorArguments(null, null, "test");
+
+        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
+            DEFAULT_NAME,
+            DEFAULT_TOPIC_NAME,
+            1,
+            null,
+            mirrorArguments);
+
+        assertThatThrownBy(() -> this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR)).isInstanceOf(
+                BadArgumentException.class)
+            .hasMessageContaining("The --range-key can be set only when a --range-field is set");
     }
 
     @Test
@@ -337,7 +386,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             DEFAULT_TOPIC_NAME,
             3,
             "snapshot",
-            null,
             null);
 
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
@@ -389,7 +437,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             topicName,
             1,
             null,
-            null,
             null);
 
         final MirrorResources mirrorResources = this.loader.forCreation(mirrorCreationData, ResourcePrefix.MIRROR);
@@ -400,7 +447,6 @@ class MirrorResourceLoaderTest extends KubernetesTest {
             .isPresent()
             .get(InstanceOfAssertFactories.type(Service.class))
             .satisfies(service -> {
-
                 final String deploymentName = ResourcePrefix.MIRROR.getPrefix() + name;
                 assertThat(service.getMetadata())
                     .hasFieldOrPropertyWithValue("name", deploymentName)
