@@ -43,6 +43,7 @@ final class DefaultClientSupplier implements ClientSupplier {
     public <K, V> DataFetcherClient<K, V> createClient(final String topic, final Serde<K> keySerde,
         final Lazy<QuickTopicData<Object, V>> quickTopicData) {
         return new MirrorDataFetcherClient<>(new Lazy<>(() ->
-            this.mirrorClientFactory.createMirrorClient(this.client, topic, keySerde, quickTopicData.get().getValueData().getResolver())));
+            this.mirrorClientFactory.createMirrorClient(this.client, topic, keySerde,
+                quickTopicData.get().getValueData().getResolver())));
     }
 }

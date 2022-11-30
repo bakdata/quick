@@ -53,5 +53,6 @@ public class PartitionedMirrorClientFactory implements MirrorClientFactory {
         final Router<K> partitionRouter =
             new PartitionRouter<>(client, streamsStateHost, keySerde, new DefaultPartitionFinder(), requestManager,
                 topic);
-        return new PartitionedMirrorClient<>(client, valueTypeResolver, requestManager, partitionRouter);    }
+        return new PartitionedMirrorClient<>(client, valueTypeResolver, requestManager, partitionRouter);
+    }
 }

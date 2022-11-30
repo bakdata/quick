@@ -68,7 +68,7 @@ public class RangeFetcherRule implements DataFetcherRule {
         Objects.requireNonNull(context.getTopicDirective().getRangeFrom());
         Objects.requireNonNull(context.getTopicDirective().getRangeTo());
 
-        TypeName typeName = extractKeyArgumentType(context, context.getTopicDirective().getKeyArgument());
+        final TypeName typeName = extractKeyArgumentType(context, context.getTopicDirective().getKeyArgument());
 
         final DataFetcher<?> dataFetcher = context.getFetcherFactory().rangeFetcher(
             context.getTopicDirective().getTopicName(),
@@ -112,9 +112,9 @@ public class RangeFetcherRule implements DataFetcherRule {
             .findFirst();
 
         if (field.isEmpty()) {
-            final String errorMessage =
-                String.format("Could not find the keyArgument %s in the parent type definition. Please check your schema.",
-                    keyArgument);
+            final String errorMessage = String.format(
+                "Could not find the keyArgument %s in the parent type definition. Please check your schema.",
+                keyArgument);
             throw new QuickDirectiveException(errorMessage);
         }
         return DataFetcherRule.extractName(field.get().getType());

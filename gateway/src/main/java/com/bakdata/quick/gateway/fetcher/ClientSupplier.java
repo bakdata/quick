@@ -25,5 +25,7 @@ import org.apache.kafka.common.serialization.Serde;
  */
 public interface ClientSupplier {
     <K, V> DataFetcherClient<K, V> createClient(final String topic, final Lazy<QuickTopicData<K, V>> quickTopicData);
-    <K, V> DataFetcherClient<K, V> createClient(final String topic, final Serde<K> keySerde, final Lazy<QuickTopicData<Object, V>> quickTopicData);
+
+    <K, V> DataFetcherClient<K, V> createClient(final String topic, final Serde<K> keySerde,
+        final Lazy<QuickTopicData<Object, V>> quickTopicData);
 }

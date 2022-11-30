@@ -39,8 +39,8 @@ public class DefaultMirrorClientFactory implements MirrorClientFactory {
     }
 
     @Override
-    public <K, V> MirrorClient<K, V> createMirrorClient(HttpClient client, String topic,
-        Serde<K> keySerde, TypeResolver<V> valueTypeResolver) {
+    public <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client, final String topic,
+        final Serde<K> keySerde, final TypeResolver<V> valueTypeResolver) {
         final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
         final MirrorRequestManager requestManager = new DefaultMirrorRequestManager(client);
         final MirrorValueParser<V> mirrorValueParser =
