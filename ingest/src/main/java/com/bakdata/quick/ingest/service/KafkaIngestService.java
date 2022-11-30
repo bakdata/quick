@@ -59,7 +59,7 @@ public class KafkaIngestService implements IngestService {
      *
      * <p>
      * For now, it is not possible to invalidate a producer when a topic is deleted. Therefore, we can not set the
-     * retention time too high as a topic might have an incompatible kafka producer.
+     * retention time to high as a topic might have an incompatible kafka producer.
      */
     private static final int PRODUCER_CACHE_RETENTION = 2;
 
@@ -88,8 +88,7 @@ public class KafkaIngestService implements IngestService {
 
     @Override
     public <K, V> Completable sendData(final String topic, final List<KeyValuePair<K, V>> keyValuePairs) {
-        log.info("Sending data to topic: {}", topic);
-        log.trace("Sending {} records", keyValuePairs.size());
+        log.debug("Sending data to topic: {}", topic);
         final Single<QuickTopicData<K, V>> topicInformation = this.typeService.getTopicData(topic);
         return topicInformation.flatMapCompletable(info -> this.sendBatchData(topic, keyValuePairs, info))
             .subscribeOn(this.threadPool);
@@ -97,7 +96,6 @@ public class KafkaIngestService implements IngestService {
 
     @Override
     public <K> Completable deleteData(final String topic, final List<K> keys) {
-        log.info("Deleting data from the topic {}", topic);
         // How to delete records: https://www.confluent.io/blog/handling-gdpr-log-forget/
         final List<KeyValuePair<K, Void>> pairs = keys.stream()
             .map(key -> new KeyValuePair<K, Void>(key, null))
@@ -126,7 +124,7 @@ public class KafkaIngestService implements IngestService {
     @SuppressWarnings("unchecked")
     private <K, V> Producer<K, V> getProducer(final String topic, final Serializer<K> keySerializer,
         final Serializer<V> valueSerializer) {
-        // the producer is closed in post-construct
+        // producer are closed in post construct
         return (Producer<K, V>) this.producerMap
             .get(topic, topicName -> this.createProducer(keySerializer, valueSerializer, topicName));
     }
@@ -142,7 +140,7 @@ public class KafkaIngestService implements IngestService {
     @PreDestroy
     private void tearDown() {
         // close all cached producers and invalidate cache
-        log.info("Teardown ingest: Invalidate producer cache");
+        log.debug("Teardown ingest: Invalidate producer cache");
         this.producerMap.asMap().values().forEach(Producer::close);
         this.producerMap.invalidateAll();
     }

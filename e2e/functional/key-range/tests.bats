@@ -4,7 +4,7 @@
 CONTENT_TYPE="content-type:application/json"
 API_KEY="X-API-Key:${X_API_KEY}"
 PURCHASE_TYPE="Purchase"
-PURCHASE_TOPIC="user-purchases-range-key-test"
+PURCHASE_TOPIC="user-purchase-range-key-test"
 GATEWAY="range-key-gateway-test"
 PURCHASE_INGEST_URL="${HOST}/ingest/${PURCHASE_TOPIC}"
 GRAPHQL_URL="${HOST}/gateway/${GATEWAY}/graphql"

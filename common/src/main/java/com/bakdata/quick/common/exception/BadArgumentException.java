@@ -20,7 +20,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpStatus;
 
 /**
- * Exception that occurs when the user provided an argument which leads to an error.
+ * Exception that occurs when the user provided an argument which lead to an error.
  */
 public class BadArgumentException extends QuickException {
     public BadArgumentException(@Nullable final String message) {

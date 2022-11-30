@@ -64,7 +64,6 @@ public class MirrorRangeProcessor<K, V> implements Processor<K, V, Void, Void> {
         }
 
         if (value == null) {
-            log.error("Skipping range index creation for key {}. Because the value is null.", key);
             throw new MirrorTopologyException("The value should not be null. Check you input topic data.");
         }
 

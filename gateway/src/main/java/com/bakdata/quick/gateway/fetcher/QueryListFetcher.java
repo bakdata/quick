@@ -25,7 +25,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * A Data Fetcher that fetches all values in a mirror's key value store.
+ * A Data Fetcher that fetches all values in  a mirror's key value store.
  *
  * <p>
  * Consider the following schema:
@@ -64,9 +64,9 @@ public class QueryListFetcher<K, T> implements DataFetcher<List<T>> {
     public List<T> get(final DataFetchingEnvironment environment) {
         final List<T> values = this.dataFetcherClient.fetchList();
 
-        // got null, but schema doesn't allow null
-        // Semantically, there is no difference between null and an empty list for us in this case.
-        // We therefore continue gracefully by simply returning a list and not throwing an exception
+        // got null but schema doesn't allow null
+        // semantically, there is no difference between null and an empty list for us in this case
+        // we therefore continue gracefully by simply returning a list and  not throwing an exception
         if (values == null && !this.isNullable) {
             return Collections.emptyList();
         }

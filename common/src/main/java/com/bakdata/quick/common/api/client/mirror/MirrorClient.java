@@ -65,9 +65,9 @@ public interface MirrorClient<K, V> {
     List<V> fetchRange(final K key, final String from, final String to);
 
     /**
-     * Checks if a key exists in a mirror topic.
+     * Checks if a key exists in mirror topic.
      *
-     * @return True/False if key exists in a mirror topic
+     * @return True/False if key exists in mirror topic
      */
     boolean exists(final K key);
 }

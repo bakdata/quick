@@ -33,7 +33,7 @@ public interface TopicService {
     Single<TopicData> getTopicData(final String name);
 
     Completable createTopic(final String name, final QuickTopicType keyType, final QuickTopicType valueType,
-                            final TopicCreationData topicCreationData);
+        final TopicCreationData topicCreationData);
 
     Completable deleteTopic(final String name);
 

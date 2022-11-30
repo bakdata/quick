@@ -16,10 +16,10 @@
 
 package com.bakdata.quick.mirror.service;
 
-import com.bakdata.quick.common.api.client.HeaderConstants;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorClient;
 import com.bakdata.quick.common.api.client.mirror.DefaultMirrorRequestManager;
+import com.bakdata.quick.common.api.client.mirror.HeaderConstants;
 import com.bakdata.quick.common.api.client.mirror.MirrorHost;
 import com.bakdata.quick.common.api.client.mirror.MirrorValueParser;
 import com.bakdata.quick.common.api.model.mirror.MirrorValue;
@@ -125,7 +125,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         final V value = store.get(key);
         if (value == null) {
-            throw new NotFoundException(String.format("Key %s does not exist in mirror", rawKey));
+            throw new NotFoundException(String.format("Key %s does not exist in Mirror", rawKey));
         }
         return Single.just(HttpResponse.created(new MirrorValue<>(value)).status(HttpStatus.OK));
     }
@@ -288,7 +288,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     /**
      * Transforms a list of HttpResponses of MirrorValue of a specific type into a single HttpResponse of MirrorValue
-     * with a list of values of that type. If a header is present in one of the HttpResponses (function
+     * with a list of values of that type. Furthermore, if a header is present in one of the HttpResponses (function
      * argument), an HTTP Header that informs about the Cache-Miss is set. Because of this possibility, the function
      * returns MutableHttpResponse and not just HttpResponse.
      *

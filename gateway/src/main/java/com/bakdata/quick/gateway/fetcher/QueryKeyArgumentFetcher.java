@@ -56,5 +56,4 @@ public class QueryKeyArgumentFetcher<K, T> implements DataFetcher<T> {
         }
         return value;
     }
-
 }
