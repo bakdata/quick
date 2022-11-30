@@ -14,17 +14,21 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.mirror.topology.consumer;
+package com.bakdata.quick.mirror.context;
 
-import com.bakdata.quick.mirror.context.MirrorContext;
+import com.bakdata.quick.common.type.QuickTopicData.QuickData;
+import lombok.Value;
 import org.apache.kafka.streams.kstream.KStream;
 
 /**
- * Provides the logic of how the stream should be read.
+ * Contains the key and value data along with the stream.
+ *
+ * @param <K> Type of the key
+ * @param <V> Type of the value
  */
-public interface StreamConsumer {
-    /**
-     * Contains the logic of how your stream should be consumed from the input source.
-     */
-    <K, V> KStream<K, V> consume(final MirrorContext<K, V> mirrorContext);
+@Value
+public class IndexInputStream<K, V> {
+    QuickData<K> keyData;
+    QuickData<V> valueData;
+    KStream<K, V> stream;
 }

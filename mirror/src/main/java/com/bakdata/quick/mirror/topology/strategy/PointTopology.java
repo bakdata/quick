@@ -19,7 +19,7 @@ package com.bakdata.quick.mirror.topology.strategy;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.point.MirrorProcessor;
-import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KStream;
@@ -29,6 +29,7 @@ import org.apache.kafka.streams.state.Stores;
 /**
  * Creates an index for point queries.
  */
+@Slf4j
 public class PointTopology implements TopologyStrategy {
     private static final String PROCESSOR_NAME = "mirror-processor";
 
@@ -44,16 +45,17 @@ public class PointTopology implements TopologyStrategy {
      * Creates a topology for point queries.
      */
     @Override
-    public <K, V> void create(final MirrorContext<K, V> mirrorContext, final StreamConsumer streamConsumer) {
-        final KStream<K, V> kStream = streamConsumer.consume(mirrorContext);
+    public <K, V> void create(final MirrorContext<?, V> mirrorContext, final KStream<K, V> stream) {
+        log.info("Setting up the point topology.");
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
-        final Serde<K> keySerDe = mirrorContext.getKeySerde();
-        final Serde<V> valueSerDe = mirrorContext.getValueSerde();
+        final Serde<?> keySerDe = mirrorContext.getKeySerde();
+        final Serde<?> valueSerDe = mirrorContext.getValueSerde();
         final String storeName = mirrorContext.getPointStoreName();
         final StoreType storeType = mirrorContext.getStoreType();
+
         streamsBuilder.addStateStore(
             Stores.keyValueStoreBuilder(this.createStore(storeName, storeType), keySerDe, valueSerDe));
 
-        kStream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
+        stream.process(() -> new MirrorProcessor<>(storeName), Named.as(PROCESSOR_NAME), storeName);
     }
 }

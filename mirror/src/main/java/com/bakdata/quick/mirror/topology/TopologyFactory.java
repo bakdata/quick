@@ -35,7 +35,7 @@ public final class TopologyFactory {
     /**
      * Returns a list of concrete implementation of {@link TopologyStrategy}.
      */
-    public static List<TopologyStrategy> getStrategies(final MirrorContext mirrorContext) {
+    public static <K, V> List<TopologyStrategy> getStrategies(final MirrorContext<K, V> mirrorContext) {
         final List<TopologyStrategy> topologyStrategies = List.of(
             new PointTopology(),
             new RangeTopology(),

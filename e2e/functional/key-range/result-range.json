@@ -2,7 +2,7 @@
       {
         "productId": 123,
         "price": {
-          "total": 30
+          "total": 30.0
         }
       },
       {
