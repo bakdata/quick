@@ -17,7 +17,7 @@
 package com.bakdata.quick.gateway.directives;
 
 /**
- * Exception for invalid directive usage.
+ * Exception for invalid  directive usage.
  */
 public class QuickDirectiveException extends IllegalArgumentException {
     public QuickDirectiveException(final String msg) {

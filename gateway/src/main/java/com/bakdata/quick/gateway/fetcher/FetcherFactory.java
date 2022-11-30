@@ -157,9 +157,9 @@ public class FetcherFactory {
     /**
      * Creates a {@link KeyFieldFetcher}.
      */
-    public DataFetcher<Object> keyFieldFetcher(final String topic, final String keyFieldName) {
+    public DataFetcher<Object> keyFieldFetcher(final String topic, final String keyFieldName, final TypeName type) {
         return new KeyFieldFetcher<>(this.objectMapper, keyFieldName,
-            this.clientSupplier.createClient(topic, this.getTopicData(topic)));
+            this.clientSupplier.createClient(topic, this.getTopicData(topic)), type);
     }
 
     /**

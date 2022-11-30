@@ -1,31 +1,13 @@
-type Query {
-    findPurchase(purchaseId: ID): Purchase @topic(name: "purchase-topic", keyArgument: "purchaseId")
-}
-
-type Purchase  {
-    purchaseId: ID!,
-    productId: ID!,
-    userId: ID!,
-    amount: Int,
-    price: Price,
-    infos: [String]
-    product: Product @topic(name: "product-topic" keyField: "productId")
-}
-
-type Product {
-    productId: ID!,
-    name: String,
-    description: String,
-    price: Price,
-    metadata: Metadata
-}
-
-type Price {
-    total: Float,
-    currency: String
-}
-
-type Metadata {
-    created_at: Int,
-    source: String
+{
+    findPurchase(purchaseId: "purchase1") {
+        purchaseId
+        productId
+        product {
+            productId
+            name
+            price {
+                total
+            }
+        }
+    }
 }

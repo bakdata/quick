@@ -38,7 +38,7 @@ public class QuickTopicData<K, V> {
     QuickData<V> valueData;
 
     /**
-     * Topic Data for a key or value.
+     * Topic Data for key or value.
      *
      * @param <T> type
      */

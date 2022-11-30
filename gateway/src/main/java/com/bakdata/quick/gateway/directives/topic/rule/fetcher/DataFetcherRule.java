@@ -47,7 +47,7 @@ public interface DataFetcherRule extends TopicDirectiveRule {
      *
      * @see com.bakdata.quick.gateway.fetcher.DeferFetcher DeferFetcher for a in-depth explanation
      */
-    static Stream<DataFetcherSpecification> extractDeferFetcher(final TopicDirectiveContext context) {
+    default Stream<DataFetcherSpecification> extractDeferFetcher(final TopicDirectiveContext context) {
         if (context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE)) {
             return Stream.empty();
         }
@@ -58,7 +58,7 @@ public interface DataFetcherRule extends TopicDirectiveRule {
 
         final Stream<String> fieldsWithParentType = objectTypeDefinition.getFieldDefinitions()
             .stream()
-            .filter(field -> extractName(field.getType()).getName().equals(context.getParentContainerName()))
+            .filter(field -> this.extractTypeName(field.getType()).getName().equals(context.getParentContainerName()))
             .map(FieldDefinition::getName);
 
         return fieldsWithParentType
@@ -67,19 +67,19 @@ public interface DataFetcherRule extends TopicDirectiveRule {
     }
 
     /**
-     * Extracts name of a given type.
+     * Extracts name of given type.
      */
-    static TypeName extractName(final Type<?> type) {
+    default TypeName extractTypeName(final Type<?> type) {
         if (type instanceof TypeName) {
             return ((TypeName) type);
         }
 
         if (type instanceof ListType) {
-            return extractName(((ListType) type).getType());
+            return this.extractTypeName(((ListType) type).getType());
         }
 
         if (type instanceof NonNullType) {
-            return extractName(((NonNullType) type).getType());
+            return this.extractTypeName(((NonNullType) type).getType());
         }
 
         throw new QuickDirectiveException("Found unknown type: " + type.getClass().getSimpleName());
@@ -97,7 +97,7 @@ public interface DataFetcherRule extends TopicDirectiveRule {
      * Checks whether this rule can be applied for this context.
      *
      * @param context the current topic directive information
-     * @return whether this rule is valid for this context
+     * @return whether or not this rule is valid for this context
      */
     boolean isValid(final TopicDirectiveContext context);
 

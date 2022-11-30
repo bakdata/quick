@@ -66,7 +66,7 @@ public class IngestController {
      */
     @Post("/{topic}")
     public <K, V> Completable sendData(final String topic, @Body final String payload) {
-        log.info("Incoming request: Ingest payload for topic {}", topic);
+        log.debug("Incoming request: Ingest payload for topic {}", topic);
         final Single<QuickTopicData<K, V>> topicInformation = this.typeService.getTopicData(topic);
 
         return topicInformation.onErrorResumeNext(throwable -> errorDoesNotExistError(topic))
@@ -74,11 +74,11 @@ public class IngestController {
     }
 
     /**
-     * Deletes key from a topic.
+     * Deletes key from topic.
      */
     @Delete("/{topic}/{rawKey}")
     public <K, V> Completable deleteValue(final String topic, final String rawKey) {
-        log.info("Incoming request: Delete {} for topic {}", rawKey, topic);
+        log.debug("Incoming request: Delete {} for topic {}", rawKey, topic);
         final Single<QuickTopicData<K, V>> topicInformation = this.typeService.getTopicData(topic);
 
         return topicInformation.onErrorResumeNext(throwable -> errorDoesNotExistError(topic))
@@ -88,11 +88,11 @@ public class IngestController {
     }
 
     /**
-     * Deletes key from a topic.
+     * Deletes key from topic.
      */
     @Delete("/{topic}")
     public <K, V> Completable deleteValueFromBody(final String topic, @Body final String rawKey) {
-        log.info("Incoming request: Delete {} for topic {}", rawKey, topic);
+        log.debug("Incoming request: Delete {} for topic {}", rawKey, topic);
         final Single<QuickTopicData<K, V>> topicInformation = this.typeService.getTopicData(topic);
 
         return topicInformation.onErrorResumeNext(throwable -> errorDoesNotExistError(topic))
@@ -104,7 +104,7 @@ public class IngestController {
      * Converts already existing keys into an error.
      *
      * @param topic the topic to ingest into
-     * @param pairs lists of existing and non-existing keys respectively
+     * @param pairs lists of existing and non existing keys respectively
      * @return successful completable if there are no existing keys otherwise an error
      */
     private static Completable createErrorsForExistingKeys(final String topic, final IngestLists<?, ?> pairs) {

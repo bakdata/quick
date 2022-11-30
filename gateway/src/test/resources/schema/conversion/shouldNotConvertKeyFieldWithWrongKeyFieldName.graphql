@@ -1,3 +1,4 @@
+# Invalid Schema
 type Query {
     findPurchase(purchaseId: ID): Purchase @topic(name: "purchase-topic", keyArgument: "purchaseId")
 }
@@ -5,13 +6,11 @@ type Query {
 type Purchase  {
     purchaseId: ID!,
     productId: Long!,
-    userId: ID!,
-    amount: Int,
-    price: Price,
-    infos: [String]
+    product: Product @topic(name: "product-topic" keyField: "notExistingField")
 }
 
-type Price {
-    total: Float,
-    currency: String
+type Product {
+    productId: ID!,
+    name: String,
+    description: String
 }

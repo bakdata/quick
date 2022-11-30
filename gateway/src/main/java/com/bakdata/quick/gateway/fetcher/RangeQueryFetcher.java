@@ -64,9 +64,9 @@ public class RangeQueryFetcher<K, V> implements DataFetcher<List<V>> {
 
         final List<V> results = this.dataFetcherClient.fetchRange((K) argumentValue, rangeFromValue, rangeToValue);
 
-        // got null, but schema doesn't allow null
-        // semantically, there is no difference between a null and an empty list for us in this case.
-        // We therefore continue gracefully by simply returning a list and not throwing an exception
+        // got null but schema doesn't allow null
+        // semantically, there is no difference between null and an empty list for us in this case
+        // we therefore continue gracefully by simply returning a list and not throwing an exception
         if (results == null && !this.isNullable) {
             return Collections.emptyList();
         }
