@@ -42,9 +42,7 @@ jobs:
 
       - name: Generate snapshot tag
         id: generate-snapshot-tag
-        run: |
-          tag=$(just print-dev-version )
-          echo "::set-output name=snapshot-tag::$tag"
+        run: echo "snapshot-tag=$(just print-dev-version)" >> $GITHUB_OUTPUT
 
 
   build-and-test-source:

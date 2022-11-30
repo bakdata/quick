@@ -51,8 +51,7 @@ jobs:
         id: set-commit
         run: | 
           cd ./main
-          sha=$(git rev-parse HEAD)
-          echo "::set-output name=commitSha::$sha"
+          echo "commitSha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
       - name: Package Helm chart
         run: |
