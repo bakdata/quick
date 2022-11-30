@@ -23,14 +23,19 @@ import static org.hamcrest.Matchers.equalTo;
 
 import com.bakdata.quick.common.TestConfigUtils;
 import com.bakdata.quick.common.TestTopicTypeService;
+import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.config.SchemaConfig;
+import com.bakdata.quick.common.schema.SchemaFormat;
 import com.bakdata.quick.common.tags.IntegrationTest;
+import com.bakdata.quick.common.type.DefaultConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.mirror.MirrorApplication;
+import com.bakdata.quick.mirror.IndexInputStreamBuilder;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.schemaregistrymock.SchemaRegistryMock;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.http.HttpStatus;
@@ -38,6 +43,7 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig;
 import net.mguenther.kafka.junit.KeyValue;
@@ -59,6 +65,9 @@ class PointIndexStreamsStateIntegrationTest {
     ApplicationContext applicationContext;
     @Inject
     MirrorContextProvider<String, String> mirrorContextProvider;
+    @Inject
+    SchemaExtractor schemaExtractor;
+
     private static final EmbeddedKafkaCluster kafkaCluster =
         provisionWith(EmbeddedKafkaClusterConfig.defaultClusterConfig());
     private static final SchemaRegistryMock schemaRegistry = new SchemaRegistryMock();
@@ -76,9 +85,9 @@ class PointIndexStreamsStateIntegrationTest {
     }
 
     @Test
-    void shouldReceiveCorrectPartitionHostFromMirrorApplication() throws InterruptedException, JsonProcessingException {
+    void shouldReceiveCorrectPartitionHostFromMirrorApplication() throws InterruptedException {
         sendValuesToKafka();
-        final MirrorApplication<String, String> app = this.setUpApp();
+        final MirrorApplication<String, String, String> app = this.setUpApp();
         final Thread runThread = new Thread(app);
         runThread.start();
 
@@ -120,10 +129,20 @@ class PointIndexStreamsStateIntegrationTest {
             .build();
     }
 
-    private MirrorApplication<String, String> setUpApp() {
-        final MirrorApplication<String, String> app = new MirrorApplication<>(
-            this.applicationContext, topicTypeService(), TestConfigUtils.newQuickTopicConfig(),
-            this.hostConfig, this.mirrorContextProvider
+    private MirrorApplication<String, String, String> setUpApp() {
+        final KafkaConfig kafkaConfig = new KafkaConfig("dummy:123", schemaRegistry.getUrl());
+        final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
+        final DefaultConversionProvider defaultConversionProvider =
+            new DefaultConversionProvider(kafkaConfig, schemaConfig);
+
+        final MirrorApplication<String, String, String> app = new MirrorApplication<>(
+            this.schemaExtractor,
+            this.applicationContext,
+            topicTypeService(),
+            TestConfigUtils.newQuickTopicConfig(),
+            this.hostConfig,
+            this.mirrorContextProvider,
+            new IndexInputStreamBuilder(this.schemaExtractor, defaultConversionProvider)
         );
         app.setInputTopics(List.of(INPUT_TOPIC));
         app.setBrokers(kafkaCluster.getBrokerList());

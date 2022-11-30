@@ -32,7 +32,9 @@ public class ProtoTypeExtractor implements FieldTypeExtractor {
 
     private static final Map<JavaType, QuickTopicType> typeMap = Map.of(
         JavaType.INT, QuickTopicType.INTEGER,
-        JavaType.LONG, QuickTopicType.LONG);
+        JavaType.LONG, QuickTopicType.LONG,
+        JavaType.STRING, QuickTopicType.STRING,
+        JavaType.DOUBLE, QuickTopicType.DOUBLE);
 
     @Override
     public QuickTopicType extract(final ParsedSchema parsedSchema, final String fieldName) {

@@ -132,9 +132,9 @@ class QuickTopicTypeServiceTest {
 
     private TopicTypeService createTopicTypeService(final SchemaProvider schemaProvider) {
         final KafkaConfig kafkaConfig = new KafkaConfig("dummy:123", this.schemaRegistryMock.getUrl());
-        final SchemaFetcher schemaFetcher = new SchemaRegistryFetcher(new HttpClient(), kafkaConfig, schemaProvider);
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
-        final DefaultConversionProvider conversionProvider = new DefaultConversionProvider(schemaConfig, kafkaConfig);
+        final SchemaFetcher schemaFetcher = new SchemaRegistryFetcher(new HttpClient(), kafkaConfig, schemaProvider);
+        final DefaultConversionProvider conversionProvider = new DefaultConversionProvider(kafkaConfig, schemaConfig);
         return new QuickTopicTypeService(schemaFetcher, this.topicRegistryClient, conversionProvider);
     }
 }

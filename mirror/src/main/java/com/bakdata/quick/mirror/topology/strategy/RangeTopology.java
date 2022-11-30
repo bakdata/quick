@@ -25,7 +25,6 @@ import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 import com.bakdata.quick.mirror.range.indexer.NoOpRangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.WriteRangeIndexer;
-import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -56,26 +55,26 @@ public class RangeTopology implements TopologyStrategy {
      * Creates a range topology.
      */
     @Override
-    public <K, V> void create(final MirrorContext<K, V> mirrorContext, final StreamConsumer streamConsumer) {
-        final KStream<K, V> kStream = streamConsumer.consume(mirrorContext);
+    public <K, V> void create(final MirrorContext<?, V> mirrorContext, final KStream<K, V> stream) {
+        log.info("Setting up the range topology.");
         final StreamsBuilder streamsBuilder = mirrorContext.getStreamsBuilder();
+        final Serde<String> keySerde = Serdes.String();
         final Serde<V> valueSerDe = mirrorContext.getValueSerde();
-
         final String rangeStoreName = mirrorContext.getRangeIndexProperties().getStoreName();
         final StoreType storeType = mirrorContext.getStoreType();
 
         // key serde is string because the store saves zero padded range index string as keys
         streamsBuilder.addStateStore(
-            Stores.keyValueStoreBuilder(this.createStore(rangeStoreName, storeType), Serdes.String(), valueSerDe));
+            Stores.keyValueStoreBuilder(this.createStore(rangeStoreName, storeType), keySerde, valueSerDe));
 
         final RangeIndexer<K, V> rangeIndexer = getRangeIndexer(mirrorContext);
 
-        kStream.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
+        stream.process(() -> new MirrorRangeProcessor<>(rangeStoreName, rangeIndexer),
             Named.as(RANGE_PROCESSOR_NAME), rangeStoreName);
     }
 
-    private static <K, V> RangeIndexer<K, V> getRangeIndexer(final MirrorContext<K, V> mirrorContext) {
-        final ParsedSchema parsedSchema = mirrorContext.getTopicData().getValueData().getParsedSchema();
+    private static <K, V> RangeIndexer<K, V> getRangeIndexer(final MirrorContext<?, V> mirrorContext) {
+        final ParsedSchema parsedSchema = mirrorContext.getValueSchema();
         if (parsedSchema == null) {
             final boolean isCleanup = mirrorContext.isCleanup();
             log.debug("Parsed schema is null and cleanup flag is set to {}.", isCleanup);
@@ -88,8 +87,9 @@ public class RangeTopology implements TopologyStrategy {
                 Objects.requireNonNull(mirrorContext.getRangeIndexProperties().getRangeField());
             log.debug("Setting up default range indexer.");
 
-            final FieldTypeExtractor fieldTypeExtractor = mirrorContext.getFieldTypeExtractor();
-            final FieldValueExtractor<V> fieldValueExtractor = mirrorContext.getFieldValueExtractor();
+            final FieldTypeExtractor fieldTypeExtractor = mirrorContext.getSchemaExtractor().getFieldTypeExtractor();
+            final FieldValueExtractor<V> fieldValueExtractor =
+                mirrorContext.getSchemaExtractor().getFieldValueExtractor();
             return WriteRangeIndexer.create(fieldTypeExtractor, fieldValueExtractor, parsedSchema, rangeField);
         }
     }

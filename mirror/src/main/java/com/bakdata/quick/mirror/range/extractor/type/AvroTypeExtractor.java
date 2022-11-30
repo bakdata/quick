@@ -25,16 +25,17 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
-import org.apache.avro.Schema.Type;
 
 /**
  * Implements the logic of extracting the {@link QuickTopicType} from a field in an Avro schema.
  */
 @Slf4j
 public class AvroTypeExtractor implements FieldTypeExtractor {
-    private static final Map<Type, QuickTopicType> typeMap = Map.of(
+    private static final Map<Schema.Type, QuickTopicType> typeMap = Map.of(
         Schema.Type.INT, QuickTopicType.INTEGER,
-        Schema.Type.LONG, QuickTopicType.LONG);
+        Schema.Type.LONG, QuickTopicType.LONG,
+        Schema.Type.STRING, QuickTopicType.STRING,
+        Schema.Type.DOUBLE, QuickTopicType.DOUBLE);
 
     @Override
     public QuickTopicType extract(final ParsedSchema parsedSchema, final String fieldName) {

@@ -81,6 +81,6 @@ public class TestTopicTypeService implements TopicTypeService {
     private ConversionProvider avroConversionProvider() {
         final SchemaConfig schemaConfig = new SchemaConfig(Optional.of(SchemaFormat.AVRO), Optional.empty());
         final KafkaConfig kafkaConfig = new KafkaConfig("localhost:9092", this.urlSupplier.get());
-        return new DefaultConversionProvider(schemaConfig, kafkaConfig);
+        return new DefaultConversionProvider(kafkaConfig, schemaConfig);
     }
 }

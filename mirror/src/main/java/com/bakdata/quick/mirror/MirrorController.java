@@ -30,11 +30,10 @@ import java.util.List;
 /**
  * REST API of mirror applications.
  *
- * @param <K> key type
  * @param <V> value type
  */
 @Controller("/mirror")
-public class MirrorController<K, V> {
+public class MirrorController<V> {
     private final QueryService<V> queryService;
 
     @Inject
