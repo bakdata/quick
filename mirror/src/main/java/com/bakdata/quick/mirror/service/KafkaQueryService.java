@@ -125,7 +125,7 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
         final V value = store.get(key);
         if (value == null) {
-            throw new NotFoundException(String.format("Key %s does not exist in %s", rawKey, this.topicName));
+            throw new NotFoundException(String.format("Key %s does not exist in Mirror", rawKey));
         }
         return Single.just(HttpResponse.created(new MirrorValue<>(value)).status(HttpStatus.OK));
     }
