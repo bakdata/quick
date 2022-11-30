@@ -68,7 +68,7 @@ public class RangeFetcherRule implements DataFetcherRule {
         Objects.requireNonNull(context.getTopicDirective().getRangeFrom());
         Objects.requireNonNull(context.getTopicDirective().getRangeTo());
 
-        final TypeName typeName = extractKeyArgumentType(context, context.getTopicDirective().getKeyArgument());
+        final TypeName typeName = this.extractKeyArgumentType(context, context.getTopicDirective().getKeyArgument());
 
         final DataFetcher<?> dataFetcher = context.getFetcherFactory().rangeFetcher(
             context.getTopicDirective().getTopicName(),
@@ -92,7 +92,7 @@ public class RangeFetcherRule implements DataFetcherRule {
             && GraphQLTypeUtil.isList(context.getEnvironment().getElement().getType());
     }
 
-    private static TypeName extractKeyArgumentType(final TopicDirectiveContext context, final String keyArgument) {
+    private TypeName extractKeyArgumentType(final TopicDirectiveContext context, final String keyArgument) {
         final Optional<GraphqlElementParentTree> parentInfo = context.getEnvironment()
             .getElementParentTree()
             .getParentInfo();
@@ -117,6 +117,6 @@ public class RangeFetcherRule implements DataFetcherRule {
                 keyArgument);
             throw new QuickDirectiveException(errorMessage);
         }
-        return DataFetcherRule.extractName(field.get().getType());
+        return this.extractTypeName(field.get().getType());
     }
 }
