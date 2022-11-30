@@ -17,12 +17,11 @@
 package com.bakdata.quick.mirror.topology;
 
 import com.bakdata.quick.mirror.context.MirrorContext;
-import com.bakdata.quick.mirror.topology.consumer.MirrorStreamConsumer;
-import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import com.bakdata.quick.mirror.topology.strategy.TopologyStrategy;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.kstream.KStream;
 
 
 /**
@@ -46,19 +45,24 @@ public class MirrorTopology<K, V> {
     /**
      * Creates a new mirror topology.
      */
-    public Topology createTopology() {
+    public Topology createTopology(final KStream<K, V> inputStream) {
         final List<TopologyStrategy> topologyStrategies = TopologyFactory.getStrategies(this.mirrorContext);
-
-        final StreamConsumer streamConsumer = new MirrorStreamConsumer();
-        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
-            topologyStrategy.create(this.mirrorContext, streamConsumer);
-        }
-
-        Topology topology = this.mirrorContext.getStreamsBuilder().build();
-        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
-            topology = topologyStrategy.extendTopology(this.mirrorContext, topology);
-        }
+        log.debug("Topologies to apply {}", topologyStrategies);
+        final Topology topology = this.applyTopologies(topologyStrategies, inputStream, this.mirrorContext);
         log.debug("The topology is {}", topology.describe());
+        return topology;
+    }
+
+    private Topology applyTopologies(final Iterable<? extends TopologyStrategy> topologyStrategies,
+        final KStream<K, V> stream,
+        final MirrorContext<K, V> mirrorContext) {
+        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
+            topologyStrategy.create(mirrorContext, stream);
+        }
+        Topology topology = mirrorContext.getStreamsBuilder().build();
+        for (final TopologyStrategy topologyStrategy : topologyStrategies) {
+            topology = topologyStrategy.extendTopology(mirrorContext, topology);
+        }
         return topology;
     }
 }

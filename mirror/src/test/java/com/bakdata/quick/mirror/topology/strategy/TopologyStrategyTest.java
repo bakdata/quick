@@ -80,7 +80,6 @@ class TopologyStrategyTest {
                 .build();
 
         return MirrorContext.<Integer, Integer>builder()
-            .quickTopologyData(topologyInfo)
             .pointStoreName(POINT_STORE)
             .storeType(StoreType.INMEMORY)
             .rangeIndexProperties(rangeIndexProperties)

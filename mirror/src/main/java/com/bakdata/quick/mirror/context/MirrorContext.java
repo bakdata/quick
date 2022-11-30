@@ -16,12 +16,10 @@
 
 package com.bakdata.quick.mirror.context;
 
-import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.StoreType;
-import com.bakdata.quick.mirror.base.QuickTopologyData;
-import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
-import java.util.List;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import io.confluent.kafka.schemaregistry.ParsedSchema;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Value;
@@ -42,44 +40,37 @@ public class MirrorContext<K, V> {
     // Write data
     @Default
     StreamsBuilder streamsBuilder = new StreamsBuilder();
-    QuickTopologyData<K, V> quickTopologyData;
+    String topicName;
+    IndexInputStream<K, V> indexInputStream;
     String pointStoreName;
     RangeIndexProperties rangeIndexProperties;
     RetentionTimeProperties retentionTimeProperties;
     StoreType storeType;
     boolean isCleanup;
-    FieldTypeExtractor fieldTypeExtractor;
-    FieldValueExtractor<V> fieldValueExtractor;
+    SchemaExtractor schemaExtractor;
+    @Nullable
+    String rangeKey;
 
     // Read data
     KafkaStreams streams;
     HostInfo hostInfo;
 
-    /**
-     * Gets the list of input topics.
-     */
-    public List<String> getInputTopics() {
-        return this.quickTopologyData.getInputTopics();
-    }
-
-    /**
-     * Gets the {@link QuickTopicData}.
-     */
-    public QuickTopicData<K, V> getTopicData() {
-        return this.quickTopologyData.getTopicData();
+    @Nullable
+    public ParsedSchema getValueSchema() {
+        return this.indexInputStream.getValueData().getParsedSchema();
     }
 
     /**
      * Returns the SerDe of the key.
      */
     public Serde<K> getKeySerde() {
-        return this.getTopicData().getKeyData().getSerde();
+        return this.indexInputStream.getKeyData().getSerde();
     }
 
     /**
      * Returns the SerDe of the value.
      */
     public Serde<V> getValueSerde() {
-        return this.getTopicData().getValueData().getSerde();
+        return this.indexInputStream.getValueData().getSerde();
     }
 }

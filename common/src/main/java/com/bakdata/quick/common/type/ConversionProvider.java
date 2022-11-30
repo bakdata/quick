@@ -18,7 +18,6 @@ package com.bakdata.quick.common.type;
 
 import com.bakdata.quick.common.resolver.TypeResolver;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
-import java.util.Map;
 import org.apache.kafka.common.serialization.Serde;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -30,9 +29,9 @@ public interface ConversionProvider {
     /**
      * Returns a type resolver for this type.
      *
-     * @param type         the underlying topic type
+     * @param type the underlying topic type
      * @param parsedSchema schema for type resolver that is required for complex types.
-     * @param <K>          inner type of the type resolver
+     * @param <K> inner type of the type resolver
      * @return type resolver for conversion from strings
      */
     <K> TypeResolver<K> getTypeResolver(final QuickTopicType type, @Nullable final ParsedSchema parsedSchema);
@@ -40,10 +39,18 @@ public interface ConversionProvider {
     /**
      * Returns a configured serde for this type.
      *
-     * @param type    the underlying topic type
-     * @param isKey   true if serde is used for keys
-     * @param <K>     type to be serialized from and deserialized to
+     * @param type the underlying topic type
+     * @param isKey true if serde is used for keys
+     * @param <K> type to be serialized from and deserialized to
      * @return configured serde
      */
     <K> Serde<K> getSerde(final QuickTopicType type, final boolean isKey);
+
+    /**
+     * Returns a class for this type.
+     *
+     * @param <T> type of the class
+     * @return class type
+     */
+    <T> Class<T> getClassType(final QuickTopicType type);
 }

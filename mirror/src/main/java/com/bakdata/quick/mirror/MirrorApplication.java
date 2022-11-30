@@ -22,10 +22,8 @@ import com.bakdata.kafka.util.ImprovedAdminClient;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
 import com.bakdata.quick.common.config.QuickTopicConfig;
-import com.bakdata.quick.common.config.SchemaConfig;
 import com.bakdata.quick.common.exception.BadArgumentException;
 import com.bakdata.quick.common.resolver.StringResolver;
-import com.bakdata.quick.common.schema.SchemaFormat;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import com.bakdata.quick.common.type.QuickTopicType;
@@ -33,15 +31,12 @@ import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.CliArgHandler;
 import com.bakdata.quick.mirror.base.HostConfig;
 import com.bakdata.quick.mirror.base.QuickTopologyData;
+import com.bakdata.quick.mirror.context.IndexInputStream;
 import com.bakdata.quick.mirror.context.MirrorContext;
-import com.bakdata.quick.mirror.context.MirrorContext.MirrorContextBuilder;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
-import com.bakdata.quick.mirror.range.extractor.type.AvroTypeExtractor;
-import com.bakdata.quick.mirror.range.extractor.type.ProtoTypeExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.GenericRecordValueExtractor;
-import com.bakdata.quick.mirror.range.extractor.value.MessageValueExtractor;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.quick.mirror.topology.MirrorTopology;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.configuration.picocli.MicronautFactory;
@@ -68,30 +63,38 @@ import picocli.CommandLine.Option;
  * Kafka Streams application and REST service for mirror applications.
  *
  * @param <K> key type
+ * @param <R> repartition type. If there is no repartitioning happening R is equal to K
  * @param <V> value type
  */
 @Setter
 @Singleton
 @Slf4j
-public class MirrorApplication<K, V> extends KafkaStreamsApplication {
-    public static final String POINT_STORE = "mirror-store";
-    public static final String RETENTION_STORE = "retention-store";
-    public static final String RANGE_STORE = "range-store";
+public class MirrorApplication<K, R, V> extends KafkaStreamsApplication {
+    private static final String POINT_STORE = "mirror-store";
+    private static final String RETENTION_STORE = "retention-store";
+    private static final String RANGE_STORE = "range-store";
 
     // injectable parameter
+    private final SchemaExtractor schemaExtractor;
     private final TopicTypeService topicTypeService;
     private final QuickTopicConfig topicConfig;
     private final ApplicationContext context;
     private final HostConfig hostConfig;
-    private final MirrorContextProvider<K, V> contextProvider;
+    private final MirrorContextProvider<R, V> contextProvider;
+    private final IndexInputStreamBuilder indexInputStreamBuilder;
 
     // CLI Arguments
     @Option(names = "--store-type", description = "Kafka Store to use. Choices: ${COMPLETION-CANDIDATES}",
         defaultValue = "inmemory")
     private final StoreType storeType = StoreType.INMEMORY;
+
     @Nullable
     @Option(names = "--retention-time", description = "Retention time defined in ISO_8601")
     private Duration retentionTime;
+
+    @Nullable
+    @Option(names = "--range-key", description = "The key which the Mirror builds its range index on")
+    private String rangeKey;
 
     @Nullable
     @Option(names = "--range-field", description = "The field which the Mirror builds its range index on")
@@ -105,14 +108,18 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
      * @param topicConfig kafka topic config
      * @param hostConfig host config for this pod
      */
-    public MirrorApplication(final ApplicationContext context, final TopicTypeService topicTypeService,
+    public MirrorApplication(final SchemaExtractor schemaExtractor,
+        final ApplicationContext context,
+        final TopicTypeService topicTypeService,
         final QuickTopicConfig topicConfig, final HostConfig hostConfig,
-        final MirrorContextProvider<K, V> contextProvider) {
+        final MirrorContextProvider<R, V> contextProvider, final IndexInputStreamBuilder indexInputStreamBuilder) {
+        this.schemaExtractor = schemaExtractor;
         this.topicTypeService = topicTypeService;
         this.topicConfig = topicConfig;
         this.context = context;
         this.hostConfig = hostConfig;
         this.contextProvider = contextProvider;
+        this.indexInputStreamBuilder = indexInputStreamBuilder;
     }
 
     public static void main(final String[] args) {
@@ -127,31 +134,35 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     public Topology createTopology() {
-        final MirrorContext<K, V> mirrorContext = this.buildTopologyContext();
+        final QuickTopologyData<K, V> topologyData = this.getTopologyData();
+        final StreamsBuilder streamsBuilder = new StreamsBuilder();
+        final String topicName = topologyData.getTopicData().getName();
 
-        return new MirrorTopology<>(mirrorContext).createTopology();
+        final IndexInputStream<R, V> indexInputStream =
+            this.indexInputStreamBuilder.consume(topologyData, streamsBuilder, this.rangeKey);
+
+        final MirrorContext<R, V> mirrorContext =
+            this.buildTopologyContext(streamsBuilder, topicName, indexInputStream);
+
+        this.contextProvider.setMirrorContext(mirrorContext);
+        return new MirrorTopology<>(mirrorContext).createTopology(indexInputStream.getStream());
     }
 
-    private MirrorContext<K, V> buildTopologyContext() {
-        final MirrorContextBuilder<K, V> builder = MirrorContext.<K, V>builder()
-            .quickTopologyData(this.getTopologyData())
+    private MirrorContext<R, V> buildTopologyContext(final StreamsBuilder streamsBuilder,
+        final String topicName, final IndexInputStream<R, V> indexInputStream) {
+
+        return MirrorContext.<R, V>builder()
+            .streamsBuilder(streamsBuilder)
             .pointStoreName(POINT_STORE)
+            .topicName(topicName)
+            .indexInputStream(indexInputStream)
             .storeType(this.storeType)
             .rangeIndexProperties(new RangeIndexProperties(RANGE_STORE, this.rangeField))
+            .rangeKey(this.rangeKey)
             .retentionTimeProperties(new RetentionTimeProperties(RETENTION_STORE, this.retentionTime))
-            .isCleanup(this.cleanUp);
-
-        final SchemaConfig schemaConfig = this.context.getBean(SchemaConfig.class);
-        if (schemaConfig.getFormat() == SchemaFormat.PROTOBUF) {
-            builder.fieldTypeExtractor(new ProtoTypeExtractor());
-            builder.fieldValueExtractor(new MessageValueExtractor<>());
-        } else if (schemaConfig.getFormat() == SchemaFormat.AVRO) {
-            builder.fieldTypeExtractor(new AvroTypeExtractor());
-            builder.fieldValueExtractor(new GenericRecordValueExtractor<>());
-        }
-
-        this.contextProvider.setMirrorContext(builder.build());
-        return builder.build();
+            .schemaExtractor(this.schemaExtractor)
+            .isCleanup(this.cleanUp)
+            .build();
     }
 
     @Override
@@ -207,15 +218,11 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
 
     @Override
     protected void runStreamsApplication() {
-        final MirrorContext<K, V> mirrorContext = this.contextProvider.get();
+        final MirrorContext<R, V> mirrorContext = this.contextProvider.get();
+        final MirrorContext<R, V> mirrorContextWithStream =
+            mirrorContext.toBuilder().streams(this.getStreams()).hostInfo(this.hostConfig.toInfo()).build();
+        this.contextProvider.setMirrorContext(mirrorContextWithStream);
 
-        final MirrorContextBuilder<K, V> builder = mirrorContext.toBuilder()
-            .streams(this.getStreams())
-            .hostInfo(this.hostConfig.toInfo());
-
-        this.contextProvider.setMirrorContext(builder.build());
-
-        log.debug("Built query service context {}", this.contextProvider.get());
         super.runStreamsApplication();
     }
 
@@ -260,12 +267,10 @@ public class MirrorApplication<K, V> extends KafkaStreamsApplication {
         // query the topic registry for getting information about the topic and set it during runtime
         final String inputTopic = this.getInputTopics().get(0);
         final Single<QuickTopicData<K, V>> topicDataFuture = this.topicTypeService.getTopicData(inputTopic);
-        final QuickTopicData<K, V> topicData = topicDataFuture
-            .onErrorResumeNext(e -> {
-                final String message = String.format("Could not find %s in registry: %s", inputTopic, e.getMessage());
-                return Single.error(new BadArgumentException(message));
-            })
-            .blockingGet();
+        final QuickTopicData<K, V> topicData = topicDataFuture.onErrorResumeNext(e -> {
+            final String message = String.format("Could not find %s in registry: %s", inputTopic, e.getMessage());
+            return Single.error(new BadArgumentException(message));
+        }).blockingGet();
 
         return QuickTopologyData.<K, V>builder()
             .inputTopics(this.getInputTopics())

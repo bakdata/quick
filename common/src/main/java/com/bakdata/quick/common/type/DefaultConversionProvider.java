@@ -34,7 +34,7 @@ public class DefaultConversionProvider implements ConversionProvider {
     private final SchemaConfig schemaConfig;
     private final KafkaConfig kafkaConfig;
 
-    public DefaultConversionProvider(final SchemaConfig schemaConfig, final KafkaConfig kafkaConfig) {
+    public DefaultConversionProvider(final KafkaConfig kafkaConfig, final SchemaConfig schemaConfig) {
         this.schemaConfig = schemaConfig;
         this.kafkaConfig = kafkaConfig;
     }
@@ -54,6 +54,11 @@ public class DefaultConversionProvider implements ConversionProvider {
             return getTypeForSchemaFormat(this.schemaConfig.getFormat()).getSerde(configs, isKey);
         }
         return type.getSerde(configs, isKey);
+    }
+
+    @Override
+    public <T> Class<T> getClassType(final QuickTopicType type) {
+        return type.getClassType();
     }
 
     private static QuickTopicType getTypeForSchemaFormat(final SchemaFormat format) {
