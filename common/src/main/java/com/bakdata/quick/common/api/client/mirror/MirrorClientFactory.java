@@ -17,8 +17,11 @@
 package com.bakdata.quick.common.api.client.mirror;
 
 import com.bakdata.quick.common.api.client.HttpClient;
+import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.util.Lazy;
+import org.apache.kafka.common.serialization.Serde;
 
 /**
  * Factory for creating {@link MirrorClient}.
@@ -27,4 +30,8 @@ public interface MirrorClientFactory {
     <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
         final String topic,
         final Lazy<QuickTopicData<K, V>> quickTopicData);
+
+    <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
+        final String topic,
+        final Serde<K> keySerde, final TypeResolver<V> typeResolver);
 }

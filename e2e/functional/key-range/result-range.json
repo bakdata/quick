@@ -1,14 +1,14 @@
 [
-      {
-        "productId": 123,
-        "price": {
-          "total": 30
-        }
-      },
-      {
-        "productId": 456,
-        "price": {
-          "total": 79.99
-        }
-      }
+  {
+    "productId": 123,
+    "price": {
+      "total": 30.0
+    }
+  },
+  {
+    "productId": 456,
+    "price": {
+      "total": 79.99
+    }
+  }
 ]

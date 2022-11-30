@@ -19,7 +19,9 @@ package com.bakdata.quick.common.api.client.mirror;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.util.Lazy;
+import org.apache.kafka.common.serialization.Serde;
 
 /**
  * Creates a {@link DefaultMirrorClient}.
@@ -31,6 +33,16 @@ public class DefaultMirrorClientFactory implements MirrorClientFactory {
         final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
         final MirrorRequestManager requestManager = new DefaultMirrorRequestManager(client);
         final TypeResolver<V> valueTypeResolver = quickTopicData.get().getValueData().getResolver();
+        final MirrorValueParser<V> mirrorValueParser =
+            new MirrorValueParser<>(valueTypeResolver, client.objectMapper());
+        return new DefaultMirrorClient<>(mirrorHost, mirrorValueParser, requestManager);
+    }
+
+    @Override
+    public <K, V> MirrorClient<K, V> createMirrorClient(HttpClient client, String topic,
+        Serde<K> keySerde, TypeResolver<V> valueTypeResolver) {
+        final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
+        final MirrorRequestManager requestManager = new DefaultMirrorRequestManager(client);
         final MirrorValueParser<V> mirrorValueParser =
             new MirrorValueParser<>(valueTypeResolver, client.objectMapper());
         return new DefaultMirrorClient<>(mirrorHost, mirrorValueParser, requestManager);

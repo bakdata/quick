@@ -58,7 +58,7 @@ public interface DataFetcherRule extends TopicDirectiveRule {
 
         final Stream<String> fieldsWithParentType = objectTypeDefinition.getFieldDefinitions()
             .stream()
-            .filter(field -> extractName(field.getType()).equals(context.getParentContainerName()))
+            .filter(field -> extractName(field.getType()).getName().equals(context.getParentContainerName()))
             .map(FieldDefinition::getName);
 
         return fieldsWithParentType
@@ -69,9 +69,9 @@ public interface DataFetcherRule extends TopicDirectiveRule {
     /**
      * Extracts name of a given type.
      */
-    static String extractName(final Type<?> type) {
+    static TypeName extractName(final Type<?> type) {
         if (type instanceof TypeName) {
-            return ((TypeName) type).getName();
+            return ((TypeName) type);
         }
 
         if (type instanceof ListType) {

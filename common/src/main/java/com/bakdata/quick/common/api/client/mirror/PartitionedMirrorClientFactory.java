@@ -22,6 +22,7 @@ import com.bakdata.quick.common.api.client.routing.PartitionRouter;
 import com.bakdata.quick.common.api.client.routing.Router;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.util.Lazy;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -31,8 +32,7 @@ import org.apache.kafka.common.serialization.Serde;
 public class PartitionedMirrorClientFactory implements MirrorClientFactory {
     @Override
     public <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
-        final String topic,
-        final Lazy<QuickTopicData<K, V>> quickTopicData) {
+        final String topic, final Lazy<QuickTopicData<K, V>> quickTopicData) {
         final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
         final MirrorRequestManager requestManager = new MirrorRequestManagerWithFallback(client, mirrorHost);
         final StreamsStateHost streamsStateHost = StreamsStateHost.createFromMirrorHost(mirrorHost);
@@ -43,4 +43,15 @@ public class PartitionedMirrorClientFactory implements MirrorClientFactory {
         final TypeResolver<V> valueTypeResolver = quickTopicData.get().getValueData().getResolver();
         return new PartitionedMirrorClient<>(client, valueTypeResolver, requestManager, partitionRouter);
     }
+
+    @Override
+    public <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client, final String topic,
+        final Serde<K> keySerde, final TypeResolver<V> valueTypeResolver) {
+        final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
+        final MirrorRequestManager requestManager = new MirrorRequestManagerWithFallback(client, mirrorHost);
+        final StreamsStateHost streamsStateHost = StreamsStateHost.createFromMirrorHost(mirrorHost);
+        final Router<K> partitionRouter =
+            new PartitionRouter<>(client, streamsStateHost, keySerde, new DefaultPartitionFinder(), requestManager,
+                topic);
+        return new PartitionedMirrorClient<>(client, valueTypeResolver, requestManager, partitionRouter);    }
 }
