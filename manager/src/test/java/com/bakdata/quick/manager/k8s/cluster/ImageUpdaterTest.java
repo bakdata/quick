@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.manager.k8s.cluster;
 
+import static com.bakdata.quick.manager.TestUtil.createDefaultMirrorCreationData;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.quick.common.api.client.gateway.GatewayClient;
@@ -172,13 +173,7 @@ class ImageUpdaterTest extends KubernetesTest {
         final MirrorService mirrorService = new KubernetesMirrorService(new KubernetesResources(),
             this.getManagerClient(), this.getDeploymentConfig(), loader);
 
-        final MirrorCreationData mirrorCreationData = new MirrorCreationData(
-            "topic",
-            "service",
-            1,
-            null, // use default tag
-            null,
-            null);
+        final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData("topic");
 
         mirrorService.createMirror(mirrorCreationData).blockingAwait();
 
@@ -211,22 +206,10 @@ class ImageUpdaterTest extends KubernetesTest {
 
         final MirrorService mirrorService = new KubernetesMirrorService(new KubernetesResources(),
             this.getManagerClient(), this.getDeploymentConfig(), loader);
-        final MirrorCreationData mirrorCreationData1 = new MirrorCreationData(
-            "topic",
-            "service",
-            1,
-            null, // use default tag
-            null,
-            null);
+        final MirrorCreationData mirrorCreationData1 = createDefaultMirrorCreationData("topic");
         mirrorService.createMirror(mirrorCreationData1).blockingAwait();
 
-        final MirrorCreationData mirrorCreationData2 = new MirrorCreationData(
-            "topic2",
-            "service2",
-            1,
-            null, // use default tag
-            null,
-            null);
+        final MirrorCreationData mirrorCreationData2 = createDefaultMirrorCreationData("topic2");
         mirrorService.createMirror(mirrorCreationData2).blockingAwait();
 
         assertThat(this.getDeployments())
@@ -261,7 +244,6 @@ class ImageUpdaterTest extends KubernetesTest {
             "service",
             1,
             FIXED_TAG, // use default tag
-            null,
             null);
         mirrorService.createMirror(mirrorCreationData).blockingAwait();
 

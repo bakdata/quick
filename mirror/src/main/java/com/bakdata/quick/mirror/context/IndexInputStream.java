@@ -14,22 +14,21 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.model.manager.creation;
+package com.bakdata.quick.mirror.context;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
+import com.bakdata.quick.common.type.QuickTopicData.QuickData;
 import lombok.Value;
+import org.apache.kafka.streams.kstream.KStream;
 
 /**
- * User supplied data for creating a new mirror.
+ * Contains the key and value data along with the stream.
+ *
+ * @param <K> Type of the key
+ * @param <V> Type of the value
  */
 @Value
-public class MirrorCreationData implements CreationData {
-    String name;
-    String topicName;
-    @Nullable
-    Integer replicas;
-    @Nullable
-    String tag;
-    @Nullable
-    MirrorArguments mirrorArguments;
+public class IndexInputStream<K, V> {
+    QuickData<K> keyData;
+    QuickData<V> valueData;
+    KStream<K, V> stream;
 }

@@ -109,7 +109,6 @@ public class TopicRegistryInitializer {
             this.topicRegistryConfig.getTopicName(),
             1,
             null, // null means we use the default tag
-            null,
             null
         );
 

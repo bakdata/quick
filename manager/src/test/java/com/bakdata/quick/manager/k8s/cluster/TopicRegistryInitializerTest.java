@@ -51,12 +51,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class TopicRegistryInitializerTest {
-    public static final String TEST_NAME = "internal-test";
+    private static final String TEST_NAME = "internal-test";
     private static EmbeddedKafkaCluster kafkaCluster = null;
     @RegisterExtension
     final SchemaRegistryMock schemaRegistry = new SchemaRegistryMockExtension();
     private final ApplicationContext applicationContext = mock(ApplicationContext.class);
-    private final MirrorService mock = mock(MirrorService.class);
+    private final MirrorService mirrorServiceMock = mock(MirrorService.class);
 
     @BeforeAll
     static void beforeAll() {
@@ -78,7 +78,7 @@ class TopicRegistryInitializerTest {
         final TopicRegistryConfig registryConfig = new TopicRegistryConfig(topicName, TEST_NAME, 3, (short) 1);
 
         final TopicRegistryInitializer
-            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
+            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mirrorServiceMock);
         topicRegistryInitializer.onStartUp(new StartupEvent(this.applicationContext));
 
         assertThat(kafkaCluster.exists(topicName)).isTrue();
@@ -93,7 +93,7 @@ class TopicRegistryInitializerTest {
         final TopicRegistryConfig registryConfig = new TopicRegistryConfig(topicName, TEST_NAME, 3, (short) 1);
 
         final TopicRegistryInitializer
-            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
+            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mirrorServiceMock);
         topicRegistryInitializer.onStartUp(new StartupEvent(this.applicationContext));
 
         final SchemaRegistryClient registryClient = this.schemaRegistry.getSchemaRegistryClient();
@@ -113,7 +113,7 @@ class TopicRegistryInitializerTest {
         final TopicRegistryConfig registryConfig = new TopicRegistryConfig(topicName, TEST_NAME, 3, (short) 1);
 
         final TopicRegistryInitializer
-            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
+            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mirrorServiceMock);
         topicRegistryInitializer.onStartUp(new StartupEvent(this.applicationContext));
 
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
@@ -121,9 +121,8 @@ class TopicRegistryInitializerTest {
             topicName,
             1,
             null,
-            null,
             null);
-        verify(this.mock).createInternalMirror(mirrorCreationData);
+        verify(this.mirrorServiceMock).createInternalMirror(mirrorCreationData);
     }
 
     @Test
@@ -134,7 +133,7 @@ class TopicRegistryInitializerTest {
         final TopicRegistryConfig registryConfig = new TopicRegistryConfig(topicName, TEST_NAME, 3, (short) 1);
 
         final TopicRegistryInitializer
-            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
+            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mirrorServiceMock);
 
         assertThatCode(() -> {
             topicRegistryInitializer.onStartUp(new StartupEvent(this.applicationContext));
@@ -151,7 +150,7 @@ class TopicRegistryInitializerTest {
         final TopicRegistryConfig registryConfig = new TopicRegistryConfig(topicName, TEST_NAME, 3, (short) 1);
 
         final TopicRegistryInitializer
-            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
+            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mirrorServiceMock);
 
         assertThatCode(() -> {
             topicRegistryInitializer.onStartUp(new StartupEvent(this.applicationContext));
@@ -167,7 +166,7 @@ class TopicRegistryInitializerTest {
         final TopicRegistryConfig registryConfig = new TopicRegistryConfig(topicName, TEST_NAME, 3, (short) 1);
 
         final TopicRegistryInitializer
-            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
+            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mirrorServiceMock);
 
         assertThatCode(() -> {
             topicRegistryInitializer.onStartUp(new StartupEvent(this.applicationContext));
@@ -183,7 +182,7 @@ class TopicRegistryInitializerTest {
         final TopicRegistryConfig registryConfig = new TopicRegistryConfig(topicName, TEST_NAME, 3, (short) 1);
 
         final TopicRegistryInitializer
-            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
+            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mirrorServiceMock);
 
         final StartupEvent event = new StartupEvent(this.applicationContext);
         assertThatExceptionOfType(InternalErrorException.class).isThrownBy(() ->
@@ -200,7 +199,7 @@ class TopicRegistryInitializerTest {
         final TopicRegistryConfig registryConfig = new TopicRegistryConfig(topicName, TEST_NAME, 3, (short) 1);
 
         final TopicRegistryInitializer
-            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mock);
+            topicRegistryInitializer = new TopicRegistryInitializer(kafkaConfig, registryConfig, this.mirrorServiceMock);
 
         final StartupEvent startupEvent = new StartupEvent(this.applicationContext);
         assertThatExceptionOfType(InternalErrorException.class).isThrownBy(() ->
@@ -209,13 +208,11 @@ class TopicRegistryInitializerTest {
     }
 
     private void successfulMock() {
-        when(this.mock.createInternalMirror(any()))
-            .thenReturn(Completable.complete());
+        when(this.mirrorServiceMock.createInternalMirror(any())).thenReturn(Completable.complete());
     }
 
     private void failingMock() {
-        when(this.mock.createInternalMirror(any()))
+        when(this.mirrorServiceMock.createInternalMirror(any()))
             .thenReturn(Completable.error(new RuntimeException("Something failed!")));
     }
-
 }

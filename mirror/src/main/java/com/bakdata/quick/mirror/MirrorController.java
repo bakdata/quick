@@ -31,12 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * REST API of mirror applications.
  *
- * @param <K> key type
  * @param <V> value type
  */
 @Slf4j
 @Controller("/mirror")
-public class MirrorController<K, V> {
+public class MirrorController<V> {
     private final QueryService<V> queryService;
 
     @Inject

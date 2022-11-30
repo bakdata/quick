@@ -16,13 +16,12 @@
 
 package com.bakdata.quick.mirror.topology.strategy;
 
-import com.bakdata.quick.mirror.base.QuickTopologyData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
 import com.bakdata.quick.mirror.context.RetentionTimeProperties;
 import com.bakdata.quick.mirror.retention.RetentionMirrorProcessor;
-import com.bakdata.quick.mirror.topology.consumer.StreamConsumer;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -35,6 +34,7 @@ import org.apache.kafka.streams.state.Stores;
 /**
  * Creates a retention topology.
  */
+@Slf4j
 public class RetentionTopology implements TopologyStrategy {
     public static final String RETENTION_SINK = "same-topic-sink";
     private static final String PROCESSOR_NAME = "mirror-processor";
@@ -53,22 +53,22 @@ public class RetentionTopology implements TopologyStrategy {
      * Creates retention time topology.
      */
     @Override
-    public <K, V> void create(final MirrorContext<K, V> mirrorContext, final StreamConsumer streamConsumer) {
-        final KStream<K, V> kStream = streamConsumer.consume(mirrorContext);
-        final RetentionTimeProperties retentionTimeProperties = mirrorContext.getRetentionTimeProperties();
-        final Serde<K> keySerDe = mirrorContext.getKeySerde();
-
+    public <K, V> void create(final MirrorContext<?, V> mirrorContext, final KStream<K, V> stream) {
+        log.info("Setting up the retention time topology.");
         final StreamsBuilder builder = mirrorContext.getStreamsBuilder();
+        final RetentionTimeProperties retentionTimeProperties = mirrorContext.getRetentionTimeProperties();
         final String retentionStoreName = retentionTimeProperties.getStoreName();
         final KeyValueBytesStoreSupplier retentionStore = Stores.inMemoryKeyValueStore(retentionStoreName);
 
         // key serde is long because the store saves the timestamps as keys
         // value serde is key serde because the store save the keys as values
-        builder.addStateStore(Stores.keyValueStoreBuilder(retentionStore, Serdes.Long(), keySerDe));
+        final Serde<Long> keySerde = Serdes.Long();
+        final Serde<?> valueSerde = mirrorContext.getKeySerde();
+        builder.addStateStore(Stores.keyValueStoreBuilder(retentionStore, keySerde, valueSerde));
 
         final String storeName = retentionTimeProperties.getStoreName();
         final long millisRetentionTime = Objects.requireNonNull(retentionTimeProperties.getRetentionTime()).toMillis();
-        kStream.process(() -> new RetentionMirrorProcessor<>(
+        stream.process(() -> new RetentionMirrorProcessor<>(
                 storeName,
                 millisRetentionTime,
                 retentionStoreName
@@ -84,12 +84,12 @@ public class RetentionTopology implements TopologyStrategy {
      */
     @Override
     public <K, V> Topology extendTopology(final MirrorContext<K, V> mirrorContext, final Topology topology) {
-        final Serde<K> keySerDe = mirrorContext.getKeySerde();
+        final Serde<K> keySerde = mirrorContext.getKeySerde();
         topology.addSink(
             RETENTION_SINK,
-            mirrorContext.getTopicData().getName(),
+            mirrorContext.getTopicName(),
             Serdes.Long().serializer(),
-            keySerDe.serializer(),
+            keySerde.serializer(),
             PROCESSOR_NAME
         );
         return topology;

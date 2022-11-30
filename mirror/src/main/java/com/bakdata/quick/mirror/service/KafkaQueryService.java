@@ -27,10 +27,10 @@ import com.bakdata.quick.common.exception.InternalErrorException;
 import com.bakdata.quick.common.exception.MirrorException;
 import com.bakdata.quick.common.exception.NotFoundException;
 import com.bakdata.quick.common.resolver.TypeResolver;
-import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.context.MirrorContextProvider;
 import com.bakdata.quick.mirror.context.RangeIndexProperties;
+import com.bakdata.quick.mirror.range.extractor.SchemaExtractor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.indexer.ReadRangeIndexer;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -67,15 +67,16 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
  */
 @Slf4j
 public class KafkaQueryService<K, V> implements QueryService<V> {
-    private final MirrorContext<K, V> context;
+    private final MirrorContext<K, V> queryContext;
     private final HttpClient client;
     private final KafkaStreams streams;
     private final HostInfo hostInfo;
-    private final String topicName;
     private final Serializer<K> keySerializer;
-    private final TypeResolver<V> valueResolver;
     private final TypeResolver<K> keyResolver;
+    private final TypeResolver<V> valueResolver;
     private final StoreQueryParameters<ReadOnlyKeyValueStore<K, V>> pointStoreQueryParameters;
+    private final RangeIndexProperties rangeIndexProperties;
+    private final SchemaExtractor schemaExtractor;
     @Nullable
     private StoreQueryParameters<ReadOnlyKeyValueStore<String, V>> rangeStoreQueryParameters;
     @Nullable
@@ -83,27 +84,28 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     /**
      * Injectable constructor.
-     *
-     * @param contextProvider query service data
      */
     @Inject
-    public KafkaQueryService(final MirrorContextProvider<K, V> contextProvider, final HttpClient client) {
-        this.context = contextProvider.get();
+    public KafkaQueryService(final HttpClient client, final SchemaExtractor schemaExtractor,
+        final MirrorContextProvider<K, V> contextProvider) {
         this.client = client;
-        final QuickTopicData<K, V> topicData = this.context.getTopicData();
-        this.streams = this.context.getStreams();
-        this.hostInfo = this.context.getHostInfo();
-        this.keySerializer = topicData.getKeyData().getSerde().serializer();
-        this.keyResolver = topicData.getKeyData().getResolver();
-        this.valueResolver = topicData.getValueData().getResolver();
-        this.topicName = topicData.getName();
+        this.schemaExtractor = schemaExtractor;
+
+        this.queryContext = contextProvider.get();
+
+        this.streams = this.queryContext.getStreams();
+        this.hostInfo = this.queryContext.getHostInfo();
+        this.keySerializer = this.queryContext.getKeySerde().serializer();
+        this.keyResolver = this.queryContext.getIndexInputStream().getKeyData().getResolver();
+        this.valueResolver = this.queryContext.getIndexInputStream().getValueData().getResolver();
+        this.rangeIndexProperties = this.queryContext.getRangeIndexProperties();
 
         log.debug("Initializing KafkaQueryService for point index");
-        final String pointStoreName = this.context.getPointStoreName();
         this.pointStoreQueryParameters =
-            StoreQueryParameters.fromNameAndType(pointStoreName, QueryableStoreTypes.keyValueStore());
+            StoreQueryParameters.fromNameAndType(this.queryContext.getPointStoreName(),
+                QueryableStoreTypes.keyValueStore());
 
-        if (this.context.getRangeIndexProperties().isEnabled()) {
+        if (this.rangeIndexProperties.isEnabled()) {
             this.initializeQueryServiceForRange();
         }
     }
@@ -111,12 +113,11 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     @Override
     public Single<HttpResponse<MirrorValue<V>>> get(final String rawKey) {
         final K key = this.keyResolver.fromString(rawKey);
-        final String pointStoreName = this.context.getPointStoreName();
-        final KeyQueryMetadata metadata = this.getKeyQueryMetadata(key, pointStoreName);
+        final KeyQueryMetadata metadata = this.getKeyQueryMetadata(key, this.queryContext.getPointStoreName());
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
-            log.info("Forward request to {}", metadata.activeHost());
+            log.debug("Forward request to {}", metadata.activeHost());
             return Single.fromCallable(() -> this.fetch(metadata.activeHost(), key)).subscribeOn(Schedulers.io());
         }
 
@@ -152,22 +153,20 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
     @Override
     public Single<HttpResponse<MirrorValue<List<V>>>> getRange(final String rawKey, final String from,
         final String to) {
-        final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
-
-        if (rangeIndexProperties == null) {
+        if (!this.rangeIndexProperties.isEnabled()) {
             throw new MirrorException("You are trying to query a range. But no range index set.",
                 HttpStatus.BAD_REQUEST);
         }
 
         final K key = this.keyResolver.fromString(rawKey);
 
-        final String rangeStoreName = rangeIndexProperties.getStoreName();
+        final String rangeStoreName = this.rangeIndexProperties.getStoreName();
         log.debug("range store name is: {}", rangeStoreName);
         final KeyQueryMetadata metadata = this.getKeyQueryMetadata(key, rangeStoreName);
 
         // forward request if a different application is responsible for the rawKey
         if (!metadata.activeHost().equals(this.hostInfo) && !metadata.standbyHosts().contains(this.hostInfo)) {
-            log.info("Forward request to {}", metadata.activeHost());
+            log.debug("Forward request to {}", metadata.activeHost());
             return Single.fromCallable(() -> this.fetchRange(metadata.activeHost(), key, from, to))
                 .subscribeOn(Schedulers.io());
         }
@@ -184,17 +183,16 @@ public class KafkaQueryService<K, V> implements QueryService<V> {
 
     private void initializeQueryServiceForRange() {
         log.debug("Initializing KafkaQueryService for range index");
-        final RangeIndexProperties rangeIndexProperties = this.context.getRangeIndexProperties();
-        final String rangeStoreName = rangeIndexProperties.getStoreName();
+        final String rangeStoreName = this.rangeIndexProperties.getStoreName();
         this.rangeStoreQueryParameters =
             StoreQueryParameters.fromNameAndType(rangeStoreName, QueryableStoreTypes.keyValueStore());
 
-        final ParsedSchema parsedSchema = this.context.getTopicData().getValueData().getParsedSchema();
-        final FieldTypeExtractor fieldTypeExtractor = this.context.getFieldTypeExtractor();
+        final FieldTypeExtractor fieldTypeExtractor = this.schemaExtractor.getFieldTypeExtractor();
+        final ParsedSchema parsedSchema = this.queryContext.getIndexInputStream().getValueData().getParsedSchema();
 
         this.rangeIndexer = ReadRangeIndexer.create(fieldTypeExtractor,
             Objects.requireNonNull(parsedSchema),
-            Objects.requireNonNull(rangeIndexProperties.getRangeField()));
+            Objects.requireNonNull(this.rangeIndexProperties.getRangeField()));
     }
 
     private HttpResponse<MirrorValue<V>> fetch(final HostInfo replicaHostInfo, final K key) {

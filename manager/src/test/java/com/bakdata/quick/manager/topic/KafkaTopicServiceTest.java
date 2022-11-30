@@ -36,6 +36,7 @@ import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import com.bakdata.quick.common.api.model.manager.GatewayDescription;
 import com.bakdata.quick.common.api.model.manager.GatewaySchema;
+import com.bakdata.quick.common.api.model.manager.creation.MirrorArguments;
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
 import com.bakdata.quick.common.api.model.manager.creation.TopicCreationData;
 import com.bakdata.quick.common.config.KafkaConfig;
@@ -335,8 +336,9 @@ class KafkaTopicServiceTest {
             .thenReturn(Single.just(new SchemaData(SCHEMA)));
 
         final Duration retentionTime = Duration.ofMinutes(30);
+        final MirrorArguments mirrorArguments = new MirrorArguments(retentionTime, null, null);
         final TopicCreationData requestData =
-            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, retentionTime, true, null);
+            new TopicCreationData(TopicWriteType.MUTABLE, GATEWAY_SCHEMA, null, mirrorArguments);
         final Completable completable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData);
 
@@ -347,8 +349,7 @@ class KafkaTopicServiceTest {
             topicName,
             1,
             null,
-            retentionTime,
-            null);
+            mirrorArguments);
 
         verify(this.mirrorService).createMirror(mirrorCreationData);
     }
@@ -360,8 +361,7 @@ class KafkaTopicServiceTest {
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
-        final TopicCreationData requestData =
-            new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
+        final TopicCreationData requestData = createDefaultTopicCreationData(null);
         final Completable completable =
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData);
 
@@ -374,16 +374,14 @@ class KafkaTopicServiceTest {
 
     @Test
     void shouldRetrieveAllTopics() {
-
         final TopicService topicService = this.newTopicServiceForAvro();
         this.setupSuccessfulMock();
 
         final int numberOfTopics = 10;
 
+        final TopicCreationData requestData = createDefaultTopicCreationData(null);
         for (int i = 0; i < numberOfTopics; i++) {
             final String topicName = UUID.randomUUID().toString();
-            final TopicCreationData requestData =
-                new TopicCreationData(TopicWriteType.MUTABLE, null, null, null, true, null);
             topicService.createTopic(topicName, QuickTopicType.DOUBLE, QuickTopicType.DOUBLE, requestData)
                 .blockingAwait();
         }

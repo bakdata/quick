@@ -14,22 +14,22 @@
  *    limitations under the License.
  */
 
-package com.bakdata.quick.common.api.model.manager.creation;
+package com.bakdata.quick.mirror.range.extractor;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import lombok.Value;
+import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
+import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
 
 /**
- * User supplied data for creating a new mirror.
+ * Provides the {@link FieldTypeExtractor} and the {@link FieldValueExtractor}.
  */
-@Value
-public class MirrorCreationData implements CreationData {
-    String name;
-    String topicName;
-    @Nullable
-    Integer replicas;
-    @Nullable
-    String tag;
-    @Nullable
-    MirrorArguments mirrorArguments;
+public interface SchemaExtractor {
+    /**
+     * Returns the {@link FieldTypeExtractor}.
+     */
+    FieldTypeExtractor getFieldTypeExtractor();
+
+    /**
+     * Returns the {@link FieldValueExtractor}.
+     */
+    <T> FieldValueExtractor<T> getFieldValueExtractor();
 }

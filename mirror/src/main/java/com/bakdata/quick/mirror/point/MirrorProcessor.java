@@ -17,6 +17,7 @@
 package com.bakdata.quick.mirror.point;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
@@ -29,6 +30,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
  * @param <K> key type
  * @param <V> value type
  */
+@Slf4j
 public class MirrorProcessor<K, V> implements Processor<K, V, Void, Void> {
     private final String storeName;
     @Nullable
@@ -55,6 +57,7 @@ public class MirrorProcessor<K, V> implements Processor<K, V, Void, Void> {
         if (value == null) {
             this.store.delete(key);
         } else {
+            log.trace("Putting key {} and value {} in store {}", key, value, this.storeName);
             this.store.put(key, value);
         }
     }

@@ -1,0 +1,30 @@
+type Query {
+    findUserPurchasesInTime(
+        userId: Int
+        timestampFrom: Int
+        timestampTo: Int
+    ): [Purchase] @topic(name: "user-purchase-range-key-test",
+        keyArgument: "userId"
+        rangeFrom: "timestampFrom",
+        rangeTo: "timestampTo")
+}
+
+type Purchase {
+    productId: Int!
+    userId: Int!
+    amount: Int
+    price: Price
+    timestamp: Int
+}
+
+type Product {
+    productId: Int!
+    name: String
+    description: String
+    price: Price
+}
+
+type Price {
+    total: Float
+    currency: String
+}
