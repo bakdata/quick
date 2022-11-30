@@ -1,4 +1,4 @@
-name: Workflow for building and publishing Helm charts on Github pages
+name: Workflow for building and publishing Helm charts on GitHub pages
 
 on:
   workflow_call:
