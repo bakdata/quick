@@ -28,15 +28,15 @@ import org.apache.kafka.common.serialization.Serde;
 public interface MirrorClientFactory {
     /**
      * Creates a non-partition aware {@link DefaultMirrorClient}.
+     *
      * @param client An HTTP client
      * @param topic The topic name
      * @param quickTopicData The quick topic data
-     * @return A {@link MirrorClient}
      * @param <K> Type of the key
      * @param <V> Type of the value
+     * @return A {@link MirrorClient}
      */
-    default <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
-        final String topic,
+    default <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client, final String topic,
         final Lazy<QuickTopicData<K, V>> quickTopicData) {
         final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
         final MirrorRequestManager requestManager = new DefaultMirrorRequestManager(client);

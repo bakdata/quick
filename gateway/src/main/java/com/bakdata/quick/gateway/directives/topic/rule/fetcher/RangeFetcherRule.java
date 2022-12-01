@@ -20,15 +20,13 @@ import com.bakdata.quick.common.graphql.GraphQLUtils;
 import com.bakdata.quick.gateway.DataFetcherSpecification;
 import com.bakdata.quick.gateway.directives.QuickDirectiveException;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
-import graphql.language.InputValueDefinition;
-import graphql.language.ObjectTypeDefinition;
 import graphql.language.TypeName;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
-import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLSchemaElement;
 import graphql.schema.GraphQLTypeUtil;
-import graphql.schema.GraphqlElementParentTree;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -93,30 +91,21 @@ public class RangeFetcherRule implements DataFetcherRule {
     }
 
     private TypeName extractKeyArgumentType(final TopicDirectiveContext context, final String keyArgument) {
-        final Optional<GraphqlElementParentTree> parentInfo = context.getEnvironment()
+        final GraphQLSchemaElement graphQLSchemaElement = context.getEnvironment()
             .getElementParentTree()
-            .getParentInfo();
+            .getElement();
 
-        if (parentInfo.isEmpty()) {
-            throw new QuickDirectiveException("Could not find the parent object type.");
-        }
-
-        final GraphQLSchemaElement element = parentInfo.get().getElement();
-        final ObjectTypeDefinition definition = ((GraphQLObjectType) element).getDefinition();
-
-        final List<InputValueDefinition> inputValueDefinitions =
-            definition.getFieldDefinitions().get(0).getInputValueDefinitions();
-
-        final Optional<InputValueDefinition> field = inputValueDefinitions.stream()
+        final List<GraphQLArgument> arguments = ((GraphQLFieldDefinition) graphQLSchemaElement).getArguments();
+        final Optional<GraphQLArgument> graphQLKeyArgument = arguments.stream()
             .filter(inputValueDefinition -> inputValueDefinition.getName().equals(keyArgument))
             .findFirst();
 
-        if (field.isEmpty()) {
+        if (graphQLKeyArgument.isEmpty()) {
             final String errorMessage = String.format(
                 "Could not find the keyArgument %s in the parent type definition. Please check your schema.",
                 keyArgument);
             throw new QuickDirectiveException(errorMessage);
         }
-        return this.extractTypeName(field.get().getType());
+        return this.extractTypeName(graphQLKeyArgument.get().getDefinition().getType());
     }
 }
