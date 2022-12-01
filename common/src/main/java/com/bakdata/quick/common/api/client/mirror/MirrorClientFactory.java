@@ -19,7 +19,6 @@ package com.bakdata.quick.common.api.client.mirror;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.resolver.TypeResolver;
 import com.bakdata.quick.common.type.QuickTopicData;
-import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.util.Lazy;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -27,11 +26,26 @@ import org.apache.kafka.common.serialization.Serde;
  * Factory for creating {@link MirrorClient}.
  */
 public interface MirrorClientFactory {
-    <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
+    /**
+     * Creates a non-partition aware {@link DefaultMirrorClient}.
+     * @param client An HTTP client
+     * @param topic The topic name
+     * @param quickTopicData The quick topic data
+     * @return A {@link MirrorClient}
+     * @param <K> Type of the key
+     * @param <V> Type of the value
+     */
+    default <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
         final String topic,
-        final Lazy<QuickTopicData<K, V>> quickTopicData);
+        final Lazy<QuickTopicData<K, V>> quickTopicData) {
+        final MirrorHost mirrorHost = MirrorHost.createWithPrefix(topic);
+        final MirrorRequestManager requestManager = new DefaultMirrorRequestManager(client);
+        final TypeResolver<V> valueTypeResolver = quickTopicData.get().getValueData().getResolver();
+        final MirrorValueParser<V> mirrorValueParser =
+            new MirrorValueParser<>(valueTypeResolver, client.objectMapper());
+        return new DefaultMirrorClient<>(mirrorHost, mirrorValueParser, requestManager);
+    }
 
-    <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client,
-        final String topic,
-        final Serde<K> keySerde, final TypeResolver<V> typeResolver);
+    <K, V> MirrorClient<K, V> createMirrorClient(final HttpClient client, final String topic, final Serde<K> keySerde,
+        final TypeResolver<V> typeResolver);
 }

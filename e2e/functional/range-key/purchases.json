@@ -1,0 +1,54 @@
+[
+  {
+    "key": "abc",
+    "value": {
+      "productId": 123,
+      "userId": 1,
+      "amount": 1,
+      "price": {
+        "total": 19.99,
+        "currency": "DOLLAR"
+      },
+      "timestamp": 1
+    }
+  },
+  {
+    "key": "def",
+    "value": {
+      "productId": 123,
+      "userId": 2,
+      "amount": 2,
+      "price": {
+        "total": 30.00,
+        "currency": "DOLLAR"
+      },
+      "timestamp": 2
+    }
+  },
+  {
+    "key": "ghi",
+    "value": {
+      "productId": 456,
+      "userId": 2,
+      "amount": 1,
+      "price": {
+        "total": 79.99,
+        "currency": "DOLLAR"
+      },
+      "timestamp": 3
+    }
+  },
+  {
+    "key": "jkl",
+    "value": {
+      "productId": 789,
+      "userId": 2,
+      "amount": 1,
+      "price": {
+        "total": 99.99,
+        "currency": "DOLLAR"
+      },
+      "timestamp": 4
+    }
+  }
+]
