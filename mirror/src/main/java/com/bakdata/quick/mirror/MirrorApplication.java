@@ -139,7 +139,7 @@ public class MirrorApplication<K, R, V> extends KafkaStreamsApplication {
         final String topicName = topologyData.getTopicData().getName();
 
         final IndexInputStream<R, V> indexInputStream =
-            this.indexInputStreamBuilder.consume(topologyData, streamsBuilder, this.rangeKey);
+            this.indexInputStreamBuilder.consume(topologyData, streamsBuilder, this.rangeKey, this.cleanUp);
 
         final MirrorContext<R, V> mirrorContext =
             this.buildTopologyContext(streamsBuilder, topicName, indexInputStream);

@@ -78,7 +78,7 @@ public class IndexInputStreamBuilder {
      * @return {@link IndexInputStream} Containing the key, value data and the KStream
      */
     public <K, R, V> IndexInputStream<R, V> consume(final QuickTopologyData<K, V> topologyData,
-        final StreamsBuilder streamsBuilder, @Nullable final String rangeKey) {
+        final StreamsBuilder streamsBuilder, @Nullable final String rangeKey, final boolean cleanUp) {
         final QuickTopicData<K, V> topicData = topologyData.getTopicData();
         final QuickData<K> keyData = topicData.getKeyData();
         final Serde<K> keySerde = keyData.getSerde();
@@ -86,7 +86,7 @@ public class IndexInputStreamBuilder {
         final Serde<V> valueSerde = valueData.getSerde();
         final KStream<K, V> inputStream =
             streamsBuilder.stream(topologyData.getInputTopics().get(0), Consumed.with(keySerde, valueSerde));
-        if (rangeKey != null) {
+        if (rangeKey != null && !cleanUp) {
             return this.repartitionOnRangeKey(inputStream, valueData, rangeKey);
         }
         return getIndexInputStream(inputStream, valueData, keyData);
