@@ -72,6 +72,7 @@ public class IndexInputStreamBuilder {
      * @param topologyData Contains the information for the Kafka Streams topology
      * @param streamsBuilder Specifies the Kafka streams topology
      * @param rangeKey A nullable field determining if the key of the topic should change or not
+     * @param cleanUp Defines if the mirror is running a cleanup job or not
      * @param <K> Type of the topic key
      * @param <V> Type of the topic value
      * @param <R> Type of the rangeKey field
