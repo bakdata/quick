@@ -42,9 +42,9 @@ jobs:
         id: read-config
         # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
         run: |
-          CONTENT=$(cat ./.github/changelog-config.json)
-          echo "CONTENT<<EOF" >> $GITHUB_OUTPUT
-          echo "$CONTENT" >> $GITHUB_OUTPUT
+          content=$(cat ./.github/changelog-config.json)
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$content" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Generate Changelog
