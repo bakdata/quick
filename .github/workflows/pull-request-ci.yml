@@ -40,12 +40,12 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
         run: |
-          # Substitute '/' with '-'
+          # String replacement in bash https://stackoverflow.com/a/13210909
+          # Replace '/' with '-'
           ref="${BRANCH////-}"
           # Remove refs/heads from name
-          ref="${ref/refs-heads-/}"
-          echo "PR image tag: $ref"
-          echo "::set-output name=tag::$ref"
+          echo "tag="${ref/refs-heads-/}" >> $GITHUB_OUTPUT
+          echo "PR image tag: $tag"
 
       - name: Push images
         uses: ./.github/actions/push-docker-images
