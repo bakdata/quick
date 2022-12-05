@@ -44,7 +44,7 @@ jobs:
           # Replace '/' with '-'
           ref="${BRANCH////-}"
           # Remove refs/heads from name
-          echo "tag="${ref/refs-heads-/}" >> $GITHUB_OUTPUT
+          echo "tag=${ref/refs-heads-/}" >> $GITHUB_OUTPUT
           echo "PR image tag: $tag"
 
       - name: Push images
