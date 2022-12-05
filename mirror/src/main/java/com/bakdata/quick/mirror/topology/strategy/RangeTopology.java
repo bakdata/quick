@@ -16,13 +16,11 @@
 
 package com.bakdata.quick.mirror.topology.strategy;
 
-import com.bakdata.quick.common.exception.MirrorTopologyException;
 import com.bakdata.quick.mirror.StoreType;
 import com.bakdata.quick.mirror.context.MirrorContext;
 import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
 import com.bakdata.quick.mirror.range.extractor.type.FieldTypeExtractor;
 import com.bakdata.quick.mirror.range.extractor.value.FieldValueExtractor;
-import com.bakdata.quick.mirror.range.indexer.NoOpRangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.RangeIndexer;
 import com.bakdata.quick.mirror.range.indexer.WriteRangeIndexer;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
@@ -74,23 +72,14 @@ public class RangeTopology implements TopologyStrategy {
     }
 
     private static <K, V> RangeIndexer<K, V> getRangeIndexer(final MirrorContext<?, V> mirrorContext) {
-        final ParsedSchema parsedSchema = mirrorContext.getValueSchema();
-        if (parsedSchema == null) {
-            final boolean isCleanup = mirrorContext.isCleanup();
-            log.debug("Parsed schema is null and cleanup flag is set to {}.", isCleanup);
-            if (isCleanup) {
-                return new NoOpRangeIndexer<>();
-            }
-            throw new MirrorTopologyException("Could not get the parsed schema.");
-        } else {
-            final String rangeField =
-                Objects.requireNonNull(mirrorContext.getRangeIndexProperties().getRangeField());
-            log.debug("Setting up default range indexer.");
+        final ParsedSchema parsedSchema = Objects.requireNonNull(mirrorContext.getValueSchema());
+        final String rangeField =
+            Objects.requireNonNull(mirrorContext.getRangeIndexProperties().getRangeField());
+        log.debug("Setting up default range indexer.");
 
-            final FieldTypeExtractor fieldTypeExtractor = mirrorContext.getSchemaExtractor().getFieldTypeExtractor();
-            final FieldValueExtractor<V> fieldValueExtractor =
-                mirrorContext.getSchemaExtractor().getFieldValueExtractor();
-            return WriteRangeIndexer.create(fieldTypeExtractor, fieldValueExtractor, parsedSchema, rangeField);
-        }
+        final FieldTypeExtractor fieldTypeExtractor = mirrorContext.getSchemaExtractor().getFieldTypeExtractor();
+        final FieldValueExtractor<V> fieldValueExtractor =
+            mirrorContext.getSchemaExtractor().getFieldValueExtractor();
+        return WriteRangeIndexer.create(fieldTypeExtractor, fieldValueExtractor, parsedSchema, rangeField);
     }
 }
