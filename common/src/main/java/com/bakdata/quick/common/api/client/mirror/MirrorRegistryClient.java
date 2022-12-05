@@ -108,8 +108,7 @@ public class MirrorRegistryClient implements TopicRegistryClient {
         final HttpClient client) {
         final KnownTypeResolver<TopicData> typeResolver =
             new KnownTypeResolver<>(TopicData.class, client.objectMapper());
-        final MirrorHost mirrorHost =
-            MirrorHost.createWithNoPrefix(topicRegistryConfig.getServiceName());
+        final MirrorHost mirrorHost = MirrorHost.createWithNoPrefix(topicRegistryConfig.getServiceName());
 
         final MirrorValueParser<TopicData> mirrorValueParser =
             new MirrorValueParser<>(typeResolver, client.objectMapper());

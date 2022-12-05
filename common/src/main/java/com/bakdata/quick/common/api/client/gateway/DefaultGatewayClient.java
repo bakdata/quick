@@ -17,7 +17,6 @@
 package com.bakdata.quick.common.api.client.gateway;
 
 import com.bakdata.quick.common.api.client.HttpClient;
-import com.bakdata.quick.common.api.client.gateway.GatewayClient;
 import com.bakdata.quick.common.api.model.gateway.SchemaData;
 import com.bakdata.quick.common.exception.HttpClientException;
 import com.bakdata.quick.common.security.SecurityConfig;
@@ -39,8 +38,7 @@ import okhttp3.ResponseBody;
  */
 @Singleton
 public class DefaultGatewayClient implements GatewayClient {
-    private static final MediaType JSON
-        = MediaType.get("application/json; charset=utf-8");
+    private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final String PREFIX = "quick-gateway";
 
     private final HttpClient client;
@@ -104,5 +102,4 @@ public class DefaultGatewayClient implements GatewayClient {
             return new HttpClientException(httpStatus);
         }
     }
-
 }

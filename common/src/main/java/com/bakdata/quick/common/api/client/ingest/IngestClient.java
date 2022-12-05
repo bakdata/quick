@@ -20,6 +20,7 @@ import com.bakdata.quick.common.api.model.ErrorMessage;
 import com.bakdata.quick.common.api.model.KeyValuePair;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Delete;
+import io.micronaut.http.annotation.Header;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.client.annotation.Client;
@@ -35,8 +36,6 @@ public interface IngestClient {
     <K, V> Completable sendData(@PathVariable final String topic, @Body final List<KeyValuePair<K, V>> keyValuePairs);
 
     @Delete("/{topic}")
+    @Header(name = "X-API-Key", value = "${quick.api.token}")
     <K> Completable deleteData(@PathVariable final String topic, @Body final List<K> key);
-
-    @Delete("/{topic}/{key}")
-    <K> Completable deleteDataSingle(@PathVariable final String topic, final K key);
 }

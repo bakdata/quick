@@ -80,7 +80,6 @@ public class KafkaTopicService implements TopicService {
      * @param topicConfig configuration for Kafka topics
      * @param kafkaConfig configuration for Kafka
      */
-
     public KafkaTopicService(final TopicRegistryClient topicRegistryClient, final GatewayClient gatewayClient,
         final GraphQLConverter graphQLConverter, final MirrorService mirrorService,
         final GatewayService gatewayService, final QuickTopicConfig topicConfig,
@@ -165,15 +164,11 @@ public class KafkaTopicService implements TopicService {
     @Override
     public Completable deleteTopic(final String name) {
         return Completable.defer(() -> {
-            log.debug("Delete topic {}", name);
-
             // we don't need the cache, so make sure we get the current information
             this.schemaRegistryClient.reset();
             // deleting stuff that has to do with Kafka happens during the cleanup run
             // the cleanup run is a job that is deployed when deleting the mirror
-            final Completable deleteMirror = this.deleteMirror(name);
-            final Completable deleteFromRegistry = this.topicRegistryClient.delete(name);
-            return deleteMirror.andThen(deleteFromRegistry);
+            return this.deleteMirror(name);
         });
     }
 

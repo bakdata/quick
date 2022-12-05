@@ -20,7 +20,6 @@ import static com.bakdata.quick.manager.TestUtil.createDefaultTopicCreationData;
 import static net.mguenther.kafka.junit.EmbeddedKafkaCluster.provisionWith;
 import static net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig.defaultClusterConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -355,7 +354,7 @@ class KafkaTopicServiceTest {
     }
 
     @Test
-    void shouldDeleteTopicFromTopicRegistry() {
+    void shouldCallDeleteMirror() {
         final String topicName = UUID.randomUUID().toString();
 
         final TopicService topicService = this.newTopicServiceForAvro();
@@ -369,7 +368,6 @@ class KafkaTopicServiceTest {
         assertThat(topicService.deleteTopic(topicName).blockingGet()).isNull();
 
         verify(this.mirrorService).deleteMirror(topicName);
-        assertThatNullPointerException().isThrownBy(() -> this.topicRegistryClient.getTopicData(topicName));
     }
 
     @Test
@@ -435,7 +433,6 @@ class KafkaTopicServiceTest {
     }
 
     private void setupSuccessfulMock() {
-
         when(this.mirrorService.createMirror(any()))
             .thenReturn(Completable.complete());
         when(this.mirrorService.deleteMirror(anyString()))

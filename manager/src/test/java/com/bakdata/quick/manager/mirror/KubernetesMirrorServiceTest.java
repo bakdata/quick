@@ -50,7 +50,7 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
                 this.getAppSpecConfig());
 
         this.mirrorService = new KubernetesMirrorService(new KubernetesResources(),
-            this.getManagerClient(), this.getDeploymentConfig(), loader);
+            this.getManagerClient(), this.getDeploymentConfig(), loader, this.getSecurityConfig());
     }
 
     @Test
@@ -144,7 +144,13 @@ class KubernetesMirrorServiceTest extends KubernetesTest {
                 InstanceOfAssertFactories.list(Container.class))
             .hasSize(1)
             .first()
-            .satisfies(container -> assertThat(container.getArgs()).contains("--input-topics=" + TOPIC_NAME));
+            .satisfies(container -> assertThat(container.getArgs()).contains("--input-topics=" + TOPIC_NAME))
+            .satisfies(container -> assertThat(container.getEnv())
+                .filteredOn(envVar -> "QUICK_API_TOKEN".equals(envVar.getName()))
+                .first()
+                .hasFieldOrPropertyWithValue("name", "QUICK_API_TOKEN")
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("value", "test-api-key"));
     }
 
     @Test

@@ -32,7 +32,7 @@ class JobCleanerTest extends KubernetesTest {
     void shouldDeleteSucceededJobs() {
         final JobCleaner jobCleaner = new JobCleaner(this.client);
         final KubernetesResources resources = new KubernetesResources();
-        final Job deletionJob = resources.createDeletionJob("test", "image", List.of("--key", "value"));
+        final Job deletionJob = resources.createDeletionJob("test", "image", List.of("--key", "value"), null);
         final Job finalJob = new JobBuilder(deletionJob)
             .withNewStatus().withActive(0).withSucceeded(1).endStatus()
             .build();
@@ -43,8 +43,8 @@ class JobCleanerTest extends KubernetesTest {
 
         assertThatNoException().isThrownBy(jobCleaner::deleteJobs);
 
-        jobList = this.kubernetesServer.getClient().batch().v1().jobs().list().getItems();
-        assertThat(jobList).isEmpty();
+        List<Job> items = this.kubernetesServer.getClient().batch().v1().jobs().list().getItems();
+        assertThat(items).isEmpty();
     }
 
     @Test
@@ -57,7 +57,7 @@ class JobCleanerTest extends KubernetesTest {
     void shouldRunWithoutErrorForJobsWithoutStatus() {
         final JobCleaner jobCleaner = new JobCleaner(this.client);
         final KubernetesResources resources = new KubernetesResources();
-        final Job deletionJob = resources.createDeletionJob("test", "image", List.of("--key", "value"));
+        final Job deletionJob = resources.createDeletionJob("test", "image", List.of("--key", "value"), null);
         this.kubernetesServer.getClient().batch().v1().jobs().create(deletionJob);
         assertThatNoException().isThrownBy(jobCleaner::deleteJobs);
     }
@@ -66,7 +66,7 @@ class JobCleanerTest extends KubernetesTest {
     void shouldRunWithoutErrorForWithoutSucceeded() {
         final JobCleaner jobCleaner = new JobCleaner(this.client);
         final KubernetesResources resources = new KubernetesResources();
-        final Job deletionJob = resources.createDeletionJob("test", "image", List.of("--key", "value"));
+        final Job deletionJob = resources.createDeletionJob("test", "image", List.of("--key", "value"), null);
         final Job runningJob = new JobBuilder(deletionJob)
             .withNewStatus().withActive(0).withSucceeded(null).endStatus()
             .build();

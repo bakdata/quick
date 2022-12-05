@@ -30,6 +30,7 @@ import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -77,22 +78,8 @@ public class QuickTopicTypeService implements TopicTypeService {
     }
 
     @Override
-    public Single<QuickTopicType> getKeyType(final String topic) {
-        return this.getTopicData(topic).map(QuickTopicData::getKeyData).map(QuickData::getType);
-    }
-
-    @Override
-    public Single<QuickTopicType> getValueType(final String topic) {
-        return this.getTopicData(topic).map(QuickTopicData::getValueData).map(QuickData::getType);
-    }
-
-    @SuppressWarnings("unused") // nothing we can do with the disposable; the value will be in the future
-    private static CompletableFuture<QuickTopicData<?, ?>> singleToFuture(final Executor executor,
-        final Single<QuickTopicData<Object, Object>> single) {
-        final CompletableFuture<QuickTopicData<?, ?>> cf = new CompletableFuture<>();
-        final Disposable disposable = single.subscribeOn(Schedulers.from(executor))
-            .subscribe(cf::complete, cf::completeExceptionally);
-        return cf;
+    public Completable deleteFromTopicRegistry(final String topic) {
+        return this.topicRegistryClient.delete(topic);
     }
 
     private CompletableFuture<QuickTopicData<?, ?>> loadTopicData(final String key, final Executor executor) {
@@ -139,5 +126,14 @@ public class QuickTopicTypeService implements TopicTypeService {
             .doOnError(e -> log.error("No schema found for subject {}", subject, e))
             .map(schema -> new TypeResolverWithSchema<>(this.conversionProvider.getTypeResolver(type, schema),
                 schema));
+    }
+
+    @SuppressWarnings("unused") // nothing we can do with the disposable; the value will be in the future
+    private static CompletableFuture<QuickTopicData<?, ?>> singleToFuture(final Executor executor,
+        final Single<QuickTopicData<Object, Object>> single) {
+        final CompletableFuture<QuickTopicData<?, ?>> cf = new CompletableFuture<>();
+        final Disposable disposable = single.subscribeOn(Schedulers.from(executor))
+            .subscribe(cf::complete, cf::completeExceptionally);
+        return cf;
     }
 }

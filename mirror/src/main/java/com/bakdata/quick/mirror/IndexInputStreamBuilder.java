@@ -87,7 +87,7 @@ public class IndexInputStreamBuilder {
         final Serde<V> valueSerde = valueData.getSerde();
         final KStream<K, V> inputStream =
             streamsBuilder.stream(topologyData.getInputTopics().get(0), Consumed.with(keySerde, valueSerde));
-        if (rangeKey != null && !cleanUp) {
+        if (rangeKey != null) {
             return this.repartitionOnRangeKey(inputStream, valueData, rangeKey);
         }
         return getIndexInputStream(inputStream, valueData, keyData);

@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.manager.k8s;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -38,7 +39,6 @@ public final class KubernetesResources {
      */
     public static final int CONTAINER_PORT = 8080;
     public static final int SERVICE_PORT = 80;
-    public static final String IMAGE_PULL_SECRET = "quick-image-secret";
     public static final String QUICK_CONFIG_NAME = "quick-config";
     public static final String QUICK_API_KEY_SECRET = "api-key-secret";
     private final TemplateEngine engine;
@@ -60,8 +60,8 @@ public final class KubernetesResources {
      * Creates a dummy resource with a name.
      *
      * @param k8sResourceClass class of the resource
-     * @param name             name of the resource
-     * @param <T>              type of the resource
+     * @param name name of the resource
+     * @param <T> type of the resource
      * @return a resource object with the given name
      */
     @SuppressWarnings("OverlyBroadCatchBlock") // No need for handling reflective exceptions independently
@@ -87,20 +87,22 @@ public final class KubernetesResources {
      * <p>
      * The job starts a pods that runs single time invoking the stream reset functionality of common kafka streams.
      *
-     * @see
-     * <a href="https://github.com/bakdata/common-kafka-streams/blob/master/charts/streams-app-cleanup-job/templates/job.yaml">Helm
-     * Chart Definition</a>
-     * @see
-     * <a href="https://github.com/bakdata/common-kafka-streams/blob/master/src/main/java/com/bakdata/common_kafka_streams/CleanUpRunner.java">Clean
-     * Up Runner</a>
+     * @see <a
+     * href="https://github.com/bakdata/common-kafka-streams/blob/master/charts/streams-app-cleanup-job/templates/job
+     * .yaml">Helm Chart Definition</a>
+     * @see <a href="https://github.com/bakdata/common-kafka-streams/blob/master/src/main/java/com/bakdata
+     * /common_kafka_streams/CleanUpRunner.java">Clean Up Runner</a>
      */
-    public Job createDeletionJob(final String name, final String image, final Collection<String> arguments) {
+    public Job createDeletionJob(final String name, final String image, final Collection<String> arguments,
+        @Nullable final String apiKey) {
         final Context root = new Context();
         final String jobName = name + "-deletion";
         root.setVariable("name", jobName);
         root.setVariable("image", image);
         root.setVariable("args", arguments);
         root.setVariable("pullPolicy", "Always");
+        root.setVariable("apiKey", apiKey);
+
         return this.loadResource(root, "streamsApp/deletion-job", Job.class);
     }
 
