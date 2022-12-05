@@ -1,4 +1,4 @@
-name: Workflow for building and publishing Helm charts on Github pages
+name: Workflow for building and publishing Helm charts on GitHub pages
 
 on:
   workflow_call:
@@ -51,8 +51,7 @@ jobs:
         id: set-commit
         run: | 
           cd ./main
-          sha=$(git rev-parse HEAD)
-          echo "::set-output name=commitSha::$sha"
+          echo "commitSha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
       - name: Package Helm chart
         run: |
