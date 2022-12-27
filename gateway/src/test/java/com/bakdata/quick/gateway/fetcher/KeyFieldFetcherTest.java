@@ -28,7 +28,6 @@ import com.bakdata.quick.gateway.fetcher.TestModels.Currency;
 import com.bakdata.quick.gateway.fetcher.TestModels.Price;
 import com.bakdata.quick.gateway.fetcher.TestModels.Product;
 import com.bakdata.quick.gateway.fetcher.TestModels.Purchase;
-import com.bakdata.quick.gateway.fetcher.TestModels.PurchaseList;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -109,41 +108,4 @@ class KeyFieldFetcherTest {
         assertThat(fetcherResult).isEqualTo(currency);
     }
 
-    @Test
-    void shouldResolveTypeInList() throws JsonProcessingException {
-        final int productId1 = 1;
-        final int productId2 = 3;
-
-        final List<Integer> productIds = List.of(productId1, productId2);
-        final PurchaseList purchase = PurchaseList.builder()
-            .purchaseId("testId")
-            .productIds(productIds)
-            .build();
-
-        final Product product1 = Product.builder()
-            .productId(productId1)
-            .prices(List.of(3))
-            .build();
-
-        final Product product2 = Product.builder()
-            .productId(productId2)
-            .prices(List.of(3, 4, 5))
-            .build();
-
-        final List<Product> products = List.of(product1, product2);
-
-        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchValues(eq(productIds))).thenReturn(products);
-        final DataFetcherClient<Integer, Product> fetcherClient =
-            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
-
-        final KeyFieldFetcher<?, ?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "productIds", fetcherClient, new TypeName(Scalars.GraphQLInt.getName()));
-
-        final String source = this.mapper.writeValueAsString(purchase);
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.readValue(source, OBJECT_TYPE_REFERENCE)).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(products);
-    }
 }

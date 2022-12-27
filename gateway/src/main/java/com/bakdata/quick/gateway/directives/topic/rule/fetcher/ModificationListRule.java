@@ -36,7 +36,7 @@ import java.util.Objects;
  * type Purchase  {
  *  purchaseId: ID!,
  *  productIds: [ID!],
- *  products: [Product] @topic(name: "product-topic", keyField: "productId") # <- list modification
+ *  products: [Product] @topic(name: "product-topic", keyField: "productIds") # <- list modification
  * }
  * }</pre>
  *

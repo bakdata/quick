@@ -29,3 +29,8 @@ message ProtoRangeQueryTest {
   int64 userId = 1;
   int32 timestamp = 2;
 }
+
+message PurchaseListProto {
+  string id = 1;
+  repeated int32 productIds = 2;
+}

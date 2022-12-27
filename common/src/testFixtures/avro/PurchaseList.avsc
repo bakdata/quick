@@ -1,0 +1,18 @@
+{
+  "namespace": "com.bakdata.quick.avro",
+  "name": "PurchaseListAvro",
+  "type": "record",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "productIds",
+      "type": {
+        "type": "array",
+        "items": "int"
+      }
+    }
+  ]
+}

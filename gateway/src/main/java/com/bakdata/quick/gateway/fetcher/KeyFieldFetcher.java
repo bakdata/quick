@@ -19,7 +19,7 @@ package com.bakdata.quick.gateway.fetcher;
 import com.bakdata.quick.common.exception.BadArgumentException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.Scalars;
@@ -28,12 +28,7 @@ import graphql.scalars.ExtendedScalars;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.generic.GenericRecord;
 import tech.allegro.schema.json2avro.converter.JsonAvroConverter;
@@ -96,18 +91,11 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
     @Override
     @Nullable
     public Object get(final DataFetchingEnvironment environment) {
-        final List<K> keyArguments = this.findKeyArgument(environment);
-
-        // the modification applies either to an array node or to a single field
-        // TODO create two different classes for both use cases and create them based on the schema
-        if (keyArguments.size() == 1) {
-            return this.client.fetchResult(keyArguments.get(0));
-        } else {
-            return this.client.fetchResults(keyArguments);
-        }
+        final K keyArguments = this.findKeyArgument(environment);
+        return this.client.fetchResult(keyArguments);
     }
 
-    private List<K> findKeyArgument(final DataFetchingEnvironment environment) {
+    private K findKeyArgument(final DataFetchingEnvironment environment) {
         final JsonNode parentJson;
         try {
             parentJson = this.extractJson(environment);
@@ -116,23 +104,13 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
             throw new RuntimeException("Could not convert source for extracting key", e);
         }
         // parse json and try to find the value for our argument
-        // if it is an array, we need to resolve each one
         final JsonNode node = parentJson.findValue(this.argument);
         log.debug("Found JSON object for field {} with value {}", this.argument, node);
         if (node == null) {
             throw new IllegalArgumentException(
                 String.format("Field + %s could not be found in source.", this.argument));
         }
-        if (node.isArray()) {
-            final Iterator<JsonNode> elements = node.elements();
-            return (List<K>) StreamSupport
-                .stream(Spliterators.spliteratorUnknownSize(elements, 0), false)
-                .map(element -> this.extractCorrectType(element))
-                .collect(Collectors.toList());
-        }
-        final Object typedNode = this.extractCorrectType(node);
-        return (List<K>) List.of(typedNode);
-
+        return (K) this.extractCorrectType(node);
     }
 
     private Object extractCorrectType(final JsonNode jsonNode) {
@@ -144,8 +122,6 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
             return jsonNode.asLong();
         } else if (jsonNode.isBoolean()) {
             return jsonNode.asBoolean();
-        } else if (jsonNode.isArray() || jsonNode.isObject()) {
-            return jsonNode;
         } else if (jsonNode.isTextual()) {
             return jsonNode.textValue();
         } else {
@@ -162,8 +138,8 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
             return this.objectMapper.readTree(this.converter.convertToJson(record));
         }
 
-        if (environment.getSource() instanceof DynamicMessage) {
-            final DynamicMessage source = environment.getSource();
+        if (environment.getSource() instanceof Message) {
+            final Message source = environment.getSource();
             return this.objectMapper.readTree(JsonFormat.printer().includingDefaultValueFields().print(source));
         }
 
