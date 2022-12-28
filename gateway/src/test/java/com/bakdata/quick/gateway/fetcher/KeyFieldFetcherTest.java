@@ -29,7 +29,6 @@ import com.bakdata.quick.gateway.fetcher.TestModels.Price;
 import com.bakdata.quick.gateway.fetcher.TestModels.Product;
 import com.bakdata.quick.gateway.fetcher.TestModels.Purchase;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.Scalars;
 import graphql.language.TypeName;
@@ -40,7 +39,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class KeyFieldFetcherTest {
-    private static final TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {};
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
@@ -66,7 +64,7 @@ class KeyFieldFetcherTest {
             new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient, new TypeName(Scalars.GraphQLInt.getName()));
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.convertValue(purchase, OBJECT_TYPE_REFERENCE))
+            .source(this.mapper.convertValue(purchase, Map.class))
             .build();
 
         final Object fetcherResult = queryFetcher.get(env);
@@ -100,9 +98,8 @@ class KeyFieldFetcherTest {
             new KeyFieldFetcher<>(this.mapper, "currencyId", fetcherClient,
                 new TypeName(Scalars.GraphQLString.getName()));
 
-        final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.readValue(source, OBJECT_TYPE_REFERENCE)).build();
+            .source(this.mapper.convertValue(purchase, Map.class)).build();
 
         final Object fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(currency);

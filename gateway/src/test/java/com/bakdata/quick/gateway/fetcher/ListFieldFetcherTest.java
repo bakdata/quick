@@ -27,60 +27,22 @@ import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.fetcher.TestModels.Product;
 import com.bakdata.quick.gateway.fetcher.TestModels.PurchaseList;
 import com.bakdata.quick.testutil.PurchaseListProto;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ListFieldFetcherTest {
-
-    private static final TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {};
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    void shouldReturnCorrectListWhenReturnTypeIsJson() throws JsonProcessingException {
-        final int productId1 = 1;
-        final int productId2 = 3;
-
-        final List<Integer> productIds = List.of(productId1, productId2);
-        final PurchaseList purchase = PurchaseList.builder()
-            .purchaseId("testId")
-            .productIds(productIds)
-            .build();
-
-        final Product product1 = Product.builder()
-            .productId(productId1)
-            .prices(List.of(3))
-            .build();
-
-        final Product product2 = Product.builder()
-            .productId(productId2)
-            .prices(List.of(3, 4, 5))
-            .build();
-
-        final List<Product> products = List.of(product1, product2);
-
-        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchValues(eq(productIds))).thenReturn(products);
-        final DataFetcherClient<Integer, Product> fetcherClient =
-            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
-
-        final ListFieldFetcher<Integer, Product> queryFetcher =
-            new ListFieldFetcher<>("productIds", fetcherClient);
-
-        final String source = this.mapper.writeValueAsString(purchase);
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.readValue(source, OBJECT_TYPE_REFERENCE)).build();
-        final List<Product> fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(products);
-    }
-
-    @Test
-    void shouldReturnCorrectListWhenReturnTypeIsAvro() {
+    void shouldReturnCorrectListWhenReturnTypeIsAvroWithKeysOfInt() {
         final int productId1 = 1;
         final int productId2 = 3;
 
@@ -90,34 +52,35 @@ class ListFieldFetcherTest {
             .setProductIds(productIds)
             .build();
 
-        final Product product1 = Product.builder()
+        final Product<Integer> product1 = Product.<Integer>builder()
             .productId(productId1)
             .prices(List.of(3))
             .build();
 
-        final Product product2 = Product.builder()
+        final Product<Integer> product2 = Product.<Integer>builder()
             .productId(productId2)
             .prices(List.of(3, 4, 5))
             .build();
 
-        final List<Product> products = List.of(product1, product2);
+        final List<Product<Integer>> products = List.of(product1, product2);
 
-        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        final PartitionedMirrorClient<Integer, Product<Integer>> partitionedMirrorClient =
+            mock(PartitionedMirrorClient.class);
         when(partitionedMirrorClient.fetchValues(eq(productIds))).thenReturn(products);
-        final DataFetcherClient<Integer, Product> fetcherClient =
+        final DataFetcherClient<Integer, Product<Integer>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final ListFieldFetcher<Integer, Product> queryFetcher =
+        final ListFieldFetcher<Integer, Product<Integer>> queryFetcher =
             new ListFieldFetcher<>("productIds", fetcherClient);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(purchase).build();
-        final List<Product> fetcherResult = queryFetcher.get(env);
+        final List<Product<Integer>> fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(products);
     }
 
     @Test
-    void shouldReturnCorrectListWhenReturnTypeIsProtobuf() {
+    void shouldReturnCorrectListWhenReturnTypeIsProtobufWithKeysOfInt() {
         final int productId1 = 1;
         final int productId2 = 3;
 
@@ -127,29 +90,73 @@ class ListFieldFetcherTest {
             .addAllProductIds(productIds)
             .build();
 
-        final Product product1 = Product.builder()
+        final Product<Integer> product1 = Product.<Integer>builder()
             .productId(productId1)
             .prices(List.of(3))
             .build();
 
-        final Product product2 = Product.builder()
+        final Product<Integer> product2 = Product.<Integer>builder()
             .productId(productId2)
             .prices(List.of(3, 4, 5))
             .build();
 
-        final List<Product> products = List.of(product1, product2);
+        final List<Product<Integer>> products = List.of(product1, product2);
 
-        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        final PartitionedMirrorClient<Integer, Product<Integer>> partitionedMirrorClient =
+            mock(PartitionedMirrorClient.class);
         when(partitionedMirrorClient.fetchValues(eq(productIds))).thenReturn(products);
-        final DataFetcherClient<Integer, Product> fetcherClient =
+        final DataFetcherClient<Integer, Product<Integer>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final ListFieldFetcher<Integer, Product> queryFetcher =
+        final ListFieldFetcher<Integer, Product<Integer>> queryFetcher =
             new ListFieldFetcher<>("productIds", fetcherClient);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .source(purchase).build();
-        final List<Product> fetcherResult = queryFetcher.get(env);
+        final List<Product<Integer>> fetcherResult = queryFetcher.get(env);
         assertThat(fetcherResult).isEqualTo(products);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideValues")
+    <T> void shouldReturnCorrectListWhenReturnTypeIsJson(final List<T> productIds) {
+        final PurchaseList<T> purchase = PurchaseList.<T>builder()
+            .purchaseId("testId")
+            .productIds(productIds)
+            .build();
+
+        final Product<T> product1 = Product.<T>builder()
+            .productId(productIds.get(0))
+            .prices(List.of(3))
+            .build();
+
+        final Product<T> product2 = Product.<T>builder()
+            .productId(productIds.get(1))
+            .prices(List.of(3, 4, 5))
+            .build();
+
+        final List<Product<T>> products = List.of(product1, product2);
+
+        final PartitionedMirrorClient<T, Product<T>> partitionedMirrorClient =
+            mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValues(eq(productIds))).thenReturn(products);
+        final DataFetcherClient<T, Product<T>> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
+        final ListFieldFetcher<T, Product<T>> queryFetcher =
+            new ListFieldFetcher<>("productIds", fetcherClient);
+
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
+            .source(this.mapper.convertValue(purchase, Map.class)).build();
+        final List<Product<T>> fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(products);
+    }
+
+    private static Stream<Arguments> provideValues() {
+        return Stream.of(
+            Arguments.of(List.of(1, 2)),
+            Arguments.of(List.of("abc", "efg")),
+            Arguments.of(List.of(1L, 2L))
+        );
     }
 }
