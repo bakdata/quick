@@ -35,14 +35,17 @@ jobs:
       - name: Generate release tag
         id: create-tag
         run: |
-          oldTag=$(just print-version)
-          tag=$(just bump-version ${{ github.event.inputs.scope }})
-          echo "::set-output name=oldTag::$oldTag"
-          echo "::set-output name=tag::$tag"
+          echo "oldTag=$(just print-version)" >> $GITHUB_OUTPUT
+          echo "tag=$(just bump-version ${{ github.event.inputs.scope }})" >> $GITHUB_OUTPUT
 
       - name: Read changelog config
         id: read-config
-        run: echo ::set-output name=content::$(cat ./.github/changelog-config.json)
+        # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+        run: |
+          content=$(cat ./.github/changelog-config.json)
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$content" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Generate Changelog
         id: generate-release-changelog
@@ -174,9 +177,7 @@ jobs:
 
       - name: Set new dev version
         id: create-tag
-        run: |
-          tag=$(just print-dev-version )
-          echo "::set-output name=tag::$tag"
+        run: echo "tag=$(just print-dev-version)" >> $GITHUB_OUTPUT
 
       - name: Update helm chart version
         run: just set-chart-version ${{ steps.create-tag.outputs.tag }}
