@@ -27,20 +27,13 @@ public class TestModels {
         String purchaseId;
         List<T> productIds;
     }
-    @Value
-    @Builder
-    public static class Purchase {
-        String purchaseId;
-        int productId;
-        int amount;
-        Price price;
-    }
 
     @Value
     @Builder
-    public static class Price {
-        String currencyId;
-        double value;
+    public static class Purchase<T> {
+        String purchaseId;
+        T productId;
+        int amount;
     }
 
     @Value
@@ -48,16 +41,7 @@ public class TestModels {
     public static class Product<T> {
         T productId;
         String name;
-        List<Integer> prices;
         int ratings;
-        Price price;
-    }
-
-    @Value
-    @Builder
-    public static class Currency {
-        String currencyId;
-        String currency;
-        double rate;
     }
 }
+

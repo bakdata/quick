@@ -23,6 +23,7 @@ message ClickStatsProto {
 message PurchaseStatsProto {
   string id = 1;
   int64 amount = 2;
+  int32 productId = 3;
 }
 
 message ProtoRangeQueryTest {

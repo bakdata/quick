@@ -54,12 +54,10 @@ class ListFieldFetcherTest {
 
         final Product<Integer> product1 = Product.<Integer>builder()
             .productId(productId1)
-            .prices(List.of(3))
             .build();
 
         final Product<Integer> product2 = Product.<Integer>builder()
             .productId(productId2)
-            .prices(List.of(3, 4, 5))
             .build();
 
         final List<Product<Integer>> products = List.of(product1, product2);
@@ -92,12 +90,10 @@ class ListFieldFetcherTest {
 
         final Product<Integer> product1 = Product.<Integer>builder()
             .productId(productId1)
-            .prices(List.of(3))
             .build();
 
         final Product<Integer> product2 = Product.<Integer>builder()
             .productId(productId2)
-            .prices(List.of(3, 4, 5))
             .build();
 
         final List<Product<Integer>> products = List.of(product1, product2);
@@ -127,12 +123,10 @@ class ListFieldFetcherTest {
 
         final Product<T> product1 = Product.<T>builder()
             .productId(productIds.get(0))
-            .prices(List.of(3))
             .build();
 
         final Product<T> product2 = Product.<T>builder()
             .productId(productIds.get(1))
-            .prices(List.of(3, 4, 5))
             .build();
 
         final List<Product<T>> products = List.of(product1, product2);
