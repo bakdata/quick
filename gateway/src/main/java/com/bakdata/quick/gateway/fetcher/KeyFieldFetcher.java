@@ -90,7 +90,7 @@ public class KeyFieldFetcher<K, V> implements DataFetcher<Object> {
 
     @Override
     @Nullable
-    public Object get(final DataFetchingEnvironment environment) {
+    public V get(final DataFetchingEnvironment environment) {
         final K keyArguments = this.findKeyArgument(environment);
         return this.client.fetchResult(keyArguments);
     }
