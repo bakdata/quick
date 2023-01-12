@@ -34,7 +34,6 @@ import com.bakdata.quick.gateway.directives.topic.TopicDirectiveWiring;
 import com.bakdata.quick.gateway.fetcher.ClientSupplier;
 import com.bakdata.quick.gateway.fetcher.DataFetcherClient;
 import com.bakdata.quick.gateway.fetcher.FetcherFactory;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -51,7 +50,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 class GraphQLQueryExecutionTest {
-    private static final TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {};
     private static final Path workingDirectory = Path.of("src", "test", "resources", "schema", "execution");
     private final TopicRegistryClient registryClient = new TestTopicRegistryClient();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -152,18 +150,19 @@ class GraphQLQueryExecutionTest {
         final DataFetcherClient<Long, ?> productClient = testClientSupplier.getClient("product-topic");
 
         final long productId = 123L;
-        final Map<String, Object> purchase1 = this.mapper.convertValue(
-            Purchase.builder().purchaseId("purchase1").amount(5).productId(productId).build(),
-            OBJECT_TYPE_REFERENCE
-        );
-
+        final Purchase purchase1 = Purchase.builder()
+            .purchaseId("purchase1")
+            .amount(5)
+            .productId(productId)
+            .build();
         final Product product1 = Product.builder()
             .productId(productId)
             .name("product-name")
             .price(Price.builder().total(5).build())
             .build();
 
-        when(purchaseClient.fetchResult("purchase1")).thenAnswer(invocation -> purchase1);
+        when(purchaseClient.fetchResult("purchase1")).thenAnswer(
+            invocation -> this.mapper.convertValue(purchase1, Map.class));
         when(productClient.fetchResult(productId)).thenAnswer(invocation -> product1);
 
         final ExecutionResult executionResult = graphQL.execute(Files.readString(queryPath));
@@ -198,11 +197,11 @@ class GraphQLQueryExecutionTest {
         final List<?> purchases = List.of(
             this.mapper.convertValue(
                 Purchase.builder().purchaseId("purchase1").amount(5).productId(productId1).build(),
-                OBJECT_TYPE_REFERENCE
+                Map.class
             ),
             this.mapper.convertValue(
                 Purchase.builder().purchaseId("purchase2").amount(1).productId(productId2).build(),
-                OBJECT_TYPE_REFERENCE
+                Map.class
             )
         );
 

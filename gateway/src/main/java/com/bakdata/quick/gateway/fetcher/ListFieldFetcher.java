@@ -16,12 +16,16 @@
 
 package com.bakdata.quick.gateway.fetcher;
 
+import com.bakdata.quick.common.exception.MirrorTopologyException;
+import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import graphql.execution.AbortExecutionException;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import java.util.List;
 import java.util.Map;
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.generic.GenericRecord;
 
 /**
@@ -31,11 +35,11 @@ import org.apache.avro.generic.GenericRecord;
  * @param <V> value type
  */
 public class ListFieldFetcher<K, V> implements DataFetcher<List<V>> {
-    private final String idFieldName;
+    private final String fieldName;
     private final DataFetcherClient<K, V> client;
 
-    public ListFieldFetcher(final String idFieldName, final DataFetcherClient<K, V> client) {
-        this.idFieldName = idFieldName;
+    public ListFieldFetcher(final String fieldName, final DataFetcherClient<K, V> client) {
+        this.fieldName = fieldName;
         this.client = client;
     }
 
@@ -46,21 +50,45 @@ public class ListFieldFetcher<K, V> implements DataFetcher<List<V>> {
         return this.client.fetchResults(keys);
     }
 
-    @SuppressWarnings("unchecked")
     private List<K> findKeys(final DataFetchingEnvironment environment) {
         // in case of a subscription, we get a generic record directly from the Kafka Consumer
-        final List<K> keys;
         if (environment.getSource() instanceof GenericRecord) {
-            final GenericRecord genericRecord = environment.getSource();
-            keys = (List<K>) genericRecord.get(this.idFieldName);
-        } else {
-            // otherwise, it's a from a request to a mirror and therefore json, i.e. a map
-            final Map<String, Object> source = environment.getSource();
-            keys = (List<K>) source.get(this.idFieldName);
+            return this.extractGenericRecordValue(environment);
+        } else if (environment.getSource() instanceof Message) {
+            return this.extractDynamicMessageValue(environment);
         }
+        // otherwise, it's a from a request to a mirror and therefore json, i.e. a map
+        return this.extractJson(environment);
+    }
 
+    @SuppressWarnings("unchecked")
+    private List<K> extractGenericRecordValue(final DataFetchingEnvironment environment) {
+        try {
+            final GenericRecord genericRecord = environment.getSource();
+            return (List<K>) genericRecord.get(this.fieldName);
+        } catch (final AvroRuntimeException exception) {
+            final String errorMessage = String.format("Could not find field with name %s", this.fieldName);
+            throw new MirrorTopologyException(errorMessage);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<K> extractDynamicMessageValue(final DataFetchingEnvironment environment) {
+        final Message message = environment.getSource();
+        final FieldDescriptor fieldDescriptor = message.getDescriptorForType().findFieldByName(
+            this.fieldName);
+        if (fieldDescriptor == null) {
+            throw new AbortExecutionException(String.format("No keys for field %s found", this.fieldName));
+        }
+        return (List<K>) message.getField(fieldDescriptor);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<K> extractJson(final DataFetchingEnvironment environment) {
+        final Map<String, Object> source = environment.getSource();
+        final List<K> keys = (List<K>) source.get(this.fieldName);
         if (keys == null) {
-            throw new AbortExecutionException(String.format("No keys for field %s found", this.idFieldName));
+            throw new AbortExecutionException(String.format("No keys for field %s found", this.fieldName));
         }
         return keys;
     }
