@@ -31,72 +31,43 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class QueryListArgumentFetcherTest {
-    @Test
-    void shouldFetchListWhenListArgumentOfTypeStringWithKeyString() {
-        final Purchase purchase1 = Purchase.builder()
-            .purchaseId("testId1")
-            .productId(1)
-            .amount(3)
-            .build();
 
-        final Purchase purchase2 = Purchase.builder()
-            .purchaseId("testId2")
-            .productId(2)
-            .amount(3)
-            .build();
-
-        final List<String> idList = List.of("testId1", "testId2");
-        final List<Purchase> purchaseList = List.of(purchase1, purchase2);
-
-        final PartitionedMirrorClient<String, Purchase> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchValues(eq(idList))).thenReturn(purchaseList);
-        final DataFetcherClient<String, Purchase> fetcherClient =
-            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
-
-        final ListArgumentFetcher<String , Purchase> listArgumentFetcher =
-            new ListArgumentFetcher<>("purchaseId", fetcherClient, true, true);
-
-        final Map<String, Object> arguments = Map.of("purchaseId", idList);
-
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .localContext(arguments).build();
-
-        final List<Purchase> actual = listArgumentFetcher.get(env);
-        assertThat(actual).isEqualTo(purchaseList);
-    }
-
-    @Test
-    void shouldFetchListWhenListArgumentOfTypeIntWithKeyLong() {
-        final Product product1 = Product.builder()
-            .productId(1)
+    @ParameterizedTest
+    @MethodSource("provideValues")
+    <T> void shouldFetchListWhenListArgumentOfTypeIntWithKeyLong(final List<T> productIds) {
+        final Product<T> product1 = Product.<T>builder()
+            .productId(productIds.get(0))
             .name("productTest1")
             .build();
 
-        final Product product2 = Product.builder()
-            .productId(2)
+        final Product<T> product2 = Product.<T>builder()
+            .productId(productIds.get(1))
             .name("productTest2")
             .build();
 
-        final List<Long> idList = List.of(1L, 2L);
-        final List<Product> productList = List.of(product1, product2);
+        final List<Product<T>> productList = List.of(product1, product2);
 
-        final PartitionedMirrorClient<Long, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchValues(eq(idList))).thenReturn(productList);
-        final DataFetcherClient<Long, Product> fetcherClient =
+        final PartitionedMirrorClient<T, Product<T>> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValues(eq(productIds))).thenReturn(productList);
+        final DataFetcherClient<T, Product<T>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final ListArgumentFetcher<Long, Product> listArgumentFetcher =
+        final ListArgumentFetcher<T, Product<T>> listArgumentFetcher =
             new ListArgumentFetcher<>("productId", fetcherClient, true, true);
 
-        final Map<String, Object> arguments = Map.of("productId", idList);
+        final Map<String, Object> arguments = Map.of("productId", productIds);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<Product> actual = listArgumentFetcher.get(env);
+        final List<Product<T>> actual = listArgumentFetcher.get(env);
         assertThat(actual).isEqualTo(productList);
     }
 
@@ -128,18 +99,22 @@ class QueryListArgumentFetcherTest {
             .productId(1)
             .amount(3)
             .build();
+        final Product<String> product = Product.<String>builder()
+            .productId("testId1")
+            .name("productTest1")
+            .build();
 
         final List<String> idList = List.of("testId1", "testId2");
-        final List<Purchase> itemList = new ArrayList<>();
-        itemList.add(purchase1);
+        final List<Product<String>> itemList = new ArrayList<>();
+        itemList.add(product);
         itemList.add(null);
 
-        final PartitionedMirrorClient<String, Purchase> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        final PartitionedMirrorClient<String, Product<String>> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
         when(partitionedMirrorClient.fetchValues(eq(idList))).thenReturn(itemList);
-        final DataFetcherClient<String, Purchase> fetcherClient =
+        final DataFetcherClient<String, Product<String>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final ListArgumentFetcher<String, Purchase> listArgumentFetcher =
+        final ListArgumentFetcher<String, Product<String>> listArgumentFetcher =
             new ListArgumentFetcher<>("purchaseId", fetcherClient, true, false);
 
         final Map<String, Object> arguments = Map.of("purchaseId", idList);
@@ -147,9 +122,17 @@ class QueryListArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<Purchase> actual = listArgumentFetcher.get(env);
-        final List<Purchase> expected = List.of(purchase1);
+        final List<Product<String>> actual = listArgumentFetcher.get(env);
+        final List<Product<String>> expected = List.of(product);
 
         assertThat(actual).isEqualTo(expected);
+    }
+
+    private static Stream<Arguments> provideValues() {
+        return Stream.of(
+            Arguments.of(List.of(1, 2)),
+            Arguments.of(List.of("abc", "efg")),
+            Arguments.of(List.of(1L, 2L))
+        );
     }
 }

@@ -34,26 +34,27 @@ import org.junit.jupiter.api.Test;
 class RangeQueryFetcherTest {
     @Test
     void shouldFetchRangeOfObjectsWithKeyInteger() {
-        final Product product1 = Product.builder()
+        final Product<Integer> product1 = Product.<Integer>builder()
             .productId(1)
             .name("productTest1")
             .ratings(4)
             .build();
 
-        final Product product2 = Product.builder()
+        final Product<Integer> product2 = Product.<Integer>builder()
             .productId(2)
             .name("productTest2")
             .ratings(3)
             .build();
 
-        final List<Product> userRequests = List.of(product1, product2);
+        final List<Product<Integer>> userRequests = List.of(product1, product2);
 
-        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        final PartitionedMirrorClient<Integer, Product<Integer>> partitionedMirrorClient =
+            mock(PartitionedMirrorClient.class);
         when(partitionedMirrorClient.fetchRange(eq(1), eq("1"), eq("4"))).thenReturn(userRequests);
-        final DataFetcherClient<Integer, Product> fetcherClient =
+        final DataFetcherClient<Integer, Product<Integer>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final RangeQueryFetcher<Integer, Product> rangeQueryFetcher =
+        final RangeQueryFetcher<Integer, Product<Integer>> rangeQueryFetcher =
             new RangeQueryFetcher<>("productId", fetcherClient, "ratingFrom", "ratingTo", true);
 
         final Map<String, Object> arguments = Map.of("productId", 1, "ratingFrom", "1", "ratingTo", "4");
@@ -61,18 +62,19 @@ class RangeQueryFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<Product> actual = rangeQueryFetcher.get(env);
+        final List<Product<Integer>> actual = rangeQueryFetcher.get(env);
         assertThat(actual).isEqualTo(userRequests);
     }
 
     @Test
     void shouldFetchEmptyListWhenResultIsNullAndReturnTypeIsNotNullable() {
-        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        final PartitionedMirrorClient<Integer, Product<Integer>> partitionedMirrorClient =
+            mock(PartitionedMirrorClient.class);
         when(partitionedMirrorClient.fetchRange(eq(1), eq("1"), eq("4"))).thenReturn(Collections.emptyList());
-        final DataFetcherClient<Integer, Product> fetcherClient =
+        final DataFetcherClient<Integer, Product<Integer>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final RangeQueryFetcher<Integer, Product> rangeQueryFetcher =
+        final RangeQueryFetcher<Integer, Product<Integer>> rangeQueryFetcher =
             new RangeQueryFetcher<>("productId", fetcherClient, "ratingFrom", "ratingTo", false);
 
         final Map<String, Object> arguments = Map.of("productId", 1, "ratingFrom", "1", "ratingTo", "2");
@@ -80,7 +82,7 @@ class RangeQueryFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<Product> actual = rangeQueryFetcher.get(env);
+        final List<Product<Integer>> actual = rangeQueryFetcher.get(env);
 
         assertThat(actual).isEqualTo(Collections.emptyList());
     }
