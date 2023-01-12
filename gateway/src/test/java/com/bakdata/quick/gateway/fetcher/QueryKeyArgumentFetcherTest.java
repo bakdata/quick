@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
 import com.bakdata.quick.common.util.Lazy;
-import com.bakdata.quick.gateway.fetcher.TestModels.Purchase;
+import com.bakdata.quick.gateway.fetcher.TestModels.Product;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.Map;
@@ -108,15 +108,13 @@ class QueryKeyArgumentFetcherTest {
 
     @Test
     void shouldFetchObjectValueWithKeyString() {
-        final Purchase purchase = Purchase.builder()
-            .purchaseId("testId")
-            .productId(2)
-            .amount(3)
+        final Product<String> product = Product.<String>builder()
+            .productId("testId")
             .build();
 
-        final PartitionedMirrorClient<String, Purchase> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchValue(eq("testId"))).thenReturn(purchase);
-        final DataFetcherClient<String, Purchase> fetcherClient =
+        final PartitionedMirrorClient<String, Product<String>> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValue(eq("testId"))).thenReturn(product);
+        final DataFetcherClient<String, Product<String>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
         final QueryKeyArgumentFetcher<?, ?> queryFetcher = new QueryKeyArgumentFetcher<>("purchaseId", fetcherClient,
@@ -126,6 +124,6 @@ class QueryKeyArgumentFetcherTest {
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
         final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(purchase);
+        assertThat(fetcherResult).isEqualTo(product);
     }
 }

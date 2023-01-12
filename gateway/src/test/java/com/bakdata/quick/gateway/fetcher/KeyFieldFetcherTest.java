@@ -22,52 +22,52 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.bakdata.quick.avro.PurchaseStatsAvro;
 import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
 import com.bakdata.quick.common.util.Lazy;
-import com.bakdata.quick.gateway.fetcher.TestModels.Currency;
-import com.bakdata.quick.gateway.fetcher.TestModels.Price;
 import com.bakdata.quick.gateway.fetcher.TestModels.Product;
 import com.bakdata.quick.gateway.fetcher.TestModels.Purchase;
-import com.bakdata.quick.gateway.fetcher.TestModels.PurchaseList;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.bakdata.quick.testutil.PurchaseStatsProto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.Scalars;
 import graphql.language.TypeName;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class KeyFieldFetcherTest {
-    private static final TypeReference<Map<String, Object>> OBJECT_TYPE_REFERENCE = new TypeReference<>() {};
     private final ObjectMapper mapper = new ObjectMapper();
 
-    @Test
-    void shouldFetchModificationValue() {
-        final int productId = 5;
-        final Purchase purchase = Purchase.builder()
+
+    @ParameterizedTest
+    @MethodSource("provideValues")
+    <T> void shouldFetchModificationValueWhenReturnTypeIsJson(final T productId, final TypeName typeName) {
+        final Purchase<T> purchase = Purchase.<T>builder()
             .purchaseId("testId")
             .productId(productId)
             .amount(3)
             .build();
 
-        final Product product = Product.builder()
+        final Product<T> product = Product.<T>builder()
             .productId(productId)
-            .prices(List.of(3))
             .build();
 
-        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchValue(eq(5))).thenReturn(product);
-        final DataFetcherClient<Integer, Product> fetcherClient =
+        final PartitionedMirrorClient<T, Product<T>> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValue(eq(productId))).thenReturn(product);
+        final DataFetcherClient<T, Product<T>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
         final KeyFieldFetcher<?, ?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient, new TypeName(Scalars.GraphQLInt.getName()));
+            new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient, typeName);
 
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.convertValue(purchase, OBJECT_TYPE_REFERENCE))
+            .source(this.mapper.convertValue(purchase, Map.class))
             .build();
 
         final Object fetcherResult = queryFetcher.get(env);
@@ -75,75 +75,70 @@ class KeyFieldFetcherTest {
     }
 
     @Test
-    void shouldFetchNestModificationValue() throws JsonProcessingException {
-        final String currencyId = "EUR";
-        final Currency currency = Currency.builder()
-            .currencyId(currencyId)
-            .currency("euro")
-            .rate(0.5)
-            .build();
-        final Price price = Price.builder()
-            .currencyId(currencyId)
-            .value(20.0)
-            .build();
-        final Purchase purchase = Purchase.builder()
-            .purchaseId("testId")
-            .price(price)
-            .amount(3)
+    void shouldFetchNestModificationValueWhenReturnTypeIsAvro() {
+        final int productId = 5;
+        final PurchaseStatsAvro purchase = PurchaseStatsAvro.newBuilder()
+            .setId("purchase1")
+            .setAmount(1)
+            .setProductId(productId)
             .build();
 
-        final PartitionedMirrorClient<String, Currency> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchValue(eq(currencyId))).thenReturn(currency);
-        final DataFetcherClient<String, Currency> fetcherClient =
+        final Product<Integer> product = Product.<Integer>builder()
+            .productId(productId)
+            .build();
+
+        final PartitionedMirrorClient<Integer, Product<Integer>> partitionedMirrorClient =
+            mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValue(eq(productId))).thenReturn(product);
+        final DataFetcherClient<Integer, Product<Integer>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
         final KeyFieldFetcher<?, ?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "currencyId", fetcherClient,
-                new TypeName(Scalars.GraphQLString.getName()));
+            new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient,
+                new TypeName(Scalars.GraphQLInt.getName()));
 
-        final String source = this.mapper.writeValueAsString(purchase);
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.readValue(source, OBJECT_TYPE_REFERENCE)).build();
+            .source(purchase).build();
 
         final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(currency);
+        assertThat(fetcherResult).isEqualTo(product);
+    }
+    @Test
+    void shouldFetchNestModificationValueWhenReturnTypeIsProto() {
+        final int productId = 5;
+        final PurchaseStatsProto purchase = PurchaseStatsProto.newBuilder()
+            .setId("purchase1")
+            .setAmount(1)
+            .setProductId(productId)
+            .build();
+
+        final Product<Integer> product = Product.<Integer>builder()
+            .productId(productId)
+            .build();
+
+        final PartitionedMirrorClient<Integer, Product<Integer>> partitionedMirrorClient =
+            mock(PartitionedMirrorClient.class);
+        when(partitionedMirrorClient.fetchValue(eq(productId))).thenReturn(product);
+        final DataFetcherClient<Integer, Product<Integer>> fetcherClient =
+            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
+
+        final KeyFieldFetcher<?, ?> queryFetcher =
+            new KeyFieldFetcher<>(this.mapper, "productId", fetcherClient,
+                new TypeName(Scalars.GraphQLInt.getName()));
+
+        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
+            .source(purchase).build();
+
+        final Object fetcherResult = queryFetcher.get(env);
+        assertThat(fetcherResult).isEqualTo(product);
     }
 
-    @Test
-    void shouldResolveTypeInList() throws JsonProcessingException {
-        final int productId1 = 1;
-        final int productId2 = 3;
-
-        final List<Integer> productIds = List.of(productId1, productId2);
-        final PurchaseList purchase = PurchaseList.builder()
-            .purchaseId("testId")
-            .productIds(productIds)
-            .build();
-
-        final Product product1 = Product.builder()
-            .productId(productId1)
-            .prices(List.of(3))
-            .build();
-
-        final Product product2 = Product.builder()
-            .productId(productId2)
-            .prices(List.of(3, 4, 5))
-            .build();
-
-        final List<Product> products = List.of(product1, product2);
-
-        final PartitionedMirrorClient<Integer, Product> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
-        when(partitionedMirrorClient.fetchValues(eq(productIds))).thenReturn(products);
-        final DataFetcherClient<Integer, Product> fetcherClient =
-            new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
-
-        final KeyFieldFetcher<?, ?> queryFetcher =
-            new KeyFieldFetcher<>(this.mapper, "productIds", fetcherClient, new TypeName(Scalars.GraphQLInt.getName()));
-
-        final String source = this.mapper.writeValueAsString(purchase);
-        final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
-            .source(this.mapper.readValue(source, OBJECT_TYPE_REFERENCE)).build();
-        final Object fetcherResult = queryFetcher.get(env);
-        assertThat(fetcherResult).isEqualTo(products);
+    private static Stream<Arguments> provideValues() {
+        return Stream.of(
+            Arguments.of(1, new TypeName(Scalars.GraphQLInt.getName())),
+            Arguments.of("abc", new TypeName(Scalars.GraphQLString.getName())),
+            Arguments.of(1L, new TypeName(ExtendedScalars.GraphQLLong.getName())),
+            Arguments.of(15.8, new TypeName(Scalars.GraphQLFloat.getName()))
+        );
     }
 }

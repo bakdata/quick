@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClient;
 import com.bakdata.quick.common.util.Lazy;
-import com.bakdata.quick.gateway.fetcher.TestModels.Purchase;
+import com.bakdata.quick.gateway.fetcher.TestModels.Product;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironmentImpl;
 import java.util.List;
@@ -83,31 +83,28 @@ class QueryListFetcherTest {
 
     @Test
     void shouldFetchListOfObjectsWithKeyString() {
-        final Purchase purchase1 = Purchase.builder()
-            .purchaseId("testId")
-            .productId(1)
-            .amount(3)
+        final Product<String> product1 = Product.<String>builder()
+            .productId("testId")
             .build();
 
-        final Purchase purchase2 = Purchase.builder()
-            .purchaseId("testId2")
-            .productId(2)
-            .amount(5)
+        final Product<String> product2 = Product.<String>builder()
+            .productId("testId2")
             .build();
 
-        final List<Purchase> purchaseList = new java.util.ArrayList<>(List.of(purchase1, purchase2));
+        final List<Product<String>> purchaseList = new java.util.ArrayList<>(List.of(product1, product2));
 
-        final PartitionedMirrorClient<?, Purchase> partitionedMirrorClient = mock(PartitionedMirrorClient.class);
+        final PartitionedMirrorClient<String, Product<String>> partitionedMirrorClient =
+            mock(PartitionedMirrorClient.class);
         when(partitionedMirrorClient.fetchAll()).thenReturn(purchaseList);
-        final DataFetcherClient<?, Purchase> fetcherClient =
+        final DataFetcherClient<?, Product<String>> fetcherClient =
             new MirrorDataFetcherClient<>(new Lazy<>(() -> partitionedMirrorClient));
 
-        final QueryListFetcher<?, Purchase> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
+        final QueryListFetcher<?, Product<String>> queryFetcher = new QueryListFetcher<>(fetcherClient, true, true);
         final Map<String, String> arguments = Map.of("purchaseId", "testId");
         final DataFetchingEnvironment env = DataFetchingEnvironmentImpl.newDataFetchingEnvironment()
             .localContext(arguments).build();
 
-        final List<?> actual = queryFetcher.get(env);
+        final List<Product<String>> actual = queryFetcher.get(env);
         assertThat(actual).isEqualTo(purchaseList);
     }
 }

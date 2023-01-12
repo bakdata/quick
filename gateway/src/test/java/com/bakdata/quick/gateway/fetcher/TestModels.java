@@ -23,42 +23,25 @@ import lombok.Value;
 public class TestModels {
     @Value
     @Builder
-    public static class PurchaseList {
+    public static class PurchaseList<T> {
         String purchaseId;
-        List<Integer> productIds;
+        List<T> productIds;
     }
 
     @Value
     @Builder
-    public static class Purchase {
+    public static class Purchase<T> {
         String purchaseId;
-        int productId;
+        T productId;
         int amount;
-        Price price;
     }
 
     @Value
     @Builder
-    public static class Price {
-        String currencyId;
-        double value;
-    }
-
-    @Value
-    @Builder
-    public static class Product {
-        int productId;
+    public static class Product<T> {
+        T productId;
         String name;
-        List<Integer> prices;
         int ratings;
-        Price price;
-    }
-
-    @Value
-    @Builder
-    public static class Currency {
-        String currencyId;
-        String currency;
-        double rate;
     }
 }
+
