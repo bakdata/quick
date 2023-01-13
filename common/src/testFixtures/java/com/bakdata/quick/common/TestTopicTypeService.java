@@ -30,6 +30,7 @@ import com.bakdata.quick.common.type.TopicTypeService;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.confluent.kafka.schemaregistry.ParsedSchema;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
+import io.reactivex.Completable;
 import io.reactivex.Single;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -76,6 +77,11 @@ public class TestTopicTypeService implements TopicTypeService {
         final QuickTopicData<K, V> topicInfo =
             new QuickTopicData<>(topic, TopicWriteType.MUTABLE, quickData, valueInfo);
         return Single.just(topicInfo);
+    }
+
+    @Override
+    public Completable deleteFromTopicRegistry(final String topic) {
+        return Completable.complete();
     }
 
     private ConversionProvider avroConversionProvider() {

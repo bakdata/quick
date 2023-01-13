@@ -16,6 +16,7 @@
 
 package com.bakdata.quick.manager.k8s;
 
+import com.bakdata.quick.common.security.SecurityConfig;
 import com.bakdata.quick.manager.TestUtil;
 import com.bakdata.quick.manager.config.ApplicationSpecificationConfig;
 import com.bakdata.quick.manager.config.DeploymentConfig;
@@ -53,6 +54,7 @@ public abstract class KubernetesTest {
     private DeploymentConfig deploymentConfig = null;
     private KubernetesManagerClient managerClient = null;
     private ApplicationSpecificationConfig appSpecConfig = null;
+    private SecurityConfig securityConfig = null;
 
     /**
      * Set up new k8s server and config.
@@ -66,6 +68,7 @@ public abstract class KubernetesTest {
                 "websecure");
         this.managerClient = new KubernetesManagerClient(this.client);
         this.appSpecConfig = TestUtil.newAppSpec();
+        this.securityConfig = new SecurityConfig(true, "test-api-key");
     }
 
     @AfterEach
@@ -136,7 +139,7 @@ public abstract class KubernetesTest {
      * @return A generated string for the deployment image spec. The format is [DOCKER_REGISTRY]/[IMAGE_NAME]:[TAG]
      */
     protected static String getImage(final String imageName, final String imageTag) {
-        return String.format("%s/%s:%s", KubernetesTest.DOCKER_REGISTRY, imageName, imageTag);
+        return String.format("%s/%s:%s", DOCKER_REGISTRY, imageName, imageTag);
     }
 
     protected enum ResourceKind {

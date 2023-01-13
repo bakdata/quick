@@ -25,12 +25,16 @@ spec:
             - configMapRef:
                 name: quick-config
           env:
-            - name: JAVA_TOOL_OPTIONS
-              value: "-XX:MinRAMPercentage=45.0 -XX:MaxRAMPercentage=70.0 -Djdk.tls.client.protocols=TLSv1.2"
             - name: POD_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MinRAMPercentage=45.0 -XX:MaxRAMPercentage=70.0 -Djdk.tls.client.protocols=TLSv1.2"
+            [# th:if="${ apiKey }"]
+            - name: QUICK_API_TOKEN
+              value: [(${ apiKey })]
+            [/]
           volumeMounts:
             - name: log4j-config
               mountPath: app/resources/log4j2.yaml

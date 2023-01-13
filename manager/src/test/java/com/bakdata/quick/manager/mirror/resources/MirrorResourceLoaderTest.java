@@ -60,8 +60,7 @@ class MirrorResourceLoaderTest extends KubernetesTest {
     @BeforeEach
     void setUp() {
         this.loader = new MirrorResourceLoader(new KubernetesResources(),
-            this.getDeploymentConfig(),
-            TestUtil.newAppSpec());
+            this.getDeploymentConfig(), TestUtil.newAppSpec());
     }
 
     @Test

@@ -78,7 +78,7 @@ class MirrorTopologyTest {
         final IndexInputStreamBuilder
             indexInputStreamBuilder = new IndexInputStreamBuilder(extractorResolver, conversionProvider);
         final IndexInputStream<Integer, Integer>
-            indexTopologyData = indexInputStreamBuilder.consume(topologyInfo, streamsBuilder, null);
+            indexTopologyData = indexInputStreamBuilder.consume(topologyInfo, streamsBuilder, null, false);
 
         final MirrorContext<Integer, Integer> mirrorContext = MirrorContext.<Integer, Integer>builder()
             .streamsBuilder(streamsBuilder)

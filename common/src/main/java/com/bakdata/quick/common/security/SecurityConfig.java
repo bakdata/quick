@@ -27,7 +27,6 @@ import lombok.Getter;
 @Getter
 public class SecurityConfig {
     private final boolean securityEnabled;
-
     private final String apiKey;
 
     public SecurityConfig(

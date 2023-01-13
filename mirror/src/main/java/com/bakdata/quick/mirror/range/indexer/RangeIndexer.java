@@ -21,6 +21,7 @@ import com.bakdata.quick.mirror.range.MirrorRangeProcessor;
 /**
  * Creates the range index in the {@link MirrorRangeProcessor}.
  */
+@FunctionalInterface
 public interface RangeIndexer<K, V> {
     String createIndex(final K key, final V value);
 

@@ -171,7 +171,7 @@ class ImageUpdaterTest extends KubernetesTest {
                 this.getAppSpecConfig());
 
         final MirrorService mirrorService = new KubernetesMirrorService(new KubernetesResources(),
-            this.getManagerClient(), this.getDeploymentConfig(), loader);
+            this.getManagerClient(), this.getDeploymentConfig(), loader, this.getSecurityConfig());
 
         final MirrorCreationData mirrorCreationData = createDefaultMirrorCreationData("topic");
 
@@ -181,8 +181,7 @@ class ImageUpdaterTest extends KubernetesTest {
             .hasSize(1)
             .first()
             .extracting(ImageUpdaterTest::getContainerImage)
-            .isEqualTo(
-                String.format("%s/%s:%s", DOCKER_REGISTRY, MIRROR_IMAGE, DEFAULT_IMAGE_TAG));
+            .isEqualTo(String.format("%s/%s:%s", DOCKER_REGISTRY, MIRROR_IMAGE, DEFAULT_IMAGE_TAG));
 
         final DeploymentConfig newDeploymentConfig = this.createNewDeploymentConfig();
         final ImageUpdater imageUpdater = new ImageUpdater(this.client, newDeploymentConfig);
@@ -196,7 +195,6 @@ class ImageUpdaterTest extends KubernetesTest {
             .isEqualTo(String.format("%s/%s:%s", DOCKER_REGISTRY, MIRROR_IMAGE, NEW_TAG));
     }
 
-
     @Test
     void shouldUpdateMultipleMirrors() {
         final MirrorResourceLoader loader =
@@ -205,7 +203,7 @@ class ImageUpdaterTest extends KubernetesTest {
                 this.getAppSpecConfig());
 
         final MirrorService mirrorService = new KubernetesMirrorService(new KubernetesResources(),
-            this.getManagerClient(), this.getDeploymentConfig(), loader);
+            this.getManagerClient(), this.getDeploymentConfig(), loader, this.getSecurityConfig());
         final MirrorCreationData mirrorCreationData1 = createDefaultMirrorCreationData("topic");
         mirrorService.createMirror(mirrorCreationData1).blockingAwait();
 
@@ -215,8 +213,7 @@ class ImageUpdaterTest extends KubernetesTest {
         assertThat(this.getDeployments())
             .hasSize(2)
             .extracting(ImageUpdaterTest::getContainerImage)
-            .allMatch(name -> name.equals(
-                String.format("%s/%s:%s", DOCKER_REGISTRY, MIRROR_IMAGE, DEFAULT_IMAGE_TAG)));
+            .allMatch(name -> name.equals(String.format("%s/%s:%s", DOCKER_REGISTRY, MIRROR_IMAGE, DEFAULT_IMAGE_TAG)));
 
         final DeploymentConfig newDeploymentConfig = this.createNewDeploymentConfig();
         final ImageUpdater imageUpdater = new ImageUpdater(this.client, newDeploymentConfig);
@@ -226,8 +223,7 @@ class ImageUpdaterTest extends KubernetesTest {
         assertThat(this.getDeployments())
             .hasSize(2)
             .extracting(ImageUpdaterTest::getContainerImage)
-            .allMatch(name -> name.equals(
-                String.format("%s/%s:%s", DOCKER_REGISTRY, MIRROR_IMAGE, NEW_TAG)));
+            .allMatch(name -> name.equals(String.format("%s/%s:%s", DOCKER_REGISTRY, MIRROR_IMAGE, NEW_TAG)));
     }
 
     @Test
@@ -238,7 +234,7 @@ class ImageUpdaterTest extends KubernetesTest {
                 this.getAppSpecConfig());
 
         final MirrorService mirrorService = new KubernetesMirrorService(new KubernetesResources(),
-            this.getManagerClient(), this.getDeploymentConfig(), loader);
+            this.getManagerClient(), this.getDeploymentConfig(), loader, this.getSecurityConfig());
         final MirrorCreationData mirrorCreationData = new MirrorCreationData(
             "topic",
             "service",
@@ -251,8 +247,7 @@ class ImageUpdaterTest extends KubernetesTest {
             .hasSize(1)
             .first()
             .extracting(ImageUpdaterTest::getContainerImage)
-            .isEqualTo(
-                String.format("%s/%s:%s", DOCKER_REGISTRY, MIRROR_IMAGE, FIXED_TAG));
+            .isEqualTo(String.format("%s/%s:%s", DOCKER_REGISTRY, MIRROR_IMAGE, FIXED_TAG));
 
         final DeploymentConfig newDeploymentConfig = this.createNewDeploymentConfig();
         final ImageUpdater imageUpdater = new ImageUpdater(this.client, newDeploymentConfig);

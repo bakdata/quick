@@ -30,7 +30,7 @@ public interface GatewayClient {
     /**
      * Updates the GraphQL schema.
      *
-     * @param gateway       name of the gateway
+     * @param gateway name of the gateway
      * @param graphQLSchema GraphQL schema
      * @return completed if schema is updated
      */
@@ -40,7 +40,7 @@ public interface GatewayClient {
      * Fetches a write-type of a gateway.
      *
      * @param gateway name of the gateway
-     * @param type    name of the type
+     * @param type name of the type
      * @return write schema if gateway and type exist
      */
     Single<SchemaData> getWriteSchema(final String gateway, final String type);

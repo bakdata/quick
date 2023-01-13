@@ -16,19 +16,14 @@
 
 package com.bakdata.quick.common.type;
 
+import io.reactivex.Completable;
 import io.reactivex.Single;
 
 /**
- * Service for retrieving topic information.
+ * Service for retrieving topic information and deleting topics.
  */
 public interface TopicTypeService {
     <K, V> Single<QuickTopicData<K, V>> getTopicData(final String topic);
 
-    default Single<QuickTopicType> getKeyType(final String topic) {
-        return this.getTopicData(topic).map(info -> info.getKeyData().getType());
-    }
-
-    default Single<QuickTopicType> getValueType(final String topic) {
-        return this.getTopicData(topic).map(info -> info.getValueData().getType());
-    }
+    Completable deleteFromTopicRegistry(String topic);
 }

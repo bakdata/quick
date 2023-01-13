@@ -483,7 +483,7 @@ class MirrorRangeTopologyTest {
 
         final StreamsBuilder streamsBuilder = new StreamsBuilder();
         final IndexInputStream<K, V>
-            indexInputStream = indexInputStreamBuilder.consume(topologyInfo, streamsBuilder, rangeKey);
+            indexInputStream = indexInputStreamBuilder.consume(topologyInfo, streamsBuilder, rangeKey, false);
 
         final MirrorContext<K, V> mirrorContext = MirrorContext.<K, V>builder()
             .streamsBuilder(streamsBuilder)

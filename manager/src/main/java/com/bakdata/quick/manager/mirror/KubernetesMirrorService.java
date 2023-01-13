@@ -19,6 +19,7 @@ package com.bakdata.quick.manager.mirror;
 import static com.bakdata.quick.manager.mirror.resources.MirrorResources.MIRROR_IMAGE;
 
 import com.bakdata.quick.common.api.model.manager.creation.MirrorCreationData;
+import com.bakdata.quick.common.security.SecurityConfig;
 import com.bakdata.quick.manager.config.DeploymentConfig;
 import com.bakdata.quick.manager.k8s.ImageConfig;
 import com.bakdata.quick.manager.k8s.KubernetesManagerClient;
@@ -43,6 +44,7 @@ public class KubernetesMirrorService implements MirrorService {
     private final KubernetesManagerClient kubeClient;
     private final DeploymentConfig deploymentConfig;
     private final MirrorResourceLoader loader;
+    private final SecurityConfig securityConfig;
 
     /**
      * Injectable constructor.
@@ -50,11 +52,12 @@ public class KubernetesMirrorService implements MirrorService {
     public KubernetesMirrorService(final KubernetesResources resources,
         final KubernetesManagerClient kubernetesManagerClient,
         final DeploymentConfig deploymentConfig,
-        final MirrorResourceLoader loader) {
+        final MirrorResourceLoader loader, final SecurityConfig securityConfig) {
         this.resources = resources;
         this.kubeClient = kubernetesManagerClient;
         this.deploymentConfig = deploymentConfig;
         this.loader = loader;
+        this.securityConfig = securityConfig;
     }
 
     @Override
@@ -77,10 +80,12 @@ public class KubernetesMirrorService implements MirrorService {
         // we need this to properly delete all kafka related resources like the internal state store topic
         final Single<Deployment> deployment = this.kubeClient.readDeployment(deploymentName);
 
+        final String apiKey = this.securityConfig.getApiKey();
+
         // as well as all kafka related resources
         final Completable kafkaCleanUp = deployment
             .map(d -> d.getSpec().getTemplate().getSpec().getContainers().get(0).getArgs())
-            .map(list -> this.resources.createDeletionJob(deploymentName, imageConfig.asImageString(), list))
+            .map(list -> this.resources.createDeletionJob(deploymentName, imageConfig.asImageString(), list, apiKey))
             .flatMapCompletable(this.kubeClient::deploy);
 
         final Completable resourceDeletion = Single.fromCallable(() -> this.loader.forDeletion(deploymentName))

@@ -28,6 +28,8 @@ import com.bakdata.quick.manager.k8s.KubernetesTest;
 import com.bakdata.quick.manager.k8s.resource.QuickResources.ResourcePrefix;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarSource;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.reactivex.Completable;
@@ -132,6 +134,14 @@ class KubernetesApplicationServiceTest extends KubernetesTest {
             .satisfies(container -> {
                 assertThat(container.getImage()).isEqualTo(imageConfig.asImageString());
                 assertThat(container.getArgs()).contains("--input-topics=test");
+                assertThat(container.getEnv())
+                    .hasSize(2)
+                    .first()
+                    .hasFieldOrPropertyWithValue("name", "POD_IP")
+                    .extracting(EnvVar::getValueFrom)
+                    .isNotNull()
+                    .extracting(EnvVarSource::getFieldRef)
+                    .hasFieldOrPropertyWithValue("fieldPath", "status.podIP");
             });
     }
 

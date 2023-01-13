@@ -89,7 +89,8 @@ public class KubernetesApplicationService implements ApplicationService {
         final Completable kafkaCleanUp = deployment
             .map(k8sDeployment -> {
                 final Container container = k8sDeployment.getSpec().getTemplate().getSpec().getContainers().get(0);
-                return this.resources.createDeletionJob(deploymentName, container.getImage(), container.getArgs());
+                return this.resources.createDeletionJob(deploymentName, container.getImage(), container.getArgs(),
+                    null);
             })
             .flatMapCompletable(this.kubeClient::deploy);
 
