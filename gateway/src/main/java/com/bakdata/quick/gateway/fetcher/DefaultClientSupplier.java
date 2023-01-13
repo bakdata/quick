@@ -20,6 +20,7 @@ import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.MirrorClientFactory;
 import com.bakdata.quick.common.type.QuickTopicData;
 import com.bakdata.quick.common.util.Lazy;
+import org.apache.kafka.common.serialization.Serde;
 
 final class DefaultClientSupplier implements ClientSupplier {
     private final HttpClient client;
@@ -36,5 +37,13 @@ final class DefaultClientSupplier implements ClientSupplier {
         final Lazy<QuickTopicData<K, V>> quickTopicData) {
         return new MirrorDataFetcherClient<>(new Lazy<>(() ->
             this.mirrorClientFactory.createMirrorClient(this.client, topic, quickTopicData)));
+    }
+
+    @Override
+    public <K, V> DataFetcherClient<K, V> createClient(final String topic, final Serde<K> keySerde,
+        final Lazy<QuickTopicData<Object, V>> quickTopicData) {
+        return new MirrorDataFetcherClient<>(new Lazy<>(() ->
+            this.mirrorClientFactory.createMirrorClient(this.client, topic, keySerde,
+                quickTopicData.get().getValueData().getResolver())));
     }
 }

@@ -19,7 +19,9 @@ package com.bakdata.quick.gateway.fetcher;
 import com.bakdata.quick.common.api.client.HttpClient;
 import com.bakdata.quick.common.api.client.mirror.PartitionedMirrorClientFactory;
 import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicData;
+import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.common.util.Lazy;
 import com.bakdata.quick.gateway.fetcher.subscription.KafkaSubscriptionProvider;
@@ -29,14 +31,20 @@ import com.bakdata.quick.gateway.ingest.KafkaIngestService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import graphql.Scalars;
 import graphql.execution.DataFetcherResult;
+import graphql.language.NamedNode;
 import graphql.language.TypeName;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.DataFetcher;
 import io.reactivex.Single;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serde;
 import org.reactivestreams.Publisher;
 
 /**
@@ -49,7 +57,14 @@ public class FetcherFactory {
     private final ObjectMapper objectMapper;
     private final ClientSupplier clientSupplier;
     private final TopicTypeService topicTypeService;
+    private final ConversionProvider conversionProvider;
 
+    private static final Map<String, QuickTopicType> typeMap = Map.of(
+        Scalars.GraphQLInt.getName(), QuickTopicType.INTEGER,
+        ExtendedScalars.GraphQLLong.getName(), QuickTopicType.LONG,
+        Scalars.GraphQLString.getName(), QuickTopicType.STRING,
+        Scalars.GraphQLID.getName(), QuickTopicType.STRING,
+        Scalars.GraphQLFloat.getName(), QuickTopicType.DOUBLE);
 
     /**
      * Visible for testing.
@@ -57,11 +72,12 @@ public class FetcherFactory {
     @VisibleForTesting
     public FetcherFactory(final KafkaConfig kafkaConfig, final ObjectMapper objectMapper,
         final TopicTypeService topicTypeService,
-        final ClientSupplier clientSupplier) {
+        final ClientSupplier clientSupplier, final ConversionProvider conversionProvider) {
         this.kafkaConfig = kafkaConfig;
         this.objectMapper = objectMapper;
         this.topicTypeService = topicTypeService;
         this.clientSupplier = clientSupplier;
+        this.conversionProvider = conversionProvider;
     }
 
     /**
@@ -71,9 +87,9 @@ public class FetcherFactory {
      */
     @Inject
     public FetcherFactory(final KafkaConfig kafkaConfig, final HttpClient client,
-        final TopicTypeService topicTypeService) {
+        final TopicTypeService topicTypeService, final ConversionProvider conversionProvider) {
         this(kafkaConfig, client.objectMapper(), topicTypeService,
-            new DefaultClientSupplier(client, new PartitionedMirrorClientFactory()));
+            new DefaultClientSupplier(client, new PartitionedMirrorClientFactory()), conversionProvider);
     }
 
     /**
@@ -107,8 +123,12 @@ public class FetcherFactory {
      * Creates a {@link RangeQueryFetcher}.
      */
     public <K, V> DataFetcher<List<V>> rangeFetcher(final String topic, final String argument, final String rangeFrom,
-        final String rangeTo, final boolean isNullable) {
-        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, this.getTopicData(topic));
+        final String rangeTo, final boolean isNullable, final NamedNode<TypeName> type) {
+        final QuickTopicType quickTopicType = Objects.requireNonNull(typeMap.get(type.getName()));
+
+        final Serde<K> keySerde = this.conversionProvider.getSerde(quickTopicType, true);
+        final Lazy<QuickTopicData<Object, V>> topicData = this.getTopicData(topic);
+        final DataFetcherClient<K, V> client = this.clientSupplier.createClient(topic, keySerde, topicData);
         return new RangeQueryFetcher<>(argument, client, rangeFrom, rangeTo, isNullable);
     }
 
