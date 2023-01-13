@@ -124,8 +124,7 @@ public class QuickTopicTypeService implements TopicTypeService {
         // get schema and configure the resolver with it
         return this.registryFetcher.getSchema(subject)
             .doOnError(e -> log.error("No schema found for subject {}", subject, e))
-            .map(schema -> new TypeResolverWithSchema<>(this.conversionProvider.getTypeResolver(type, schema),
-                schema));
+            .map(schema -> new TypeResolverWithSchema<>(this.conversionProvider.getTypeResolver(type, schema), schema));
     }
 
     @SuppressWarnings("unused") // nothing we can do with the disposable; the value will be in the future

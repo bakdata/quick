@@ -18,13 +18,18 @@ package com.bakdata.quick.gateway.directives.topic.rule.fetcher;
 
 import com.bakdata.quick.common.graphql.GraphQLUtils;
 import com.bakdata.quick.gateway.DataFetcherSpecification;
+import com.bakdata.quick.gateway.directives.QuickDirectiveException;
 import com.bakdata.quick.gateway.directives.topic.TopicDirectiveContext;
+import graphql.language.TypeName;
 import graphql.schema.DataFetcher;
 import graphql.schema.FieldCoordinates;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLSchemaElement;
 import graphql.schema.GraphQLTypeUtil;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Rule for range query fetcher.
@@ -60,12 +65,16 @@ public class RangeFetcherRule implements DataFetcherRule {
         Objects.requireNonNull(context.getTopicDirective().getKeyArgument());
         Objects.requireNonNull(context.getTopicDirective().getRangeFrom());
         Objects.requireNonNull(context.getTopicDirective().getRangeTo());
+
+        final TypeName typeName = this.extractKeyArgumentType(context, context.getTopicDirective().getKeyArgument());
+
         final DataFetcher<?> dataFetcher = context.getFetcherFactory().rangeFetcher(
             context.getTopicDirective().getTopicName(),
             context.getTopicDirective().getKeyArgument(),
             context.getTopicDirective().getRangeFrom(),
             context.getTopicDirective().getRangeTo(),
-            context.isNullable()
+            context.isNullable(),
+            typeName
         );
         final FieldCoordinates coordinates = this.currentCoordinates(context);
         return List.of(DataFetcherSpecification.of(coordinates, dataFetcher));
@@ -79,5 +88,24 @@ public class RangeFetcherRule implements DataFetcherRule {
             && !context.getParentContainerName().equals(GraphQLUtils.SUBSCRIPTION_TYPE)
             && context.getParentContainerName().equals(GraphQLUtils.QUERY_TYPE)
             && GraphQLTypeUtil.isList(context.getEnvironment().getElement().getType());
+    }
+
+    private TypeName extractKeyArgumentType(final TopicDirectiveContext context, final String keyArgument) {
+        final GraphQLSchemaElement graphQLSchemaElement = context.getEnvironment()
+            .getElementParentTree()
+            .getElement();
+
+        final List<GraphQLArgument> arguments = ((GraphQLFieldDefinition) graphQLSchemaElement).getArguments();
+        final Optional<GraphQLArgument> graphQLKeyArgument = arguments.stream()
+            .filter(inputValueDefinition -> inputValueDefinition.getName().equals(keyArgument))
+            .findFirst();
+
+        if (graphQLKeyArgument.isEmpty()) {
+            final String errorMessage = String.format(
+                "Could not find the keyArgument %s in the parent type definition. Please check your schema.",
+                keyArgument);
+            throw new QuickDirectiveException(errorMessage);
+        }
+        return this.extractTypeName(graphQLKeyArgument.get().getDefinition().getType());
     }
 }

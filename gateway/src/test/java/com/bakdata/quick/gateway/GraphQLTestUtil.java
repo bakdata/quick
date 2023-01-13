@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import org.apache.kafka.common.serialization.Serde;
 
 public final class GraphQLTestUtil {
     private GraphQLTestUtil() {
@@ -76,6 +77,14 @@ public final class GraphQLTestUtil {
         @Override
         public <K, V> DataFetcherClient<K, V> createClient(final String topic,
             final Lazy<QuickTopicData<K, V>> quickTopicData) {
+            final DataFetcherClient<K, V> client = mock(DataFetcherClient.class);
+            this.clients.put(topic, client);
+            return client;
+        }
+
+        @Override
+        public <K, V> DataFetcherClient<K, V> createClient(final String topic, final Serde<K> keySerde,
+            final Lazy<QuickTopicData<Object, V>> quickTopicData) {
             final DataFetcherClient<K, V> client = mock(DataFetcherClient.class);
             this.clients.put(topic, client);
             return client;

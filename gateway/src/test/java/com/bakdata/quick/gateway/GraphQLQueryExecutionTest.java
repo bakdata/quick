@@ -25,6 +25,7 @@ import com.bakdata.quick.common.api.client.mirror.TopicRegistryClient;
 import com.bakdata.quick.common.api.model.TopicData;
 import com.bakdata.quick.common.api.model.TopicWriteType;
 import com.bakdata.quick.common.config.KafkaConfig;
+import com.bakdata.quick.common.type.ConversionProvider;
 import com.bakdata.quick.common.type.QuickTopicType;
 import com.bakdata.quick.common.type.TopicTypeService;
 import com.bakdata.quick.gateway.GraphQLTestUtil.TestClientSupplier;
@@ -359,8 +360,10 @@ class GraphQLQueryExecutionTest {
 
         final TopicTypeService topicTypeService = mock(TopicTypeService.class);
 
+        final ConversionProvider conversionProvider = mock(ConversionProvider.class);
+
         final FetcherFactory fetcherFactory = new FetcherFactory(kafkaConfig, this.mapper, topicTypeService,
-            clientSupplier);
+            clientSupplier, conversionProvider);
 
         final QuickDirectiveWiring topicDirectiveWiring = new TopicDirectiveWiring(fetcherFactory);
         final GraphQLSchemaGenerator graphQLSchemaGenerator =
@@ -400,7 +403,7 @@ class GraphQLQueryExecutionTest {
 
         this.registryClient.register(
             "user-request-range",
-            new TopicData("user-request-range", TopicWriteType.MUTABLE, QuickTopicType.INTEGER, QuickTopicType.AVRO,
+            new TopicData("user-request-range", TopicWriteType.MUTABLE, QuickTopicType.STRING, QuickTopicType.AVRO,
                 "")
         ).blockingAwait();
 
