@@ -33,5 +33,4 @@ runs:
         else
           new_tag=${NEW_TAG%.*}
           mike deploy "$new_tag" latest --update-aliases --push --rebase --config-file ./docs/mkdocs.yml
-          mike set-default latest --push  --rebase --config-file ./docs/mkdocs.yml
         fi
