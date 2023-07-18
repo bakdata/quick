@@ -12,9 +12,8 @@ All of them emit statuses that, among others, include the trip's and vehicle's i
 - subscriptions in action
 - the ingest REST API used by an example producer
 
-A [dashboard](https://carsharing.d9p.io/) displays this information on an interactive map.
-
-[![carsharing-app](../../assets/images/carsharing.png)](https://carsharing.d9p.io/)
+A dashboard displays this information on an interactive map:
+![carsharing-app](../../assets/images/carsharing.png)
 
 <div class="video-wrapper">
 <iframe allow="accelerometer; autoplay;
