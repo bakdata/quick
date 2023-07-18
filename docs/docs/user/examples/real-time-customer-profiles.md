@@ -11,9 +11,6 @@ based on the user's playlist.
 - integration of a recommendation service
 - a global GraphQL schema forming the customer profile
 
-Visit the [demo website](https://profile-store.d9p.io/dashboard/) to see the example up and running.
-This visualizes the real-time profiles in a front-end.
-
 The code can be found in [Quick's example repository](https://github.com/bakdata/quick-examples/tree/main/profile-store).
 The example uses the real world data set [LFM-1b](http://www.cp.jku.at/datasets/LFM-1b/).
 The Kafka Streams application is written based on our open source [streams-bootstrap library](https://github.com/bakdata/streams-bootstrap).
