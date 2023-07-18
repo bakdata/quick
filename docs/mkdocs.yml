@@ -45,7 +45,7 @@ markdown_extensions:
       emoji_generator: !!python/name:materialx.emoji.to_svg
 
 extra:
-  quick_version: 0.8.1
+  quick_version: 0.9.0-dev
   version:
     provider: mike
 
