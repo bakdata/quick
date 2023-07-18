@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.8.1](https://github.com/bakdata/quick/tree/0.8.1) (2023-07-18)
+
+[Full Changelog](https://github.com/bakdata/quick/compare/0.8.0...0.8.1)
+
+**Implemented enhancements:**
+
+- Add Protobuf support to `ListFieldFetcher` and add tests [\#139](https://github.com/bakdata/quick/issues/139)
+- Add a header for distinguishing the services in logs [\#133](https://github.com/bakdata/quick/issues/133)
+- Gateway key serializer should be set by the keyArgument type [\#120](https://github.com/bakdata/quick/issues/120)
+- Create range index on `--range-key` field in mirror [\#119](https://github.com/bakdata/quick/issues/119)
+- Deploy mirror with `--range-key` argument [\#117](https://github.com/bakdata/quick/issues/117)
+- Ingest newly created topics into topic registry over Gateway [\#111](https://github.com/bakdata/quick/issues/111)
+
+**Fixed bugs:**
+
+- Fix deletion of Mirrors with `--range-key` option [\#155](https://github.com/bakdata/quick/issues/155)
+- Fix typo in the range-key docs [\#145](https://github.com/bakdata/quick/issues/145)
+- Logging configuration over the config-map does not work properly [\#144](https://github.com/bakdata/quick/issues/144)
+- keyField fetching raises error [\#137](https://github.com/bakdata/quick/issues/137)
+- Topic Registry should store the precise schema type [\#78](https://github.com/bakdata/quick/issues/78)
+
+**Updated dependencies:**
+
+- Test Traefik 2.9+ [\#149](https://github.com/bakdata/quick/issues/149)
+- Update mkdocs-material [\#118](https://github.com/bakdata/quick/issues/118)
+
+**Documentation updates:**
+
+- Add documentation for the range queries with `range-key` [\#135](https://github.com/bakdata/quick/issues/135)
+
+**Miscellaneous:**
+
+- Add tests for GenericRecord and DynamicMessage types of the `keyFieldFetcher` and the `ListFieldFetcher` [\#140](https://github.com/bakdata/quick/issues/140)
+- Create E2E test for range queries with `range-key` [\#134](https://github.com/bakdata/quick/issues/134)
+- Proposal: Quick-Logging Approach [\#129](https://github.com/bakdata/quick/issues/129)
+- Refine and standardise logs [\#127](https://github.com/bakdata/quick/issues/127)
+- Refactor Mirror topology [\#124](https://github.com/bakdata/quick/issues/124)
+- Design: Range queries V1.1 Range over value fields [\#114](https://github.com/bakdata/quick/issues/114)
+- Replace deprecated `set-output` commands [\#109](https://github.com/bakdata/quick/issues/109)
+
+
+
+
 ## [0.8.0](https://github.com/bakdata/quick/tree/0.8.0) (2022-10-14)
 
 [Full Changelog](https://github.com/bakdata/quick/compare/0.7.0...0.8.0)
