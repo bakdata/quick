@@ -13,9 +13,9 @@ entries:
     version: 0.9.0-dev
   - apiVersion: v2
     appVersion: 0.8.1
-    created: "2023-07-18T09:20:41.383527557Z"
+    created: "2023-07-18T09:20:53.211402399Z"
     description: A Helm chart for Kubernetes for quick
-    digest: 84cc8618e21c5d6021461fd5f620cfdfe509db0b9935eef33f74005f7cdc0b22
+    digest: e8795e4863cb047c7b7b7901838210cc07e6cbfac37d023b86ea42a85a02dc68
     name: quick
     type: application
     urls:
@@ -71,4 +71,4 @@ entries:
     urls:
     - quick-0.6.0.tgz
     version: 0.6.0
-generated: "2023-07-18T09:20:41.377270862Z"
+generated: "2023-07-18T09:20:53.209999991Z"
