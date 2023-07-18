@@ -1061,6 +1061,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#081-2023-07-18" class="md-nav__link">
+    0.8.1 (2023-07-18)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#080-2022-10-14" class="md-nav__link">
     0.8.0 (2022-10-14)
   </a>
@@ -1131,6 +1138,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#081-2023-07-18" class="md-nav__link">
+    0.8.1 (2023-07-18)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#080-2022-10-14" class="md-nav__link">
     0.8.0 (2022-10-14)
   </a>
@@ -1172,6 +1186,44 @@
 
 
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<h2 id="081-2023-07-18"><a href="https://github.com/bakdata/quick/tree/0.8.1">0.8.1</a> (2023-07-18)<a class="headerlink" href="#081-2023-07-18" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/bakdata/quick/compare/0.8.0...0.8.1">Full Changelog</a></p>
+<p><strong>Implemented enhancements:</strong></p>
+<ul>
+<li>Add Protobuf support to <code>ListFieldFetcher</code> and add tests <a href="https://github.com/bakdata/quick/issues/139">#139</a></li>
+<li>Add a header for distinguishing the services in logs <a href="https://github.com/bakdata/quick/issues/133">#133</a></li>
+<li>Gateway key serializer should be set by the keyArgument type <a href="https://github.com/bakdata/quick/issues/120">#120</a></li>
+<li>Create range index on <code>--range-key</code> field in mirror <a href="https://github.com/bakdata/quick/issues/119">#119</a></li>
+<li>Deploy mirror with <code>--range-key</code> argument <a href="https://github.com/bakdata/quick/issues/117">#117</a></li>
+<li>Ingest newly created topics into topic registry over Gateway <a href="https://github.com/bakdata/quick/issues/111">#111</a></li>
+</ul>
+<p><strong>Fixed bugs:</strong></p>
+<ul>
+<li>Fix deletion of Mirrors with <code>--range-key</code> option <a href="https://github.com/bakdata/quick/issues/155">#155</a></li>
+<li>Fix typo in the range-key docs <a href="https://github.com/bakdata/quick/issues/145">#145</a></li>
+<li>Logging configuration over the config-map does not work properly <a href="https://github.com/bakdata/quick/issues/144">#144</a></li>
+<li>keyField fetching raises error <a href="https://github.com/bakdata/quick/issues/137">#137</a></li>
+<li>Topic Registry should store the precise schema type <a href="https://github.com/bakdata/quick/issues/78">#78</a></li>
+</ul>
+<p><strong>Updated dependencies:</strong></p>
+<ul>
+<li>Test Traefik 2.9+ <a href="https://github.com/bakdata/quick/issues/149">#149</a></li>
+<li>Update mkdocs-material <a href="https://github.com/bakdata/quick/issues/118">#118</a></li>
+</ul>
+<p><strong>Documentation updates:</strong></p>
+<ul>
+<li>Add documentation for the range queries with <code>range-key</code> <a href="https://github.com/bakdata/quick/issues/135">#135</a></li>
+</ul>
+<p><strong>Miscellaneous:</strong></p>
+<ul>
+<li>Add tests for GenericRecord and DynamicMessage types of the <code>keyFieldFetcher</code> and the <code>ListFieldFetcher</code> <a href="https://github.com/bakdata/quick/issues/140">#140</a></li>
+<li>Create E2E test for range queries with <code>range-key</code> <a href="https://github.com/bakdata/quick/issues/134">#134</a></li>
+<li>Proposal: Quick-Logging Approach <a href="https://github.com/bakdata/quick/issues/129">#129</a></li>
+<li>Refine and standardise logs <a href="https://github.com/bakdata/quick/issues/127">#127</a></li>
+<li>Refactor Mirror topology <a href="https://github.com/bakdata/quick/issues/124">#124</a></li>
+<li>Design: Range queries V1.1 Range over value fields <a href="https://github.com/bakdata/quick/issues/114">#114</a></li>
+<li>Replace deprecated <code>set-output</code> commands <a href="https://github.com/bakdata/quick/issues/109">#109</a></li>
+</ul>
 <h2 id="080-2022-10-14"><a href="https://github.com/bakdata/quick/tree/0.8.0">0.8.0</a> (2022-10-14)<a class="headerlink" href="#080-2022-10-14" title="Permanent link">&para;</a></h2>
 <p><a href="https://github.com/bakdata/quick/compare/0.7.0...0.8.0">Full Changelog</a></p>
 <p><strong>Implemented enhancements:</strong></p>
