@@ -3,6 +3,11 @@
 [![Latest release](https://img.shields.io/github/v/release/bakdata/quick)](https://github.com/bakdata/quick/releases/latest)
 [![Build status](https://github.com/bakdata/quick/actions/workflows/master-ci.yml/badge.svg)](https://github.com/bakdata/quick/actions/workflows/master-ci.yml)
 
+> [!WARNING]
+> We are currently rethinking Quick's approach and moving from applications to composable libraries.
+> During this transition, there will be less updates in this repository.
+> Visit our [user guide](https://bakdata.github.io/quick/latest/user/) for more information.
+
 For detailed usage and installation instructions, check out
 the [documentation](https://bakdata.github.io/quick/latest/user/).
 
@@ -33,7 +38,6 @@ Just open an issue beforehand and let us know what you want to do and why.
 
 See our [contribution guide](https://bakdata.github.io/quick/latest/developer/contributing/)
 and [development overview](https://bakdata.github.io/quick/latest/developer/development/) for more information.
-
 
 ## License
 
