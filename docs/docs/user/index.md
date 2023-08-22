@@ -1,5 +1,30 @@
 # Quick user guide
 
+!!! warning "Important information"
+
+    We are currently rethinking Quick's approach and are moving from applications to composable libraries.
+    Subsequently, we are deprecating the CLI and the applications like the Manager and Ingest service,
+    and there will be less development activity during this period.
+
+    We instead focus on providing you the tools to integrate live data from Kafka in your GraphQL server.
+    The libraries will offer a similar set of features as Quick does now,
+    but allow you to integrate it with your custom solutions.
+    To expose the data from Kafka, this includes:
+
+    - creating different types of Kafka Stream indexes
+    - providing information about the partitioning
+    - applying the GraphQL field selection to Avro and Protobuf objects in your index.
+
+    To then query the data from a GraphQL server, the library provides:
+
+    - clients for querying different index types
+    - pre-computed routing to the replica that holds the queried key.
+
+    If you have any questions or feedback,
+    feel free to [open an issue](https://github.com/bakdata/quick/issues/new/)
+    or contact us by mail ([contact@d9p.io](mailto:contact@d9p.io)).
+
+
 ## What is Quick?
 
 Quick orchestrates your data as a real-time stream of events.
@@ -23,7 +48,6 @@ The gateway is a [GraphQL](https://graphql.org/) server.
 You can apply a GraphQL schema to it that describes the data of your topic.
 With the help of mirrors, the gateway can then efficiently query their content.
 Next to querying data, it also supports ingesting data through a GraphQL interface.
-
 
 ## User guide
 
